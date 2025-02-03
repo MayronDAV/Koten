@@ -1,3 +1,5 @@
+include "glslang-gen_build_info.lua"
+
 project "glslang"
 	kind "StaticLib"
 	language "C++"
@@ -29,14 +31,16 @@ project "glslang"
 		"glslang/SPIRV"
 	}
 
+	generate_build_info()
+
 	filter "system:linux"
 		pic "on"
 		systemversion "latest"
-		files { "glslang/OSDependent/Unix/**.cpp" }
+		files { "glslang/glslang/OSDependent/Unix/**.cpp" }
 
 	filter "system:windows"
 		systemversion "latest"
-		files { "glslang/OSDependent/Windows/**.cpp" }
+		files { "glslang/glslang/OSDependent/Windows/**.cpp" }
 
 	filter "configurations:Debug"
 		runtime "Debug"
