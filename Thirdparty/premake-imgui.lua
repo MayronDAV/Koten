@@ -31,22 +31,23 @@ project "imgui"
 	if IMGUI_GLFW == "ON" then
 		files
 		{
-			"backends/imgui_impl_glfw.h",
-			"backends/imgui_impl_glfw.cpp"
+			"imgui/backends/imgui_impl_glfw.h",
+			"imgui/backends/imgui_impl_glfw.cpp"
 		}
 
-		includedirs "%{IncludeDir.glfw}"
+		includedirs { "%{IncludeDir.glfw}", "imgui/backends" }
 		links "glfw"
 	end
 
 	if IMGUI_OPENGL == "ON" then
 		files
 		{
-			"backends/imgui_impl_opengl3_loader.h",
-			"backends/imgui_impl_opengl3.h",
-			"backends/imgui_impl_opengl3.cpp"
+			"imgui/backends/imgui_impl_opengl3_loader.h",
+			"imgui/backends/imgui_impl_opengl3.h",
+			"imgui/backends/imgui_impl_opengl3.cpp"
 		}
 
+		includedirs { "imgui/backends" }
 		links "opengl32.lib"
 	end
 
