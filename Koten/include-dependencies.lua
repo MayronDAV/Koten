@@ -1,0 +1,9 @@
+group "Koten Thirdparty"
+
+include "Thirdparty/glad"
+include "Thirdparty/premake-glfw.lua"
+include "Thirdparty/premake-glslang.lua"
+include "Thirdparty/premake-SPIRV-Cross.lua"
+include "Thirdparty/stb"
+
+group ""
