@@ -21,7 +21,14 @@ project "spdlog"
 	}
 	
 	filter "system:windows"
+		defines { "UNICODE", "_UNICODE" }
+		buildoptions { "/utf-8" }
 		systemversion "latest"
+
+	filter "system:linux"
+		pic "on"
+		systemversion "latest"
+		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8" }
 
 	filter "configurations:Debug"
 		runtime "Debug"
