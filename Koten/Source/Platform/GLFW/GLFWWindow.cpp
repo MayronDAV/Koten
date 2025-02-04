@@ -50,7 +50,7 @@ namespace KTN
 		Shutdown();
 	}
 
-	void GLFWWindow::OnUpdate()
+	void GLFWWindow::SwapBuffer()
 	{
 		glfwPollEvents();
 	#ifndef KTN_DISABLE_OPENGL

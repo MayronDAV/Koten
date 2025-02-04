@@ -11,10 +11,4 @@ set "target=%1"
 pushd ..\..
 
 call Tools\premake5.exe %target%
-if errorlevel 1 (
-    echo Error: premake5.exe failed with exit code %errorlevel%.
-    exit /b %errorlevel%
-)
-
 popd
-exit /b 0

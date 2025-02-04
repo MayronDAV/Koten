@@ -12,7 +12,7 @@ namespace KTN
 			GLFWWindow(const WindowSpecification& p_Spec = {});
 			~GLFWWindow() override;
 
-			void OnUpdate() override;
+			void SwapBuffer() override;
 
 			void Maximize() override;
 			void Minimize() override;
