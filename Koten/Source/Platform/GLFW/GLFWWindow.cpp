@@ -184,12 +184,13 @@ namespace KTN
 		return resolutions;
 	}
 
-	#define SET_EVENT(event) 			\
-	if (data.EventCallback)				\
-		data.EventCallback(event);		\
 
 	void GLFWWindow::Init(const WindowSpecification& p_Spec)
 	{
+		#define SET_EVENT(event) 			\
+		if (data.EventCallback)				\
+			data.EventCallback(event);		\
+
 		m_Data.Title		= p_Spec.Title;
 		m_Data.Width		= p_Spec.Width;
 		m_Data.Height		= p_Spec.Height;
@@ -201,11 +202,8 @@ namespace KTN
 
 		if (s_GLFWWindowCount == 0)
 		{
-			if (!glfwInit())
-			{
-				KTN_GLFW_CRITICAL("Could not initialize GLFW!");
-				throw std::runtime_error("");
-			}
+			int status = glfwInit();
+			KTN_CORE_ASSERT(status, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
@@ -250,11 +248,7 @@ namespace KTN
 			glfwWindowHint(GLFW_RESIZABLE, p_Spec.Resizable);
 
 			m_Window = glfwCreateWindow((int)p_Spec.Width, (int)p_Spec.Height, p_Spec.Title.c_str(), nullptr, nullptr);
-			if (!m_Window)
-			{
-				KTN_GLFW_CRITICAL("Failed to create window: {}", p_Spec.Title);
-				throw std::runtime_error("");
-			}
+			KTN_CORE_ASSERT(m_Window, "Failed to create window!");
 
 			if (p_Spec.Center && p_Spec.Mode == WindowMode::Windowed && !p_Spec.Maximize)
 			{
@@ -273,11 +267,7 @@ namespace KTN
 		{
 			glfwMakeContextCurrent(m_Window);
 			int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-			if (!status)
-			{
-				KTN_CORE_CRITICAL("Failed to load glad!");
-				throw std::runtime_error("");
-			}
+			KTN_CORE_ASSERT(status, "Failed to load glad!");
 		}
 		#endif // !KTN_DISABLE_OPENGL
 
@@ -393,6 +383,8 @@ namespace KTN
 			MouseMovedEvent event((float)p_X, (float)p_Y);
 			SET_EVENT(event);
 		});
+
+		#undef SET_EVENT;
 	}
 
 	void GLFWWindow::Shutdown() noexcept

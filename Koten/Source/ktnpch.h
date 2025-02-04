@@ -1,9 +1,10 @@
-#ifdef KTN_WINDOWS
+#if defined(_MSC_VER)
 #pragma once
 #endif
 
 #include "Koten/Core/Base.h"
 #include "Koten/Core/Log.h"
+#include "Koten/Core/Assert.h"
 
 // lib
 #include <glm/glm.hpp>
