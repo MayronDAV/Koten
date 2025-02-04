@@ -48,7 +48,12 @@ project "imgui"
 		}
 
 		includedirs { "imgui/backends" }
-		links "opengl32.lib"
+
+		filter "system:windows"
+			links { "opengl32.lib" }
+		
+		filter "system:linux"
+			links { "GL" }
 	end
 
 	filter "system:windows"

@@ -32,7 +32,6 @@ project "Koten"
 
 	links
 	{
-		"opengl32.lib",
 		"glad",
 		"glslang",
 		"SPIRVCross",
@@ -47,6 +46,7 @@ project "Koten"
 
 	filter "system:windows"
 		systemversion "latest"
+		links { "opengl32.lib" }
 		defines
 		{
 			"KTN_WINDOWS",
@@ -55,6 +55,7 @@ project "Koten"
 	
 	filter "system:linux"
         pic "on"
+		links { "GL", "X11", "Xrandr", "Xi", "dl", "pthread" }
 		defines
 		{
 			"KTN_LINUX",

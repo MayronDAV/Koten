@@ -24,7 +24,7 @@ project "Sandbox"
 		"%{IncludeDir.yamlcpp}"
 	}
 
-	links 
+	links
 	{
 		"Koten",
 		"imgui",
@@ -47,6 +47,11 @@ project "Sandbox"
 		systemversion "latest"
 		buildoptions { "-Wno-effc++" }
 		defines "KTN_LINUX"
+
+		postbuildcommands 
+		{
+			("{COPY} %{wks.location}/bin/" .. outputdir .. "/Koten/libKoten.so %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/")
+		}
 
 	filter "configurations:Debug"
 		defines "KTN_DEBUG"
