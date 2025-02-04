@@ -29,7 +29,7 @@ namespace KTN
 
 int APIENTRY WinMain(HINSTANCE p_hInst, HINSTANCE p_hInstPrev, PSTR p_cmdline, int p_cmdshow)
 {
-	return LNR::Main(__argc, __argv);
+	return KTN::Main(__argc, __argv);
 }
 #else
 #if defined(KTN_DIST) && defined(KTN_LINUX)
