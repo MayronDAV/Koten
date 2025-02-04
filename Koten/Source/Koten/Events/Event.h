@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef KTN_LINUX
+	// std
+	#include <string>
+	#include <sstream>
+#endif
 
 
 namespace KTN
