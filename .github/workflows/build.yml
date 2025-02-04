@@ -35,8 +35,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y g++11 libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxxf86vm-dev mesa-common-dev
       
-    - name: Build ${{ matrix.config }}
+    - name: Build ${{ matrix.platform }} ${{ matrix.config }}
       run: |
+        chmod u+r+x Tools/Linux/premake5
         Tools/Linux/premake5 gmake2
         make $* CC=gcc-11 CPP=g++-11 CXX=g++-11 CC=gcc-11 config=${{ matrix.config }} -j8
 
@@ -94,7 +95,7 @@ jobs:
         cd Scripts/Windows
         ./GenVS22.bat
 
-    - name: Build x64 ${{ matrix.config }}
+    - name: Build ${{ matrix.platform }} ${{ matrix.config }}
       shell: cmd
       run: |
         "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=${{ matrix.platform }} /p:Configuration=${{ matrix.config }} Koten.sln
