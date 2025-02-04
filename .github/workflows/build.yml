@@ -1,0 +1,120 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  Linux:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        config: [Debug, Release, Dist]
+        platform: [x64]
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        submodules: recursive
+
+    - name: Restore bin-int cache
+      uses: ./.github/actions/cache-restore
+      with:
+        cache-name: "Linux-BinInt-${{ matrix.config }}-${{ matrix.platform }}"
+        cache-path: "bin-int"
+      continue-on-error: true
+
+    - name: Restore bin cache
+      uses: ./.github/actions/cache-restore
+      with:
+        cache-name: "Linux-Bin-${{ matrix.config }}-${{ matrix.platform }}"
+        cache-path: "bin"
+      continue-on-error: true
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++11 libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxxf86vm-dev mesa-common-dev
+      
+    - name: Build ${{ matrix.config }}
+      run: |
+        Tools/Linux/premake5 gmake2
+        make $* CC=gcc-11 CPP=g++-11 CXX=g++-11 CC=gcc-11 config=${{ matrix.config }} -j8
+
+    - name: Save bin-int cache
+      uses: ./.github/actions/cache-save
+      with:
+        cache-name: "Linux-BinInt-${{ matrix.config }}-${{ matrix.platform }}"
+        cache-path: "bin-int"
+      continue-on-error: true
+  
+    - name: Save bin cache
+      uses: ./.github/actions/cache-save
+      with:
+        cache-name: "Linux-Bin-${{ matrix.config }}-${{ matrix.platform }}"
+        cache-path: "bin"
+      continue-on-error: true
+
+    - name: Upload Bin Artifacts
+      uses: ./.github/actions/upload-artifact
+      with:
+        name: Koten-Linux-${{ matrix.config }}-${{ matrix.platform }}
+        path: bin
+  
+  Windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        config: [Debug, Release, Dist]
+        platform: [x64]
+    env:
+      MSBUILD_PATH: C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        submodules: recursive
+
+    - name: Restore bin-int cache
+      uses: ./.github/actions/cache-restore
+      with:
+        cache-name: "Windows-BinInt-${{ matrix.config }}"
+        cache-path: "bin-int"
+      continue-on-error: true
+
+    - name: Restore bin cache
+      uses: ./.github/actions/cache-restore
+      with:
+        cache-name: "Windows-Bin-${{ matrix.config }}"
+        cache-path: "bin"
+      continue-on-error: true
+
+    - name: Generate Project
+      run: | 
+        cd Scripts/Windows
+        ./GenVS22.bat
+
+    - name: Build x64 ${{ matrix.config }}
+      shell: cmd
+      run: |
+        "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=${{ matrix.platform }} /p:Configuration=${{ matrix.config }} Koten.sln
+
+    - name: Save bin-int cache
+      uses: ./.github/actions/cache-save
+      with:
+        cache-name: "Windows-BinInt-${{ matrix.config }}-${{ matrix.platform }}"
+        cache-path: "bin-int"
+      continue-on-error: true
+
+    - name: Save bin cache
+      uses: ./.github/actions/cache-save
+      with:
+        cache-name: "Windows-Bin-${{ matrix.config }}-${{ matrix.platform }}"
+        cache-path: "bin"
+      continue-on-error: true
+
+    - name: Upload Bin Artifacts
+      uses: ./.github/actions/upload-artifact
+      with:
+        name: "Koten-Windows-${{ matrix.config }}-${{ matrix.platform }}"
+        path: "bin"
