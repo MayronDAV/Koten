@@ -2,9 +2,6 @@
 
 #include "Event.h"
 
-// lib
-#include <glm/glm.hpp>
-
 
 
 namespace KTN

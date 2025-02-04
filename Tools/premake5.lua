@@ -1,8 +1,8 @@
 project "premake5"
 	kind "Utility"
 
-	targetdir ("%{wks.location}/bin/" .. outputdir .. "Tools/%{prj.name}")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "Tools/%{prj.name}")
+	targetdir ("%{wks.location}/bin/" .. outputdir .. "/Tools/%{prj.name}")
+	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/Tools/%{prj.name}")
 
 	files
 	{

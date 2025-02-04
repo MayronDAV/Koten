@@ -1,3 +1,4 @@
+#include "ktnpch.h"
 #include "Log.h"
 
 // lib

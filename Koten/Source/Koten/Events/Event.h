@@ -1,10 +1,4 @@
 #pragma once
-#include "Koten/Core/Base.h"
-
-// std
-#include <string>
-#include <sstream>
-#include <functional>
 
 
 

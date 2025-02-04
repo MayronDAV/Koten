@@ -8,10 +8,13 @@ project "Koten"
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
+	pchheader "ktnpch.h"
+	pchsource "Source/ktnpch.cpp"
+
 	files
 	{
 		"Source/**.h",
-		"Source/**.cpp",
+		"Source/**.cpp"
 	}
 
 	includedirs
