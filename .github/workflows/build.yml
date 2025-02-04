@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        config: [Debug, Release, Dist]
+        config: [debug, release, dist]
         platform: [x64]
     steps:
     - name: Checkout Repository
