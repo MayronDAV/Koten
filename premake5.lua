@@ -32,6 +32,7 @@ group "Thirdparty"
 	include "Thirdparty/premake-imgui.lua"
 	include "Thirdparty/premake-spdlog.lua"
 	include "Thirdparty/premake-yaml-cpp.lua"
+	include "Thirdparty/premake-tracy.lua"
 group ""
 
 group "Core"

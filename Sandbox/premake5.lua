@@ -21,7 +21,8 @@ project "Sandbox"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.yamlcpp}"
+		"%{IncludeDir.yamlcpp}",
+		"%{IncludeDir.tracy}"
 	}
 
 	links
@@ -29,7 +30,8 @@ project "Sandbox"
 		"Koten",
 		"imgui",
 		"spdlog",
-		"yaml-cpp"
+		"yaml-cpp",
+		"tracy"
 	}
 
 	filter "system:windows"
@@ -54,19 +56,19 @@ project "Sandbox"
 		}
 
 	filter "configurations:Debug"
-		defines "KTN_DEBUG"
+		defines { "KTN_DEBUG", "_DEBUG", "KTN_PROFILE_ENABLED", "TRACY_ENABLE", "TRACY_ON_DEMAND" }
 		runtime "Debug"
 		symbols "on"
 		optimize "off"
 
 	filter "configurations:Release"
-		defines "KTN_RELEASE"
+		defines { "KTN_RELEASE", "NDEBUG", "KTN_PROFILE_ENABLED", "TRACY_ENABLE", "TRACY_ON_DEMAND" }
 		runtime "Release"
 		symbols "on"
 		optimize "speed"
 
 	filter "configurations:Dist"
-		defines "KTN_DIST"
+		defines { "KTN_DIST", "NDEBUG" }
 		runtime "Release"
 		symbols "off"
 		optimize "full"

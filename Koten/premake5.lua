@@ -28,6 +28,7 @@ project "Koten"
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yamlcpp}",
+		"%{IncludeDir.tracy}"
 	}
 
 	links
@@ -39,7 +40,8 @@ project "Koten"
 		"glfw",
 		"stb",
 		"imgui",
-		"yaml-cpp"
+		"yaml-cpp",
+		"tracy"
 	}
 
 	defines "KTN_EXPORT"
@@ -63,19 +65,19 @@ project "Koten"
 		}
 
 	filter "configurations:Debug"
-		defines "KTN_DEBUG"
+		defines { "KTN_DEBUG", "_DEBUG", "KTN_PROFILE_ENABLED", "TRACY_ENABLE", "TRACY_ON_DEMAND" }
 		runtime "Debug"
 		symbols "on"
 		optimize "off"
 
 	filter "configurations:Release"
-		defines "KTN_RELEASE"
+		defines { "KTN_RELEASE", "NDEBUG", "KTN_PROFILE_ENABLED", "TRACY_ENABLE", "TRACY_ON_DEMAND" }
 		runtime "Release"
 		symbols "on"
 		optimize "speed"
 
 	filter "configurations:Dist"
-		defines "KTN_DIST"
+		defines { "KTN_DIST", "NDEBUG" }
 		runtime "Release"
 		symbols "off"
 		optimize "full"
