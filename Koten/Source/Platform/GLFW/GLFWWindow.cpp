@@ -384,7 +384,7 @@ namespace KTN
 			SET_EVENT(event);
 		});
 
-		#undef SET_EVENT;
+		#undef SET_EVENT
 	}
 
 	void GLFWWindow::Shutdown() noexcept
