@@ -1,5 +1,6 @@
 #pragma once
 #include "Koten/Core/Application.h"
+#include "Koten/Core/Log.h"
 
 // defined by the client
 extern KTN::Application* KTN::CreateApplication(int p_Argc, char** p_Argv);
@@ -10,10 +11,14 @@ namespace KTN
 {
 	int Main(int p_Argc, char** p_Argv)
 	{
-		auto app = KTN::CreateApplication(p_Argc, p_Argv);
+	#ifndef KTN_DIST
+		Log::Init();
+	#endif
+
+		auto app = CreateApplication(p_Argc, p_Argv);
 		if (!app) 
 		{
-			// TODO: Log
+			KTN_CORE_ERROR("CreateApplication returned nullptr!")
 			return -1;
 		}
 		app->Run();
@@ -41,11 +46,11 @@ namespace KTN
 	#if defined(KTN_DIST) && defined(KTN_LINUX)
 		if (freopen("/dev/null", "w", stdout) == nullptr) 
 		{
-			// TODO: Log
+			KTN_CORE_ERROR("Could not redirect stdout");
 		}
 		if (freopen("/dev/null", "w", stderr) == nullptr) 
 		{
-			// TODO: Log
+			KTN_CORE_ERROR("Could not redirect sterr");
 		}
 	#endif
 

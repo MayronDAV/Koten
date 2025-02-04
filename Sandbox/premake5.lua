@@ -36,8 +36,13 @@ project "Sandbox"
 
 	filter "system:windows"
 		systemversion "latest"
-		buildoptions { "/wd4251" }
-		defines "KTN_WINDOWS"
+		buildoptions { "/utf-8", "/wd4251" }
+		defines
+		{
+			"KTN_WINDOWS",
+			"UNICODE", 
+			"_UNICODE" 
+		}
 
 		postbuildcommands 
 		{
@@ -47,7 +52,7 @@ project "Sandbox"
 	filter "system:linux"
 		pic "on"
 		systemversion "latest"
-		buildoptions { "-Wno-effc++" }
+		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++" }
 		defines "KTN_LINUX"
 
 		postbuildcommands 

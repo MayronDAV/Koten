@@ -48,16 +48,20 @@ project "Koten"
 
 	filter "system:windows"
 		systemversion "latest"
+		buildoptions { "/utf-8", "/wd4251" }
 		links { "opengl32.lib" }
 		defines
 		{
 			"KTN_WINDOWS",
-			"GLFW_INCLUDE_NONE"
+			"GLFW_INCLUDE_NONE",
+			"UNICODE", 
+			"_UNICODE" 
 		}
 	
 	filter "system:linux"
         pic "on"
 		links { "GL", "X11", "Xrandr", "Xi", "dl", "pthread" }
+		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++" }
 		defines
 		{
 			"KTN_LINUX",

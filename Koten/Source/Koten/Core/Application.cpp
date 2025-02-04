@@ -1,5 +1,5 @@
 #include "Application.h"
-
+#include "Log.h"
 
 
 namespace KTN
@@ -14,7 +14,12 @@ namespace KTN
 
 	void Application::Run()
 	{
-		while (true);
+		int count = 0;
+		while (true)
+		{
+			KTN_CORE_INFO("Frame: {}", count);
+			count++;
+		}
 	}
 
 } // namespace KTN
