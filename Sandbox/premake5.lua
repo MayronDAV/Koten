@@ -1,12 +1,11 @@
-include "include-dependencies.lua"
-
-project "Koten"
-	kind "SharedLib"
+project "Sandbox"
+	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+
 
 	files
 	{
@@ -17,49 +16,37 @@ project "Koten"
 	includedirs
 	{
 		"Source",
-		"%{IncludeDir.glad}",
-		"%{IncludeDir.glslang}",
-		"%{IncludeDir.SPIRVCross}",
-		"%{IncludeDir.glfw}",
+		"%{IncludeDir.ktn}",
+		"%{IncludeDir.glm}",
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.spdlog}",
-		"%{IncludeDir.glm}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.stb}",
-		"%{IncludeDir.entt}",
-		"%{IncludeDir.yamlcpp}",
+		"%{IncludeDir.yamlcpp}"
 	}
 
-	links
+	links 
 	{
-		"opengl32.lib",
-		"glad",
-		"glslang",
-		"SPIRVCross",
-		"spdlog",
-		"glfw",
-		"stb",
+		"Koten",
 		"imgui",
+		"spdlog",
 		"yaml-cpp"
 	}
 
-	defines "KTN_EXPORT"
-
 	filter "system:windows"
 		systemversion "latest"
-		defines
+		buildoptions { "/wd4251" }
+		defines "KTN_WINDOWS"
+
+		postbuildcommands 
 		{
-			"KTN_WINDOWS",
-			"GLFW_INCLUDE_NONE"
+			("{COPYFILE} %{wks.location}/bin/" .. outputdir .. "/Koten/Koten.dll %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/")
 		}
-	
+
 	filter "system:linux"
-        pic "on"
-		defines
-		{
-			"KTN_LINUX",
-			"GLFW_INCLUDE_NONE"
-		}
+		pic "on"
+		systemversion "latest"
+		buildoptions { "-Wno-effc++" }
+		defines "KTN_LINUX"
 
 	filter "configurations:Debug"
 		defines "KTN_DEBUG"

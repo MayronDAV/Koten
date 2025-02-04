@@ -3,6 +3,7 @@ include "premake-dependencies.lua"
 
 workspace "Koten"
 	architecture "x64"
+	startproject "Sandbox"
 	flags "MultiProcessorCompile"
 	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 	
@@ -26,4 +27,8 @@ group ""
 
 group "Core"
 	include "Koten"
+group ""
+
+group "Misc"
+	include "Sandbox"
 group ""
