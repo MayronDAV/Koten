@@ -16,6 +16,15 @@ workspace "Koten"
 
 	IMGUI_GLFW 		= "ON"
 	IMGUI_OPENGL 	= "ON"
+
+	filter "system:windows"
+		systemversion "latest"
+
+		filter { "system:windows", "configurations:Dist" }
+			linkoptions { "/SUBSYSTEM:WINDOWS" }
+
+		filter { "system:windows", "configurations:not Dist" }
+			linkoptions { "/SUBSYSTEM:CONSOLE" }
 	
 	
 group "Thirdparty"
