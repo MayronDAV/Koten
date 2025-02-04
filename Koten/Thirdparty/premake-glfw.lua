@@ -19,7 +19,6 @@ project "glfw"
 		"glfw/src/init.c",
 		"glfw/src/input.c",
 		"glfw/src/monitor.c",
-		"glfw/src/glfw_config.h",
 
 		"glfw/src/egl_context.c",
 		"glfw/src/osmesa_context.c",
@@ -55,7 +54,10 @@ project "glfw"
 			"glfw/src/posix_module.c",
 			"glfw/src/glx_context.c",
 			"glfw/src/linux_joystick.h",
-			"glfw/src/linux_joystick.c"
+			"glfw/src/linux_joystick.c",
+
+			"glfw/src/posix_poll.h",
+			"glfw/src/posix_poll.c",
 		}
 
 		links { "X11", "Xrandr", "Xinerama", "Xcursor", "Xi", "Xext", "xkbcommon", "dl", "pthread" }
@@ -73,6 +75,7 @@ project "glfw"
 
 	filter "system:macosx"
 		pic "on"
+		systemversion "latest"
 
 		files
 		{
