@@ -14,7 +14,7 @@ project "glfw"
 		"glfw/src/internal.h",
 		"glfw/src/platform.h",
 		"glfw/src/platform.c",
-		"glfw/src/mappings.c",
+		"glfw/src/mappings.h",
 		"glfw/src/context.c",
 		"glfw/src/init.c",
 		"glfw/src/input.c",
