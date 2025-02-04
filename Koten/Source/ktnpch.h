@@ -1,4 +1,6 @@
+#ifdef KTN_WINDOWS
 #pragma once
+#endif
 
 #include "Koten/Core/Base.h"
 #include "Koten/Core/Log.h"
