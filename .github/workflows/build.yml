@@ -39,7 +39,7 @@ jobs:
       run: |
         chmod u+r+x Tools/Linux/premake5
         Tools/Linux/premake5 gmake2
-        make config=${{ matrix.config }} CC=gcc-11 CXX=g++11 -j8
+        make config=${{ matrix.config }} CC=gcc-11 CXX=g++-11 -j8
 
     - name: Save bin-int cache
       uses: ./.github/actions/cache-save
@@ -68,7 +68,7 @@ jobs:
         config: [Debug, Release, Dist]
         platform: [x64]
     env:
-      MSBUILD_PATH: ${{ github.env.VSINSTALLDIR }}\MSBuild\Current\Bin\
+      MSBUILD_PATH: C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
