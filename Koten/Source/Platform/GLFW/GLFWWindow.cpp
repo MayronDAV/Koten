@@ -269,6 +269,17 @@ namespace KTN
 			glfwShowWindow(m_Window);
 		}
 		++s_GLFWWindowCount;
+		#ifndef KTN_DISABLE_OPENGL // TODO: Graphics context
+		{
+			glfwMakeContextCurrent(m_Window);
+			int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+			if (!status)
+			{
+				KTN_CORE_CRITICAL("Failed to load glad!");
+				throw std::runtime_error("");
+			}
+		}
+		#endif // !KTN_DISABLE_OPENGL
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 
