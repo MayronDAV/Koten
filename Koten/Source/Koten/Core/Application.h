@@ -1,4 +1,5 @@
 #pragma once
+#include "Koten/OS/Window.h"
 
 
 namespace KTN
@@ -10,6 +11,10 @@ namespace KTN
 			~Application();
 
 			void Run();
+
+		private:
+			bool m_Running = true;
+			Window* m_Window = nullptr;
 	};
 
 	// defined by the client

@@ -17,6 +17,7 @@
 #include <vector>
 #include <unordered_map>
 #include <sstream>
+#include <cstdint>
 #ifdef KTN_WINDOWS
 	#include <Windows.h>
 #endif
