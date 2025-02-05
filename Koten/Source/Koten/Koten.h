@@ -25,6 +25,8 @@
 #include "Koten/Graphics/CommandBuffer.h"
 #include "Koten/Graphics/GraphicsContext.h"
 #include "Koten/Graphics/Shader.h"
+#include "Koten/Graphics/Buffer.h"
+#include "Koten/Graphics/VertexArray.h"
 
 // IMGUI
 
@@ -36,3 +38,7 @@
 #include "Koten/OS/MouseCodes.h"
 #include "Koten/OS/Input.h"
 #include "Koten/OS/Window.h"
+
+// UTILS
+
+#include "Koten/Utils/Utils.h"

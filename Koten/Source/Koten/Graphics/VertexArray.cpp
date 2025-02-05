@@ -1,0 +1,18 @@
+#include "ktnpch.h"
+#include "VertexArray.h"
+
+#include "Platform/OpenGL/GLVertexArray.h"
+
+
+
+namespace KTN
+{
+	Ref<VertexArray> VertexArray::Create()
+	{
+		if (Engine::GetAPI() == RenderAPI::OpenGL)
+			return CreateRef<GLVertexArray>();
+
+		KTN_CORE_ERROR("Unsupported API!");
+		return nullptr;
+	}
+}

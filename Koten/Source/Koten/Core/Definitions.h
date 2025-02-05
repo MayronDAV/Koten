@@ -46,6 +46,18 @@ namespace KTN
 		IMAGE_SAMPLER
 	};
 
+	enum class DataType : uint8_t
+	{
+		None = 0,
+		Float, Float2, Float3, Float4,
+		Float3x3, Float4x4,
+		UInt, UInt2, UInt3, UInt4,
+		UInt3x3, UInt4x4,
+		Int, Int2, Int3, Int4,
+		Int3x3, Int4x4,
+		Bool
+	};
+
 	#pragma endregion
 
 	#pragma region Structs

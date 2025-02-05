@@ -17,7 +17,29 @@ namespace KTN
 			{
 				KTN_INFO("Attaching...");
 
+				// testing
+
 				auto shader = Shader::Create("Assets/Shaders/ShaderTest.glsl");
+
+				auto vao = VertexArray::Create();
+
+				struct Vertex
+				{
+					glm::vec3 Position;
+					glm::vec3 Color;
+				};
+
+				auto vbo = VertexBuffer::Create(4 * sizeof(Vertex));
+				vbo->SetLayout({
+					{ DataType::Float3 , "a_Position"	},
+					{ DataType::Float3 , "a_Color"		},
+				});
+				vao->SetVertexBuffer(vbo);
+
+				uint32_t indices[] = { 0, 1, 2, 3 };
+				auto ebo = IndexBuffer::Create(indices, 4);
+				vao->SetIndexBuffer(ebo);
+
 			}
 			void OnDetach() override { KTN_INFO("Detaching..."); }
 			void OnUpdate() override
