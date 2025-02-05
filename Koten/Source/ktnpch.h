@@ -5,6 +5,8 @@
 #include "Koten/Core/Base.h"
 #include "Koten/Core/Log.h"
 #include "Koten/Core/Assert.h"
+#include "Koten/Core/Engine.h"
+#include "Koten/Core/FileSystem.h"
 
 // lib
 #include <glm/glm.hpp>
@@ -12,6 +14,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 // std
+#include <istream>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <algorithm>

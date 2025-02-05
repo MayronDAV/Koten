@@ -13,7 +13,12 @@ namespace KTN
 			SandboxLayer() : Layer("SandboxLayer") {}
 			~SandboxLayer() = default;
 
-			void OnAttach() override { KTN_INFO("Attaching..."); }
+			void OnAttach() override 
+			{
+				KTN_INFO("Attaching...");
+
+				auto shader = Shader::Create("Assets/Shaders/ShaderTest.glsl");
+			}
 			void OnDetach() override { KTN_INFO("Detaching..."); }
 			void OnUpdate() override
 			{

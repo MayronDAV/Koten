@@ -2,12 +2,9 @@
 #include "GLFWWindow.h"
 
 #include "Koten/Events/Event.h"
-#include "Koten/Events/ApplicationEvent.h"
 #include "Koten/Events/KeyEvent.h"
 #include "Koten/Events/MouseEvent.h"
 #include "Koten/Events/WindowEvent.h"
-
-#include "Koten/Core/Engine.h"
 
 // lib
 #include <glad/glad.h>

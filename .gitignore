@@ -1,7 +1,9 @@
 /bin-int
 /.vs
 /bin
+Cache/
 **.sln
 **.vcxproj
 **.filters
 **.user
+*.log

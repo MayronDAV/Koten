@@ -1,6 +1,5 @@
 #include "ktnpch.h"
 #include "ImGuiLayer.h"
-#include "Koten/Core/Engine.h"
 
 #include "Platform/OpenGL/GLImGuiLayer.h"
 

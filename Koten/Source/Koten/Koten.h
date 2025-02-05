@@ -10,6 +10,7 @@
 #include "Koten/Core/Assert.h"
 #include "Koten/Core/Layer.h"
 #include "Koten/Core/LayerStack.h"
+#include "Koten/Core/FileSystem.h"
 
 // EVENTS
 
@@ -21,7 +22,9 @@
 
 // GRAPHICS
 
+#include "Koten/Graphics/CommandBuffer.h"
 #include "Koten/Graphics/GraphicsContext.h"
+#include "Koten/Graphics/Shader.h"
 
 // IMGUI
 

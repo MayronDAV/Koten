@@ -1,0 +1,54 @@
+#include "ktnpch.h"
+#include "FileSystem.h"
+
+
+
+
+namespace KTN
+{
+	std::string FileSystem::GetName(const std::string& p_Path)
+	{
+		auto path = std::filesystem::path(p_Path).filename();
+		return path.string();
+	}
+
+	std::string FileSystem::GetStem(const std::string& p_Path)
+	{
+		auto path = std::filesystem::path(p_Path).stem();
+		return path.string();
+	}
+
+	std::string FileSystem::GetExtension(const std::string& p_Path)
+	{
+		auto path = std::filesystem::path(p_Path).extension();
+		return path.string();
+	}
+
+	std::string FileSystem::ReadFile(const std::string& p_Path)
+	{
+		std::string result;
+		std::ifstream shaderFile{ p_Path, std::ios::in | std::ios::binary };
+
+		if (!shaderFile)
+		{
+			KTN_CORE_ERROR("Could not open file: {}", p_Path);
+			return std::string();
+		}
+
+		shaderFile.seekg(0, std::ios::end);
+		result.resize(shaderFile.tellg());
+		shaderFile.seekg(0, std::ios::beg);
+
+		shaderFile.read(&result[0], result.size());
+		shaderFile.close();
+
+		return result;
+	}
+
+	void FileSystem::CreateDirectories(const std::string& p_Path)
+	{
+		if (!std::filesystem::exists(p_Path))
+			std::filesystem::create_directories(p_Path);
+	}
+
+} // namespace KTN
