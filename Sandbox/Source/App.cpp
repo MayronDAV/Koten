@@ -1,6 +1,9 @@
 #include "Koten/Koten.h"
 #include "Koten/EntryPoint.h"
 
+// lib
+#include <imgui.h>
+
 
 namespace KTN
 {
@@ -14,7 +17,7 @@ namespace KTN
 			void OnDetach() override { KTN_INFO("Detaching..."); }
 			void OnUpdate() override {}
 			void OnRender() override {}
-			void OnImgui() override  {}
+			void OnImgui() override  { ImGui::ShowDemoWindow(); }
 			void OnEvent(Event& p_Event) override {}
 	};
 
@@ -25,7 +28,7 @@ namespace KTN
 		KTN_INFO("Creating sandbox app...");
 
 		auto app = new Application();
-
+		ImGui::SetCurrentContext(app->GetImGui()->GetCurrentContext());
 
 		app->PushLayer(CreateRef<SandboxLayer>());
 

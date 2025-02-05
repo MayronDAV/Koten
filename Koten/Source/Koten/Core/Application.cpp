@@ -23,6 +23,9 @@ namespace KTN
 		{
 			OnEvent(p_Event);
 		});
+
+		m_ImGui = ImGuiLayer::Create();
+		PushOverlay(m_ImGui);
 	}
 
 	Application::~Application()
@@ -46,6 +49,14 @@ namespace KTN
 			{
 				for (auto& layer : m_LayerStack)
 					layer->OnRender();
+
+				// ImGui
+				m_ImGui->Begin();
+				{
+					for (auto& layer : m_LayerStack)
+						layer->OnImgui();
+				}
+				m_ImGui->End();
 
 				m_Window->SwapBuffer();
 			}

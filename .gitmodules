@@ -13,6 +13,7 @@
 [submodule "Thirdparty/imgui"]
 	path = Thirdparty/imgui
 	url = https://github.com/ocornut/imgui.git
+	branch = docking
 [submodule "Thirdparty/spdlog"]
 	path = Thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git

@@ -2,6 +2,7 @@
 #include "Koten/OS/Window.h"
 #include "Layer.h"
 #include "LayerStack.h"
+#include "Koten/ImGui/ImGuiLayer.h"
 
 
 namespace KTN
@@ -22,6 +23,10 @@ namespace KTN
 
 			void SetUpdateMinimized(bool p_Value) { m_UpdateMinimized = p_Value; }
 
+			Unique<Window>& GetWindow() { return m_Window; }
+			void Close() { m_Running = false; }
+			const Ref<ImGuiLayer>& GetImGui() { return m_ImGui; }
+
 			static Application& Get() { return *s_Instance; }
 
 		private:
@@ -32,6 +37,8 @@ namespace KTN
 			bool m_Running			= true;
 			Unique<Window> m_Window = nullptr;
 			LayerStack m_LayerStack;
+
+			Ref<ImGuiLayer> m_ImGui = nullptr;
 
 			static Application* s_Instance;
 	};

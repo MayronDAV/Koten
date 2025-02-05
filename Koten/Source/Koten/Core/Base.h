@@ -43,5 +43,6 @@ namespace KTN
 
 } // namespace KTN
 
-#define KTN_GLFWLOG "[ GLFW   ] : "
-#define KTN_GLLOG	"[ OPENGL ] : "
+#define KTN_GLFWLOG "[ GLFW ] : "
+#define KTN_GLLOG	"[OPENGL] : "
+#define KTN_VKLOG	"[VULKAN] : "
