@@ -27,9 +27,6 @@ namespace KTN
 
 	Application::~Application()
 	{
-		if (m_Window)
-			delete m_Window;
-
 		s_Instance = nullptr;
 	}
 
@@ -40,14 +37,14 @@ namespace KTN
 			// Update
 			if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
 			{
-				for (Layer* layer : m_LayerStack)
+				for (auto& layer : m_LayerStack)
 					layer->OnUpdate();
 			}
 
 			// Render
 			if (!m_Window->IsMinimized())
 			{
-				for (Layer* layer : m_LayerStack)
+				for (auto& layer : m_LayerStack)
 					layer->OnRender();
 
 				m_Window->SwapBuffer();
@@ -55,25 +52,25 @@ namespace KTN
 		}
 	}
 
-	void Application::PushLayer(Layer* p_Layer)
+	void Application::PushLayer(const Ref<Layer>& p_Layer)
 	{
 		p_Layer->OnAttach();
 		m_LayerStack.PushLayer(p_Layer);
 	}
 
-	void Application::PushOverlay(Layer* p_Overlay)
+	void Application::PushOverlay(const Ref<Layer>& p_Overlay)
 	{
 		p_Overlay->OnAttach();
 		m_LayerStack.PushOverlay(p_Overlay);
 	}
 
-	void Application::PopLayer(Layer* p_Layer)
+	void Application::PopLayer(const Ref<Layer>& p_Layer)
 	{
 		p_Layer->OnDetach();
 		m_LayerStack.PopLayer(p_Layer);
 	}
 
-	void Application::PopOverlay(Layer* p_Overlay)
+	void Application::PopOverlay(const Ref<Layer>& p_Overlay)
 	{
 		p_Overlay->OnDetach();
 		m_LayerStack.PopOverlay(p_Overlay);

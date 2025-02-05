@@ -1,5 +1,9 @@
 #pragma once
 
+// std
+#include <cstdint>
+#include <memory>
+
 
 #ifdef KTN_WINDOWS
 	#ifdef KTN_EXPORT
@@ -18,3 +22,23 @@
 #endif
 
 #define BIT(x) (1 << x)
+
+namespace KTN
+{
+	template<typename T>
+	using Unique = std::unique_ptr<T>;
+	template<typename T, typename ...Args>
+	inline constexpr Unique<T> CreateUnique(Args&& ...p_Args)
+	{
+		return std::make_unique<T>(std::forward<Args>(p_Args)...);
+	}
+
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+	template<typename T, typename ...Args>
+	inline constexpr Ref<T> CreateRef(Args&& ...p_Args)
+	{
+		return std::make_shared<T>(std::forward<Args>(p_Args)...);
+	}
+
+} // namespace KTN

@@ -7,9 +7,9 @@
 
 namespace KTN
 {
-	Window* Window::Create(const WindowSpecification& p_Spec)
+	Unique<Window> Window::Create(const WindowSpecification& p_Spec)
 	{
-		return new GLFWWindow(p_Spec);
+		return CreateUnique<GLFWWindow>(p_Spec);
 	}
 
 } // namespace KTN

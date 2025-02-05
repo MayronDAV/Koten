@@ -8,28 +8,24 @@ namespace KTN
 {
 	LayerStack::~LayerStack()
 	{
-		for (Layer* layer : m_Layers)
-		{
-			if (layer)
-			{
-				layer->OnDetach();
-				delete layer;
-			}
-		}
+		for (const Ref<Layer>& layer : m_Layers)
+			layer->OnDetach();
+
+		m_Layers.clear();
 	}
 
-	void LayerStack::PushLayer(Layer* p_Layer)
+	void LayerStack::PushLayer(const Ref<Layer>& p_Layer)
 	{
 		m_Layers.emplace(m_Layers.begin() + m_LayerInsertIndex, p_Layer);
 		m_LayerInsertIndex++;
 	}
 
-	void LayerStack::PushOverlay(Layer* p_Overlay)
+	void LayerStack::PushOverlay(const Ref<Layer>& p_Overlay)
 	{
 		m_Layers.emplace_back(p_Overlay);
 	}
 
-	void LayerStack::PopLayer(Layer* p_Layer)
+	void LayerStack::PopLayer(const Ref<Layer>& p_Layer)
 	{
 		auto it = std::find(m_Layers.begin(), m_Layers.end(), p_Layer);
 		if (it != m_Layers.end())
@@ -39,7 +35,7 @@ namespace KTN
 		}
 	}
 
-	void LayerStack::PopOverlay(Layer* p_Overlay)
+	void LayerStack::PopOverlay(const Ref<Layer>& p_Overlay)
 	{
 		auto it = std::find(m_Layers.begin(), m_Layers.end(), p_Overlay);
 		if (it != m_Layers.end())
