@@ -18,19 +18,6 @@ namespace KTN
 {
 	namespace
 	{
-		static int CursorModeToGLFW(CursorMode p_Mode)
-		{
-			switch (p_Mode)
-			{
-				case CursorMode::Normal:   return GLFW_CURSOR_NORMAL;
-				case CursorMode::Hidden:   return GLFW_CURSOR_HIDDEN;
-				case CursorMode::Disabled: return GLFW_CURSOR_DISABLED;
-			}
-
-			KTN_GLFW_ERROR("Unknown cursor mode!");
-			return 0;
-		}
-
 		static void GLFWErrorCallback(int p_Error, const char* p_Description)
 		{
 			KTN_GLFW_ERROR("GLFW Error ({0}): {1}", p_Error, p_Description)
@@ -80,13 +67,6 @@ namespace KTN
 	void GLFWWindow::SetPosition(int p_X, int p_Y)
 	{
 		glfwSetWindowPos(m_Window, p_X, p_Y);
-	}
-
-	void GLFWWindow::SetCursorMode(CursorMode p_Mode)
-	{
-		int mode = CursorModeToGLFW(p_Mode);
-		if (mode != 0)
-			glfwSetInputMode(m_Window, GLFW_CURSOR, mode);
 	}
 
 	void GLFWWindow::SetVsync(bool p_Value)

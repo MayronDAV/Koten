@@ -28,7 +28,6 @@ namespace KTN
 			virtual void SubmitEvent(Event& p_Event)							= 0;
 			virtual void SetPosition(int p_X, int p_Y)							= 0;
 			virtual void SetEventCallback(EventCallbackFn p_Callback)			= 0;
-			virtual void SetCursorMode(CursorMode p_Mode)						= 0;
 			virtual void SetVsync(bool p_Value)									= 0;
 
 			virtual void Resize(uint32_t p_Width, uint32_t p_Height)			= 0;

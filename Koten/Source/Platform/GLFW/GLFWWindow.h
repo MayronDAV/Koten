@@ -21,7 +21,6 @@ namespace KTN
 			void SubmitEvent(Event& p_Event) override;
 			void SetEventCallback(EventCallbackFn p_Callback) override { m_Data.EventCallback = p_Callback; }
 			void SetPosition(int p_X, int p_Y) override;
-			void SetCursorMode(CursorMode p_Mode) override;
 			void SetVsync(bool p_Value) override;
 
 			void Resize(uint32_t p_Width, uint32_t p_Height) override;
