@@ -26,6 +26,7 @@ namespace KTN
 
 		auto app = new Application();
 
+
 		app->PushLayer(CreateRef<SandboxLayer>());
 
 		return app;

@@ -8,6 +8,11 @@
 
 namespace KTN
 {
+	enum class RenderAPI : uint8_t
+	{
+		None = 0, OpenGL
+	};
+
 	enum class WindowMode : uint8_t
 	{
 		Windowed = 0,

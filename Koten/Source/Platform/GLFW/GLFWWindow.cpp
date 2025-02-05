@@ -7,10 +7,10 @@
 #include "Koten/Events/MouseEvent.h"
 #include "Koten/Events/WindowEvent.h"
 
+#include "Koten/Core/Engine.h"
+
 // lib
-#ifndef KTN_DISABLE_OPENGL
-	#include <glad/glad.h>
-#endif
+#include <glad/glad.h>
 
 
 
@@ -53,9 +53,7 @@ namespace KTN
 	void GLFWWindow::SwapBuffer()
 	{
 		glfwPollEvents();
-	#ifndef KTN_DISABLE_OPENGL
-		glfwSwapBuffers(m_Window); // TODO: Graphics context
-	#endif // !KTN_DISABLE_OPENGL
+		m_Data.Context->SwapBuffer();
 	}
 
 	void GLFWWindow::Maximize()
@@ -94,11 +92,7 @@ namespace KTN
 	void GLFWWindow::SetVsync(bool p_Value)
 	{
 		m_Data.Vsync = p_Value;
-
-	#ifndef KTN_DISABLE_OPENGL
-		glfwSwapInterval(p_Value ? 1 : 0); // TODO: Graphics context
-	#endif // !KTN_DISABLE_OPENGL
-
+		m_Data.Context->SetVsync(p_Value);
 	}
 
 	void GLFWWindow::Resize(uint32_t p_Width, uint32_t p_Height)
@@ -210,21 +204,7 @@ namespace KTN
 		{
 			glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-			#ifndef KTN_DISABLE_OPENGL // TODO: Graphics context
-			{
-			#if defined(KTN_DEBUG)
-				glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-			#endif // KTN_DEBUG
-
-				glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-				glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-			#if defined(__APPLE__)
-				glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-			#endif // __APPLE__
-			}
-			#endif // !KTN_DISABLE_OPENGL
+			m_Data.Context = GraphicsContext::Create();
 
 			int width = int(p_Spec.Width);
 			int height = int(p_Spec.Height);
@@ -263,13 +243,7 @@ namespace KTN
 			glfwShowWindow(m_Window);
 		}
 		++s_GLFWWindowCount;
-		#ifndef KTN_DISABLE_OPENGL // TODO: Graphics context
-		{
-			glfwMakeContextCurrent(m_Window);
-			int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-			KTN_CORE_ASSERT(status, "Failed to load glad!");
-		}
-		#endif // !KTN_DISABLE_OPENGL
+		m_Data.Context->Init(m_Window, m_Data.Title.c_str());
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 
@@ -278,6 +252,7 @@ namespace KTN
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(p_Window);
 			data.Width = p_Width;
 			data.Height = p_Height;
+			data.Context->OnResize((uint32_t)p_Width, (uint32_t)p_Height);
 
 			WindowResizeEvent event(p_Width, p_Height);
 			SET_EVENT(event);

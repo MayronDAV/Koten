@@ -1,6 +1,6 @@
 #pragma once
 #include "Koten/OS/Window.h"
-#include "Base.h"
+#include "GLFWBase.h"
 
 
 
@@ -30,6 +30,8 @@ namespace KTN
 			bool IsMaximized() const override;
 			bool IsMinimized() const override;
 
+			Unique<GraphicsContext>& GetContext() override { return m_Data.Context; }
+
 			glm::vec2 GetPosition() const override;
 
 			std::vector<WindowResolution> GetResolutions() const override;
@@ -56,6 +58,7 @@ namespace KTN
 				bool Vsync						= true;
 
 				EventCallbackFn EventCallback	= nullptr;
+				Unique<GraphicsContext> Context = nullptr;
 			} m_Data;
 	};
 

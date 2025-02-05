@@ -2,6 +2,7 @@
 #include "Koten/Core/Base.h"
 #include "Koten/Events/Event.h"
 #include "Koten/Core/Definitions.h"
+#include "Koten/Graphics/GraphicsContext.h"
 
 // lib
 #include <glm/glm.hpp>
@@ -35,6 +36,8 @@ namespace KTN
 
 			virtual bool IsMaximized() const									= 0;
 			virtual bool IsMinimized() const									= 0;
+
+			virtual Unique<GraphicsContext>& GetContext()						= 0;
 
 			virtual glm::vec2 GetPosition() const								= 0;
 
