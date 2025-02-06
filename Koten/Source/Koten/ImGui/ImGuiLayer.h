@@ -20,6 +20,7 @@ namespace KTN
 			virtual void End() = 0;
 
 			void OnEvent(Event& p_Event) override;
+			void OnUpdate() override;
 
 			ImGuiContext* GetCurrentContext();
 

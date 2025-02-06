@@ -11,6 +11,7 @@
 #include "Koten/Core/Layer.h"
 #include "Koten/Core/LayerStack.h"
 #include "Koten/Core/FileSystem.h"
+#include "Koten/Core/Time.h"
 
 // EVENTS
 

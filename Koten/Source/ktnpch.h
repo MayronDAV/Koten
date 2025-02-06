@@ -7,6 +7,7 @@
 #include "Koten/Core/Assert.h"
 #include "Koten/Core/Engine.h"
 #include "Koten/Core/FileSystem.h"
+#include "Koten/Core/Time.h"
 
 // lib
 #include <glm/glm.hpp>

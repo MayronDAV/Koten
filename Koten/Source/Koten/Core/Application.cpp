@@ -45,6 +45,8 @@ namespace KTN
 			// Update
 			if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
 			{
+				Time::OnUpdate();
+
 				for (auto& layer : m_LayerStack)
 					layer->OnUpdate();
 			}

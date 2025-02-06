@@ -77,6 +77,12 @@ namespace KTN
 		}
 	}
 
+	void ImGuiLayer::OnUpdate()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		io.DeltaTime = (float)Time::GetDeltaTime();
+	}
+
 	ImGuiContext* ImGuiLayer::GetCurrentContext()
 	{
 		return ImGui::GetCurrentContext();
