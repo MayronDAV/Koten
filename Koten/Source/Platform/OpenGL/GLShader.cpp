@@ -129,6 +129,7 @@ namespace KTN
 		for (int i = 0; i < m_PushConstants.size(); i++)
 		{
 			m_PushConstants[i].Data = new uint8_t[m_PushConstants[i].Size];
+			m_PushConstantsBuffers.emplace_back(CreateRef<GLUniformBuffer>(m_PushConstants[i].Size));
 		}
 	}
 
@@ -155,7 +156,14 @@ namespace KTN
 
 	void GLShader::BindPushConstants(CommandBuffer* p_CommandBuffer)
 	{
-		// TODO:
+		for (int i = 0; i < m_PushConstants.size(); i++)
+		{
+			auto& push		= m_PushConstants[i];
+			auto& buffer	= m_PushConstantsBuffers[i];
+
+			buffer->SetData(push.Data, push.Size);
+			buffer->Bind(PUSHCONSTANT_BINDING);
+		}
 	}
 
 	ShaderSource GLShader::Reflect(const SpirvSource& p_Spirv)

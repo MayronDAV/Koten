@@ -162,8 +162,14 @@ namespace KTN
 		std::string FullName;
 	};
 
+	class Texture2D;
+	class UniformBuffer;
+
 	struct DescriptorInfo
 	{
+		std::vector<Ref<Texture2D>> Textures;
+		Ref<UniformBuffer> Uniform = nullptr;
+
 		std::string Name;
 		uint32_t Binding = 0u;
 		size_t Offset = 0ul;

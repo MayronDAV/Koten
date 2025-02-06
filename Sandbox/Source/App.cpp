@@ -3,6 +3,7 @@
 
 // lib
 #include <imgui.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 namespace KTN
@@ -13,6 +14,7 @@ namespace KTN
 			Ref<Shader> m_Shader = nullptr;
 			Ref<VertexArray> m_VAO = nullptr;
 			Ref<Texture2D> m_Texture = nullptr;
+			glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
 
 		public:
 			SandboxLayer() : Layer("SandboxLayer") {}
@@ -62,22 +64,32 @@ namespace KTN
 			void OnDetach() override { KTN_INFO("Detaching..."); }
 			void OnUpdate() override
 			{
+				glm::vec3 dir{ 0.0f };
+				float speed = 1.5f;
+
 				if (Input::IsKeyPressed(Key::W))
-					KTN_CORE_INFO("W is pressed!");
+					dir.y =  1;
 				if (Input::IsKeyPressed(Key::A))
-					KTN_CORE_INFO("A is pressed!");
+					dir.x = -1;
 				if (Input::IsKeyPressed(Key::S))
-					KTN_CORE_INFO("S is pressed!");
+					dir.y = -1;
 				if (Input::IsKeyPressed(Key::D))
-					KTN_CORE_INFO("D is pressed!");
+					dir.x =  1;
+
+				m_Position += (glm::length(dir) > 0 ? glm::normalize(dir) : dir) * speed * (float)Time::GetDeltaTime();
 			}
 			void OnRender() override
 			{
+				auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
+
 				m_Shader->Bind();
 
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Position) * glm::scale(glm::mat4(1.0f), { 0.5f, 0.5f, 0.5f});
+				m_Shader->SetPushValue("Matrix", &model);
+				m_Shader->BindPushConstants(commandBuffer);
 				RendererCommand::DrawIndexed(m_VAO);
 			}
-			void OnImgui() override  { ImGui::ShowDemoWindow(); }
+			void OnImgui() override  { }
 			void OnEvent(Event& p_Event) override {}
 	};
 

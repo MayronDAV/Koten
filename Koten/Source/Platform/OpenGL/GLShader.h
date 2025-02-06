@@ -1,5 +1,6 @@
 #pragma once
 #include "Koten/Graphics/Shader.h"
+#include "GLUniformBuffer.h"
 
 
 
@@ -31,6 +32,7 @@ namespace KTN
 			uint32_t m_RendererID = 0;
 			bool m_IsCompute = false;
 			PushConstants m_PushConstants;
+			std::vector<Ref<GLUniformBuffer>> m_PushConstantsBuffers;
 			DescriptorInfos m_DescriptorInfos;
 	};
 

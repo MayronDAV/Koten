@@ -11,11 +11,17 @@ struct VertexData
 layout(location = 0) out VertexData Output;
 
 
+layout(push_constant) uniform PushConsts
+{
+	mat4 Matrix;
+};
+
+
 void main()
 {
 	Output.Color	= vec4(a_Color, 1.0);
 
-	gl_Position = vec4(a_Position, 1.0f);
+	gl_Position		= Matrix * vec4(a_Position, 1.0f);
 }
 
 
@@ -30,7 +36,10 @@ struct VertexData
 };
 layout(location = 0) in VertexData Input;
 
-
+layout(push_constant) uniform PushConsts
+{
+	mat4 Matrix;
+};
 
 void main()
 {
