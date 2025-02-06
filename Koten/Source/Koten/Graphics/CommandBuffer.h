@@ -2,6 +2,7 @@
 #include "Koten/Core/Base.h"
 #include "Koten/Core/Definitions.h"
 #include "VertexArray.h"
+#include "DescriptorSet.h"
 
 
 
@@ -13,6 +14,8 @@ namespace KTN
 			virtual ~CommandBuffer() = default;
 
 			virtual bool Init() = 0;
+
+			void BindSets(const Ref<DescriptorSet>* p_Sets, uint32_t p_Count = 1);
 
 			virtual void SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height) = 0;
 			virtual void DispatchCompute(uint32_t p_NumGroups_X, uint32_t p_NumGroups_Y, uint32_t p_NumGroups_Z) = 0;

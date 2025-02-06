@@ -14,6 +14,7 @@ namespace KTN
 			Ref<Shader> m_Shader = nullptr;
 			Ref<VertexArray> m_VAO = nullptr;
 			Ref<Texture2D> m_Texture = nullptr;
+			Ref<DescriptorSet> m_Set = nullptr;
 			glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
 
 		public:
@@ -24,31 +25,27 @@ namespace KTN
 			{
 				KTN_INFO("Attaching...");
 
-				TextureSpecification spec	= {};
-				spec.Usage					= TextureUsage::TEXTURE_COLOR_ATTACHMENT;
-				spec.GenerateMips			= true;
-				spec.AnisotropyEnable		= true;
-				spec.DebugName = "Teste";
-
-				m_Texture = Texture2D::Get(spec);
-
-				// testing
+				m_Texture = TextureImporter::LoadTexture2D("Assets/Textures/checkerboard.png");
 
 				m_Shader = Shader::Create("Assets/Shaders/ShaderTest.glsl");
 
+				m_Set = DescriptorSet::Create({ 0, m_Shader });
+
 				m_VAO = VertexArray::Create();
 
+
 				float vertices[] = {
-					// positions        // colors
-					-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-					 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-					 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-					-0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f
+					// positions      // texcoords  // colors
+					-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+					 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+					 0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+					-0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f
 				};
 
 				auto vbo = VertexBuffer::Create(vertices, sizeof(vertices));
 				vbo->SetLayout({
 					{ DataType::Float3 , "a_Position"	},
+					{ DataType::Float2 , "a_Texcoord"	},
 					{ DataType::Float3 , "a_Color"		},
 				});
 				m_VAO->SetVertexBuffer(vbo);
@@ -83,6 +80,11 @@ namespace KTN
 				auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 
 				m_Shader->Bind();
+
+				m_Set->SetTexture("u_Texture", m_Texture);
+				m_Set->Upload(commandBuffer);
+
+				commandBuffer->BindSets(&m_Set);
 
 				glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Position) * glm::scale(glm::mat4(1.0f), { 0.5f, 0.5f, 0.5f});
 				m_Shader->SetPushValue("Matrix", &model);
