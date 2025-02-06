@@ -13,6 +13,7 @@ namespace KTN
 			~GLFWWindow() override;
 
 			void SwapBuffer() override;
+			void OnUpdate() override;
 
 			void Maximize() override;
 			void Minimize() override;

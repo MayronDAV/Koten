@@ -4,6 +4,7 @@
 #include "Koten/Events/Event.h"
 #include "Koten/Events/ApplicationEvent.h"
 #include "Koten/Events/WindowEvent.h"
+#include "Koten/Graphics/RendererCommand.h"
 
 
 
@@ -24,12 +25,16 @@ namespace KTN
 			OnEvent(p_Event);
 		});
 
+		RendererCommand::Init();
+
 		m_ImGui = ImGuiLayer::Create();
 		PushOverlay(m_ImGui);
 	}
 
 	Application::~Application()
 	{
+		RendererCommand::Release();
+
 		s_Instance = nullptr;
 	}
 
@@ -47,6 +52,8 @@ namespace KTN
 			// Render
 			if (!m_Window->IsMinimized())
 			{
+				RendererCommand::Begin();
+
 				for (auto& layer : m_LayerStack)
 					layer->OnRender();
 
@@ -58,8 +65,12 @@ namespace KTN
 				}
 				m_ImGui->End();
 
+				RendererCommand::End();
+
 				m_Window->SwapBuffer();
 			}
+
+			m_Window->OnUpdate();
 		}
 	}
 
@@ -94,6 +105,13 @@ namespace KTN
 		{
 			m_Running = false;
 			return true;
+		});
+
+		p_Event.Dispatch<WindowResizeEvent>(
+		[&](WindowResizeEvent& p_Event)
+		{
+			RendererCommand::OnResize(p_Event.GetHeight(), p_Event.GetHeight());
+			return false;
 		});
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )

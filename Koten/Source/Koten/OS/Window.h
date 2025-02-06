@@ -20,6 +20,7 @@ namespace KTN
 			virtual ~Window() = default;
 
 			virtual void SwapBuffer()											= 0;
+			virtual void OnUpdate()												= 0;
 
 			virtual void Maximize()												= 0;
 			virtual void Minimize()												= 0;

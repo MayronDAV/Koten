@@ -15,5 +15,8 @@ namespace KTN
 
 			void SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height) override;
 			void DispatchCompute(uint32_t p_NumGroups_X, uint32_t p_NumGroups_Y, uint32_t p_NumGroups_Z) override;
+
+			void Draw(const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount) override;
+			void DrawIndexed(const Ref<VertexArray>& p_VertexArray) override;
 	};
 } // namespace KTN

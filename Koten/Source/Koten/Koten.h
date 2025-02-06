@@ -27,6 +27,8 @@
 #include "Koten/Graphics/Shader.h"
 #include "Koten/Graphics/Buffer.h"
 #include "Koten/Graphics/VertexArray.h"
+#include "Koten/Graphics/RendererAPI.h"
+#include "Koten/Graphics/RendererCommand.h"
 
 // IMGUI
 

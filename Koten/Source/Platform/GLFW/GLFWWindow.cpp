@@ -36,8 +36,12 @@ namespace KTN
 
 	void GLFWWindow::SwapBuffer()
 	{
-		glfwPollEvents();
 		m_Data.Context->SwapBuffer();
+	}
+
+	void GLFWWindow::OnUpdate()
+	{
+		glfwPollEvents();
 	}
 
 	void GLFWWindow::Maximize()
@@ -229,7 +233,6 @@ namespace KTN
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(p_Window);
 			data.Width = p_Width;
 			data.Height = p_Height;
-			data.Context->OnResize((uint32_t)p_Width, (uint32_t)p_Height);
 
 			WindowResizeEvent event(p_Width, p_Height);
 			SET_EVENT(event);
