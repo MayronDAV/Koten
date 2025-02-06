@@ -41,6 +41,15 @@ namespace KTN
 		return std::make_shared<T>(std::forward<Args>(p_Args)...);
 	}
 
+	template<class T, class U>
+	inline constexpr Ref<U> As(const Ref<T>& p_Class)
+	{
+		static_assert(std::is_convertible_v<U*, T*> || std::is_base_of_v<U, T>,
+			"Invalid cast: T must be convertible to U or U must be a base of T.");
+		return std::dynamic_pointer_cast<U>(p_Class);
+	}
+
+
 } // namespace KTN
 
 #define KTN_GLFWLOG "[ GLFW ] : "

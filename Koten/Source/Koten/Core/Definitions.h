@@ -1,9 +1,13 @@
 #pragma once
 #include "Koten/Core/Log.h"
 
+// lib
+#include <glm/glm.hpp>
+
 // std
 #include <string>
 #include <cstdint>
+
 
 
 
@@ -57,6 +61,74 @@ namespace KTN
 		Int3x3, Int4x4,
 		Bool
 	};
+
+	enum class TextureUsage : uint8_t
+	{
+		TEXTURE_SAMPLED = 0,
+		TEXTURE_STORAGE,
+		TEXTURE_COLOR_ATTACHMENT,
+		TEXTURE_DEPTH_STENCIL_ATTACHMENT,
+	};
+
+	enum class TextureWrap : uint8_t
+	{
+		NONE = 0,
+		REPEAT,
+		MIRRORED_REPEAT,
+		CLAMP_TO_EDGE,
+		CLAMP_TO_BORDER
+	};
+
+	enum class TextureFilter : uint8_t
+	{
+		NONE = 0,
+		LINEAR,
+		NEAREST
+	};
+
+	enum class TextureAccess : uint8_t
+	{
+		READ_WRITE = 0,
+		READ_ONLY,
+		WRITE_ONLY
+	};
+
+	enum class TextureFormat : uint8_t
+	{
+		NONE = 0,
+
+		// Color Format
+
+		R8,
+		R8_INT,
+		R8_UINT,
+		R32_INT,
+		R32_UINT,
+		R32_FLOAT,
+		R16_FLOAT,
+
+		RG8,
+		RG32_UINT,
+		RG16_FLOAT,
+
+		RGB8,
+
+		RGBA8,
+		RGBA16_FLOAT,
+		RGBA32_FLOAT,
+
+		// Depth Format
+
+		D16,
+		D32_FLOAT,
+
+		// DepthStencil Format
+
+		D16_S8_UINT,
+		D24_S8_UINT,
+		D32_FLOAT_S8_UINT,
+	};
+
 
 	#pragma endregion
 
@@ -135,6 +207,29 @@ namespace KTN
 				Data = nullptr;
 			}
 		}
+	};
+
+	struct TextureSpecification
+	{
+		uint32_t Width				= 1;
+		uint32_t Height				= 1;
+		TextureUsage Usage			= TextureUsage::TEXTURE_SAMPLED;
+		TextureAccess Access		= TextureAccess::READ_WRITE; // TEXTURE_STORAGE
+		TextureFormat Format		= TextureFormat::RGBA8;
+		TextureFilter MinFilter		= TextureFilter::LINEAR;
+		TextureFilter MagFilter		= TextureFilter::LINEAR;
+		TextureWrap WrapU			= TextureWrap::REPEAT;
+		TextureWrap WrapV			= TextureWrap::REPEAT;
+		TextureWrap WrapW			= TextureWrap::REPEAT;
+
+		glm::vec4 BorderColor		= { 0.0f, 0.0f, 0.0f, 1.0f };
+		int Samples					= 1;
+
+		bool SRGB					= true;
+		bool AnisotropyEnable		= true;
+		bool GenerateMips			= true;
+
+		std::string DebugName = "Texture";
 	};
 
 	#pragma endregion

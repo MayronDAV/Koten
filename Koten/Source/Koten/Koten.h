@@ -30,6 +30,7 @@
 #include "Koten/Graphics/VertexArray.h"
 #include "Koten/Graphics/RendererAPI.h"
 #include "Koten/Graphics/RendererCommand.h"
+#include "Koten/Graphics/Texture.h"
 
 // IMGUI
 

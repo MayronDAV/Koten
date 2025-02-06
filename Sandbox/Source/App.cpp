@@ -12,6 +12,7 @@ namespace KTN
 		private:
 			Ref<Shader> m_Shader = nullptr;
 			Ref<VertexArray> m_VAO = nullptr;
+			Ref<Texture2D> m_Texture = nullptr;
 
 		public:
 			SandboxLayer() : Layer("SandboxLayer") {}
@@ -20,6 +21,14 @@ namespace KTN
 			void OnAttach() override 
 			{
 				KTN_INFO("Attaching...");
+
+				TextureSpecification spec	= {};
+				spec.Usage					= TextureUsage::TEXTURE_COLOR_ATTACHMENT;
+				spec.GenerateMips			= true;
+				spec.AnisotropyEnable		= true;
+				spec.DebugName = "Teste";
+
+				m_Texture = Texture2D::Get(spec);
 
 				// testing
 
