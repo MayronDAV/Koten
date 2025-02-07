@@ -34,6 +34,7 @@
 #include "Koten/Graphics/TextureImporter.h"
 #include "Koten/Graphics/UniformBuffer.h"
 #include "Koten/Graphics/DescriptorSet.h"
+#include "Koten/Graphics/Camera.h"
 
 // IMGUI
 
