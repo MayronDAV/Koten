@@ -51,7 +51,7 @@ namespace KTN
 			return;
 		}
 
-		if (m_Specification.Samples > 1 && IsColorAttachment())
+		if (m_Specification.Samples > 1 && !IsSampled() && !IsStorage())
 		{
 			GLCall(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &newTexID));
 			GLCall(glTextureStorage2DMultisample(newTexID, m_Specification.Samples, m_InternalFormat, p_Width, p_Height, GL_TRUE));
@@ -129,6 +129,9 @@ namespace KTN
 
 	void GLTexture2D::SetData(const void* p_Data, size_t p_Size)
 	{
+		if (IsDepthStencilAttachment())
+			return;
+
 		KTN_CORE_ASSERT(m_Specification.Samples <= 1, "SetData is not supported for multisample textures!");
 		KTN_CORE_ASSERT(p_Size >= size_t(m_Width * m_Height * m_Channels * m_BytesPerChannels), "Data must be entire texture!");
 		GLCall(glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_Format, GL_UNSIGNED_BYTE, p_Data));
@@ -142,10 +145,13 @@ namespace KTN
 		m_Specification.Samples = std::min(cap.MaxSamples, p_Spec.Samples);
 		m_Format				= GLUtils::TextureFormatToGLFormat(p_Spec.Format);
 		m_InternalFormat		= GLUtils::TextureFormatToGLInternalFormat(p_Spec.Format);
-		m_Channels				= Utils::TextureFormatToChannels(p_Spec.Format);
-		m_BytesPerChannels		= Utils::TextureFormatToBytesPerChannels(p_Spec.Format);
 		m_Width					= p_Spec.Width;
 		m_Height				= p_Spec.Height;
+		if (!IsDepthStencilAttachment())
+		{
+			m_Channels				= Utils::TextureFormatToChannels(p_Spec.Format);
+			m_BytesPerChannels		= Utils::TextureFormatToBytesPerChannels(p_Spec.Format);
+		}
 
 		if (IsStorage())
 		{
@@ -161,7 +167,7 @@ namespace KTN
 		}
 
 		// multisampling
-		if (m_Specification.Samples > 1 && IsColorAttachment())
+		if (m_Specification.Samples > 1 && !IsSampled() && !IsStorage())
 		{
 			GLCall(glCreateTextures(GL_TEXTURE_2D_MULTISAMPLE, 1, &m_RendererID));
 			GLCall(glTextureStorage2DMultisample(m_RendererID, m_Specification.Samples, m_InternalFormat, m_Width, m_Height, GL_TRUE));

@@ -3,8 +3,10 @@
 
 // lib
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
 
 
 namespace KTN
@@ -14,6 +16,7 @@ namespace KTN
 		private:
 			Ref<Shader> m_Shader = nullptr;
 			Ref<VertexArray> m_VAO = nullptr;
+			Ref<Texture2D> m_MainTexture = nullptr;
 			Ref<Texture2D> m_CheckerTexture = nullptr;
 			Ref<Texture2D> m_WallTexture = nullptr;
 			Ref<DescriptorSet> m_Set = nullptr;
@@ -24,6 +27,8 @@ namespace KTN
 			bool m_Orthographic = false;
 			glm::vec2 m_TileSize = { 0.90f, 0.90f };
 			glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
+			uint32_t m_Width = 800;
+			uint32_t m_Height = 600;
 
 		public:
 			SandboxLayer() : Layer("SandboxLayer") {}
@@ -41,7 +46,6 @@ namespace KTN
 				m_Set = DescriptorSet::Create({ 0, m_Shader });
 
 				m_VAO = VertexArray::Create();
-
 
 				float vertices[] = {
 					// positions      // texcoords  // colors
@@ -70,8 +74,7 @@ namespace KTN
 			void OnDetach() override { KTN_INFO("Detaching..."); }
 			void OnUpdate() override
 			{
-				auto& window = Application::Get().GetWindow();
-				m_Camera.SetViewportSize(window->GetWidth(), window->GetHeight());
+				m_Camera.SetViewportSize(m_Width, m_Height);
 				m_Camera.SetZoom(m_Zoom);
 				m_Camera.SetIsOrthographic(m_Orthographic);
 				if (m_Orthographic)
@@ -104,8 +107,55 @@ namespace KTN
 			{
 				auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 
-				auto& window = Application::Get().GetWindow();
-				commandBuffer->SetViewport(0.0f, 0.0f, window->GetWidth(), window->GetHeight());
+				TextureSpecification tspec		= {};
+				tspec.Width						= m_Width;
+				tspec.Height					= m_Height;
+				tspec.Format					= TextureFormat::RGBA32_FLOAT;
+				tspec.Usage						= TextureUsage::TEXTURE_COLOR_ATTACHMENT;
+				tspec.Samples					= 1;
+				tspec.GenerateMips				= false;
+				tspec.AnisotropyEnable			= false;
+				tspec.DebugName					= "MainTexture";
+
+				m_MainTexture					= Texture2D::Get(tspec);
+
+				tspec.Samples					= 4;
+				tspec.DebugName					= "MultiSampledTexture";
+
+				auto msTexture					= Texture2D::Get(tspec);
+
+				tspec.Format					= TextureFormat::D32_FLOAT;
+				tspec.Usage						= TextureUsage::TEXTURE_DEPTH_STENCIL_ATTACHMENT;
+				tspec.DebugName					= "MultiSampledDepth";
+
+				auto depthTexture				= Texture2D::Get(tspec);
+
+				Ref<Texture2D> textures[]		= { msTexture, depthTexture };
+
+				RenderpassSpecification rspec	= {};
+				rspec.Attachments				= textures;
+				rspec.AttachmentCount			= 2;
+				rspec.ResolveTexture			= m_MainTexture;
+				rspec.Samples					= 4;
+				rspec.Clear						= true;
+				rspec.SwapchainTarget			= false;
+				rspec.DebugName					= "Renderpass";
+
+				auto renderpass					= Renderpass::Get(rspec);
+
+				FramebufferSpecification fspec	= {};
+				fspec.RenderPass				= renderpass;
+				fspec.Attachments				= textures;
+				fspec.AttachmentCount			= 2;
+				fspec.Samples					= 4;
+				fspec.Width						= m_Width;
+				fspec.Height					= m_Height;
+				fspec.SwapchainTarget			= false;
+
+				auto framebuffer = Framebuffer::Get(fspec);
+
+
+				renderpass->Begin(commandBuffer, framebuffer, m_Width, m_Height, { 0.0f, 0.0f, 0.0f, 1.0f });
 
 				m_Shader->Bind();
 
@@ -141,9 +191,30 @@ namespace KTN
 				m_Shader->SetPushValue("Matrix", &matrix);
 				m_Shader->BindPushConstants(commandBuffer);
 				RendererCommand::DrawIndexed(m_VAO);
+
+				renderpass->End(commandBuffer);
 			}
+
 			void OnImgui() override
 			{
+				BeginDockspace(false);
+
+				ImGui::SetNextWindowSizeConstraints({ 400.0f, 400.0f }, { FLT_MAX, FLT_MAX });
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+				ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 1.0f });
+				ImGui::Begin("Viewport");
+				ImGui::PopStyleVar();
+				ImGui::PopStyleColor();
+				{
+					ImVec2 viewportSize	= ImGui::GetContentRegionAvail();
+
+					UI::Image(m_MainTexture, { (float)m_Width, (float)m_Height });
+
+					m_Width				= (uint32_t)std::max(viewportSize.x, 400.0f);
+					m_Height			= (uint32_t)std::max(viewportSize.y, 400.0f);
+				}
+				ImGui::End();
+
 				ImGui::Begin("Editor");
 				ImGui::DragFloat("Distance", &m_Distance, 0.1f);
 				ImGui::DragFloat2("Tile Size", glm::value_ptr(m_TileSize), 0.1f);
@@ -152,8 +223,64 @@ namespace KTN
 				if (ImGui::RadioButton("Orthographic", m_Orthographic))
 					m_Orthographic = !m_Orthographic;
 				ImGui::End();
+
+				EndDockspace();
 			}
 			void OnEvent(Event& p_Event) override {}
+			void BeginDockspace(bool p_MenuBar)
+			{
+				static bool opt_fullscreen = true;
+				static bool opt_padding = false;
+				static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
+
+				ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+				if (p_MenuBar)
+					window_flags |= ImGuiWindowFlags_MenuBar;
+
+				if (opt_fullscreen)
+				{
+					const ImGuiViewport* viewport = ImGui::GetMainViewport();
+					ImGui::SetNextWindowPos(viewport->WorkPos);
+					ImGui::SetNextWindowSize(viewport->WorkSize);
+					ImGui::SetNextWindowViewport(viewport->ID);
+					ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+					ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+					window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
+						| ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+					window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+				}
+				else
+				{
+					dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+				}
+
+				if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+					window_flags |= ImGuiWindowFlags_NoBackground;
+
+				ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 1.0f });
+				if (!opt_padding)
+					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+				ImGui::Begin("SandboxDockspace", nullptr, window_flags);
+				if (!opt_padding)
+					ImGui::PopStyleVar();
+				ImGui::PopStyleColor(); // windowBg
+
+				if (opt_fullscreen)
+					ImGui::PopStyleVar(2);
+
+				// Submit the DockSpace
+				ImGuiIO& io = ImGui::GetIO();
+				if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+				{
+					ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+					ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+				}
+			}
+
+			void EndDockspace()
+			{
+				ImGui::End();
+			}
 	};
 
 

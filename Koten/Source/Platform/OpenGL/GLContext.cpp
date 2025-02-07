@@ -55,12 +55,12 @@ namespace KTN
 		}
 
 		#define KTN_GLDEBUG_LOG(Type)													\
-			KTN_GL##Type("Debug Callback:")												\
-			KTN_GL##Type("  Message: {}", p_Message)									\
-			KTN_GL##Type("  Type: {}", GetStringForType(p_Type))						\
-			KTN_GL##Type("  Source: {}", GetStringForSource(p_Source))					\
-			KTN_GL##Type("  ID: {}", p_ID)												\
-			KTN_GL##Type("  Severity: {}", GetStringForSeverity(p_Severity))			\
+			KTN_GL##Type("Debug Callback:");											\
+			KTN_GL##Type("  Message: {}", p_Message);									\
+			KTN_GL##Type("  Type: {}", GetStringForType(p_Type));						\
+			KTN_GL##Type("  Source: {}", GetStringForSource(p_Source));					\
+			KTN_GL##Type("  ID: {}", p_ID);												\
+			KTN_GL##Type("  Severity: {}", GetStringForSeverity(p_Severity));			\
 
 		void APIENTRY GLCallbackFunction(GLenum p_Source,
 			GLenum p_Type,
@@ -70,14 +70,21 @@ namespace KTN
 			const GLchar* p_Message,
 			const void* p_UserParam)
 		{
-			switch (p_Severity)
-			{
-				case GL_DEBUG_SEVERITY_HIGH:			return KTN_GLDEBUG_LOG(ERROR);
-				case GL_DEBUG_SEVERITY_MEDIUM:			return KTN_GLDEBUG_LOG(WARN);
-				case GL_DEBUG_SEVERITY_LOW:				return KTN_GLDEBUG_LOG(TRACE);
-				case GL_DEBUG_SEVERITY_NOTIFICATION:	return KTN_GLDEBUG_LOG(INFO);
-				case GL_DEBUG_SOURCE_API:				return KTN_GLDEBUG_LOG(INFO);
-			}
+			//switch (p_Severity)
+			//{
+			//	case GL_DEBUG_SEVERITY_HIGH:			return KTN_GLDEBUG_LOG(ERROR);
+			//	case GL_DEBUG_SEVERITY_MEDIUM:			return KTN_GLDEBUG_LOG(WARN);
+			//	case GL_DEBUG_SEVERITY_LOW:				return KTN_GLDEBUG_LOG(TRACE);
+			//	case GL_DEBUG_SEVERITY_NOTIFICATION:	return KTN_GLDEBUG_LOG(INFO);
+			//	case GL_DEBUG_SOURCE_API:				return KTN_GLDEBUG_LOG(INFO);
+			//}
+
+			//KTN_GLERROR("Debug Callback:");
+			KTN_GLERROR("  Message: {}", p_Message);
+			KTN_GLERROR("  Type: {}", GetStringForType(p_Type));
+			KTN_GLERROR("  Source: {}", GetStringForSource(p_Source));
+			KTN_GLERROR("  ID: {}", p_ID);
+			KTN_GLERROR("  Severity: {}", GetStringForSeverity(p_Severity));
 		}
 	#endif
 	} // namespace

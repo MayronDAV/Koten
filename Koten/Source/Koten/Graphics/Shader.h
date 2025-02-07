@@ -15,8 +15,6 @@ namespace KTN
 	using DescriptorInfos	= std::unordered_map<uint16_t, std::vector<DescriptorInfo>>;
 	using PushConstants		= std::vector<PushConstant>;
 
-	class KTN_API CommandBuffer;
-
 	class KTN_API Shader
 	{
 		public:

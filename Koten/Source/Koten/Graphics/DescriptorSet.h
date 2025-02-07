@@ -8,8 +8,6 @@
 
 namespace KTN
 {
-	class KTN_API CommandBuffer;
-
 	struct DescriptorSetSpecification
 	{
 		uint32_t Set		= 0;

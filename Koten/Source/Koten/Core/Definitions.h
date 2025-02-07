@@ -13,6 +13,16 @@
 
 namespace KTN
 {
+	#pragma region defs
+		class Texture2D;
+		class UniformBuffer;
+		class Framebuffer;
+		class Renderpass;
+		class CommandBuffer;
+
+
+	#pragma endregion
+
 	#pragma region Enums
 
 	enum class RenderAPI : uint8_t
@@ -129,6 +139,11 @@ namespace KTN
 		D32_FLOAT_S8_UINT,
 	};
 
+	enum SubpassContents : uint8_t
+	{
+		INLINE = 0,
+		SECONDARY
+	};
 
 	#pragma endregion
 
@@ -161,9 +176,6 @@ namespace KTN
 		std::string Name;
 		std::string FullName;
 	};
-
-	class Texture2D;
-	class UniformBuffer;
 
 	struct DescriptorInfo
 	{
@@ -217,25 +229,51 @@ namespace KTN
 
 	struct TextureSpecification
 	{
-		uint32_t Width				= 1;
-		uint32_t Height				= 1;
-		TextureUsage Usage			= TextureUsage::TEXTURE_SAMPLED;
-		TextureAccess Access		= TextureAccess::READ_WRITE; // TEXTURE_STORAGE
-		TextureFormat Format		= TextureFormat::RGBA8;
-		TextureFilter MinFilter		= TextureFilter::LINEAR;
-		TextureFilter MagFilter		= TextureFilter::LINEAR;
-		TextureWrap WrapU			= TextureWrap::REPEAT;
-		TextureWrap WrapV			= TextureWrap::REPEAT;
-		TextureWrap WrapW			= TextureWrap::REPEAT;
+		uint32_t Width					= 1;
+		uint32_t Height					= 1;
+		TextureUsage Usage				= TextureUsage::TEXTURE_SAMPLED;
+		TextureAccess Access			= TextureAccess::READ_WRITE; // TEXTURE_STORAGE
+		TextureFormat Format			= TextureFormat::RGBA8;
+		TextureFilter MinFilter			= TextureFilter::LINEAR;
+		TextureFilter MagFilter			= TextureFilter::LINEAR;
+		TextureWrap WrapU				= TextureWrap::REPEAT;
+		TextureWrap WrapV				= TextureWrap::REPEAT;
+		TextureWrap WrapW				= TextureWrap::REPEAT;
 
-		glm::vec4 BorderColor		= { 0.0f, 0.0f, 0.0f, 1.0f };
-		int Samples					= 1;
+		glm::vec4 BorderColor			= { 0.0f, 0.0f, 0.0f, 1.0f };
+		int Samples						= 1;
 
-		bool SRGB					= true;
-		bool AnisotropyEnable		= true;
-		bool GenerateMips			= true;
+		bool SRGB						= true;
+		bool AnisotropyEnable			= true;
+		bool GenerateMips				= true;
 
-		std::string DebugName = "Texture";
+		std::string DebugName;
+	};
+
+	struct RenderpassSpecification
+	{
+		Ref<Texture2D>* Attachments		= nullptr;
+		uint32_t AttachmentCount		= 0;
+		bool Clear						= true;
+		bool SwapchainTarget			= false;
+		int Samples						= 1;
+		Ref<Texture2D> ResolveTexture	= nullptr;
+
+		std::string DebugName;
+	};
+
+	struct FramebufferSpecification
+	{
+		Ref<Renderpass> RenderPass		= nullptr;
+		Ref<Texture2D>* Attachments		= nullptr;
+		uint32_t AttachmentCount		= 0;
+		uint32_t Width					= 0;
+		uint32_t Height					= 0;
+		uint32_t Samples				= 1;
+		int MipIndex					= 0;
+		bool SwapchainTarget			= false;
+
+		std::string DebugName;
 	};
 
 	#pragma endregion

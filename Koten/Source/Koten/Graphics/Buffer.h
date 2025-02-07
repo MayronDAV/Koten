@@ -7,8 +7,6 @@
 
 namespace KTN
 {
-	class KTN_API CommandBuffer;
-
 	struct KTN_API BufferElement
 	{
 		std::string Name	= "";

@@ -35,10 +35,13 @@
 #include "Koten/Graphics/UniformBuffer.h"
 #include "Koten/Graphics/DescriptorSet.h"
 #include "Koten/Graphics/Camera.h"
+#include "Koten/Graphics/Framebuffer.h"
+#include "Koten/Graphics/Renderpass.h"
 
 // IMGUI
 
 #include "Koten/ImGui/ImGuiLayer.h"
+#include "Koten/ImGui/Utils/UI.h"
 
 // OS
 

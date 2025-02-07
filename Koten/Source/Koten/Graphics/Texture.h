@@ -7,8 +7,6 @@
 
 namespace KTN
 {
-	class KTN_API CommandBuffer;
-
 	class KTN_API Texture
 	{
 		public:
@@ -52,6 +50,10 @@ namespace KTN
 				return p_Format == TextureFormat::D24_S8_UINT || p_Format == TextureFormat::D16_S8_UINT ||
 					p_Format == TextureFormat::D32_FLOAT_S8_UINT;
 			}
+
+			bool IsDepthStencil() const { return IsDepthStencilFormat(GetSpecification().Format); }
+			bool IsDepth() const { return IsDepthFormat(GetSpecification().Format); }
+			bool IsStencil() const { return IsStencilFormat(GetSpecification().Format); }
 
 			bool IsSampled() const { return GetSpecification().Usage == TextureUsage::TEXTURE_SAMPLED; }
 			bool IsColorAttachment() const { return GetSpecification().Usage == TextureUsage::TEXTURE_COLOR_ATTACHMENT; }

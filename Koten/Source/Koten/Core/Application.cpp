@@ -5,6 +5,10 @@
 #include "Koten/Events/ApplicationEvent.h"
 #include "Koten/Events/WindowEvent.h"
 #include "Koten/Graphics/RendererCommand.h"
+#include "Koten/Graphics/Texture.h"
+#include "Koten/Graphics/Framebuffer.h"
+#include "Koten/Graphics/Renderpass.h"
+
 
 
 
@@ -33,6 +37,10 @@ namespace KTN
 
 	Application::~Application()
 	{
+		Framebuffer::ClearCache();
+		Renderpass::ClearCache();
+		Texture::ClearCache();
+
 		RendererCommand::Release();
 
 		s_Instance = nullptr;
@@ -73,6 +81,13 @@ namespace KTN
 			}
 
 			m_Window->OnUpdate();
+
+			if (!m_Window->IsMinimized())
+			{
+				Framebuffer::DeleteUnusedCache();
+				Renderpass::DeleteUnusedCache();
+				Texture::DeleteUnusedCache();
+			}
 		}
 	}
 
