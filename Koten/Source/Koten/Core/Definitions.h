@@ -19,7 +19,9 @@ namespace KTN
 		class Framebuffer;
 		class Renderpass;
 		class CommandBuffer;
+		class Shader;
 
+		inline constexpr uint8_t MAX_RENDER_TARGETS = 4;
 
 	#pragma endregion
 
@@ -143,6 +145,76 @@ namespace KTN
 	{
 		INLINE = 0,
 		SECONDARY
+	};
+
+	enum class CullMode : uint8_t
+	{
+		NONE = 0,
+		FRONT,
+		BACK,
+		FRONTANDBACK
+	};
+
+	enum class PolygonMode : uint8_t
+	{
+		FILL = 0,
+		LINE,
+		POINT
+	};
+
+	enum class BlendMode : uint8_t
+	{
+		None = 0,
+		OneZero,
+		ZeroSrcColor,
+		SrcAlphaOneMinusSrcAlpha,
+		SrcAlphaOne,
+		OneOne,
+		ZeroOneMinusSrcColor
+	};
+
+	enum class DrawType : uint8_t
+	{
+		TRIANGLES = 0,
+		POINTS,
+		LINES
+	};
+
+	enum class FrontFace : uint8_t
+	{
+		CLOCKWISE = 0,
+		COUNTER_CLOCKWISE
+	};
+
+	enum class StencilFace : uint8_t
+	{
+		FRONT_AND_BACK = 0,
+		FRONT,
+		BACK
+	};
+
+	enum class StencilCompare : uint8_t
+	{
+		ALWAYS = 0,
+		NEVER,
+		LESS,
+		EQUAL,
+		LEQUAL,
+		GREATER,
+		NOTEQUAL,
+		GEQUAL
+	};
+
+	enum class StencilOp : uint8_t
+	{
+		KEEP = 0,
+		ZERO,
+		REPLACE,
+		INCR,
+		DECR,
+		INVERT,
+		INCR_WRAP,
+		DECR_WRAP
 	};
 
 	#pragma endregion
@@ -274,6 +346,48 @@ namespace KTN
 		bool SwapchainTarget			= false;
 
 		std::string DebugName;
+	};
+
+	struct PipelineSpecification
+	{
+		Ref<Shader> pShader				= nullptr;
+
+		std::array<Ref<Texture2D>, MAX_RENDER_TARGETS> ColorTargets;
+		std::array<BlendMode, MAX_RENDER_TARGETS> BlendModes;
+
+		Ref<Texture2D> ResolveTexture	= nullptr;
+		Ref<Texture2D> DepthTarget		= nullptr;
+
+		CullMode pCullMode				= CullMode::NONE;
+		FrontFace pFrontFace			= FrontFace::CLOCKWISE;
+		PolygonMode pPolygonMode		= PolygonMode::FILL;
+		DrawType pDrawType				= DrawType::TRIANGLES;
+
+		bool TransparencyEnabled		= false;
+		bool ClearTargets				= true;
+		bool DepthTest					= true;
+		bool DepthWrite					= true;
+		bool SwapchainTarget			= false;
+		bool DepthBiasEnabled			= false;
+		bool StencilTest				= false;
+		bool BuildMipFramebuffers		= false;
+
+		float LineWidth					= 1.0f;
+		float ConstantFactor			= 0.0f;
+		float SlopeFactor				= 0.0f;
+		glm::vec4 ClearColor			= { 1.0f, 1.0f, 1.0f, 1.0f };
+		int Samples						= 1;
+
+		StencilFace pStencilFace		= StencilFace::FRONT_AND_BACK;
+		StencilCompare pStencilCompare  = StencilCompare::ALWAYS;
+		StencilOp FailOp				= StencilOp::KEEP;
+		StencilOp DepthFailOp			= StencilOp::KEEP;
+		StencilOp PassOp				= StencilOp::KEEP;
+		int StencilReference			= 1;
+		uint32_t StencilCompareMask 	= 0xFF;
+		uint32_t StencilWriteMask    	= 0xFF;
+
+		std::string DebugName			= "Pipeline";
 	};
 
 	#pragma endregion

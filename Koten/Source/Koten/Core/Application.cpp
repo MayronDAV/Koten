@@ -8,6 +8,7 @@
 #include "Koten/Graphics/Texture.h"
 #include "Koten/Graphics/Framebuffer.h"
 #include "Koten/Graphics/Renderpass.h"
+#include "Koten/Graphics/Pipeline.h"
 
 
 
@@ -37,6 +38,7 @@ namespace KTN
 
 	Application::~Application()
 	{
+		Pipeline::ClearCache();
 		Framebuffer::ClearCache();
 		Renderpass::ClearCache();
 		Texture::ClearCache();
@@ -84,6 +86,7 @@ namespace KTN
 
 			if (!m_Window->IsMinimized())
 			{
+				Pipeline::DeleteUnusedCache();
 				Framebuffer::DeleteUnusedCache();
 				Renderpass::DeleteUnusedCache();
 				Texture::DeleteUnusedCache();

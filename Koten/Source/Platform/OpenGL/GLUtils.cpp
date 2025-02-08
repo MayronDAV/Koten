@@ -96,4 +96,104 @@ namespace KTN::GLUtils
 		return GL_READ_WRITE;
 	}
 
+	uint32_t DrawTypeToGL(DrawType p_Type)
+	{
+		switch (p_Type)
+		{
+			case KTN::DrawType::POINTS:  	return GL_POINTS;
+			case KTN::DrawType::TRIANGLES:  return GL_TRIANGLES;
+			case KTN::DrawType::LINES:		return GL_LINES;
+		}
+
+		KTN_CORE_ERROR("Unknown draw type!");
+		return GL_READ_WRITE;
+	}
+
+	uint32_t CullModeToGL(CullMode p_Mode)
+	{
+		switch (p_Mode)
+		{
+			case CullMode::FRONT: 			return GL_FRONT;
+			case CullMode::BACK: 			return GL_BACK;
+			case CullMode::FRONTANDBACK:	return GL_FRONT_AND_BACK;
+		}
+
+		KTN_CORE_ERROR("Unknown cull mode!");
+		return GL_BACK;
+	}
+
+	uint32_t FrontFaceToGL(FrontFace p_Face)
+	{
+		switch (p_Face)
+		{
+			case FrontFace::CLOCKWISE: 			return GL_CW;
+			case FrontFace::COUNTER_CLOCKWISE: 	return GL_CCW;
+		}
+
+		KTN_CORE_ERROR("Unknown front face!");
+		return GL_CW;
+	}
+
+	uint32_t PolygonModeToGL(PolygonMode p_Mode)
+	{
+		switch (p_Mode)
+		{
+			case PolygonMode::FILL: 	return GL_FILL;
+			case PolygonMode::LINE: 	return GL_LINE;
+			case PolygonMode::POINT: 	return GL_POINT;
+		}
+
+		KTN_CORE_ERROR("Unknown polygon mode!");
+		return GL_FILL;
+	}
+
+	uint32_t StencilOpToGL(StencilOp p_Op)
+	{
+		switch (p_Op)
+		{
+			case StencilOp::KEEP: 		return GL_KEEP;
+			case StencilOp::ZERO: 		return GL_ZERO;
+			case StencilOp::REPLACE: 	return GL_REPLACE;
+			case StencilOp::INCR: 		return GL_INCR;
+			case StencilOp::DECR: 		return GL_DECR;
+			case StencilOp::INVERT: 	return GL_INVERT;
+			case StencilOp::INCR_WRAP: 	return GL_INCR_WRAP;
+			case StencilOp::DECR_WRAP: 	return GL_DECR_WRAP;
+		}
+
+		KTN_CORE_ERROR("Unknown stencil op!");
+		return GL_KEEP;
+	}
+
+	uint32_t StencilCompareToGL(StencilCompare p_Op)
+	{
+		switch (p_Op)
+		{
+			case StencilCompare::NEVER:		return GL_NEVER;
+			case StencilCompare::LESS: 		return GL_LESS;
+			case StencilCompare::EQUAL: 	return GL_EQUAL;
+			case StencilCompare::LEQUAL: 	return GL_LEQUAL;
+			case StencilCompare::GREATER: 	return GL_GREATER;
+			case StencilCompare::NOTEQUAL: 	return GL_NOTEQUAL;
+			case StencilCompare::GEQUAL: 	return GL_GEQUAL;
+			case StencilCompare::ALWAYS: 	return GL_ALWAYS;
+		}
+
+		KTN_CORE_ERROR("Unknown stencil compare!");
+		return GL_ALWAYS;
+	}
+
+	uint32_t StencilFaceToGL(StencilFace p_Face)
+	{
+		switch (p_Face)
+		{
+			case StencilFace::FRONT: 			return GL_FRONT;
+			case StencilFace::BACK: 			return GL_BACK;
+			case StencilFace::FRONT_AND_BACK:	return GL_FRONT_AND_BACK;
+		}
+
+		KTN_CORE_ERROR("Unknown stencil face!");
+		return GL_FRONT_AND_BACK;
+	}
+
 } // namespace KTN::GLUtils

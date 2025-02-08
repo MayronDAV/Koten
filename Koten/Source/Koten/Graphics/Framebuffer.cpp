@@ -10,10 +10,10 @@ namespace KTN
 	struct FramebufferAsset
 	{
 		Ref<Framebuffer> FrameBuffer;
-		float TimeSinceLastAccessed;
+		double TimeSinceLastAccessed;
 	};
 	static std::unordered_map<uint64_t, FramebufferAsset> s_FramebufferCache;
-	static const float s_CacheLifeTime = 1.0f;
+	static const double s_CacheLifeTime = 1.0f;
 
 	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& p_Spec)
 	{
@@ -47,12 +47,12 @@ namespace KTN
 		auto found = s_FramebufferCache.find(hash);
 		if (found != s_FramebufferCache.end() && found->second.FrameBuffer)
 		{
-			found->second.TimeSinceLastAccessed = (float)Time::GetTime();
+			found->second.TimeSinceLastAccessed = Time::GetTime();
 			return found->second.FrameBuffer;
 		}
 
 		auto framebuffer = Create(p_Spec);
-		s_FramebufferCache[hash] = { framebuffer, (float)Time::GetTime() };
+		s_FramebufferCache[hash] = { framebuffer, Time::GetTime() };
 		return framebuffer;
 	}
 

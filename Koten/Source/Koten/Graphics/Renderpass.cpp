@@ -10,10 +10,10 @@ namespace KTN
 	struct RenderpassAsset
 	{
 		Ref<Renderpass> RenderPass;
-		float TimeSinceLastAccessed;
+		double TimeSinceLastAccessed;
 	};
 	static std::unordered_map<uint64_t, RenderpassAsset> s_RenderPassCache;
-	static const float s_CacheLifeTime = 0.1f;
+	static const double s_CacheLifeTime = 0.1;
 
 	Ref<Renderpass> Renderpass::Create(const RenderpassSpecification& p_Spec)
 	{
@@ -49,12 +49,12 @@ namespace KTN
 		auto found = s_RenderPassCache.find(hash);
 		if (found != s_RenderPassCache.end() && found->second.RenderPass)
 		{
-			found->second.TimeSinceLastAccessed = (float)Time::GetTime();
+			found->second.TimeSinceLastAccessed = Time::GetTime();
 			return found->second.RenderPass;
 		}
 
 		auto renderPass = Create(p_Spec);
-		s_RenderPassCache[hash] = { renderPass, (float)Time::GetTime() };
+		s_RenderPassCache[hash] = { renderPass, Time::GetTime() };
 		return renderPass;
 	}
 

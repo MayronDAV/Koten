@@ -52,14 +52,14 @@ namespace KTN
 		GetCurrentCommandBuffer()->DispatchCompute(p_NumGroups_X, p_NumGroups_Y, p_NumGroups_Z);
 	}
 
-	void RendererCommand::Draw(const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount)
+	void RendererCommand::Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount)
 	{
-		GetCurrentCommandBuffer()->Draw(p_VertexArray, p_VertexCount);
+		GetCurrentCommandBuffer()->Draw(p_Type, p_VertexArray, p_VertexCount);
 	}
 
-	void RendererCommand::DrawIndexed(const Ref<VertexArray>& p_VertexArray)
+	void RendererCommand::DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray)
 	{
-		GetCurrentCommandBuffer()->DrawIndexed(p_VertexArray);
+		GetCurrentCommandBuffer()->DrawIndexed(p_Type, p_VertexArray);
 	}
 
 	const Capabilities& RendererCommand::GetCapabilities()

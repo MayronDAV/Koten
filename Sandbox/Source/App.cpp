@@ -130,34 +130,18 @@ namespace KTN
 
 				auto depthTexture				= Texture2D::Get(tspec);
 
-				Ref<Texture2D> textures[]		= { msTexture, depthTexture };
+				PipelineSpecification pspec		= {};
+				pspec.pShader					= m_Shader;
+				pspec.ColorTargets[0]			= msTexture;
+				pspec.DepthTarget				= depthTexture;
+				pspec.ResolveTexture			= m_MainTexture;
+				pspec.ClearColor				= { 0.0f, 0.0f, 0.0f, 1.0f };
+				pspec.Samples					= 4;
+				pspec.DebugName					= "MainPipeline";
 
-				RenderpassSpecification rspec	= {};
-				rspec.Attachments				= textures;
-				rspec.AttachmentCount			= 2;
-				rspec.ResolveTexture			= m_MainTexture;
-				rspec.Samples					= 4;
-				rspec.Clear						= true;
-				rspec.SwapchainTarget			= false;
-				rspec.DebugName					= "Renderpass";
+				auto pipeline					= Pipeline::Get(pspec);
 
-				auto renderpass					= Renderpass::Get(rspec);
-
-				FramebufferSpecification fspec	= {};
-				fspec.RenderPass				= renderpass;
-				fspec.Attachments				= textures;
-				fspec.AttachmentCount			= 2;
-				fspec.Samples					= 4;
-				fspec.Width						= m_Width;
-				fspec.Height					= m_Height;
-				fspec.SwapchainTarget			= false;
-
-				auto framebuffer = Framebuffer::Get(fspec);
-
-
-				renderpass->Begin(commandBuffer, framebuffer, m_Width, m_Height, { 0.0f, 0.0f, 0.0f, 1.0f });
-
-				m_Shader->Bind();
+				pipeline->Begin(commandBuffer);
 
 				m_Set->SetTexture("u_Texture", m_WallTexture);
 				m_Set->Upload(commandBuffer);
@@ -176,7 +160,7 @@ namespace KTN
 
 						m_Shader->SetPushValue("Matrix", &matrix);
 						m_Shader->BindPushConstants(commandBuffer);
-						RendererCommand::DrawIndexed(m_VAO);
+						RendererCommand::DrawIndexed(DrawType::TRIANGLES, m_VAO);
 					}
 				}
 
@@ -190,9 +174,9 @@ namespace KTN
 
 				m_Shader->SetPushValue("Matrix", &matrix);
 				m_Shader->BindPushConstants(commandBuffer);
-				RendererCommand::DrawIndexed(m_VAO);
+				RendererCommand::DrawIndexed(DrawType::TRIANGLES, m_VAO);
 
-				renderpass->End(commandBuffer);
+				pipeline->End(commandBuffer);
 			}
 
 			void OnImgui() override

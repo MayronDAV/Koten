@@ -37,6 +37,7 @@
 #include "Koten/Graphics/Camera.h"
 #include "Koten/Graphics/Framebuffer.h"
 #include "Koten/Graphics/Renderpass.h"
+#include "Koten/Graphics/Pipeline.h"
 
 // IMGUI
 
