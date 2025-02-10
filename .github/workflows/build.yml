@@ -22,10 +22,9 @@ jobs:
         path: |
           bin
           bin-int
-        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-${{ github.sha }}
+        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-"main"
         restore-keys: |
           Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-
-      continue-on-error: true
 
     - name: Install Dependencies
       run: |
@@ -38,21 +37,12 @@ jobs:
         Tools/Linux/premake5 gmake2
         make config=${{ matrix.config }} CC=gcc-11 CXX=g++-11 -j8
 
-    - name: Saving Cache ${{ runner.os }}
-      uses: actions/cache@v4
-      with:
-        path: |
-          bin
-          bin-int
-        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-${{ github.sha }}
-      continue-on-error: true
-
     - name: Upload Bin Artifacts
       uses: ./.github/actions/upload-artifact
       with:
         name: Koten-Linux-${{ matrix.config }}-${{ matrix.platform }}
         path: bin
-  
+
   Windows:
     runs-on: windows-latest
     strategy:
@@ -74,10 +64,9 @@ jobs:
         path: |
           bin
           bin-int
-        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-${{ github.sha }}
+        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-"main"
         restore-keys: |
           Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-
-      continue-on-error: true
 
     - name: Generate Project
       shell: cmd
@@ -89,15 +78,6 @@ jobs:
       shell: cmd
       run: |
         "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=${{ matrix.platform }} /p:Configuration=${{ matrix.config }} Koten.sln
-
-    - name: Saving Cache ${{ runner.os }}
-      uses: actions/cache@v4
-      with:
-        path: |
-          bin
-          bin-int
-        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-${{ github.sha }}
-      continue-on-error: true
 
     - name: Upload Bin Artifacts
       uses: ./.github/actions/upload-artifact
@@ -112,7 +92,7 @@ jobs:
       - name: Delete Old Caches
         run: |
           echo "Fetching list of old cache keys..."
-          cacheKeys=$(gh cache list --limit 100 --json createdAt,id --jq '[.[] | select(.createdAt < now - 30*24*60*60) | .id] | @sh')
+          cacheKeys=$(gh cache list --limit 100 --json createdAt,id --jq '[.[] | select(.createdAt < now - 15*24*60*60) | .id] | @sh')
 
           if [ -z "$cacheKeys" ]; then
             echo "No old caches found. Skipping cleanup."
