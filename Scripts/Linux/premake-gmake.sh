@@ -1,14 +1,9 @@
 #!/bin/bash
 
-set -e
-
-BUILD_TYPE=${BUILD_TYPE:-Debug}
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $DIR/../
-
 if [ $TRAVIS_OS_NAME == linux ]; then
-Tools/Linux/premake5 gmake2 -j4
+chmod u+r+x Tools/Linux/premake5
+Tools/Linux/premake5 gmake2
 else
-Tools/premake5 gmake2 -j4
+Tools/premake5 gmake2
 fi
-make $*
+make config=debug CC=gcc-11 CXX=g++-11 -j4
