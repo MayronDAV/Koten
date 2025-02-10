@@ -9,6 +9,7 @@
 #include "Koten/Graphics/Framebuffer.h"
 #include "Koten/Graphics/Renderpass.h"
 #include "Koten/Graphics/Pipeline.h"
+#include "Koten/Graphics/Renderer.h"
 
 
 
@@ -34,10 +35,14 @@ namespace KTN
 
 		m_ImGui = ImGuiLayer::Create();
 		PushOverlay(m_ImGui);
+
+		Renderer::Init();
 	}
 
 	Application::~Application()
 	{
+		Renderer::Shutdown();
+
 		Pipeline::ClearCache();
 		Framebuffer::ClearCache();
 		Renderpass::ClearCache();
@@ -56,6 +61,17 @@ namespace KTN
 			if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
 			{
 				Time::OnUpdate();
+
+				Engine::ResetStats();
+
+				if (auto currentTime = Time::GetTime();
+					currentTime - m_LastTime >= 1.0)
+				{
+					Engine::GetStats().FramesPerSecond  = m_Counter / (currentTime - m_LastTime);
+					m_LastTime = currentTime;
+					m_Counter = 0;
+				}
+				m_Counter++;
 
 				for (auto& layer : m_LayerStack)
 					layer->OnUpdate();

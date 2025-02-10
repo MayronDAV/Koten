@@ -40,6 +40,9 @@ namespace KTN
 
 			Ref<ImGuiLayer> m_ImGui = nullptr;
 
+			double m_LastTime		= 0.0;
+			double m_Counter		= 0.0;
+
 			static Application* s_Instance;
 	};
 

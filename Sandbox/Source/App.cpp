@@ -14,12 +14,9 @@ namespace KTN
 	class SandboxLayer : public Layer
 	{
 		private:
-			Ref<Shader> m_Shader = nullptr;
-			Ref<VertexArray> m_VAO = nullptr;
 			Ref<Texture2D> m_MainTexture = nullptr;
 			Ref<Texture2D> m_CheckerTexture = nullptr;
 			Ref<Texture2D> m_WallTexture = nullptr;
-			Ref<DescriptorSet> m_Set = nullptr;
 			Camera m_Camera;
 			float m_Distance = 5.0f;
 			float m_Zoom = 1.0f;
@@ -40,36 +37,6 @@ namespace KTN
 
 				m_CheckerTexture = TextureImporter::LoadTexture2D("Assets/Textures/checkerboard.png");
 				m_WallTexture = TextureImporter::LoadTexture2D("Assets/Textures/wall.jpg");
-
-				m_Shader = Shader::Create("Assets/Shaders/ShaderTest.glsl");
-
-				m_Set = DescriptorSet::Create({ 0, m_Shader });
-
-				m_VAO = VertexArray::Create();
-
-				float vertices[] = {
-					// positions      // texcoords  // colors
-					-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-					 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-					 0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-					-0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f
-				};
-
-				auto vbo = VertexBuffer::Create(vertices, sizeof(vertices));
-				vbo->SetLayout({
-					{ DataType::Float3 , "a_Position"	},
-					{ DataType::Float2 , "a_Texcoord"	},
-					{ DataType::Float3 , "a_Color"		},
-				});
-				m_VAO->SetVertexBuffer(vbo);
-
-				uint32_t indices[] = {
-					0, 1, 3, // first triangle
-					1, 2, 3  // second triangle
-				};
-				auto ebo = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
-				m_VAO->SetIndexBuffer(ebo);
-
 			}
 			void OnDetach() override { KTN_INFO("Detaching..."); }
 			void OnUpdate() override
@@ -105,8 +72,6 @@ namespace KTN
 			}
 			void OnRender() override
 			{
-				auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
-
 				TextureSpecification tspec		= {};
 				tspec.Width						= m_Width;
 				tspec.Height					= m_Height;
@@ -119,64 +84,37 @@ namespace KTN
 
 				m_MainTexture					= Texture2D::Get(tspec);
 
-				tspec.Samples					= 4;
-				tspec.DebugName					= "MultiSampledTexture";
+				RenderBeginInfo info			= {};
+				info.RenderTarget				= m_MainTexture;
+				info.Width						= m_Width;
+				info.Height						= m_Height;
+				info.pCamera					= m_Camera;
+				info.View						= glm::inverse(glm::translate(glm::mat4(1.0f), { m_Position.x, m_Position.y, m_Distance }));
 
-				auto msTexture					= Texture2D::Get(tspec);
+				Renderer::Begin(info);
 
-				tspec.Format					= TextureFormat::D32_FLOAT;
-				tspec.Usage						= TextureUsage::TEXTURE_DEPTH_STENCIL_ATTACHMENT;
-				tspec.DebugName					= "MultiSampledDepth";
-
-				auto depthTexture				= Texture2D::Get(tspec);
-
-				PipelineSpecification pspec		= {};
-				pspec.pShader					= m_Shader;
-				pspec.ColorTargets[0]			= msTexture;
-				pspec.DepthTarget				= depthTexture;
-				pspec.ResolveTexture			= m_MainTexture;
-				pspec.ClearColor				= { 0.0f, 0.0f, 0.0f, 1.0f };
-				pspec.Samples					= 4;
-				pspec.DebugName					= "MainPipeline";
-
-				auto pipeline					= Pipeline::Get(pspec);
-
-				pipeline->Begin(commandBuffer);
-
-				m_Set->SetTexture("u_Texture", m_WallTexture);
-				m_Set->Upload(commandBuffer);
-
-				commandBuffer->BindSets(&m_Set);
-
-				glm::mat4 projView = m_Camera.GetProjection() * glm::inverse(glm::translate(glm::mat4(1.0f), { m_Position.x, m_Position.y, m_Distance }));
+				RenderCommand command			= {};
 
 				int size = 5;
 				for (int y = 0; y < size; y++)
 				{
 					for (int x = 0; x < size; x++)
 					{
-						glm::mat4 model = glm::translate(glm::mat4(1.0f), { x, y, 0.0f }) * glm::scale(glm::mat4(1.0f), { m_TileSize, 1.0f });
-						glm::mat4 matrix = projView * model;
+						glm::mat4 model			= glm::translate(glm::mat4(1.0f), { x, y, 0.0f }) * glm::scale(glm::mat4(1.0f), { m_TileSize, 1.0f });
+						command.Transform		= model;
+						command.SpriteData.Texture = m_WallTexture;
 
-						m_Shader->SetPushValue("Matrix", &matrix);
-						m_Shader->BindPushConstants(commandBuffer);
-						RendererCommand::DrawIndexed(DrawType::TRIANGLES, m_VAO);
+						Renderer::Submit(command);
 					}
 				}
 
-				m_Set->SetTexture("u_Texture", m_CheckerTexture);
-				m_Set->Upload(commandBuffer);
+				glm::mat4 model					= glm::translate(glm::mat4(1.0f), m_Position);
+				command.Transform				= model;
+				command.SpriteData.Texture		= m_CheckerTexture;
 
-				commandBuffer->BindSets(&m_Set);
+				Renderer::Submit(command);
 
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Position);
-				glm::mat4 matrix = projView * model;
-
-				m_Shader->SetPushValue("Matrix", &matrix);
-				m_Shader->BindPushConstants(commandBuffer);
-				RendererCommand::DrawIndexed(DrawType::TRIANGLES, m_VAO);
-
-				pipeline->End(commandBuffer);
+				Renderer::End();
 			}
 
 			void OnImgui() override
@@ -200,12 +138,24 @@ namespace KTN
 				ImGui::End();
 
 				ImGui::Begin("Editor");
-				ImGui::DragFloat("Distance", &m_Distance, 0.1f);
-				ImGui::DragFloat2("Tile Size", glm::value_ptr(m_TileSize), 0.1f);
-				ImGui::DragFloat("Zoom", &m_Zoom, 0.01f, 0.01f, 10.0f);
-				ImGui::DragFloat("Speed", &m_Speed, 0.01f, 0.01f);
-				if (ImGui::RadioButton("Orthographic", m_Orthographic))
-					m_Orthographic = !m_Orthographic;
+				{
+					ImGui::DragFloat("Distance", &m_Distance, 0.1f);
+					ImGui::DragFloat2("Tile Size", glm::value_ptr(m_TileSize), 0.1f);
+					ImGui::DragFloat("Zoom", &m_Zoom, 0.01f, 0.01f, 10.0f);
+					ImGui::DragFloat("Speed", &m_Speed, 0.01f, 0.01f);
+					if (ImGui::RadioButton("Orthographic", m_Orthographic))
+						m_Orthographic = !m_Orthographic;
+				}
+				ImGui::End();
+
+				ImGui::Begin("Info");
+				{
+					auto& stats = Engine::GetStats();
+
+					ImGui::Text("FPS: %i", (int)stats.FramesPerSecond);
+					ImGui::Text("DrawCalls: %u", stats.DrawCalls);
+					ImGui::Text("TrianglesCount: %u", stats.TrianglesCount);
+				}
 				ImGui::End();
 
 				EndDockspace();

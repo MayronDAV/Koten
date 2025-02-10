@@ -35,7 +35,8 @@ namespace KTN
 	void GLCommandBuffer::Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount)
 	{
 		KTN_CORE_VERIFY(p_VertexCount > 0);
-		p_VertexArray->Bind(this);
+		if (p_VertexArray)
+			p_VertexArray->Bind(this);
 
 		glDrawArrays(GLUtils::DrawTypeToGL(p_Type), 0, p_VertexCount);
 	}
