@@ -16,13 +16,13 @@ jobs:
         fetch-depth: 1
         submodules: recursive
 
-    - name: Restoring Cache ${{ runner.os }}
+    - name: Cache ${{ runner.os }}
       uses: actions/cache@v4
       with:
         path: |
           bin
           bin-int
-        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-"main"
+        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-main
         restore-keys: |
           Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-
 
@@ -58,13 +58,13 @@ jobs:
         fetch-depth: 1
         submodules: recursive
 
-    - name: Restoring Cache ${{ runner.os }}
+    - name: Cache ${{ runner.os }}
       uses: actions/cache@v4
       with:
         path: |
           bin
           bin-int
-        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-"main"
+        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-main
         restore-keys: |
           Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-
 
