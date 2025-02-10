@@ -1,7 +1,0 @@
-// Arquivos de dica ajudam o Visual Studio IDE a interpretar identificadores do Visual C++
-// por exemplo, nomes de funções e macros.
-// Para obter mais informações, consulte https://go.microsoft.com/fwlink/?linkid=865984
-#define KTN_API __declspec(dllexport)
-#define KTN_API __declspec(dllimport)
-#define KTN_API __attribute__((visibility("default")))
-#define KTN_API
