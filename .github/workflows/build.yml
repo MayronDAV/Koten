@@ -112,7 +112,7 @@ jobs:
       - name: Delete Old Caches
         run: |
           echo "Fetching list of old cache keys..."
-          cacheKeys=$(gh cache list --limit 100 --json created_at,id --jq '[.[] | select(.created_at < now - 30*24*60*60) | .id] | @sh')
+          cacheKeys=$(gh cache list --limit 100 --json createdAt,id --jq '[.[] | select(.createdAt < now - 30*24*60*60) | .id] | @sh')
 
           if [ -z "$cacheKeys" ]; then
             echo "No old caches found. Skipping cleanup."
