@@ -16,20 +16,6 @@ jobs:
         fetch-depth: 1
         submodules: recursive
 
-    - name: Restore bin-int cache
-      uses: ./.github/actions/cache-restore
-      with:
-        cache-name: "Linux-BinInt-${{ matrix.config }}-${{ matrix.platform }}"
-        cache-path: "bin-int"
-      continue-on-error: true
-
-    - name: Restore bin cache
-      uses: ./.github/actions/cache-restore
-      with:
-        cache-name: "Linux-Bin-${{ matrix.config }}-${{ matrix.platform }}"
-        cache-path: "bin"
-      continue-on-error: true
-
     - name: Install Dependencies
       run: |
         sudo apt-get update
@@ -40,20 +26,6 @@ jobs:
         chmod u+r+x Tools/Linux/premake5
         Tools/Linux/premake5 gmake2
         make config=${{ matrix.config }} CC=gcc-11 CXX=g++-11 -j8
-
-    - name: Save bin-int cache
-      uses: ./.github/actions/cache-save
-      with:
-        cache-name: "Linux-BinInt-${{ matrix.config }}-${{ matrix.platform }}"
-        cache-path: "bin-int"
-      continue-on-error: true
-  
-    - name: Save bin cache
-      uses: ./.github/actions/cache-save
-      with:
-        cache-name: "Linux-Bin-${{ matrix.config }}-${{ matrix.platform }}"
-        cache-path: "bin"
-      continue-on-error: true
 
     - name: Upload Bin Artifacts
       uses: ./.github/actions/upload-artifact
@@ -76,20 +48,6 @@ jobs:
         fetch-depth: 1
         submodules: recursive
 
-    - name: Restore bin-int cache
-      uses: ./.github/actions/cache-restore
-      with:
-        cache-name: "Windows-BinInt-${{ matrix.config }}-${{ matrix.platform }}"
-        cache-path: "bin-int"
-      continue-on-error: true
-
-    - name: Restore bin cache
-      uses: ./.github/actions/cache-restore
-      with:
-        cache-name: "Windows-Bin-${{ matrix.config }}-${{ matrix.platform }}"
-        cache-path: "bin"
-      continue-on-error: true
-
     - name: Generate Project
       shell: cmd
       run: | 
@@ -101,22 +59,32 @@ jobs:
       run: |
         "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=${{ matrix.platform }} /p:Configuration=${{ matrix.config }} Koten.sln
 
-    - name: Save bin-int cache
-      uses: ./.github/actions/cache-save
-      with:
-        cache-name: "Windows-BinInt-${{ matrix.config }}-${{ matrix.platform }}"
-        cache-path: "bin-int"
-      continue-on-error: true
-
-    - name: Save bin cache
-      uses: ./.github/actions/cache-save
-      with:
-        cache-name: "Windows-Bin-${{ matrix.config }}-${{ matrix.platform }}"
-        cache-path: "bin"
-      continue-on-error: true
-
     - name: Upload Bin Artifacts
       uses: ./.github/actions/upload-artifact
       with:
         name: "Koten-Windows-${{ matrix.config }}-${{ matrix.platform }}"
         path: "bin"
+
+  CleanUp:
+    runs-on: ubuntu-latest
+    needs: [Linux, Windows]
+    steps:
+      - name: Delete All Caches
+        run: |
+          echo "Fetching list of cache keys..."
+          cacheKeys=$(gh cache list --limit 100 --json id --jq '.[].id')
+
+          if [ -z "$cacheKeys" ]; then
+            echo "No caches found. Skipping cleanup."
+            exit 0
+          fi
+
+          echo "Deleting caches..."
+          for cacheKey in $cacheKeys
+          do
+              gh cache delete $cacheKey
+          done
+          echo "Cleanup complete."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
