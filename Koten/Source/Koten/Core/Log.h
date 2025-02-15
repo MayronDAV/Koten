@@ -40,17 +40,17 @@ namespace KTN
 	#define KTN_CRITICAL(...)		::KTN::Log::GetClientLogger()->critical(__VA_ARGS__);
 #else
 	// Core log macros
-	#define KTN_CORE_TRACE(...)
-	#define KTN_CORE_INFO(...)
-	#define KTN_CORE_WARN(...)
-	#define KTN_CORE_ERROR(...)
-	#define KTN_CORE_CRITICAL(...)
+	#define KTN_CORE_TRACE(...) {}
+	#define KTN_CORE_INFO(...) {}
+	#define KTN_CORE_WARN(...) {}
+	#define KTN_CORE_ERROR(...) {}
+	#define KTN_CORE_CRITICAL(...) {}
 
 	// Client log macros
-	#define KTN_TRACE(...)
-	#define KTN_INFO(...)
-	#define KTN_WARN(...)
-	#define KTN_ERROR(...)
-	#define KTN_CRITICAL(...)
+	#define KTN_TRACE(...) {}
+	#define KTN_INFO(...) {}
+	#define KTN_WARN(...) {}
+	#define KTN_ERROR(...) {}
+	#define KTN_CRITICAL(...) {}
 #endif
 
