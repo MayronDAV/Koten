@@ -1,7 +1,5 @@
 # Koten
 
-## Status
-
 ![Build](https://github.com/MayronDAV/Koten/actions/workflows/build.yml/badge.svg?branch=main)
 
 ## Build
