@@ -20,6 +20,3 @@
 [submodule "Thirdparty/yaml-cpp"]
 	path = Thirdparty/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
-[submodule "Thirdparty/tracy"]
-	path = Thirdparty/tracy
-	url = https://github.com/wolfpld/tracy.git

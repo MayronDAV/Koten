@@ -19,12 +19,9 @@ workspace "Koten"
 
 	filter "system:windows"
 		systemversion "latest"
-
+	
 		filter { "system:windows", "configurations:Dist" }
 			linkoptions { "/SUBSYSTEM:WINDOWS" }
-
-		filter { "system:windows", "configurations:not Dist" }
-			linkoptions { "/SUBSYSTEM:CONSOLE" }
 	
 	
 group "Thirdparty"
@@ -32,7 +29,6 @@ group "Thirdparty"
 	include "Thirdparty/premake-imgui.lua"
 	include "Thirdparty/premake-spdlog.lua"
 	include "Thirdparty/premake-yaml-cpp.lua"
-	include "Thirdparty/premake-tracy.lua"
 group ""
 
 group "Core"
