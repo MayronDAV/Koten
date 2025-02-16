@@ -9,6 +9,8 @@ namespace KTN
 {
 	Ref<VertexArray> VertexArray::Create()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLVertexArray>();
 

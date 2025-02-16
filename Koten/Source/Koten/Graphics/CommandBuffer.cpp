@@ -9,6 +9,8 @@ namespace KTN
 {
 	void CommandBuffer::BindSets(const Ref<DescriptorSet>* p_Sets, uint32_t p_Count)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		for (uint32_t i = 0; i < p_Count; i++)
 		{
 			if (p_Sets[i])
@@ -18,6 +20,8 @@ namespace KTN
 
 	Unique<CommandBuffer> CommandBuffer::Create()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateUnique<GLCommandBuffer>();
 

@@ -26,58 +26,80 @@ namespace KTN
 
 	GLFWWindow::GLFWWindow(const WindowSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		Init(p_Spec);
 	}
 
 	GLFWWindow::~GLFWWindow()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		Shutdown();
 	}
 
 	void GLFWWindow::SwapBuffer()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_Data.Context->SwapBuffer();
 	}
 
 	void GLFWWindow::OnUpdate()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glfwPollEvents();
 	}
 
 	void GLFWWindow::Maximize()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glfwMaximizeWindow(m_Window);
 	}
 
 	void GLFWWindow::Minimize()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glfwIconifyWindow(m_Window);
 	}
 
 	void GLFWWindow::Restore()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glfwRestoreWindow(m_Window);
 	}
 
 	void GLFWWindow::SubmitEvent(Event& p_Event)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (m_Data.EventCallback)
 			m_Data.EventCallback(p_Event);
 	}
 
 	void GLFWWindow::SetPosition(int p_X, int p_Y)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glfwSetWindowPos(m_Window, p_X, p_Y);
 	}
 
 	void GLFWWindow::SetVsync(bool p_Value)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_Data.Vsync = p_Value;
 		m_Data.Context->SetVsync(p_Value);
 	}
 
 	void GLFWWindow::Resize(uint32_t p_Width, uint32_t p_Height)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (m_Data.Mode != WindowMode::Windowed)
 			return;
 
@@ -86,6 +108,8 @@ namespace KTN
 
 	void GLFWWindow::ChangeMode(WindowMode p_Mode, bool p_Maximize)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		int posX = 0, posY = 0;
 		glfwGetWindowPos(m_Window, &posX, &posY);
 
@@ -134,6 +158,8 @@ namespace KTN
 
 	glm::vec2 GLFWWindow::GetPosition() const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		int px, py;
 		glfwGetWindowPos(m_Window, &px, &py);
 
@@ -142,6 +168,8 @@ namespace KTN
 
 	std::vector<WindowResolution> GLFWWindow::GetResolutions() const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		int count = 0;
 		const GLFWvidmode* modes = glfwGetVideoModes(monitor, &count);
@@ -162,6 +190,8 @@ namespace KTN
 
 	void GLFWWindow::Init(const WindowSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		#define SET_EVENT(event) 			\
 		if (data.EventCallback)				\
 			data.EventCallback(event);		\
@@ -344,6 +374,8 @@ namespace KTN
 
 	void GLFWWindow::Shutdown() noexcept
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		KTN_GLFW_WARN("{} window shutdown", m_Data.Title)
 		glfwDestroyWindow(m_Window);
 		--s_GLFWWindowCount;

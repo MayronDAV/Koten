@@ -26,6 +26,8 @@ namespace KTN
 
 	void Input::SetCursorMode(CursorMode p_Mode)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
 		int mode = CursorModeToGLFW(p_Mode);
 		if (mode != 0)
@@ -34,6 +36,8 @@ namespace KTN
 
 	bool Input::IsKeyPressed(int p_Key)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
 		auto state = glfwGetKey(window, p_Key);
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
@@ -41,6 +45,8 @@ namespace KTN
 
 	bool Input::IsMouseButtonPressed(int p_Button)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
 		auto state = glfwGetMouseButton(window, p_Button);
 		return state == GLFW_PRESS;
@@ -48,6 +54,8 @@ namespace KTN
 
 	glm::vec2 Input::GetMousePosition()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
@@ -56,12 +64,16 @@ namespace KTN
 
 	float Input::GetMouseX()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
 		return GetMousePosition().x;
 	}
 
 	float Input::GetMouseY()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
 		return GetMousePosition().y;
 	}

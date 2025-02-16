@@ -17,6 +17,8 @@ namespace KTN
 
 	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLFramebuffer>(p_Spec);
 
@@ -26,6 +28,8 @@ namespace KTN
 
 	Ref<Framebuffer> Framebuffer::Get(const FramebufferSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		KTN_CORE_ASSERT(p_Spec.RenderPass);
 		KTN_CORE_ASSERT(p_Spec.Attachments);
 		KTN_CORE_ASSERT(p_Spec.AttachmentCount > 0);
@@ -58,11 +62,15 @@ namespace KTN
 
 	void Framebuffer::ClearCache()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		s_FramebufferCache.clear();
 	}
 
 	void Framebuffer::DeleteUnusedCache()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		static std::size_t keysToDelete[256];
 		std::size_t keysToDeleteCount = 0;
 

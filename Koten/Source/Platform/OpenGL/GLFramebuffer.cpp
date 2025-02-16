@@ -31,6 +31,8 @@ namespace KTN
 	GLFramebuffer::GLFramebuffer(const FramebufferSpecification& p_Spec)
 		: m_Spec(p_Spec)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (m_Spec.SwapchainTarget)
 		{
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -43,6 +45,8 @@ namespace KTN
 
 	GLFramebuffer::~GLFramebuffer()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (!m_Spec.SwapchainTarget)
 			GLCall(glDeleteFramebuffers(1, &m_RendererID));
 
@@ -52,6 +56,8 @@ namespace KTN
 
 	void GLFramebuffer::Validate()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		uint32_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
 		{
@@ -62,6 +68,8 @@ namespace KTN
 
 	void GLFramebuffer::Begin() const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (m_Spec.SwapchainTarget)
 		{
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -73,6 +81,8 @@ namespace KTN
 
 	void GLFramebuffer::End() const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (m_ResolveID != -1)
 		{
 			GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_RendererID));
@@ -89,6 +99,8 @@ namespace KTN
 
 	void GLFramebuffer::Init()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glGenFramebuffers(1, &m_RendererID));
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID));
 

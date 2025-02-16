@@ -14,7 +14,10 @@ project "Koten"
 	files
 	{
 		"Source/**.h",
-		"Source/**.cpp"
+		"Source/**.cpp",
+
+		"%{IncludeDir.optick}/**.h",
+		"%{IncludeDir.optick}/**.cpp"
 	}
 
 	includedirs
@@ -30,7 +33,8 @@ project "Koten"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.yamlcpp}"
+		"%{IncludeDir.yamlcpp}",
+		"%{IncludeDir.optick}"
 	}
 
 	links
@@ -45,7 +49,10 @@ project "Koten"
 		"yaml-cpp"
 	}
 
-	defines "KTN_EXPORT"
+	defines { "KTN_EXPORT", "OPTICK_EXPORT", "KTN_PROFILE_ENABLED", "USE_OPTICK=1" }
+
+	filter "files:Thirdparty/Optick/src/**.cpp"
+		flags { "NoPCH" }
 
 	filter "system:windows"
 		systemversion "latest"

@@ -9,6 +9,8 @@ namespace KTN
 {
 	Unique<GraphicsContext> GraphicsContext::Create()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateUnique<GLContext>();
 

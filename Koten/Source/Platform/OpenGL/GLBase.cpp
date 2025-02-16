@@ -8,6 +8,8 @@ namespace KTN
 #if GL_DEBUG
 	bool glLogCall(const char* p_Function, const char* p_File, const int32_t p_Line)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLenum err(glGetError());
 		bool Error = true;
 		while (err != GL_NO_ERROR)
@@ -43,6 +45,8 @@ namespace KTN
 
 	void glClearError()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		while (glGetError() != GL_NO_ERROR);
 	}
 #endif

@@ -17,6 +17,8 @@ namespace KTN
 
 	Ref<Renderpass> Renderpass::Create(const RenderpassSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLRenderpass>(p_Spec);
 
@@ -26,6 +28,8 @@ namespace KTN
 
 	Ref<Renderpass> Renderpass::Get(const RenderpassSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		KTN_CORE_ASSERT(p_Spec.Attachments);
 		KTN_CORE_ASSERT(p_Spec.AttachmentCount > 0);
 
@@ -60,11 +64,15 @@ namespace KTN
 
 	void Renderpass::ClearCache()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		s_RenderPassCache.clear();
 	}
 
 	void Renderpass::DeleteUnusedCache()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		static std::size_t keysToDelete[256];
 		std::size_t keysToDeleteCount = 0;
 

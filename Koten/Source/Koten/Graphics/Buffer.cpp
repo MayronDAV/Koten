@@ -9,6 +9,8 @@ namespace KTN
 {
 	Ref<VertexBuffer> VertexBuffer::Create(size_t p_Size)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLVertexBuffer>(p_Size);
 
@@ -18,6 +20,8 @@ namespace KTN
 
 	Ref<VertexBuffer> VertexBuffer::Create(const void* p_Data, size_t p_Size)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLVertexBuffer>(p_Data, p_Size);
 
@@ -27,6 +31,8 @@ namespace KTN
 
 	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* p_Indices, uint32_t p_Count)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLIndexBuffer>(p_Indices, p_Count);
 

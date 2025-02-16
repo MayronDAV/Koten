@@ -9,6 +9,8 @@ namespace KTN
 {
 	Ref<DescriptorSet> DescriptorSet::Create(const DescriptorSetSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLDescriptorSet>(p_Spec);
 

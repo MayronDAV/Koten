@@ -18,6 +18,8 @@ namespace KTN
 
 	uint32_t Pipeline::GetWidth()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (m_Spec.SwapchainTarget)
 		{
 			if (Engine::GetAPI() == RenderAPI::OpenGL)
@@ -44,6 +46,8 @@ namespace KTN
 
 	uint32_t Pipeline::GetHeight()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (m_Spec.SwapchainTarget)
 		{
 			if (Engine::GetAPI() == RenderAPI::OpenGL)
@@ -69,6 +73,8 @@ namespace KTN
 
 	Ref<Pipeline> Pipeline::Create(const PipelineSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLPipeline>(p_Spec);
 
@@ -78,6 +84,8 @@ namespace KTN
 
 	Ref<Pipeline> Pipeline::Get(const PipelineSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		KTN_CORE_ASSERT(p_Spec.pShader != nullptr);
 
 		uint64_t hash = 0;
@@ -117,11 +125,15 @@ namespace KTN
 
 	void Pipeline::ClearCache()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		s_PipelineCache.clear();
 	}
 
 	void Pipeline::DeleteUnusedCache()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		static std::size_t keysToDelete[256];
 		std::size_t keysToDeleteCount = 0;
 

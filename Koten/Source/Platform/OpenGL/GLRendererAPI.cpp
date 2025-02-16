@@ -8,6 +8,8 @@ namespace KTN
 {
 	GLRendererAPI::GLRendererAPI()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_CommandBuffer = CommandBuffer::Create();
 		m_CommandBuffer->Init();
 
@@ -42,12 +44,16 @@ namespace KTN
 
 	void GLRendererAPI::ClearColor(const glm::vec4& p_Color)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glClearColor(p_Color.r, p_Color.g, p_Color.b, p_Color.a));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 	}
 
 	void GLRendererAPI::Begin()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
 		GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));

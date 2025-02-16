@@ -44,6 +44,8 @@ namespace KTN
 
 	void Renderer::Init()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		s_Data = new RenderData();
 		s_QuadData = new QuadData();
 
@@ -84,12 +86,16 @@ namespace KTN
 
 	void Renderer::Shutdown()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		delete s_Data;
 		delete s_QuadData;
 	}
 
 	void Renderer::Begin(const RenderBeginInfo& p_Info)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		s_Data->RenderTarget		= p_Info.RenderTarget;
 		s_Data->Width				= p_Info.Width;
 		s_Data->Height				= p_Info.Height;
@@ -146,6 +152,8 @@ namespace KTN
 
 	void Renderer::End()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 		
 		s_QuadData->MainPipeline->End(commandBuffer);
@@ -180,6 +188,8 @@ namespace KTN
 
 	void Renderer::Submit(const RenderCommand& p_Command)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 
 		s_QuadData->Set->SetTexture("u_Texture", p_Command.SpriteData.Texture ? p_Command.SpriteData.Texture : s_Data->WhiteTexture);

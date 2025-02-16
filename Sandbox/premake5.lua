@@ -21,7 +21,8 @@ project "Sandbox"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.yamlcpp}"
+		"%{IncludeDir.yamlcpp}",
+		"%{IncludeDir.optick}"
 	}
 
 	links
@@ -31,6 +32,8 @@ project "Sandbox"
 		"spdlog",
 		"yaml-cpp"
 	}
+
+	defines "KTN_PROFILE_ENABLED"
 
 	filter "system:windows"
 		systemversion "latest"

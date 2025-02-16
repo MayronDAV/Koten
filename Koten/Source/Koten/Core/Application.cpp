@@ -20,6 +20,8 @@ namespace KTN
 
 	Application::Application()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		s_Instance = this;
 
 		WindowSpecification spec = {};
@@ -41,12 +43,16 @@ namespace KTN
 
 	Application::~Application()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		Renderer::Shutdown();
 
 		Pipeline::ClearCache();
 		Framebuffer::ClearCache();
 		Renderpass::ClearCache();
 		Texture::ClearCache();
+
+		KTN_PROFILE_SHUTDOWN();
 
 		RendererCommand::Release();
 
@@ -57,9 +63,13 @@ namespace KTN
 	{
 		while (m_Running)
 		{
+			KTN_PROFILE_FRAME("MainThread");
+
 			// Update
 			if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
 			{
+				KTN_PROFILE_SCOPE("On Update");
+
 				Time::OnUpdate();
 
 				Engine::ResetStats();
@@ -67,7 +77,7 @@ namespace KTN
 				if (auto currentTime = Time::GetTime();
 					currentTime - m_LastTime >= 1.0)
 				{
-					Engine::GetStats().FramesPerSecond  = m_Counter / (currentTime - m_LastTime);
+					Engine::GetStats().FramesPerSecond = uint32_t(m_Counter / (currentTime - m_LastTime));
 					m_LastTime = currentTime;
 					m_Counter = 0;
 				}
@@ -80,6 +90,8 @@ namespace KTN
 			// Render
 			if (!m_Window->IsMinimized())
 			{
+				KTN_PROFILE_SCOPE("On Render");
+
 				RendererCommand::Begin();
 
 				for (auto& layer : m_LayerStack)
@@ -102,6 +114,8 @@ namespace KTN
 
 			if (!m_Window->IsMinimized())
 			{
+				KTN_PROFILE_SCOPE("Deleting Cache");
+
 				Pipeline::DeleteUnusedCache();
 				Framebuffer::DeleteUnusedCache();
 				Renderpass::DeleteUnusedCache();
@@ -112,30 +126,40 @@ namespace KTN
 
 	void Application::PushLayer(const Ref<Layer>& p_Layer)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		p_Layer->OnAttach();
 		m_LayerStack.PushLayer(p_Layer);
 	}
 
 	void Application::PushOverlay(const Ref<Layer>& p_Overlay)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		p_Overlay->OnAttach();
 		m_LayerStack.PushOverlay(p_Overlay);
 	}
 
 	void Application::PopLayer(const Ref<Layer>& p_Layer)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		p_Layer->OnDetach();
 		m_LayerStack.PopLayer(p_Layer);
 	}
 
 	void Application::PopOverlay(const Ref<Layer>& p_Overlay)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		p_Overlay->OnDetach();
 		m_LayerStack.PopOverlay(p_Overlay);
 	}
 
 	void Application::OnEvent(Event& p_Event)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		p_Event.Dispatch<WindowCloseEvent>(
 		[&](WindowCloseEvent& p_Event)
 		{
@@ -152,6 +176,8 @@ namespace KTN
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
 		{
+			KTN_PROFILE_SCOPE("Layers OnEvent");
+
 			(*--it)->OnEvent(p_Event);
 			if (p_Event.Handled)
 				break;

@@ -9,6 +9,8 @@ namespace KTN
 {
 	Ref<UniformBuffer> UniformBuffer::Create(size_t p_SizeBytes)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLUniformBuffer>(p_SizeBytes);
 
@@ -18,6 +20,8 @@ namespace KTN
 
 	Ref<UniformBuffer> UniformBuffer::Create(const void* p_Data, size_t p_SizeBytes)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLUniformBuffer>(p_Data, p_SizeBytes);
 

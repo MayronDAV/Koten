@@ -14,6 +14,8 @@ namespace KTN
 {
 	Ref<ImGuiLayer> ImGuiLayer::Create()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLImGuiLayer>();
 
@@ -23,6 +25,8 @@ namespace KTN
 
 	void ImGuiLayer::Init()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -39,12 +43,16 @@ namespace KTN
 
 	void ImGuiLayer::NewFrame()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 	}
 
 	void ImGuiLayer::EndFrame()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
@@ -62,12 +70,16 @@ namespace KTN
 
 	void ImGuiLayer::Shutdown()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 	}
 
 	void ImGuiLayer::OnEvent(Event& p_Event)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (m_BlockEvents)
 		{
 			ImGuiIO& io		 = ImGui::GetIO();
@@ -79,6 +91,8 @@ namespace KTN
 
 	void ImGuiLayer::OnUpdate()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = (float)Time::GetDeltaTime();
 	}

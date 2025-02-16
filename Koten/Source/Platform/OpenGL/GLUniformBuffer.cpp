@@ -15,6 +15,8 @@ namespace KTN
 
 	GLUniformBuffer::GLUniformBuffer(size_t p_SizeBytes)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		CHECK_ALIGNMENT(p_SizeBytes);
 
 		GLCall(glCreateBuffers(1, &m_RendererID));
@@ -23,6 +25,8 @@ namespace KTN
 
 	GLUniformBuffer::GLUniformBuffer(const void* p_Data, size_t p_SizeBytes)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		CHECK_ALIGNMENT(p_SizeBytes);
 
 		GLCall(glCreateBuffers(1, &m_RendererID));
@@ -31,23 +35,31 @@ namespace KTN
 
 	GLUniformBuffer::~GLUniformBuffer()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glDeleteBuffers(1, &m_RendererID));
 	}
 
 	void GLUniformBuffer::SetData(const void* p_Data, size_t p_SizeBytes, size_t p_Offset)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		CHECK_ALIGNMENT(p_SizeBytes);
 		GLCall(glNamedBufferSubData(m_RendererID, (GLintptr)p_Offset, (GLsizeiptr)p_SizeBytes, p_Data));
 	}
 
 	void GLUniformBuffer::Bind(uint32_t p_Slot)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_Slot = p_Slot;
 		GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, m_Slot, m_RendererID));
 	}
 
 	void GLUniformBuffer::Unbind()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, m_Slot, 0));
 		m_Slot = -1;
 	}

@@ -71,6 +71,8 @@ namespace KTN
 
 	void Camera::OnUpdate()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (!m_ProjectionDirty || (m_ViewportWidth <= 0 || m_ViewportHeight <= 0))
 			return;
 

@@ -140,6 +140,8 @@ namespace KTN
 
 		static std::vector<uint32_t> CompileGLSLToSPIRV(const std::string& p_Source, ShaderType p_Type)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			glslang::InitializeProcess();
 
 			EShLanguage stage = ShaderTypeToGlslang(p_Type);
@@ -218,6 +220,8 @@ namespace KTN
 
 	Ref<Shader> Shader::Create(const std::string& p_Path)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLShader>(CompileOrGetSpirv(p_Path));
 
@@ -227,6 +231,8 @@ namespace KTN
 
 	std::string Shader::ProcessIncludeFiles(const std::string& p_Path, const std::string& p_Code)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto result = std::string();
 
 		const char* includeToken = "#include";
@@ -279,6 +285,8 @@ namespace KTN
 
 	ShaderSource Shader::Process(const std::string& p_Path)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ShaderSource shaderSources;
 
 		auto source = FileSystem::ReadFile(p_Path);
@@ -322,6 +330,8 @@ namespace KTN
 
 	SpirvSource Shader::CompileOrGetSpirv(const std::string& p_Path)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto shaderSource = Process(p_Path);
 
 		FileSystem::CreateDirectories(s_CacheDirectory);

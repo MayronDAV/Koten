@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Koten/Debug/Profile.h"
+
 // std
 #include <cstdint>
 #include <memory>

@@ -11,6 +11,8 @@ namespace KTN
 {
 	GLDescriptorSet::GLDescriptorSet(const DescriptorSetSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_DescriptorsInfo = p_Spec.pShader->GetDescriptorInfos(p_Spec.Set);
 
 		for (auto& info : m_DescriptorsInfo)
@@ -24,6 +26,8 @@ namespace KTN
 
 	void GLDescriptorSet::SetUniformData(const std::string& p_Name, const Ref<UniformBuffer>& p_UniformBuffer)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (size_t i = 0; i < m_DescriptorsInfo.size(); i++)
 		{
 			auto& descriptor = m_DescriptorsInfo[i];
@@ -44,6 +48,8 @@ namespace KTN
 
 	void GLDescriptorSet::SetUniformData(const std::string& p_Name, void* p_Data)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (size_t i = 0; i < m_DescriptorsInfo.size(); i++)
 		{
 			auto& descriptor = m_DescriptorsInfo[i];
@@ -60,6 +66,8 @@ namespace KTN
 
 	void GLDescriptorSet::SetUniformData(const std::string& p_Name, void* p_Data, size_t p_Size)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (size_t i = 0; i < m_DescriptorsInfo.size(); i++)
 		{
 			auto& descriptor = m_DescriptorsInfo[i];
@@ -82,6 +90,8 @@ namespace KTN
 
 	void GLDescriptorSet::SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (size_t i = 0; i < m_DescriptorsInfo.size(); i++)
 		{
 			auto& descriptor = m_DescriptorsInfo[i];
@@ -105,6 +115,8 @@ namespace KTN
 
 	void GLDescriptorSet::SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (size_t i = 0; i < m_DescriptorsInfo.size(); i++)
 		{
 			auto& descriptor = m_DescriptorsInfo[i];
@@ -128,6 +140,8 @@ namespace KTN
 
 	void GLDescriptorSet::SetTexture(const std::string& p_Name, const Ref<Texture2D>& p_Texture)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (size_t i = 0; i < m_DescriptorsInfo.size(); i++)
 		{
 			auto& descriptor = m_DescriptorsInfo[i];
@@ -147,6 +161,8 @@ namespace KTN
 
 	void GLDescriptorSet::SetTexture(const std::string& p_Name, const Ref<Texture2D>* p_TextureData, uint32_t p_Count)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (size_t i = 0; i < m_DescriptorsInfo.size(); i++)
 		{
 			auto& descriptor = m_DescriptorsInfo[i];
@@ -174,6 +190,8 @@ namespace KTN
 
 	void GLDescriptorSet::Bind(CommandBuffer* p_CommandBuffer)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (int index : m_Queue)
 		{
 			const auto& info = m_DescriptorsInfo[index];

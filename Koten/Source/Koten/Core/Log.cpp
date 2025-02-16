@@ -14,6 +14,8 @@ namespace KTN
 
 	void Log::Init()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		std::vector<spdlog::sink_ptr> logSinks;
 		logSinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 		logSinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("Koten.log", true));

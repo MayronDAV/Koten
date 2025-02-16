@@ -90,6 +90,8 @@ namespace KTN::Utils
 
 	KTN_API uint8_t* LoadImageFromFile(const char* p_Path, uint32_t* p_Width, uint32_t* p_Height, uint32_t* p_Channels, uint32_t* p_Bytes, bool* p_IsHDR, bool p_FlipY)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		stbi_set_flip_vertically_on_load(p_FlipY);
 
 		int texWidth = 0, texHeight = 0, texChannels = 0;

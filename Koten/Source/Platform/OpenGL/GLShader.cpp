@@ -31,6 +31,8 @@ namespace KTN
 
 		static bool CheckCompilerErrors(uint32_t p_Shader, const std::string_view& p_Type)
 		{
+			KTN_PROFILE_FUNCTION_LOW();
+
 			GLint success;
 			GLchar infoLog[1024];
 			if (p_Type != "PROGRAM")
@@ -57,6 +59,8 @@ namespace KTN
 
 		static GLuint CreateProg(const ShaderSource& p_Source)
 		{
+			KTN_PROFILE_FUNCTION_LOW();
+
 			if (p_Source.empty())
 				return 0;
 
@@ -123,6 +127,8 @@ namespace KTN
 
 	GLShader::GLShader(const SpirvSource& p_Source)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		auto source = Reflect(p_Source);
 		CreateProgram(source);
 
@@ -135,27 +141,37 @@ namespace KTN
 
 	GLShader::~GLShader()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glDeleteProgram(m_RendererID));
 	}
 
 	void GLShader::Bind() const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glUseProgram(m_RendererID));
 	}
 
 	void GLShader::Unbind() const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glUseProgram(0));
 	}
 
 	void GLShader::SetPushValue(const std::string& p_Name, void* p_Value)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (auto& push : m_PushConstants)
 			push.SetValue(p_Name, p_Value);
 	}
 
 	void GLShader::BindPushConstants(CommandBuffer* p_CommandBuffer)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		for (int i = 0; i < m_PushConstants.size(); i++)
 		{
 			auto& push		= m_PushConstants[i];
@@ -168,6 +184,8 @@ namespace KTN
 
 	ShaderSource GLShader::Reflect(const SpirvSource& p_Spirv)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		ShaderSource shaderSources;
 
 		SHADER_LOG("===================== SHADER REFLECT =====================");
@@ -407,6 +425,8 @@ namespace KTN
 
 	void GLShader::CreateProgram(const ShaderSource& p_Source)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		ShaderSource shadersource;
 
 		for (auto&& [stage, source] : p_Source)

@@ -26,6 +26,8 @@ namespace KTN
 
 	std::string FileSystem::ReadFile(const std::string& p_Path)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		std::string result;
 		std::ifstream shaderFile{ p_Path, std::ios::in | std::ios::binary };
 
@@ -47,6 +49,8 @@ namespace KTN
 
 	void FileSystem::CreateDirectories(const std::string& p_Path)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (!std::filesystem::exists(p_Path))
 			std::filesystem::create_directories(p_Path);
 	}

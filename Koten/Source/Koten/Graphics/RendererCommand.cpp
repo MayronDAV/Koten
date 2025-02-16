@@ -32,6 +32,8 @@ namespace KTN
 
 	void RendererCommand::OnResize(uint32_t p_Width, uint32_t p_Height)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		KTN_CORE_ASSERT(s_API);
 		s_API->OnResize(p_Width, p_Height);
 	}
@@ -44,21 +46,29 @@ namespace KTN
 
 	void RendererCommand::SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		GetCurrentCommandBuffer()->SetViewport(p_X, p_Y, p_Width, p_Height);
 	}
 
 	void RendererCommand::DispatchCompute(uint32_t p_NumGroups_X, uint32_t p_NumGroups_Y, uint32_t p_NumGroups_Z)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		GetCurrentCommandBuffer()->DispatchCompute(p_NumGroups_X, p_NumGroups_Y, p_NumGroups_Z);
 	}
 
 	void RendererCommand::Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		GetCurrentCommandBuffer()->Draw(p_Type, p_VertexArray, p_VertexCount);
 	}
 
 	void RendererCommand::DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		GetCurrentCommandBuffer()->DrawIndexed(p_Type, p_VertexArray);
 	}
 

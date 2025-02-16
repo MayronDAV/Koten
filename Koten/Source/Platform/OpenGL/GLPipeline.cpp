@@ -10,6 +10,8 @@ namespace KTN
 {
 	GLPipeline::GLPipeline(const PipelineSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_Spec = p_Spec;
 		m_Shader = p_Spec.pShader;
 
@@ -22,6 +24,8 @@ namespace KTN
 
 	void GLPipeline::Begin(CommandBuffer* p_CommandBuffer, SubpassContents p_Contents, int p_MipIndex)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_Renderpass->Begin(p_CommandBuffer, GetFramebuffer(), GetWidth(), GetHeight(), m_Spec.ClearColor, p_Contents);
 
 		m_Shader->Bind();
@@ -72,6 +76,8 @@ namespace KTN
 
 	void GLPipeline::End(CommandBuffer* p_CommandBuffer)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_Renderpass->End(p_CommandBuffer);
 
 		m_Shader->Unbind();
@@ -85,6 +91,8 @@ namespace KTN
 
 	const Ref<Framebuffer>& GLPipeline::GetFramebuffer(int p_MipIndex) const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (m_Spec.BuildMipFramebuffers)
 			return m_Framebuffers[p_MipIndex];
 
@@ -93,6 +101,8 @@ namespace KTN
 
 	void GLPipeline::CreateFramebuffers()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		std::vector<Ref<Texture2D>> attachments;
 
 		if (!m_Spec.SwapchainTarget)

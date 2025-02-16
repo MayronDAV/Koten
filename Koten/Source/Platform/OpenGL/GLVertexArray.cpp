@@ -63,16 +63,22 @@ namespace KTN
 
 	void GLVertexArray::Bind(CommandBuffer* p_CommandBuffer) const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glBindVertexArray(m_RendererID);
 	}
 
 	void GLVertexArray::Unbind() const
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glBindVertexArray(0);
 	}
 
 	void GLVertexArray::SetVertexBuffer(const Ref<VertexBuffer>& p_VertexBuffer)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		KTN_CORE_ASSERT(p_VertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 
 		glBindVertexArray(m_RendererID);
@@ -137,6 +143,8 @@ namespace KTN
 
 	void GLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& p_IndexBuffer)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glBindVertexArray(m_RendererID);
 		p_IndexBuffer->Bind(nullptr);
 

@@ -7,6 +7,8 @@ namespace KTN
 {
 	Ref<Texture2D> TextureImporter::LoadTexture2D(const std::string& p_Path)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		TextureSpecification spec	= {};
 		spec.WrapU					= TextureWrap::REPEAT;
 		spec.WrapV					= TextureWrap::REPEAT;
@@ -22,6 +24,8 @@ namespace KTN
 
 	Ref<Texture2D> TextureImporter::LoadTexture2D(const std::string& p_Path, const TextureSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		uint32_t width, height, channels = 4, bytes = 1;
 		bool isHDR					= false;
 		uint8_t* data				= Utils::LoadImageFromFile(p_Path.c_str(), &width, &height, &channels, &bytes, &isHDR, Engine::GetAPI() == RenderAPI::OpenGL);

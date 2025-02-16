@@ -11,11 +11,15 @@ namespace KTN
 {
 	GLTexture2D::GLTexture2D(const TextureSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		Init(p_Spec);
 	}
 
 	GLTexture2D::GLTexture2D(const TextureSpecification& p_Spec, const uint8_t* p_Data, size_t p_Size)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (p_Spec.Samples > 1)
 			KTN_CORE_WARN("Samples is just for render target textures!")
 
@@ -26,11 +30,15 @@ namespace KTN
 
 	GLTexture2D::~GLTexture2D()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		GLCall(glDeleteTextures(1, &m_RendererID));
 	}
 
 	void GLTexture2D::Resize(uint32_t p_Width, uint32_t p_Height)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		const auto& cap = RendererCommand::GetCapabilities();
 
 		uint32_t newTexID;
@@ -102,6 +110,8 @@ namespace KTN
 
 	void GLTexture2D::GenerateMipmap(CommandBuffer* p_CommandBuffer)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_Specification.GenerateMips = true;
 		
 		GLCall(glGenerateTextureMipmap(m_RendererID));
@@ -110,6 +120,8 @@ namespace KTN
 
 	void GLTexture2D::Bind(uint32_t p_Slot)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		m_Slot = p_Slot;
 		if (IsStorage())
 			GLCall(glBindImageTexture(p_Slot, m_RendererID, 0, GL_FALSE, 0, GLUtils::TextureAccessToGL(m_Specification.Access), m_InternalFormat));
@@ -119,6 +131,8 @@ namespace KTN
 
 	void GLTexture2D::Unbind()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (IsStorage())
 			GLCall(glBindImageTexture(m_Slot, 0, 0, GL_FALSE, 0, GLUtils::TextureAccessToGL(m_Specification.Access), m_InternalFormat));
 		else
@@ -129,6 +143,8 @@ namespace KTN
 
 	void GLTexture2D::SetData(const void* p_Data, size_t p_Size)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (IsDepthStencilAttachment())
 			return;
 
@@ -139,6 +155,8 @@ namespace KTN
 
 	void GLTexture2D::Init(const TextureSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		const auto& cap			= RendererCommand::GetCapabilities();
 
 		m_Specification			= p_Spec;

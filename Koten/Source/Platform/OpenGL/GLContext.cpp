@@ -54,14 +54,6 @@ namespace KTN
 			}
 		}
 
-		#define KTN_GLDEBUG_LOG(Type)													\
-			KTN_GL##Type("Debug Callback:");											\
-			KTN_GL##Type("  Message: {}", p_Message);									\
-			KTN_GL##Type("  Type: {}", GetStringForType(p_Type));						\
-			KTN_GL##Type("  Source: {}", GetStringForSource(p_Source));					\
-			KTN_GL##Type("  ID: {}", p_ID);												\
-			KTN_GL##Type("  Severity: {}", GetStringForSeverity(p_Severity));			\
-
 		void APIENTRY GLCallbackFunction(GLenum p_Source,
 			GLenum p_Type,
 			GLuint p_ID,
@@ -70,16 +62,7 @@ namespace KTN
 			const GLchar* p_Message,
 			const void* p_UserParam)
 		{
-			//switch (p_Severity)
-			//{
-			//	case GL_DEBUG_SEVERITY_HIGH:			return KTN_GLDEBUG_LOG(ERROR);
-			//	case GL_DEBUG_SEVERITY_MEDIUM:			return KTN_GLDEBUG_LOG(WARN);
-			//	case GL_DEBUG_SEVERITY_LOW:				return KTN_GLDEBUG_LOG(TRACE);
-			//	case GL_DEBUG_SEVERITY_NOTIFICATION:	return KTN_GLDEBUG_LOG(INFO);
-			//	case GL_DEBUG_SOURCE_API:				return KTN_GLDEBUG_LOG(INFO);
-			//}
-
-			//KTN_GLERROR("Debug Callback:");
+			KTN_GLERROR("Debug Callback:");
 			KTN_GLERROR("  Message: {}", p_Message);
 			KTN_GLERROR("  Type: {}", GetStringForType(p_Type));
 			KTN_GLERROR("  Source: {}", GetStringForSource(p_Source));
@@ -91,6 +74,8 @@ namespace KTN
 
 	GLContext::GLContext()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 	#if defined(KTN_DEBUG)
 		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 	#endif // KTN_DEBUG
@@ -106,6 +91,8 @@ namespace KTN
 
 	void GLContext::Init(void* p_Window, const char* p_Name)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		KTN_CORE_ASSERT(p_Window, "Window is nullptr!");
 
 		m_Window = p_Window;
@@ -140,11 +127,15 @@ namespace KTN
 
 	void GLContext::SwapBuffer()
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glfwSwapBuffers((GLFWwindow*)m_Window);
 	}
 
 	void GLContext::SetVsync(bool p_Value)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		glfwSwapInterval(p_Value ? 1 : 0);
 	}
 

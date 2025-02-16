@@ -18,6 +18,8 @@ namespace KTN
 
 	void GLRenderpass::Begin(CommandBuffer* p_CommandBuffer, const Ref<Framebuffer>& p_Frame, uint32_t p_Width, uint32_t p_Height, const glm::vec4& p_Color, SubpassContents p_Contents)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (p_Frame != nullptr)
 		{
 			m_CurrentFrame = As<Framebuffer, GLFramebuffer>(p_Frame);
@@ -39,6 +41,8 @@ namespace KTN
 
 	void GLRenderpass::End(CommandBuffer* p_CommandBuffer)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		if (m_CurrentFrame)
 		{
 			m_CurrentFrame->End();

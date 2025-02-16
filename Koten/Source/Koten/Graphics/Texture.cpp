@@ -17,11 +17,15 @@ namespace KTN
 
 	void Texture::ClearCache()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		s_TextureCache.clear();
 	}
 
 	void Texture::DeleteUnusedCache()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		static std::size_t keysToDelete[256];
 		std::size_t keysToDeleteCount = 0;
 
@@ -46,6 +50,8 @@ namespace KTN
 
 	Ref<Texture2D> Texture2D::Create(const TextureSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLTexture2D>(p_Spec);
 
@@ -55,6 +61,8 @@ namespace KTN
 
 	Ref<Texture2D> Texture2D::Create(const TextureSpecification& p_Spec, const uint8_t* p_Data, size_t p_Size)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (Engine::GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLTexture2D>(p_Spec, p_Data, p_Size);
 
@@ -64,6 +72,8 @@ namespace KTN
 
 	Ref<Texture2D> Texture2D::Get(const TextureSpecification& p_Spec)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		uint64_t hash = 0;
 
 		HashCombine(hash, glm::value_ptr(p_Spec.BorderColor), p_Spec.Samples);
