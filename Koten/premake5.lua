@@ -51,6 +51,10 @@ project "Koten"
 
 	defines { "KTN_EXPORT", "OPTICK_EXPORT", "KTN_PROFILE_ENABLED", "USE_OPTICK=1" }
 
+	filter "action:vs*"
+		buildoptions { "/Zc:preprocessor" }
+
+
 	filter "files:Thirdparty/Optick/src/**.cpp"
 		flags { "NoPCH" }
 
