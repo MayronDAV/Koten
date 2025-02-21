@@ -1,0 +1,44 @@
+name: linux
+
+on: [push, pull_request]
+
+jobs:
+  Build:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        config: [debug, release, dist]
+        platform: [x64]
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        submodules: recursive
+
+    - name: Cache ${{ runner.os }}
+      uses: actions/cache@v4
+      with:
+        path: |
+          bin
+          bin-int
+        key: Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-main
+        restore-keys: |
+          Koten-${{ runner.os }}-${{ matrix.config }}-${{ matrix.platform }}-
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++-11 gcc-11 libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxxf86vm-dev mesa-common-dev
+
+    - name: Build ${{ matrix.platform }} ${{ matrix.config }}
+      run: |
+        chmod u+r+x Tools/Linux/premake5
+        Tools/Linux/premake5 gmake2
+        make config=${{ matrix.config }} CC=gcc-11 CXX=g++-11 -j8
+
+    - name: Upload Bin Artifacts
+      uses: ./.github/actions/upload-artifact
+      with:
+        name: Koten-Linux-${{ matrix.config }}-${{ matrix.platform }}
+        path: bin

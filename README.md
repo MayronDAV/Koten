@@ -1,6 +1,7 @@
 # Koten
 
-![Build](https://github.com/MayronDAV/Koten/actions/workflows/build.yml/badge.svg?branch=main)
+[![image](https://github.com/MayronDAV/Koten/workflows/linux/badge.svg)](https://github.com/MayronDAV/Koten/actions?query=workflow%3Alinux)
+[![image](https://github.com/MayronDAV/Koten/workflows/windows/badge.svg)](https://github.com/MayronDAV/Koten/actions?query=workflow%3Awindows)
 
 ## Build
 
