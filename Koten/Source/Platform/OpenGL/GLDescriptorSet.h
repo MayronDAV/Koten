@@ -17,6 +17,13 @@ namespace KTN
 			void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) override;
 			void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) override;
 
+			void SetStorageData(const std::string& p_Name, const Ref<StorageBuffer>& p_StorageBuffer) override;
+			void SetStorageData(const std::string& p_Name, void* p_Data) override;
+			void SetStorageData(const std::string& p_Name, void* p_Data, size_t p_Size) override;
+
+			void SetStorage(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) override;
+			void SetStorage(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) override;
+
 			void SetTexture(const std::string& p_Name, const Ref<Texture2D>& p_Texture) override;
 			void SetTexture(const std::string& p_Name, const Ref<Texture2D>* p_TextureData, uint32_t p_Count) override;
 

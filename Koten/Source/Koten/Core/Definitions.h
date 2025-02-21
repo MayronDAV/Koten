@@ -15,6 +15,7 @@ namespace KTN
 {
 	#pragma region defs
 		class Texture2D;
+		class StorageBuffer;
 		class UniformBuffer;
 		class Framebuffer;
 		class Renderpass;
@@ -252,6 +253,7 @@ namespace KTN
 	struct DescriptorInfo
 	{
 		std::vector<Ref<Texture2D>> Textures;
+		Ref<StorageBuffer> Storage = nullptr;
 		Ref<UniformBuffer> Uniform = nullptr;
 
 		std::string Name;

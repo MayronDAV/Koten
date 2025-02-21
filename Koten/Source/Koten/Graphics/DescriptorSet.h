@@ -1,5 +1,6 @@
 #pragma once
 #include "Koten/Core/Base.h"
+#include "StorageBuffer.h"
 #include "UniformBuffer.h"
 #include "Texture.h"
 #include "Shader.h"
@@ -28,6 +29,13 @@ namespace KTN
 
 			virtual void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) = 0;
 			virtual void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) = 0;
+
+			virtual void SetStorageData(const std::string& p_Name, const Ref<StorageBuffer>& p_StorageBuffer) = 0;
+			virtual void SetStorageData(const std::string& p_Name, void* p_Data) = 0;
+			virtual void SetStorageData(const std::string& p_Name, void* p_Data, size_t p_Size) = 0;
+
+			virtual void SetStorage(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) = 0;
+			virtual void SetStorage(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) = 0;
 
 			virtual void SetTexture(const std::string& p_Name, const Ref<Texture2D>& p_Texture) = 0;
 			virtual void SetTexture(const std::string& p_Name, const Ref<Texture2D>* p_TextureData, uint32_t p_Count) = 0;
