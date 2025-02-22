@@ -1,6 +1,8 @@
 #include "ktnpch.h"
 #include "GLBase.h"
+#include "GLUtils.h"
 #include "GLRendererAPI.h"
+#include "GLTexture.h"
 
 
 
@@ -48,6 +50,57 @@ namespace KTN
 
 		GLCall(glClearColor(p_Color.r, p_Color.g, p_Color.b, p_Color.a));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+	}
+
+	void GLRendererAPI::ClearRenderTarget(const Ref<Texture2D>& p_Texture, uint32_t p_Value)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		KTN_CORE_VERIFY(p_Texture != nullptr);
+
+		auto id = As<Texture2D, GLTexture2D>(p_Texture)->GetID();
+
+		if (p_Texture->IsColorAttachment())
+		{
+			glm::vec4 color = { p_Value, p_Value, p_Value, 1.0f };
+			glClearTexImage(id, 0, GLUtils::TextureFormatToGLFormat(p_Texture->GetSpecification().Format), GL_FLOAT, &color[0]);
+		}
+		else if (p_Texture->IsDepthStencilAttachment())
+		{
+			float value = 1.0f;
+			glClearTexImage(id, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &value);
+
+			if (p_Texture->IsStencil())
+			{
+				GLint clearStencil = 0;
+				glClearTexImage(id, 0, GL_STENCIL_INDEX, GL_INT, &clearStencil);
+			}
+		}
+	}
+
+	void GLRendererAPI::ClearRenderTarget(const Ref<Texture2D>& p_Texture, const glm::vec4& p_Value)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		KTN_CORE_VERIFY(p_Texture != nullptr);
+
+		auto id = As<Texture2D, GLTexture2D>(p_Texture)->GetID();
+
+		if (p_Texture->IsColorAttachment())
+		{
+			glClearTexImage(id, 0, GLUtils::TextureFormatToGLFormat(p_Texture->GetSpecification().Format), GL_FLOAT, &p_Value[0]);
+		}
+		else if (p_Texture->IsDepthStencilAttachment())
+		{
+			float value = 1.0f;
+			glClearTexImage(id, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &value);
+
+			if (p_Texture->IsStencil())
+			{
+				GLint clearStencil = 0;
+				glClearTexImage(id, 0, GL_STENCIL_INDEX, GL_INT, &clearStencil);
+			}
+		}
 	}
 
 	void GLRendererAPI::Begin()

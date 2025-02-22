@@ -21,5 +21,6 @@ namespace KTN
 
 			void Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount) override;
 			void DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray) override;
+			void DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer) override;
 	};
 } // namespace KTN

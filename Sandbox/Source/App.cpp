@@ -22,6 +22,7 @@ namespace KTN
 			float m_Zoom = 1.0f;
 			float m_Speed = 4.0f;
 			bool m_Orthographic = false;
+			int m_MapSize = 5;
 			glm::vec2 m_TileSize = { 0.90f, 0.90f };
 			glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
 			uint32_t m_Width = 800;
@@ -33,6 +34,8 @@ namespace KTN
 
 			void OnAttach() override 
 			{
+				KTN_PROFILE_FUNCTION();
+
 				KTN_INFO("Attaching...");
 
 				m_CheckerTexture = TextureImporter::LoadTexture2D("Assets/Textures/checkerboard.png");
@@ -41,6 +44,8 @@ namespace KTN
 			void OnDetach() override { KTN_INFO("Detaching..."); }
 			void OnUpdate() override
 			{
+				KTN_PROFILE_FUNCTION();
+
 				m_Camera.SetViewportSize(m_Width, m_Height);
 				m_Camera.SetZoom(m_Zoom);
 				m_Camera.SetIsOrthographic(m_Orthographic);
@@ -72,6 +77,8 @@ namespace KTN
 			}
 			void OnRender() override
 			{
+				KTN_PROFILE_FUNCTION();
+
 				TextureSpecification tspec		= {};
 				tspec.Width						= m_Width;
 				tspec.Height					= m_Height;
@@ -95,10 +102,9 @@ namespace KTN
 
 				RenderCommand command			= {};
 
-				int size = 5;
-				for (int y = 0; y < size; y++)
+				for (int y = 0; y < m_MapSize; y++)
 				{
-					for (int x = 0; x < size; x++)
+					for (int x = 0; x < m_MapSize; x++)
 					{
 						glm::mat4 model			= glm::translate(glm::mat4(1.0f), { x, y, 0.0f }) * glm::scale(glm::mat4(1.0f), { m_TileSize, 1.0f });
 						command.Transform		= model;
@@ -119,6 +125,8 @@ namespace KTN
 
 			void OnImgui() override
 			{
+				KTN_PROFILE_FUNCTION();
+
 				BeginDockspace(false);
 
 				ImGui::SetNextWindowSizeConstraints({ 400.0f, 400.0f }, { FLT_MAX, FLT_MAX });
@@ -140,6 +148,7 @@ namespace KTN
 				ImGui::Begin("Editor");
 				{
 					ImGui::DragFloat("Distance", &m_Distance, 0.1f);
+					ImGui::DragInt("Map Size", &m_MapSize, 1, 1);
 					ImGui::DragFloat2("Tile Size", glm::value_ptr(m_TileSize), 0.1f);
 					ImGui::DragFloat("Zoom", &m_Zoom, 0.01f, 0.01f, 10.0f);
 					ImGui::DragFloat("Speed", &m_Speed, 0.01f, 0.01f);
@@ -163,6 +172,8 @@ namespace KTN
 			void OnEvent(Event& p_Event) override {}
 			void BeginDockspace(bool p_MenuBar)
 			{
+				KTN_PROFILE_FUNCTION();
+
 				static bool opt_fullscreen = true;
 				static bool opt_padding = false;
 				static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
@@ -213,6 +224,8 @@ namespace KTN
 
 			void EndDockspace()
 			{
+				KTN_PROFILE_FUNCTION();
+
 				ImGui::End();
 			}
 	};
@@ -221,7 +234,7 @@ namespace KTN
 
 	Application* CreateApplication(int p_Argc, char** p_Argv)
 	{
-		KTN_INFO("Creating sandbox app...");
+		KTN_PROFILE_FUNCTION();
 
 		auto app = new Application();
 		ImGui::SetCurrentContext(app->GetImGui()->GetCurrentContext());

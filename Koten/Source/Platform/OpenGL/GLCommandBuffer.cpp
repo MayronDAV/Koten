@@ -2,6 +2,7 @@
 #include "GLBase.h"
 #include "GLUtils.h"
 #include "GLCommandBuffer.h"
+#include "GLIndirectBuffer.h"
 
 
 
@@ -55,6 +56,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION_LOW();
 
+		KTN_CORE_VERIFY(p_VertexArray != nullptr);
 		KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer());
 		KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer()->GetCount() > 0);
 
@@ -62,6 +64,19 @@ namespace KTN
 		uint32_t count = p_VertexArray->GetIndexBuffer()->GetCount();
 
 		glDrawElements(GLUtils::DrawTypeToGL(p_Type), count, GL_UNSIGNED_INT, nullptr);
+	}
+
+	void GLCommandBuffer::DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)
+	{
+		KTN_CORE_VERIFY(p_VertexArray != nullptr);
+		KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer());
+		KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer()->GetCount() > 0);
+
+		p_VertexArray->Bind(this);
+
+		As<IndirectBuffer, GLIndirectBuffer>(p_Buffer)->Bind();
+
+		GLCall(glDrawElementsIndirect(GLUtils::DrawTypeToGL(p_Type), GL_UNSIGNED_INT, nullptr));
 	}
 
 } // namespace KTN

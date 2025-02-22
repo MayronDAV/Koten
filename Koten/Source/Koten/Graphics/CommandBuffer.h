@@ -3,6 +3,7 @@
 #include "Koten/Core/Definitions.h"
 #include "VertexArray.h"
 #include "DescriptorSet.h"
+#include "IndirectBuffer.h"
 
 
 
@@ -28,6 +29,7 @@ namespace KTN
 
 			virtual void Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount) = 0;
 			virtual void DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray) = 0;
+			virtual void DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer) = 0;
 
 			static Unique<CommandBuffer> Create();
 	};

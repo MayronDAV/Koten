@@ -12,6 +12,8 @@ namespace KTN
 			~GLRendererAPI() override = default;
 
 			void ClearColor(const glm::vec4& p_Color) override;
+			void ClearRenderTarget(const Ref<Texture2D>& p_Texture, uint32_t p_Value) override;
+			void ClearRenderTarget(const Ref<Texture2D>& p_Texture, const glm::vec4& p_Value) override;
 
 			void Begin() override;
 			void End() override;

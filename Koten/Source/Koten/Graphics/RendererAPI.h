@@ -32,6 +32,8 @@ namespace KTN
 			virtual void End() = 0;
 
 			virtual void ClearColor(const glm::vec4& p_Color) = 0;
+			virtual void ClearRenderTarget(const Ref<Texture2D>& p_Texture, uint32_t p_Value) = 0;
+			virtual void ClearRenderTarget(const Ref<Texture2D>& p_Texture, const glm::vec4& p_Value) = 0;
 
 			virtual void OnResize(uint32_t p_Width, uint32_t p_Height) {}
 

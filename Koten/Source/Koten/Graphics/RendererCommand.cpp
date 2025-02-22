@@ -9,23 +9,31 @@ namespace KTN
 
 	void RendererCommand::Init()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		s_API = RendererAPI::Create();
 	}
 
 	void RendererCommand::Release()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (s_API)
 			delete s_API;
 	}
 
 	void RendererCommand::Begin()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		KTN_CORE_ASSERT(s_API);
 		s_API->Begin();
 	}
 
 	void RendererCommand::End()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		KTN_CORE_ASSERT(s_API);
 		s_API->End();
 	}
@@ -40,8 +48,28 @@ namespace KTN
 
 	void RendererCommand::ClearColor(const glm::vec4& p_Color)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		KTN_CORE_ASSERT(s_API);
 		s_API->ClearColor(p_Color);
+	}
+
+	void RendererCommand::ClearRenderTarget(const Ref<Texture2D>& p_Texture, uint32_t p_Value)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		KTN_CORE_ASSERT(s_API);
+
+		s_API->ClearRenderTarget(p_Texture, p_Value);
+	}
+
+	void RendererCommand::ClearRenderTarget(const Ref<Texture2D>& p_Texture, const glm::vec4& p_Value)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		KTN_CORE_ASSERT(s_API);
+
+		s_API->ClearRenderTarget(p_Texture, p_Value);
 	}
 
 	void RendererCommand::SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height)
@@ -70,6 +98,13 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		GetCurrentCommandBuffer()->DrawIndexed(p_Type, p_VertexArray);
+	}
+
+	void RendererCommand::DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		GetCurrentCommandBuffer()->DrawIndexedIndirect(p_Type, p_VertexArray, p_Buffer);
 	}
 
 	const Capabilities& RendererCommand::GetCapabilities()

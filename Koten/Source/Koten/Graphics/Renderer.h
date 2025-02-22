@@ -20,11 +20,19 @@ namespace KTN
 
 		glm::mat4 Transform			= { 1.0f };
 
-		struct {
+		struct 
+		{
 			Ref<Texture2D> Texture  = nullptr;
 			glm::vec4 Color			= { 1.0f, 1.0f, 1.0f, 1.0f };
-			glm::vec2 UV0			= { 0.0f, 1.0f };
-			glm::vec2 UV1			= { 1.0f, 0.0f };
+
+			// UV Options
+
+			glm::vec2 Size			= { 0.0f, 0.0f };
+			// [true] if you want to pass the tile coord as a multiplier of the tile size
+			// [false] if you want to pass the actual coord directly
+			bool BySize				= true;
+			glm::vec2 Offset		= { 0.0f, 0.0f };
+			glm::vec2 Scale			= { 1.0f, 1.0f };
 		} SpriteData = {};
 	};
 
