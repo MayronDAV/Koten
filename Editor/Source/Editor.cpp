@@ -76,7 +76,6 @@ namespace KTN
 	Editor::Editor()
 		: Layer("Editor")
 	{
-
 	}
 
 	Editor::~Editor()
@@ -93,10 +92,9 @@ namespace KTN
 		{
 			for (int y = 0; y < 5; y++)
 			{
-				auto square = m_ActiveScene->CreateEntity();
-				m_ActiveScene->GetRegistry().emplace<TagComponent>(square, "Square");
-				m_ActiveScene->GetRegistry().emplace<TransformComponent>(square, glm::vec3( x, y, 0.0f ), glm::vec3( 0.9f, 0.9f, 1.0f));
-				m_ActiveScene->GetRegistry().emplace<SpriteComponent>(square, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+				auto square = m_ActiveScene->CreateEntity("Square");
+				square.AddComponent<TransformComponent>(glm::vec3(x, y, 0.0f), glm::vec3(0.9f, 0.9f, 1.0f));
+				square.AddComponent<SpriteComponent>(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
 			}
 		}
 	}

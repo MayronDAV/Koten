@@ -61,6 +61,7 @@
 // SCENE
 
 #include "Koten/Scene/Components.h"
+#include "Koten/Scene/Entity.h"
 #include "Koten/Scene/Scene.h"
 
 // UTILS

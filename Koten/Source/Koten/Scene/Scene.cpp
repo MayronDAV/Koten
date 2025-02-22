@@ -1,6 +1,7 @@
 #include "ktnpch.h"
 #include "Scene.h"
 #include "Koten/Graphics/Renderer.h"
+#include "Entity.h"
 
 
 
@@ -14,9 +15,11 @@ namespace KTN
 	{
 	}
 
-	entt::entity Scene::CreateEntity()
+	Entity Scene::CreateEntity(const std::string& p_Tag)
 	{
-		return m_Registry.create();
+		auto entt = Entity(m_Registry.create(), this);
+		entt.AddComponent<TagComponent>(p_Tag);
+		return entt;
 	}
 
 	void Scene::OnUpdate()
@@ -25,8 +28,8 @@ namespace KTN
 
 	void Scene::OnRender()
 	{
-		m_Registry.view<TagComponent, TransformComponent, SpriteComponent>().each(
-		[&](auto p_Entity, const TagComponent& p_Tag, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
+		m_Registry.view<TransformComponent, SpriteComponent>().each(
+		[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
 		{
 			RenderCommand command = {};
 			command.Transform = p_Transform.GetWorldMatrix();

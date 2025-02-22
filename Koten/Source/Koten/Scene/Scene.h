@@ -12,21 +12,24 @@
 
 namespace KTN
 {
+	class KTN_API Entity;
+
 	class KTN_API Scene
 	{
 		public:
 			Scene();
+			Scene(const Scene&) = default;
 			~Scene();
 
-			entt::entity CreateEntity();
+			Entity CreateEntity(const std::string& p_Tag);
 
 			void OnUpdate();
 			void OnRender();
 
-			entt::registry& GetRegistry() { return m_Registry; }
-
 		private:
 			entt::registry m_Registry;
+
+			friend class Entity;
 	};
 
 
