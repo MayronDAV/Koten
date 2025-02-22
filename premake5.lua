@@ -3,7 +3,7 @@ include "premake-dependencies.lua"
 
 workspace "Koten"
 	architecture "x64"
-	startproject "Sandbox"
+	startproject "Editor"
 	flags "MultiProcessorCompile"
 	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 	
@@ -29,10 +29,15 @@ group "Thirdparty"
 	include "Thirdparty/premake-imgui.lua"
 	include "Thirdparty/premake-spdlog.lua"
 	include "Thirdparty/premake-yaml-cpp.lua"
+	include "Koten/include-dependencies.lua"
 group ""
 
 group "Core"
 	include "Koten"
+group ""
+
+group "Tools"
+	include "Editor"
 group ""
 
 group "Misc"

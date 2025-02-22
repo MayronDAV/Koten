@@ -1,35 +1,25 @@
-project "Koten"
-	kind "SharedLib"
+project "Editor"
+	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
-	pchheader "ktnpch.h"
-	pchsource "Source/ktnpch.cpp"
 
 	files
 	{
 		"Source/**.h",
 		"Source/**.cpp",
-
-		"%{IncludeDir.optick}/**.h",
-		"%{IncludeDir.optick}/**.cpp"
 	}
 
 	includedirs
 	{
 		"Source",
-		"%{IncludeDir.glad}",
-		"%{IncludeDir.glslang}",
-		"%{IncludeDir.SPIRVCross}",
-		"%{IncludeDir.glfw}",
+		"%{IncludeDir.ktn}",
+		"%{IncludeDir.glm}",
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.spdlog}",
-		"%{IncludeDir.glm}",
-		"%{IncludeDir.entt}",
-		"%{IncludeDir.stb}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yamlcpp}",
 		"%{IncludeDir.optick}"
@@ -37,45 +27,38 @@ project "Koten"
 
 	links
 	{
-		"glad",
-		"glslang",
-		"SPIRVCross",
-		"spdlog",
-		"glfw",
-		"stb",
+		"Koten",
 		"imgui",
+		"spdlog",
 		"yaml-cpp"
 	}
 
-	defines { "KTN_EXPORT", "OPTICK_EXPORT", "KTN_PROFILE_ENABLED", "USE_OPTICK=1" }
-
-	filter "action:vs*"
-		buildoptions { "/Zc:preprocessor" }
-
-
-	filter "files:Thirdparty/Optick/src/**.cpp"
-		flags { "NoPCH" }
+	defines "KTN_PROFILE_ENABLED"
 
 	filter "system:windows"
 		systemversion "latest"
 		buildoptions { "/utf-8", "/wd4251" }
-		links { "opengl32.lib" }
 		defines
 		{
 			"KTN_WINDOWS",
-			"GLFW_INCLUDE_NONE",
 			"UNICODE", 
 			"_UNICODE" 
 		}
-	
-	filter "system:linux"
-        pic "on"
-		links { "GL" }
-		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++" }
-		defines
+
+		postbuildcommands 
 		{
-			"KTN_LINUX",
-			"GLFW_INCLUDE_NONE"
+			("{COPYFILE} %{wks.location}/bin/" .. outputdir .. "/Koten/Koten.dll %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/")
+		}
+
+	filter "system:linux"
+		pic "on"
+		systemversion "latest"
+		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++" }
+		defines "KTN_LINUX"
+
+		postbuildcommands 
+		{
+			("{COPY} %{wks.location}/bin/" .. outputdir .. "/Koten/libKoten.so %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/")
 		}
 
 	filter "configurations:Debug"
