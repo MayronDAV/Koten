@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <memory>
 
+#define GLM_ENABLE_EXPERIMENTAL
 
 #ifdef KTN_WINDOWS
 	#ifdef KTN_EXPORT

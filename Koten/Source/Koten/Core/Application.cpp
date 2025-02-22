@@ -68,7 +68,7 @@ namespace KTN
 			// Update
 			if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
 			{
-				KTN_PROFILE_SCOPE("On Update");
+				KTN_PROFILE_SCOPE("Update");
 
 				Time::OnUpdate();
 
@@ -90,7 +90,7 @@ namespace KTN
 			// Render
 			if (!m_Window->IsMinimized())
 			{
-				KTN_PROFILE_SCOPE("On Render");
+				KTN_PROFILE_SCOPE("Render");
 
 				RendererCommand::Begin();
 

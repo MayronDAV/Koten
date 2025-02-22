@@ -76,6 +76,7 @@ namespace KTN
 	Editor::Editor()
 		: Layer("Editor")
 	{
+
 	}
 
 	Editor::~Editor()
@@ -86,10 +87,18 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		KTN_INFO("Attaching...");
+		m_ActiveScene = CreateRef<Scene>();
 
-		m_CheckerTexture = TextureImporter::LoadTexture2D("Assets/Textures/checkerboard.png");
-		m_WallTexture = TextureImporter::LoadTexture2D("Assets/Textures/wall.jpg");
+		for (int x = 0; x < 5; x++)
+		{
+			for (int y = 0; y < 5; y++)
+			{
+				auto square = m_ActiveScene->CreateEntity();
+				m_ActiveScene->GetRegistry().emplace<TagComponent>(square, "Square");
+				m_ActiveScene->GetRegistry().emplace<TransformComponent>(square, glm::vec3( x, y, 0.0f ), glm::vec3( 0.9f, 0.9f, 1.0f));
+				m_ActiveScene->GetRegistry().emplace<SpriteComponent>(square, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+			}
+		}
 	}
 
 	void Editor::OnDetach()
@@ -99,6 +108,8 @@ namespace KTN
 	void Editor::OnUpdate()
 	{
 		KTN_PROFILE_FUNCTION();
+
+		m_ActiveScene->OnUpdate();
 
 		m_Camera.SetViewportSize(m_Width, m_Height);
 		m_Camera.SetZoom(m_Zoom);
@@ -155,25 +166,7 @@ namespace KTN
 
 		Renderer::Begin(info);
 
-		RenderCommand command = {};
-
-		for (int y = 0; y < m_MapSize; y++)
-		{
-			for (int x = 0; x < m_MapSize; x++)
-			{
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), { x, y, 0.0f }) * glm::scale(glm::mat4(1.0f), { m_TileSize, 1.0f });
-				command.Transform = model;
-				command.SpriteData.Texture = m_WallTexture;
-
-				Renderer::Submit(command);
-			}
-		}
-
-		glm::mat4 model = glm::translate(glm::mat4(1.0f), m_Position);
-		command.Transform = model;
-		command.SpriteData.Texture = m_CheckerTexture;
-
-		Renderer::Submit(command);
+		m_ActiveScene->OnRender();
 
 		Renderer::End();
 	}
@@ -203,10 +196,7 @@ namespace KTN
 		ImGui::Begin("Editor");
 		{
 			ImGui::DragFloat("Distance", &m_Distance, 0.1f);
-			ImGui::DragInt("Map Size", &m_MapSize, 1, 1);
-			ImGui::DragFloat2("Tile Size", glm::value_ptr(m_TileSize), 0.1f);
 			ImGui::DragFloat("Zoom", &m_Zoom, 0.01f, 0.01f, 10.0f);
-			ImGui::DragFloat("Speed", &m_Speed, 0.01f, 0.01f);
 			if (ImGui::RadioButton("Orthographic", m_Orthographic))
 				m_Orthographic = !m_Orthographic;
 		}

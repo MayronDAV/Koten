@@ -39,7 +39,12 @@
 #include "Koten/Graphics/Renderpass.h"
 #include "Koten/Graphics/Pipeline.h"
 #include "Koten/Graphics/Renderer.h"
+#include "Koten/Graphics/StorageBuffer.h"
+#include "Koten/Graphics/IndirectBuffer.h"
 
+// DEBUG
+
+#include "Koten/Debug/Profile.h"
 
 // IMGUI
 
@@ -52,6 +57,11 @@
 #include "Koten/OS/MouseCodes.h"
 #include "Koten/OS/Input.h"
 #include "Koten/OS/Window.h"
+
+// SCENE
+
+#include "Koten/Scene/Components.h"
+#include "Koten/Scene/Scene.h"
 
 // UTILS
 
