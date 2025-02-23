@@ -34,6 +34,7 @@ namespace KTN
 			glm::mat4 Projection				= { 1.0f };
 			glm::mat4 View						= { 1.0f };
 			uint8_t Samples						= 1;
+			glm::vec4 ClearColor				= { 0.0f, 0.0f, 0.0f, 1.0f };
 
 			Ref<Texture2D> WhiteTexture			= nullptr;
 
@@ -108,6 +109,18 @@ namespace KTN
 		delete s_QuadData;
 	}
 
+	void Renderer::Clear()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (s_Data->MainTexture)
+			RendererCommand::ClearRenderTarget(s_Data->MainTexture, s_Data->ClearColor);
+		if (s_Data->ResolveTexture)
+			RendererCommand::ClearRenderTarget(s_Data->ResolveTexture, s_Data->ClearColor);
+		if (s_Data->MainDepthTexture)
+			RendererCommand::ClearRenderTarget(s_Data->MainDepthTexture, 1);
+	}
+
 	void Renderer::Begin(const RenderBeginInfo& p_Info)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -115,7 +128,7 @@ namespace KTN
 		s_Data->RenderTarget		= p_Info.RenderTarget;
 		s_Data->Width				= p_Info.Width;
 		s_Data->Height				= p_Info.Height;
-		s_Data->Projection			= p_Info.pCamera.GetProjection();
+		s_Data->Projection			= p_Info.Projection;
 		s_Data->View				= p_Info.View;
 		s_Data->Samples				= p_Info.Samples;
 
@@ -131,16 +144,12 @@ namespace KTN
 
 		s_Data->MainTexture			= Texture2D::Get(tspec);
 
-		RendererCommand::ClearRenderTarget(s_Data->MainTexture, { 0.0f, 0.0f, 0.0f, 1.0f });
-
 		if (p_Info.Samples > 1)
 		{
 			tspec.Samples			= 1;
 			tspec.DebugName			= "MainResolveTexture";
 
 			s_Data->ResolveTexture  = Texture2D::Get(tspec);
-
-			RendererCommand::ClearRenderTarget(s_Data->ResolveTexture, { 0.0f, 0.0f, 0.0f, 1.0f });
 		}
 
 		tspec.Samples				= p_Info.Samples;
@@ -150,7 +159,8 @@ namespace KTN
 
 		s_Data->MainDepthTexture	= Texture2D::Get(tspec);
 
-		RendererCommand::ClearRenderTarget(s_Data->MainDepthTexture, 1);
+		if (p_Info.Clear)
+			Clear();
 
 		// R2D
 		{

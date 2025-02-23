@@ -24,20 +24,57 @@ namespace KTN
 
 	void Scene::OnUpdate()
 	{
+		bool first = true;
+
+		m_Registry.view<TransformComponent, CameraComponent>().each(
+		[&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
+		{
+			p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+			p_Camera.Camera.OnUpdate();
+
+			if (p_Camera.Primary)
+			{
+				if (!first)
+				{
+					KTN_CORE_ERROR("there can only be one primary camera!");
+					return;
+				}
+
+				m_Projection				= p_Camera.Camera.GetProjection();
+				m_View						= glm::inverse(p_Transform.GetWorldMatrix());
+				m_ClearColor				= p_Camera.ClearColor;
+				m_HaveCamera				= true;
+				first						= false;
+			}
+		});
 	}
 
 	void Scene::OnRender()
 	{
-		m_Registry.view<TransformComponent, SpriteComponent>().each(
-		[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
+		RenderBeginInfo info				= {};
+		info.RenderTarget					= m_RenderTarget;
+		info.Width							= m_Width;
+		info.Height							= m_Height;
+		info.Projection						= m_Projection;
+		info.View							= m_View;
+		info.Clear							= false;
+		if (m_HaveCamera)
+			info.ClearColor					= m_ClearColor;
+		
+		Renderer::Begin(info);
 		{
-			RenderCommand command = {};
-			command.Transform = p_Transform.GetWorldMatrix();
-			command.SpriteData.Color = p_Sprite.Color;
-			command.SpriteData.Texture = p_Sprite.Texture;
+			m_Registry.view<TransformComponent, SpriteComponent>().each(
+			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
+			{
+				RenderCommand command		= {};
+				command.Transform			= p_Transform.GetWorldMatrix();
+				command.SpriteData.Color	= p_Sprite.Color;
+				command.SpriteData.Texture  = p_Sprite.Texture;
 
-			Renderer::Submit(command);
-		});
+				Renderer::Submit(command);
+			});
+		}
+		Renderer::End();
 	}
 
 } // namespace KTN

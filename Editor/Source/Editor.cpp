@@ -88,6 +88,12 @@ namespace KTN
 
 		m_ActiveScene = CreateRef<Scene>();
 
+		{
+			auto entt = m_ActiveScene->CreateEntity("Camera");
+			entt.AddComponent<TransformComponent>(glm::vec3(0.0f, 0.0f, 5.0f));
+			entt.AddComponent<CameraComponent>();
+		}
+
 		for (int x = 0; x < 5; x++)
 		{
 			for (int y = 0; y < 5; y++)
@@ -107,42 +113,6 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		m_ActiveScene->OnUpdate();
-
-		m_Camera.SetViewportSize(m_Width, m_Height);
-		m_Camera.SetZoom(m_Zoom);
-		m_Camera.SetIsOrthographic(m_Orthographic);
-		if (m_Orthographic)
-		{
-			m_Camera.SetFar(1.0f);
-			m_Camera.SetNear(-1.0f);
-		}
-		else
-		{
-			m_Camera.SetFar(1000.0f);
-			m_Camera.SetNear(0.001f);
-		}
-
-		m_Camera.OnUpdate();
-
-		glm::vec3 dir{ 0.0f };
-
-		if (Input::IsKeyPressed(Key::W))
-			dir.y = 1;
-		if (Input::IsKeyPressed(Key::A))
-			dir.x = -1;
-		if (Input::IsKeyPressed(Key::S))
-			dir.y = -1;
-		if (Input::IsKeyPressed(Key::D))
-			dir.x = 1;
-
-		m_Position += (glm::length(dir) > 0 ? glm::normalize(dir) : dir) * m_Speed * (float)Time::GetDeltaTime();
-	}
-
-	void Editor::OnRender()
-	{
-		KTN_PROFILE_FUNCTION();
-
 		TextureSpecification tspec = {};
 		tspec.Width = m_Width;
 		tspec.Height = m_Height;
@@ -155,18 +125,18 @@ namespace KTN
 
 		m_MainTexture = Texture2D::Get(tspec);
 
-		RenderBeginInfo info = {};
-		info.RenderTarget = m_MainTexture;
-		info.Width = m_Width;
-		info.Height = m_Height;
-		info.pCamera = m_Camera;
-		info.View = glm::inverse(glm::translate(glm::mat4(1.0f), { m_Position.x, m_Position.y, m_Distance }));
+		m_ActiveScene->SetRenderTarget(m_MainTexture);
+		m_ActiveScene->SetViewportSize(m_Width, m_Height);
+		m_ActiveScene->OnUpdate();
 
-		Renderer::Begin(info);
+		Renderer::Clear();
+	}
+
+	void Editor::OnRender()
+	{
+		KTN_PROFILE_FUNCTION();
 
 		m_ActiveScene->OnRender();
-
-		Renderer::End();
 	}
 
 	void Editor::OnImgui()
@@ -188,15 +158,6 @@ namespace KTN
 
 			m_Width = (uint32_t)std::max(viewportSize.x, 400.0f);
 			m_Height = (uint32_t)std::max(viewportSize.y, 400.0f);
-		}
-		ImGui::End();
-
-		ImGui::Begin("Editor");
-		{
-			ImGui::DragFloat("Distance", &m_Distance, 0.1f);
-			ImGui::DragFloat("Zoom", &m_Zoom, 0.01f, 0.01f, 10.0f);
-			if (ImGui::RadioButton("Orthographic", m_Orthographic))
-				m_Orthographic = !m_Orthographic;
 		}
 		ImGui::End();
 

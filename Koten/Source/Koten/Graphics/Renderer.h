@@ -42,8 +42,10 @@ namespace KTN
 		uint32_t Width				= 0;
 		uint32_t Height				= 0;
 		uint8_t Samples				= 1;
-		Camera pCamera				= {};
+		glm::mat4 Projection		= {};
 		glm::mat4 View				= { 1.0f };
+		glm::vec4 ClearColor		= { 0.0f, 0.0f, 0.0f, 1.0f };
+		bool Clear					= true;
 	};
 
 	class KTN_API Renderer
@@ -51,6 +53,8 @@ namespace KTN
 		public:
 			static void Init();
 			static void Shutdown();
+
+			static void Clear();
 
 			static void Begin(const RenderBeginInfo& p_Info);
 			static void End();

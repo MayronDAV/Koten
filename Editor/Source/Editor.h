@@ -19,12 +19,6 @@ namespace KTN
 
 		private:
 			Ref<Texture2D> m_MainTexture = nullptr;
-			Camera m_Camera;
-			float m_Distance = 5.0f;
-			float m_Zoom = 1.0f;
-			float m_Speed = 4.0f;
-			bool m_Orthographic = false;
-			glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
 			uint32_t m_Width = 800;
 			uint32_t m_Height = 600;
 

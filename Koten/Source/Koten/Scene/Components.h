@@ -1,6 +1,7 @@
 #pragma once
 #include "Koten/Math/Transform.h"
 #include "Koten/Graphics/Texture.h"
+#include "Koten/Graphics/Camera.h"
 
 // std
 #include <string>
@@ -32,6 +33,18 @@ namespace KTN
 			: Color(p_Color) {}
 		SpriteComponent(const glm::vec4& p_Color, const Ref<Texture2D>& p_Texture)
 			: Color(p_Color), Texture(p_Texture) {}
+	};
+
+	struct CameraComponent
+	{
+		using SceneCamera = Camera;
+
+		SceneCamera Camera;
+		bool Primary = true;
+		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent&) = default;
 	};
 
 } // namespace KTN
