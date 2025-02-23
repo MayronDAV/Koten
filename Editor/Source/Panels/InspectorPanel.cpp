@@ -15,7 +15,7 @@ namespace KTN
 		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent
 
 		template <typename Component>
-		static void ComponentDrawView(entt::registry& p_Registry, Entity p_Entity) {}
+		void ComponentDrawView(entt::registry& p_Registry, Entity p_Entity) {}
 
 		template <typename... Component>
 		static void ComponentView(entt::registry& p_Registry, Entity p_Entity)
@@ -97,7 +97,7 @@ namespace KTN
 		}
 
 		template <>
-		static void ComponentDrawView<TransformComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<TransformComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<TransformComponent>("Transform", p_Entity, 
 			[](TransformComponent& p_Transform)
@@ -117,7 +117,7 @@ namespace KTN
 		}
 
 		template <>
-		static void ComponentDrawView<CameraComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<CameraComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<CameraComponent>("Camera", p_Entity,
 			[](CameraComponent& p_Component)
@@ -178,7 +178,7 @@ namespace KTN
 		}
 
 		template <>
-		static void ComponentDrawView<SpriteComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<SpriteComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<SpriteComponent>("Sprite", p_Entity,
 			[](SpriteComponent& p_Sprite)
