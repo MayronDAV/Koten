@@ -58,6 +58,8 @@ namespace KTN
 				auto& component = p_Entity.GetComponent<Component>();
 				ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
+				ImGui::PushID(p_Name.c_str());
+
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 4, 4 });
 				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 				ImGui::Spacing();
@@ -69,6 +71,7 @@ namespace KTN
 				if (p_Settings)
 				{
 					ImGui::SameLine(contentRegionAvailable.x - lineHeight);
+
 					if (ImGui::Button("+", { lineHeight, lineHeight }))
 						ImGui::OpenPopup("ComponentSettings");
 
@@ -84,13 +87,12 @@ namespace KTN
 				if (open)
 				{
 					p_Function(component);
-
 					ImGui::TreePop();
 				}
 
-
 				if (removeComponent)
 					p_Entity.RemoveComponent<Component>();
+				ImGui::PopID();
 			}
 		}
 
