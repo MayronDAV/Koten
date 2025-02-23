@@ -1,6 +1,7 @@
 #pragma once
 #include "Koten/Core/Base.h"
 #include "Components.h"
+#include "SceneGraph.h"
 
 // lib
 #include <entt/entt.hpp>
@@ -39,6 +40,8 @@ namespace KTN
 			glm::mat4 m_View{ 1.0f };
 			glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 			bool m_HaveCamera = false;
+
+			Unique<SceneGraph> m_SceneGraph = nullptr;
 
 			friend class Entity;
 	};

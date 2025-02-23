@@ -9,6 +9,8 @@ namespace KTN
 {
 	Scene::Scene()
 	{
+		m_SceneGraph = CreateUnique<SceneGraph>();
+		m_SceneGraph->Init(m_Registry);
 	}
 
 	Scene::~Scene()
@@ -39,8 +41,9 @@ namespace KTN
 
 	void Scene::OnUpdate()
 	{
-		bool first = true;
+		m_SceneGraph->Update(m_Registry);
 
+		bool first = true;
 		m_Registry.view<TransformComponent, CameraComponent>().each(
 		[&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
 		{

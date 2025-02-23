@@ -185,6 +185,7 @@ namespace KTN
 			{
 				UI::DrawColorEdit4("Color", p_Sprite.Color, 1.0f);
 
+				// TODO: Show the name of the texture loaded
 				if (ImGui::Button("Texture"))
 				{
 					std::string path = "";
@@ -193,7 +194,6 @@ namespace KTN
 						p_Sprite.Texture = TextureImporter::LoadTexture2D(path);
 					}
 				}
-				// TODO: Textures
 			});
 		}
 

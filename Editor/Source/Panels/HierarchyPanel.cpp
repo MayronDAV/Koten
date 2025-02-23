@@ -22,7 +22,10 @@ namespace KTN
 			[&](auto p_Entt, const TagComponent& p_Tag)
 			{
 				Entity entt{ p_Entt , m_Context.get() };
-				DrawEnttNode(entt);
+				auto hierarchyComponent = entt.TryGetComponent<HierarchyComponent>();
+				bool draw = hierarchyComponent ? hierarchyComponent->Parent == entt::null : true;
+				if (draw)
+					DrawEnttNode(entt);
 			});
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -44,8 +47,16 @@ namespace KTN
 	{
 		auto tag = p_Entt.GetName();
 
-		ImGuiTreeNodeFlags flags = (m_Editor->IsSelected(p_Entt) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+		auto hierarchyComponent = p_Entt.TryGetComponent<HierarchyComponent>();
+		bool noChildren = true;
+		if (hierarchyComponent != nullptr && hierarchyComponent->First != entt::null)
+			noChildren = false;
+
+		ImGuiTreeNodeFlags flags = (m_Editor->IsSelected(p_Entt) ? ImGuiTreeNodeFlags_Selected : 0)
+			| ImGuiTreeNodeFlags_OpenOnArrow;
+		flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding;
+		if (noChildren)
+			flags |= ImGuiTreeNodeFlags_Leaf;
 
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)p_Entt, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
@@ -56,6 +67,13 @@ namespace KTN
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
 		{
+			if (ImGui::MenuItem("Add Empty Child"))
+			{
+				auto scene = p_Entt.GetScene();
+				auto child = scene->CreateEntity("Empty Entity");
+				child.SetParent(p_Entt);
+			}
+
 			if (ImGui::MenuItem("Delete Entity"))
 				entityDeleted = true;
 
@@ -64,10 +82,20 @@ namespace KTN
 
 		if (opened)
 		{
-			ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-			bool opened = ImGui::TreeNodeEx((void*)9817239, flags, "Fake child");
-			if (opened)
-				ImGui::TreePop();
+			auto& registry = p_Entt.GetScene()->GetRegistry();
+
+			if (!noChildren)
+			{
+				entt::entity child = hierarchyComponent->First;
+				while (child != entt::null && registry.valid(child))
+				{
+					auto childHerarchyComponent = registry.try_get<HierarchyComponent>(child);
+					auto next = childHerarchyComponent ? childHerarchyComponent->Next : entt::null;
+					DrawEnttNode(Entity(child, p_Entt.GetScene()));
+					child = next;
+				}
+			}
+
 			ImGui::TreePop();
 		}
 

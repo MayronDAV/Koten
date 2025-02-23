@@ -37,6 +37,12 @@ namespace KTN
 				return component;
 			}
 
+			template <typename T>
+			T* TryGetComponent()
+			{
+				return m_Scene->GetRegistry().try_get<T>(m_Handle);
+			}
+
 			template<typename T>
 			T& GetComponent()
 			{
@@ -58,6 +64,10 @@ namespace KTN
 				KTN_CORE_ASSERT(HasComponent<T>(), "Entity does not have this component!");
 				m_Scene->m_Registry.remove<T>(m_Handle);
 			}
+
+			bool IsParent(Entity p_Entity);
+			void SetParent(Entity p_Entity);
+			Entity GetParent();
 
 			std::string GetName() const;
 			Scene* GetScene() const { return m_Scene; }
