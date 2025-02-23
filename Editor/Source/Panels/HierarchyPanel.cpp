@@ -14,7 +14,7 @@ namespace KTN
 
 	void HierarchyPanel::OnImgui()
 	{
-		ImGui::Begin(m_Name.c_str());
+		ImGui::Begin(m_Name.c_str(), &m_Active);
 
 		if (m_Context)
 		{
@@ -28,7 +28,7 @@ namespace KTN
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 				m_Editor->UnSelectEntt();
 
-			if (ImGui::BeginPopupContextWindow(0, 1))
+			if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems | 1))
 			{
 				if (ImGui::MenuItem("Create Empty Entity"))
 					m_Context->CreateEntity("Empty Entity");
@@ -42,7 +42,7 @@ namespace KTN
 
 	void HierarchyPanel::DrawEnttNode(Entity p_Entt)
 	{
-		auto& tag = p_Entt.GetComponent<TagComponent>().Tag;
+		auto tag = p_Entt.GetName();
 
 		ImGuiTreeNodeFlags flags = (m_Editor->IsSelected(p_Entt) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -69,6 +69,14 @@ namespace KTN
 			if (opened)
 				ImGui::TreePop();
 			ImGui::TreePop();
+		}
+
+		if (entityDeleted)
+		{
+			if (m_Editor->IsSelected(p_Entt))
+				m_Editor->UnSelectEntt();
+
+			p_Entt.Destroy();
 		}
 	}
 

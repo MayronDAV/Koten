@@ -45,7 +45,7 @@ namespace KTN
 			}
 
 			template<typename T>
-			bool HasComponent()
+			bool HasComponent() const
 			{
 				return m_Scene->m_Registry.any_of<T>(m_Handle);
 			}
@@ -59,7 +59,10 @@ namespace KTN
 				m_Scene->m_Registry.remove<T>(m_Handle);
 			}
 
+			std::string GetName() const;
 			Scene* GetScene() const { return m_Scene; }
+
+			void Destroy();
 
 			bool operator==(const Entity& p_Other) const
 			{

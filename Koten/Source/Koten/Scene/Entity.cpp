@@ -11,4 +11,16 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 	}
 
+	std::string Entity::GetName() const
+	{
+		return m_Scene->m_Registry.get<TagComponent>(m_Handle).Tag;
+	}
+
+	void Entity::Destroy()
+	{
+		m_Scene->GetRegistry().destroy(m_Handle);
+		m_Scene = nullptr;
+		m_Handle = entt::null;
+	}
+
 } // namespace KTN

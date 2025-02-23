@@ -1,6 +1,7 @@
 #include "Editor.h"
 #include "Panels/HierarchyPanel.h"
 #include "Panels/SceneViewPanel.h"
+#include "Panels/InspectorPanel.h"
 
 // lib
 #include <imgui.h>
@@ -108,6 +109,7 @@ namespace KTN
 
 		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
+		m_Panels.emplace_back(CreateRef<InspectorPanel>());
 
 		for (auto& panel : m_Panels)
 		{

@@ -15,10 +15,9 @@ namespace KTN
 
 	void SceneViewPanel::OnImgui()
 	{
-		ImGui::SetNextWindowSizeConstraints({ 400.0f, 400.0f }, { FLT_MAX, FLT_MAX });
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 1.0f });
-		ImGui::Begin(m_Name.c_str());
+		ImGui::Begin(m_Name.c_str(), &m_Active);
 		ImGui::PopStyleVar();
 		ImGui::PopStyleColor();
 		{
@@ -26,8 +25,8 @@ namespace KTN
 
 			UI::Image(m_MainTexture, { (float)m_Width, (float)m_Height });
 
-			m_Width = (uint32_t)std::max(viewportSize.x, 400.0f);
-			m_Height = (uint32_t)std::max(viewportSize.y, 400.0f);
+			m_Width = (uint32_t)viewportSize.x;
+			m_Height = (uint32_t)viewportSize.y;
 		}
 		ImGui::End();
 	}
