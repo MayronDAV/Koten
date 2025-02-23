@@ -1,5 +1,6 @@
 #pragma once
 #include "Koten/Koten.h"
+#include "EditorPanel.h"
 
 
 namespace KTN
@@ -23,6 +24,8 @@ namespace KTN
 			uint32_t m_Height = 600;
 
 			Ref<Scene> m_ActiveScene = nullptr;
+
+			std::vector<Ref<EditorPanel>> m_Panels;
 	};
 
 } // namespace KTN

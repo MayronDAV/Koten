@@ -1,4 +1,5 @@
 #include "Editor.h"
+#include "Panels/HierarchyPanel.h"
 
 // lib
 #include <imgui.h>
@@ -103,6 +104,14 @@ namespace KTN
 				square.AddComponent<SpriteComponent>(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
 			}
 		}
+
+		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
+		m_Panels.back()->SetContext(m_ActiveScene);
+
+		for (auto& panel : m_Panels)
+		{
+			panel->SetEditor(this);
+		}
 	}
 
 	void Editor::OnDetach()
@@ -130,6 +139,12 @@ namespace KTN
 		m_ActiveScene->OnUpdate();
 
 		Renderer::Clear();
+
+		for (auto& panel : m_Panels)
+		{
+			if (panel->IsActive())
+				panel->OnUpdate();
+		}
 	}
 
 	void Editor::OnRender()
@@ -137,6 +152,12 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		m_ActiveScene->OnRender();
+
+		for (auto& panel : m_Panels)
+		{
+			if (panel->IsActive())
+				panel->OnRender();
+		}
 	}
 
 	void Editor::OnImgui()
@@ -170,6 +191,12 @@ namespace KTN
 			ImGui::Text("TrianglesCount: %u", stats.TrianglesCount);
 		}
 		ImGui::End();
+
+		for (auto& panel : m_Panels)
+		{
+			if (panel->IsActive())
+				panel->OnImgui();
+		}
 
 		EndDockspace();
 	}

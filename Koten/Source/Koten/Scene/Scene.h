@@ -29,6 +29,8 @@ namespace KTN
 			void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
 			void SetViewportSize(uint32_t p_Width, uint32_t p_Height) { m_Width = p_Width; m_Height = p_Height; }
 
+			entt::registry& GetRegistry() { return m_Registry; }
+
 		private:
 			entt::registry m_Registry;
 			Ref<Texture2D> m_RenderTarget = nullptr;
