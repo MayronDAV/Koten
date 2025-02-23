@@ -11,8 +11,16 @@ project "Koten"
 
 	files
 	{
-		"Source/**.h",
-		"Source/**.cpp",
+		"Source/ktnpch.h",
+		"Source/ktnpch.cpp",
+
+		"Source/Koten/**.h",
+		"Source/Koten/**.cpp",
+
+		"Source/Platform/GLFW/**.h",
+		"Source/Platform/GLFW/**.cpp",
+		"Source/Platform/OpenGL/**.h",
+		"Source/Platform/OpenGL/**.cpp",
 
 		"%{IncludeDir.optick}/**.h",
 		"%{IncludeDir.optick}/**.cpp"
@@ -67,15 +75,28 @@ project "Koten"
 			"UNICODE", 
 			"_UNICODE" 
 		}
+
+		files
+		{
+			"Source/Platform/Windows/**.h",
+			"Source/Platform/Windows/**.cpp"
+		}
 	
 	filter "system:linux"
         pic "on"
 		links { "GL" }
-		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++", "-fpermissive" }
+		buildoptions { "`pkg-config --cflags gtk+-3.0`", "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++", "-fpermissive" }
+		linkoptions { "`pkg-config --libs gtk+-3.0`" }
 		defines
 		{
 			"KTN_LINUX",
 			"GLFW_INCLUDE_NONE"
+		}
+
+		files
+		{
+			"Source/Platform/GTK/**.h",
+			"Source/Platform/GTK/**.cpp"
 		}
 
 	filter "configurations:Debug"

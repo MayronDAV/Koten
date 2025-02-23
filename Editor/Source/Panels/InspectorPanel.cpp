@@ -185,6 +185,14 @@ namespace KTN
 			{
 				UI::DrawColorEdit4("Color", p_Sprite.Color, 1.0f);
 
+				if (ImGui::Button("Texture"))
+				{
+					std::string path = "";
+					if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
+					{
+						p_Sprite.Texture = TextureImporter::LoadTexture2D(path);
+					}
+				}
 				// TODO: Textures
 			});
 		}

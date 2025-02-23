@@ -53,6 +53,7 @@
 
 // OS
 
+#include "Koten/OS/FileDialog.h"
 #include "Koten/OS/KeyCodes.h"
 #include "Koten/OS/MouseCodes.h"
 #include "Koten/OS/Input.h"
