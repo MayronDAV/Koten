@@ -69,7 +69,7 @@ namespace KTN
 			void SetParent(Entity p_Entity);
 			Entity GetParent();
 
-			std::string GetName() const;
+			std::string GetTag() const;
 			Scene* GetScene() const { return m_Scene; }
 
 			void Destroy();

@@ -66,7 +66,7 @@ project "Koten"
 
 	filter "system:windows"
 		systemversion "latest"
-		buildoptions { "/utf-8", "/wd4251" }
+		buildoptions { "/utf-8", "/wd4251", "/wd4275" }
 		links { "opengl32.lib" }
 		defines
 		{

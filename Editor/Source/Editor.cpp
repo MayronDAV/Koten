@@ -91,22 +91,6 @@ namespace KTN
 
 		m_ActiveScene = CreateRef<Scene>();
 
-		{
-			auto entt = m_ActiveScene->CreateEntity("Camera");
-			entt.AddComponent<TransformComponent>(glm::vec3(0.0f, 0.0f, 5.0f));
-			entt.AddComponent<CameraComponent>();
-		}
-
-		for (int x = 0; x < 5; x++)
-		{
-			for (int y = 0; y < 5; y++)
-			{
-				auto square = m_ActiveScene->CreateEntity("Square");
-				square.AddComponent<TransformComponent>(glm::vec3(x, y, 0.0f), glm::vec3(0.9f, 0.9f, 1.0f));
-				square.AddComponent<SpriteComponent>(glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
-			}
-		}
-
 		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
 		m_Panels.emplace_back(CreateRef<InspectorPanel>());
@@ -148,7 +132,9 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		BeginDockspace(false);
+		BeginDockspace(true);
+
+		DrawMenuBar();
 
 		for (auto& panel : m_Panels)
 		{
@@ -161,6 +147,68 @@ namespace KTN
 
 	void Editor::OnEvent(Event& p_Event)
 	{
+
+	}
+
+	void Editor::DrawMenuBar()
+	{
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Save Scene As"))
+				{
+					std::string path = "";
+					if (FileDialog::Save("", "Assets", path) == FileDialogResult::SUCCESS)
+					{
+						SceneSerializer serializer(m_ActiveScene);
+						serializer.Serialize(path);
+					}
+				}
+
+				if (ImGui::MenuItem("Load Scene"))
+				{
+					auto scene = CreateRef<Scene>();
+					std::string path = "";
+					if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
+					{
+						SceneSerializer serializer(scene);
+						if (!serializer.Deserialize(path))
+							KTN_CORE_ERROR("Failed to Deserialize!");
+
+						UnSelectEntt();
+						m_ActiveScene = scene;
+
+						for (auto& panel : m_Panels)
+						{
+							panel->SetContext(m_ActiveScene);
+						}
+					}
+				}
+
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Exit"))
+					Application::Get().Close();
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Panels"))
+			{
+				for (auto& panel : m_Panels)
+				{
+					std::string name = panel->GetName();
+					bool& active = panel->IsActive();
+					ImGui::MenuItem(name.c_str(), nullptr, &active);
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenuBar();
+		}
 	}
 
 } // namespace KTN
+

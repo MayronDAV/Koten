@@ -20,7 +20,7 @@ project "yaml-cpp"
 		"yaml-cpp/include"
 	}
 
-	defines "YAML_CPP_STATIC_DEFINE"
+	defines "yaml_cpp_EXPORTS"
 
 	filter "system:windows"
 		systemversion "latest"

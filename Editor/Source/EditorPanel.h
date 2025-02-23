@@ -26,7 +26,7 @@ namespace KTN
 
 			const std::string& GetName() const { return m_Name; }
 			Editor* GetEditor() { return m_Editor; }
-			bool IsActive() const { return m_Active; }
+			bool& IsActive() { return m_Active; }
 
 		protected:
 			bool m_Active = true;

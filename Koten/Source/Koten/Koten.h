@@ -64,6 +64,7 @@
 #include "Koten/Scene/Components.h"
 #include "Koten/Scene/Entity.h"
 #include "Koten/Scene/Scene.h"
+#include "Koten/Scene/SceneSerializer.h"
 
 // UTILS
 

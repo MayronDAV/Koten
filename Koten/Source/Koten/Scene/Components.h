@@ -71,4 +71,6 @@ namespace KTN
 		HierarchyComponent(entt::entity p_Parent) : Parent(p_Parent) {}
 	};
 
+	#define ALL_COMPONENTS TagComponent, TransformComponent, SpriteComponent, CameraComponent, HierarchyComponent
+
 } // namespace KTN

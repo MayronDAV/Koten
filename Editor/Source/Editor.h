@@ -25,6 +25,9 @@ namespace KTN
 			Entity GetSelected() const { return m_SelectedEntt; }
 
 		private:
+			void DrawMenuBar();
+
+		private:
 			Ref<Texture2D> m_MainTexture = nullptr;
 			uint32_t m_Width = 800;
 			uint32_t m_Height = 600;

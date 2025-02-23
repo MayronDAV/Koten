@@ -218,7 +218,7 @@ namespace KTN
 		{
 			auto& registry = selectedEntt.GetScene()->GetRegistry();
 
-			auto name = selectedEntt.GetName();
+			auto name = selectedEntt.GetTag();
 
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
 			{

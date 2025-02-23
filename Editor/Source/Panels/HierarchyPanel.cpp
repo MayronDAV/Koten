@@ -45,7 +45,7 @@ namespace KTN
 
 	void HierarchyPanel::DrawEnttNode(Entity p_Entt)
 	{
-		auto tag = p_Entt.GetName();
+		auto tag = p_Entt.GetTag();
 
 		auto hierarchyComponent = p_Entt.TryGetComponent<HierarchyComponent>();
 		bool noChildren = true;

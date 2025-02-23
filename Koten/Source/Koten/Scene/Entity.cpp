@@ -68,7 +68,7 @@ namespace KTN
 		return Entity(entt::null, nullptr);
 	}
 
-	std::string Entity::GetName() const
+	std::string Entity::GetTag() const
 	{
 		return m_Scene->m_Registry.get<TagComponent>(m_Handle).Tag;
 	}

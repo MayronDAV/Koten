@@ -14,15 +14,20 @@
 	#else
 		#define KTN_API __declspec(dllimport)
 	#endif
+	#define YAML_CPP_NO_EXPORT
 #elif defined(KTN_LINUX)
 	#ifdef KTN_EXPORT
 		#define KTN_API __attribute__((visibility("default")))
 	#else
 		#define KTN_API
 	#endif
+
+	#define YAML_CPP_NO_EXPORT __attribute__((visibility("hidden")))
 #else
 	#error Currently only support Windows and Linux!
 #endif
+
+#define YAML_CPP_API KTN_API
 
 #define BIT(x) (1 << x)
 
