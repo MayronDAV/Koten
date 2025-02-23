@@ -16,9 +16,6 @@ namespace KTN
 
 		private:
 			void DrawEnttNode(Entity p_Entt);
-
-		private:
-			Entity m_Selected;
 	};
 
 

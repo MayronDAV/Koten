@@ -22,6 +22,21 @@ namespace KTN
 		return entt;
 	}
 
+	void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height)
+	{
+		if (m_Width != p_Width || m_Height != p_Height)
+		{
+			m_Registry.view<TransformComponent, CameraComponent>().each(
+			[&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
+			{
+				p_Camera.Camera.SetViewportSize(p_Width, p_Height);
+			});
+
+			m_Width = p_Width;
+			m_Height = p_Height;
+		}
+	}
+
 	void Scene::OnUpdate()
 	{
 		bool first = true;
@@ -29,7 +44,6 @@ namespace KTN
 		m_Registry.view<TransformComponent, CameraComponent>().each(
 		[&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
 		{
-			p_Camera.Camera.SetViewportSize(m_Width, m_Height);
 			p_Camera.Camera.OnUpdate();
 
 			if (p_Camera.Primary)

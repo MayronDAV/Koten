@@ -26,7 +26,7 @@ namespace KTN
 			});
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-				m_Selected = {};
+				m_Editor->UnSelectEntt();
 
 			if (ImGui::BeginPopupContextWindow(0, 1))
 			{
@@ -44,12 +44,13 @@ namespace KTN
 	{
 		auto& tag = p_Entt.GetComponent<TagComponent>().Tag;
 
-		ImGuiTreeNodeFlags flags = ((m_Selected == p_Entt) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = (m_Editor->IsSelected(p_Entt) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)p_Entt, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 		{
-			m_Selected = p_Entt;
+			m_Editor->SetSelectedEntt(p_Entt);
 		}
 
 		bool entityDeleted = false;

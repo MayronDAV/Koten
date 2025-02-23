@@ -1,5 +1,6 @@
 #include "Editor.h"
 #include "Panels/HierarchyPanel.h"
+#include "Panels/SceneViewPanel.h"
 
 // lib
 #include <imgui.h>
@@ -105,11 +106,12 @@ namespace KTN
 			}
 		}
 
+		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
-		m_Panels.back()->SetContext(m_ActiveScene);
 
 		for (auto& panel : m_Panels)
 		{
+			panel->SetContext(m_ActiveScene);
 			panel->SetEditor(this);
 		}
 	}
@@ -122,24 +124,6 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		TextureSpecification tspec = {};
-		tspec.Width = m_Width;
-		tspec.Height = m_Height;
-		tspec.Format = TextureFormat::RGBA32_FLOAT;
-		tspec.Usage = TextureUsage::TEXTURE_COLOR_ATTACHMENT;
-		tspec.Samples = 1;
-		tspec.GenerateMips = false;
-		tspec.AnisotropyEnable = false;
-		tspec.DebugName = "MainTexture";
-
-		m_MainTexture = Texture2D::Get(tspec);
-
-		m_ActiveScene->SetRenderTarget(m_MainTexture);
-		m_ActiveScene->SetViewportSize(m_Width, m_Height);
-		m_ActiveScene->OnUpdate();
-
-		Renderer::Clear();
-
 		for (auto& panel : m_Panels)
 		{
 			if (panel->IsActive())
@@ -150,8 +134,6 @@ namespace KTN
 	void Editor::OnRender()
 	{
 		KTN_PROFILE_FUNCTION();
-
-		m_ActiveScene->OnRender();
 
 		for (auto& panel : m_Panels)
 		{
@@ -165,32 +147,6 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		BeginDockspace(false);
-
-		ImGui::SetNextWindowSizeConstraints({ 400.0f, 400.0f }, { FLT_MAX, FLT_MAX });
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 1.0f });
-		ImGui::Begin("Viewport");
-		ImGui::PopStyleVar();
-		ImGui::PopStyleColor();
-		{
-			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-
-			UI::Image(m_MainTexture, { (float)m_Width, (float)m_Height });
-
-			m_Width = (uint32_t)std::max(viewportSize.x, 400.0f);
-			m_Height = (uint32_t)std::max(viewportSize.y, 400.0f);
-		}
-		ImGui::End();
-
-		ImGui::Begin("Info");
-		{
-			auto& stats = Engine::GetStats();
-
-			ImGui::Text("FPS: %i", (int)stats.FramesPerSecond);
-			ImGui::Text("DrawCalls: %u", stats.DrawCalls);
-			ImGui::Text("TrianglesCount: %u", stats.TrianglesCount);
-		}
-		ImGui::End();
 
 		for (auto& panel : m_Panels)
 		{
