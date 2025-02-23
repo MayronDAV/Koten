@@ -95,7 +95,7 @@ namespace KTN
 				info.RenderTarget				= m_MainTexture;
 				info.Width						= m_Width;
 				info.Height						= m_Height;
-				info.pCamera					= m_Camera;
+				info.Projection					= m_Camera.GetProjection();
 				info.View						= glm::inverse(glm::translate(glm::mat4(1.0f), { m_Position.x, m_Position.y, m_Distance }));
 
 				Renderer::Begin(info);

@@ -10,6 +10,7 @@
 
 namespace KTN
 {
+	using SceneCamera = Camera;
 	using TransformComponent = Math::Transform;
 
 	struct TagComponent
@@ -37,8 +38,6 @@ namespace KTN
 
 	struct CameraComponent
 	{
-		using SceneCamera = Camera;
-
 		SceneCamera Camera;
 		bool Primary = true;
 		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };

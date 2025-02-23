@@ -71,7 +71,7 @@ project "Koten"
 	filter "system:linux"
         pic "on"
 		links { "GL" }
-		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++" }
+		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++", "-fpermissive" }
 		defines
 		{
 			"KTN_LINUX",
