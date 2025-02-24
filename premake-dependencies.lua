@@ -8,6 +8,7 @@ IncludeDir["glm"] 			= "%{wks.location}/Thirdparty/glm/"
 IncludeDir["imgui"] 		= "%{wks.location}/Thirdparty/imgui/"
 IncludeDir["spdlog"] 		= "%{wks.location}/Thirdparty/spdlog/include/"
 IncludeDir["yamlcpp"]		= "%{wks.location}/Thirdparty/yaml-cpp/include"
+IncludeDir["ImGuizmo"]		= "%{wks.location}/Thirdparty/ImGuizmo"
 IncludeDir["optick"]		= "%{wks.location}/Koten/Thirdparty/Optick/src"
 
 -- PRIVATE

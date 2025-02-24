@@ -8,6 +8,7 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 
+
 #ifdef KTN_WINDOWS
 	#ifdef KTN_EXPORT
 		#define KTN_API __declspec(dllexport)

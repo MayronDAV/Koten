@@ -29,6 +29,7 @@ group "Thirdparty"
 	include "Thirdparty/premake-imgui.lua"
 	include "Thirdparty/premake-spdlog.lua"
 	include "Thirdparty/premake-yaml-cpp.lua"
+	include "Thirdparty/ImGuizmo"
 	include "Koten/include-dependencies.lua"
 group ""
 

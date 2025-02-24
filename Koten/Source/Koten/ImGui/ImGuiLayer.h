@@ -35,6 +35,10 @@ namespace KTN
 			void Shutdown();
 
 		private:
+			void AddFonts();
+
+		private:
+			float m_FontSize = 14.0f;
 			bool  m_BlockEvents = true;
 	};
 

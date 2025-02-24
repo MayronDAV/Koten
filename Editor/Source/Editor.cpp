@@ -8,6 +8,7 @@
 #include <imgui_internal.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <ImGuizmo.h>
 
 
 
@@ -89,6 +90,8 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		ImGuizmo::Init();
+
 		m_ActiveScene = CreateRef<Scene>();
 
 		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
@@ -104,6 +107,9 @@ namespace KTN
 
 	void Editor::OnDetach()
 	{
+		UnSelectEntt();
+
+		ImGuizmo::Shutdown();
 	}
 
 	void Editor::OnUpdate()
@@ -133,6 +139,8 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		BeginDockspace(true);
+
+		ImGuizmo::BeginFrame();
 
 		DrawMenuBar();
 

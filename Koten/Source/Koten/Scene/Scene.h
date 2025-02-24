@@ -32,6 +32,10 @@ namespace KTN
 
 			entt::registry& GetRegistry() { return m_Registry; }
 
+			// TEMP
+			glm::mat4 GetProj() const { return m_Projection; }
+			glm::mat4 GetView() const { return m_View; }
+
 		private:
 			entt::registry m_Registry;
 			Ref<Texture2D> m_RenderTarget = nullptr;

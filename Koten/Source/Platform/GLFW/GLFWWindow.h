@@ -19,6 +19,8 @@ namespace KTN
 			void Minimize() override;
 			void Restore() override;
 
+			float GetDPIScale() const { return m_Data.DPIScale; }
+
 			void SubmitEvent(Event& p_Event) override;
 			void SetEventCallback(EventCallbackFn p_Callback) override { m_Data.EventCallback = p_Callback; }
 			void SetPosition(int p_X, int p_Y) override;
@@ -56,6 +58,7 @@ namespace KTN
 				WindowMode Mode					= WindowMode::Windowed;
 				bool Resizable					= true;
 				bool Vsync						= true;
+				float DPIScale					= 1.0f;
 
 				EventCallbackFn EventCallback	= nullptr;
 				Unique<GraphicsContext> Context = nullptr;

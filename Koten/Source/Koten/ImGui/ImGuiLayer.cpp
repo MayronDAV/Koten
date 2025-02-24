@@ -1,5 +1,7 @@
 #include "ktnpch.h"
 #include "ImGuiLayer.h"
+#include "Koten/Core/Application.h"
+#include "IconsMaterialDesignIcons.h"
 
 #include "Platform/OpenGL/GLImGuiLayer.h"
 
@@ -12,6 +14,11 @@
 
 namespace KTN
 {
+	#include "Koten/Embedded/Fonts/MaterialDesign.inl"
+	#include "Koten/Embedded/Fonts/RobotoBold.inl"
+	#include "Koten/Embedded/Fonts/RobotoMedium.inl"
+	#include "Koten/Embedded/Fonts/RobotoRegular.inl"
+
 	Ref<ImGuiLayer> ImGuiLayer::Create()
 	{
 		KTN_PROFILE_FUNCTION();
@@ -39,6 +46,9 @@ namespace KTN
 		io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
 		io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports;
 
+		m_FontSize *= Application::Get().GetWindow()->GetDPIScale();
+
+		AddFonts();
 	}
 
 	void ImGuiLayer::NewFrame()
@@ -74,6 +84,57 @@ namespace KTN
 
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
+	}
+
+	void ImGuiLayer::AddFonts()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		ImGui::StyleColorsDark();
+
+		io.FontGlobalScale = 1.0f;
+
+		ImFontConfig icons_config;
+		icons_config.MergeMode = false;
+		icons_config.PixelSnapH = true;
+		icons_config.OversampleH = icons_config.OversampleV = 1;
+		icons_config.GlyphMinAdvanceX = 4.0f;
+		icons_config.SizePixels = 12.0f;
+
+		static const ImWchar ranges[] = {
+			0x0020,
+			0x00FF,
+			0x0400,
+			0x044F,
+			0,
+		};
+
+		io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize, &icons_config, ranges);
+		
+		{
+			static const ImWchar icons_ranges[] = { ICON_MIN_MDI, ICON_MAX_MDI, 0 };
+			ImFontConfig icons_config;
+			// merge in icons from Font Awesome
+			icons_config.MergeMode = true;
+			icons_config.PixelSnapH = true;
+			icons_config.GlyphOffset.y = 1.0f;
+			icons_config.OversampleH = icons_config.OversampleV = 1;
+			icons_config.GlyphMinAdvanceX = 4.0f;
+			icons_config.SizePixels = 12.0f;
+
+			io.Fonts->AddFontFromMemoryCompressedTTF(MaterialDesign_compressed_data, MaterialDesign_compressed_size, m_FontSize, &icons_config, icons_ranges);
+		}
+
+		io.Fonts->AddFontFromMemoryCompressedTTF(RobotoBold_compressed_data, RobotoBold_compressed_size, m_FontSize + 2.0f, &icons_config, ranges);
+
+		io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize * 0.8f, &icons_config, ranges);
+	
+		io.Fonts->TexGlyphPadding = 1;
+		for (int n = 0; n < io.Fonts->ConfigData.Size; n++)
+		{
+			ImFontConfig* font_config = (ImFontConfig*)&io.Fonts->ConfigData[n];
+			font_config->RasterizerMultiply = 1.0f;
+		}
 	}
 
 	void ImGuiLayer::OnEvent(Event& p_Event)

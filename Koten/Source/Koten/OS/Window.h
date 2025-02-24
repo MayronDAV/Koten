@@ -26,6 +26,8 @@ namespace KTN
 			virtual void Minimize()												= 0;
 			virtual void Restore()												= 0;
 
+			virtual float GetDPIScale() const { return 1.0f; }
+
 			virtual void SubmitEvent(Event& p_Event)							= 0;
 			virtual void SetPosition(int p_X, int p_Y)							= 0;
 			virtual void SetEventCallback(EventCallbackFn p_Callback)			= 0;

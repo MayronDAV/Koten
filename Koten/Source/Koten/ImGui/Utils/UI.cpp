@@ -35,6 +35,8 @@ namespace KTN::UI
 	}
 	KTN_API bool InputText(std::string& p_Text, const char* p_ID)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
 		char buffer[256];
@@ -56,6 +58,8 @@ namespace KTN::UI
 
 	KTN_API void DrawItemActivityOutline(float p_Rounding, bool p_DrawWhenInactive, ImColor p_ColorWhenActive)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto* drawList = ImGui::GetWindowDrawList();
 
 		ImRect expandedRect = ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
@@ -84,6 +88,8 @@ namespace KTN::UI
 
 	KTN_API bool DrawColorEdit4(const std::string& p_Label, glm::vec4& p_Values, float p_ResetValue)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ImGui::PushID(p_Label.c_str());
 
 		ImGui::Spacing();
@@ -109,6 +115,8 @@ namespace KTN::UI
 
 	KTN_API void DrawFloat3(const std::string& p_Label, glm::vec3& p_Values, float p_ResetValue)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ImGuiIO& io = ImGui::GetIO();
 
 		ImGui::PushID(p_Label.c_str());
@@ -164,5 +172,21 @@ namespace KTN::UI
 		ImGui::Columns(1);
 
 		ImGui::PopID();
+	}
+
+	KTN_API void Tooltip(const char* p_Text)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextUnformatted(p_Text);
+			ImGui::EndTooltip();
+		}
+
+		ImGui::PopStyleVar();
 	}
 } // namespace KTN::UI

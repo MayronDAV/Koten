@@ -213,6 +213,13 @@ namespace KTN
 		}
 
 		{
+			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+			float xscale, yscale;
+			glfwGetMonitorContentScale(monitor, &xscale, &yscale);
+			m_Data.DPIScale = xscale;
+		}
+
+		{
 			glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
 			m_Data.Context = GraphicsContext::Create();

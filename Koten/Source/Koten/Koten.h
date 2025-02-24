@@ -48,6 +48,7 @@
 
 // IMGUI
 
+#include "Koten/ImGui/IconsMaterialDesignIcons.h"
 #include "Koten/ImGui/ImGuiLayer.h"
 #include "Koten/ImGui/Utils/UI.h"
 

@@ -1,6 +1,9 @@
 #pragma once
 #include "EditorPanel.h"
 
+// lib
+#include <imgui.h>
+
 
 
 namespace KTN
@@ -16,9 +19,19 @@ namespace KTN
 			void OnRender() override;
 
 		private:
+			void DrawGuizmoWidget();
+
+		private:
 			Ref<Texture2D> m_MainTexture	= nullptr;
 			uint32_t m_Width				= 800;
 			uint32_t m_Height				= 600;
+
+			ImVec2 m_ViewportMinRegion;
+			ImVec2 m_ViewportMaxRegion;
+			ImVec2 m_ViewportOffset;
+			float m_TitlebarHeight = 0.0f;
+
+			int m_GuizmoType = 0;
 	};
 
 } // namespace KTN

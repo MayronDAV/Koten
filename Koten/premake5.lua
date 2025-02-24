@@ -11,6 +11,8 @@ project "Koten"
 
 	files
 	{
+		"Source/**.inl",
+
 		"Source/ktnpch.h",
 		"Source/ktnpch.cpp",
 
@@ -66,7 +68,7 @@ project "Koten"
 
 	filter "system:windows"
 		systemversion "latest"
-		buildoptions { "/utf-8", "/wd4251", "/wd4275" }
+		buildoptions { "/utf-8", "/Zc:char8_t-", "/wd4251", "/wd4275" }
 		links { "opengl32.lib" }
 		defines
 		{

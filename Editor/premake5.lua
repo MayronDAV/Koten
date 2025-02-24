@@ -10,7 +10,7 @@ project "Editor"
 	files
 	{
 		"Source/**.h",
-		"Source/**.cpp",
+		"Source/**.cpp"
 	}
 
 	includedirs
@@ -22,6 +22,7 @@ project "Editor"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yamlcpp}",
+		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.optick}"
 	}
 
@@ -30,14 +31,15 @@ project "Editor"
 		"Koten",
 		"imgui",
 		"spdlog",
-		"yaml-cpp"
+		"yaml-cpp",
+		"ImGuizmo"
 	}
 
 	defines "KTN_PROFILE_ENABLED"
 
 	filter "system:windows"
 		systemversion "latest"
-		buildoptions { "/utf-8", "/wd4251" }
+		buildoptions { "/utf-8", "/Zc:char8_t-", "/wd4251" }
 		defines
 		{
 			"KTN_WINDOWS",
