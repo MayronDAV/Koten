@@ -87,7 +87,7 @@ project "Koten"
 	filter "system:linux"
         pic "on"
 		links { "GL" }
-		buildoptions { "`pkg-config --cflags gtk+-3.0`", "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-Wno-effc++", "-fpermissive" }
+		buildoptions { "`pkg-config --cflags gtk+-3.0`", "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-fno-char8-t", "-Wno-effc++", "-fpermissive" }
 		linkoptions { "`pkg-config --libs gtk+-3.0`" }
 		defines
 		{
