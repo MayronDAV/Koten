@@ -25,9 +25,6 @@ namespace KTN::Math
 	}
 
 	Transform::Transform()
-		: m_LocalTranslation({ 0.0f }),
-		m_LocalRotation({ 0.0f }),
-		m_LocalScale({ 1.0f })
 	{
 	}
 

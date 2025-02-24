@@ -75,9 +75,9 @@ namespace KTN::Math
 		private:
 			WorldMatrix m_WorldMatrix;
 
-			glm::vec3 m_LocalTranslation;
-			glm::vec3 m_LocalRotation;
-			glm::vec3 m_LocalScale;
+			glm::vec3 m_LocalTranslation{ 0.0f, 0.0f, 0.0f };
+			glm::vec3 m_LocalRotation{ 0.0f, 0.0f, 0.0f };
+			glm::vec3 m_LocalScale{ 1.0f, 1.0f, 1.0f };
 	};
 
 

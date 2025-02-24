@@ -1,6 +1,7 @@
 #pragma once
 #include "Koten/Koten.h"
 #include "EditorPanel.h"
+#include "EditorCamera.h"
 
 
 namespace KTN
@@ -24,6 +25,8 @@ namespace KTN
 			bool IsSelected(Entity p_Entt) const { return p_Entt == m_SelectedEntt; }
 			Entity GetSelected() const { return m_SelectedEntt; }
 
+			const Ref<EditorCamera>& GetCamera() { return m_Camera; }
+
 		private:
 			void DrawMenuBar();
 
@@ -37,6 +40,8 @@ namespace KTN
 			std::vector<Ref<EditorPanel>> m_Panels;
 
 			Entity m_SelectedEntt;
+
+			Ref<EditorCamera> m_Camera = nullptr;
 	};
 
 } // namespace KTN

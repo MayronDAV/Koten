@@ -32,6 +32,7 @@ namespace KTN
 			float m_TitlebarHeight = 0.0f;
 
 			int m_GuizmoType = 0;
+			bool m_HandleCameraEvents = false;
 	};
 
 } // namespace KTN

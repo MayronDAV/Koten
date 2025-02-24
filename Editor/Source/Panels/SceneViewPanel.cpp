@@ -18,18 +18,23 @@ namespace KTN
 
 	void SceneViewPanel::OnImgui()
 	{
+		auto& camera = m_Editor->GetCamera();
+		glm::mat4 cameraProjection = camera->GetProjection();
+		glm::mat4 cameraView = camera->GetView();
+
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 1.0f });
 		ImGui::Begin(m_Name.c_str(), &m_Active);
 		ImGui::PopStyleVar();
 		ImGui::PopStyleColor();
 		{
-
 			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 			m_TitlebarHeight = ImGui::GetFrameHeight();
 			m_ViewportMinRegion = ImGui::GetWindowContentRegionMin();
 			m_ViewportMaxRegion = ImGui::GetWindowContentRegionMax();
 			m_ViewportOffset = ImGui::GetWindowPos();
+
+			m_HandleCameraEvents = ImGui::IsWindowFocused();
 
 			UI::Image(m_MainTexture, { (float)m_Width, (float)m_Height });
 
@@ -45,16 +50,13 @@ namespace KTN
 					{ m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
 				};
 
-				ImGuizmo::SetOrthographic(false);
+				ImGuizmo::SetOrthographic(camera->GetMode() == EditorCameraMode::TWODIM);
 				ImGuizmo::SetDrawlist();
 
 				ImGuizmo::SetRect(viewportBounds[0].x, viewportBounds[0].y, viewportBounds[1].x - viewportBounds[0].x, viewportBounds[1].y - viewportBounds[0].y);
 
 				auto& tc = selectedEntity.GetComponent<TransformComponent>();
 				glm::mat4 transform = tc.GetLocalMatrix();
-
-				glm::mat4 cameraProjection = m_Context->GetProj();
-				glm::mat4 cameraView = m_Context->GetView();
 
 				ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
 					(ImGuizmo::OPERATION)m_GuizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
@@ -90,17 +92,21 @@ namespace KTN
 		tspec.DebugName = "MainTexture";
 
 		m_MainTexture = Texture2D::Get(tspec);
+
+		Renderer::Clear();
+
+		m_Context->SetRenderTarget(m_MainTexture);
+		auto& camera = m_Editor->GetCamera();
+		camera->SetViewportSize(m_Width, m_Height);
+		camera->SetHandleEvents(m_HandleCameraEvents);
+		m_Context->SetViewportSize(m_Width, m_Height);
+		m_Context->OnUpdate();
 	}
 
 	void SceneViewPanel::OnRender()
 	{
-		Renderer::Clear();
-
-		m_Context->SetRenderTarget(m_MainTexture);
-		m_Context->SetViewportSize(m_Width, m_Height);
-		m_Context->OnUpdate();
-
-		m_Context->OnRender();
+		auto& camera = m_Editor->GetCamera();
+		m_Context->OnRender(camera->GetProjection(), camera->GetView());
 	}
 
 	void SceneViewPanel::DrawGuizmoWidget()
@@ -120,8 +126,6 @@ namespace KTN
 		ImGui::SetNextWindowPos(widgetPos, ImGuiCond_Always);
 		ImGui::SetNextWindowSize(widgetSize, ImGuiCond_Always);
 		ImGui::Begin("Guizmo Widget", &m_Active, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-		ImGui::PopStyleColor(2);
-		ImGui::PopStyleVar();
 		{
 			auto selectedColor = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f); // TODO: Change this when we have themes
 
@@ -192,6 +196,21 @@ namespace KTN
 			ImGui::PopStyleColor();
 		}
 		ImGui::End();
+
+		ImVec2 fpsPos(
+			m_ViewportOffset.x + 10,
+			m_ViewportOffset.y + m_TitlebarHeight + 10 + widgetSize.y + 10
+		);
+
+		ImGui::SetNextWindowPos(fpsPos, ImGuiCond_Always);
+		ImGui::SetNextWindowSize({ 100, 20 }, ImGuiCond_Always);
+		ImGui::Begin("Fps", &m_Active, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+		{
+			ImGui::Text("FPS: %u", Engine::GetStats().FramesPerSecond);
+		}
+		ImGui::End();
+		ImGui::PopStyleColor(2);
+		ImGui::PopStyleVar();
 	}
 
 } // namespace KTN

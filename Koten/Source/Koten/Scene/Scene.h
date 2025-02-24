@@ -25,16 +25,15 @@ namespace KTN
 			Entity CreateEntity(const std::string& p_Tag);
 
 			void OnUpdate();
-			void OnRender();
+			void OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
+
+			void OnUpdateRuntime();
+			void OnRenderRuntime();
 
 			void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
-			void SetViewportSize(uint32_t p_Width, uint32_t p_Height);
+			void SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime = false);
 
 			entt::registry& GetRegistry() { return m_Registry; }
-
-			// TEMP
-			glm::mat4 GetProj() const { return m_Projection; }
-			glm::mat4 GetView() const { return m_View; }
 
 		private:
 			entt::registry m_Registry;

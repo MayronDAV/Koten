@@ -1,7 +1,7 @@
 #include "Editor.h"
 #include "Panels/HierarchyPanel.h"
-#include "Panels/SceneViewPanel.h"
 #include "Panels/InspectorPanel.h"
+#include "Panels/SceneViewPanel.h"
 
 // lib
 #include <imgui.h>
@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <ImGuizmo.h>
+
 
 
 
@@ -90,6 +91,8 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		m_Camera = CreateRef<EditorCamera>();
+
 		ImGuizmo::Init();
 
 		m_ActiveScene = CreateRef<Scene>();
@@ -115,6 +118,8 @@ namespace KTN
 	void Editor::OnUpdate()
 	{
 		KTN_PROFILE_FUNCTION();
+
+		m_Camera->OnUpdate();
 
 		for (auto& panel : m_Panels)
 		{

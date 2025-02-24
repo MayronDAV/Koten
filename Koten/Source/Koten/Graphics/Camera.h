@@ -12,7 +12,12 @@ namespace KTN
 	{
 		public:
 			Camera() = default;
-			Camera(uint32_t p_Width, uint32_t p_Height) { OnUpdate(); }
+			Camera(bool p_IsOrthographic)
+				: m_Orthographic(p_IsOrthographic) { OnUpdate(); }
+			Camera(bool p_IsOrthographic, uint32_t p_Width, uint32_t p_Height) 
+				: m_Orthographic(p_IsOrthographic), m_ViewportWidth(p_Width), m_ViewportHeight(p_Width) { OnUpdate(); }
+			Camera(uint32_t p_Width, uint32_t p_Height) 
+				: m_ViewportWidth(p_Width), m_ViewportHeight(p_Width) { OnUpdate(); }
 			~Camera() = default;
 
 			void SetIsOrthographic(bool p_Value);

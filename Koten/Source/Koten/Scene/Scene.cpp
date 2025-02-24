@@ -24,22 +24,57 @@ namespace KTN
 		return entt;
 	}
 
-	void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height)
+	void Scene::OnUpdate()
+	{
+		m_SceneGraph->Update(m_Registry);
+	}
+
+	void Scene::OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
+	{
+		RenderBeginInfo info = {};
+		info.RenderTarget = m_RenderTarget;
+		info.Width = m_Width;
+		info.Height = m_Height;
+		info.Projection = p_Projection;
+		info.View = p_View;
+		info.Clear = false;
+		info.ClearColor = p_ClearColor;
+
+		Renderer::Begin(info);
+		{
+			m_Registry.view<TransformComponent, SpriteComponent>().each(
+			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
+			{
+				RenderCommand command = {};
+				command.Transform = p_Transform.GetWorldMatrix();
+				command.SpriteData.Color = p_Sprite.Color;
+				command.SpriteData.Texture = p_Sprite.Texture;
+
+				Renderer::Submit(command);
+			});
+		}
+		Renderer::End();
+	}
+
+	void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime)
 	{
 		if (m_Width != p_Width || m_Height != p_Height)
 		{
-			m_Registry.view<TransformComponent, CameraComponent>().each(
-			[&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
-			{
-				p_Camera.Camera.SetViewportSize(p_Width, p_Height);
-			});
-
 			m_Width = p_Width;
 			m_Height = p_Height;
+			
+			if (p_Runtime)
+			{
+				m_Registry.view<TransformComponent, CameraComponent>().each(
+				[&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
+				{
+					p_Camera.Camera.SetViewportSize(p_Width, p_Height);
+				});
+			}
 		}
 	}
 
-	void Scene::OnUpdate()
+	void Scene::OnUpdateRuntime()
 	{
 		m_SceneGraph->Update(m_Registry);
 
@@ -66,7 +101,7 @@ namespace KTN
 		});
 	}
 
-	void Scene::OnRender()
+	void Scene::OnRenderRuntime()
 	{
 		RenderBeginInfo info				= {};
 		info.RenderTarget					= m_RenderTarget;
