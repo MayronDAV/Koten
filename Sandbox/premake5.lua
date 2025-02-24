@@ -53,7 +53,7 @@ project "Sandbox"
 	filter "system:linux"
 		pic "on"
 		systemversion "latest"
-		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-fno-char8-t", "-Wno-effc++" }
+		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-fno-char8_t", "-Wno-effc++" }
 		defines "KTN_LINUX"
 
 		postbuildcommands 
