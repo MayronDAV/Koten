@@ -11,6 +11,7 @@
 
 namespace KTN
 {
+
 	SceneViewPanel::SceneViewPanel()
 		: EditorPanel("Scene View")
 	{
@@ -18,6 +19,8 @@ namespace KTN
 
 	void SceneViewPanel::OnImgui()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto& camera = m_Editor->GetCamera();
 		glm::mat4 cameraProjection = camera->GetProjection();
 		glm::mat4 cameraView = camera->GetView();
@@ -76,11 +79,13 @@ namespace KTN
 		}
 		ImGui::End();
 
-		DrawGuizmoWidget();
+		ToolWidget();
 	}
 
 	void SceneViewPanel::OnUpdate()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		TextureSpecification tspec = {};
 		tspec.Width = m_Width;
 		tspec.Height = m_Height;
@@ -105,13 +110,17 @@ namespace KTN
 
 	void SceneViewPanel::OnRender()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto& camera = m_Editor->GetCamera();
 		m_Context->OnRender(camera->GetProjection(), camera->GetView());
 	}
 
-	void SceneViewPanel::DrawGuizmoWidget()
+	void SceneViewPanel::ToolWidget()
 	{
-		auto widgetSize = ImVec2(150, 40);
+		KTN_PROFILE_FUNCTION();
+
+		auto widgetSize = ImVec2(190, 40);
 
 		ImVec2 widgetPos(
 			m_ViewportOffset.x + 10,
@@ -191,6 +200,25 @@ namespace KTN
 					ImGui::PopStyleColor();
 
 				UI::Tooltip("Scale");
+			}
+
+			ImGui::SameLine();
+			ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+			ImGui::SameLine();
+
+			{
+				selected = m_GuizmoType == ImGuizmo::UNIVERSAL;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Text, selectedColor);
+
+				ImGui::SameLine();
+				if (ImGui::Button(ICON_MDI_CROP_ROTATE))
+					m_GuizmoType = ImGuizmo::UNIVERSAL;
+
+				if (selected)
+					ImGui::PopStyleColor();
+
+				UI::Tooltip("Universal");
 			}
 
 			ImGui::PopStyleColor();

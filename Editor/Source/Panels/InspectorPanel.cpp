@@ -25,6 +25,8 @@ namespace KTN
 
 		static bool EntityHasComponent(entt::registry& p_Registry, Entity p_Entity)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			for (auto&& [id, pool] : p_Registry.storage()) 
 			{
 				if (pool.contains(p_Entity))
@@ -36,6 +38,8 @@ namespace KTN
 		template<typename Component>
 		void DisplayComponentEntry(const std::string& p_Name, Entity p_Entt) 
 		{
+			KTN_PROFILE_FUNCTION();
+
 			if (!p_Entt.HasComponent<Component>())
 			{
 				if (ImGui::MenuItem(p_Name.c_str()))
@@ -49,6 +53,8 @@ namespace KTN
 		template<typename Component, typename Function>
 		static void DrawComponent(const std::string& p_Name, Entity p_Entity, Function p_Function, bool p_Settings = true)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			if (p_Entity.HasComponent<Component>())
 			{
 				const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen
@@ -99,6 +105,8 @@ namespace KTN
 		template <>
 		void ComponentDrawView<TransformComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			DrawComponent<TransformComponent>("Transform", p_Entity, 
 			[](TransformComponent& p_Transform)
 			{
@@ -119,6 +127,8 @@ namespace KTN
 		template <>
 		void ComponentDrawView<CameraComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			DrawComponent<CameraComponent>("Camera", p_Entity,
 			[](CameraComponent& p_Component)
 			{
@@ -206,6 +216,8 @@ namespace KTN
 
 	void InspectorPanel::OnImgui()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (!m_Context)
 			return;
 

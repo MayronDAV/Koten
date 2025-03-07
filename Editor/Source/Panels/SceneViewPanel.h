@@ -19,7 +19,7 @@ namespace KTN
 			void OnRender() override;
 
 		private:
-			void DrawGuizmoWidget();
+			void ToolWidget();
 
 		private:
 			Ref<Texture2D> m_MainTexture	= nullptr;

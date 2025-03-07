@@ -14,6 +14,8 @@ namespace KTN
 
 	void HierarchyPanel::OnImgui()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		ImGui::Begin(m_Name.c_str(), &m_Active);
 
 		if (m_Context)
@@ -45,6 +47,8 @@ namespace KTN
 
 	void HierarchyPanel::DrawEnttNode(Entity p_Entt)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto tag = p_Entt.GetTag();
 
 		auto hierarchyComponent = p_Entt.TryGetComponent<HierarchyComponent>();
