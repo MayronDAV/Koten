@@ -9,7 +9,7 @@ namespace KTN
 {
 	enum class EditorCameraMode
 	{
-		TWODIM
+		TWODIM, FLYCAM
 	};
 
 	class EditorCamera
@@ -34,13 +34,16 @@ namespace KTN
 
 		private:
 			void HandleKeyboard();
+			void HandleMouse();
 
 		private:
-			Camera m_Camera{ true, 800, 600 };
-			EditorCameraMode m_Mode = EditorCameraMode::TWODIM;
+			Camera m_Camera{ false, 800, 600 };
+			EditorCameraMode m_Mode = EditorCameraMode::FLYCAM;
 			float m_Speed = 5.0f;
 
 			Math::Transform m_Transform;
+
+			glm::vec2 m_LastMousePos{ 0.0f, 0.0f };
 
 			bool m_HandleEvents = true;
 	};

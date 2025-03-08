@@ -30,6 +30,8 @@ namespace KTN
 			{
 				Input::SetCursorMode(CursorMode::Disabled);
 
+				HandleMouse();
+
 				HandleKeyboard();
 			}
 			else
@@ -49,13 +51,14 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		float dt = (float)Time::GetDeltaTime();
+		glm::vec3 front = m_Transform.GetLocalFrontDirection();
+		glm::vec3 up = m_Transform.GetLocalUpDirection();
+		glm::vec3 right = m_Transform.GetLocalRightDirection();
+
+		glm::vec3 dir{ 0.0f, 0.0f, 0.0f };
+
 		if (m_Mode == EditorCameraMode::TWODIM)
 		{
-			glm::vec3 up = m_Transform.GetLocalUpDirection();
-			glm::vec3 right = m_Transform.GetLocalRightDirection();
-
-			glm::vec3 dir{ 0.0f, 0.0f, 0.0f };
-
 			if (Input::IsKeyPressed(Key::A))
 				dir += right * -1.0f;
 			if (Input::IsKeyPressed(Key::D))
@@ -72,6 +75,61 @@ namespace KTN
 			glm::vec3 position = m_Transform.GetLocalTranslation();
 			position += dir * m_Speed * dt;
 			m_Transform.SetLocalTranslation(position);
+		}
+
+		if (m_Mode == EditorCameraMode::FLYCAM)
+		{
+			if (Input::IsKeyPressed(Key::A))
+				dir += right * -1.0f;
+			if (Input::IsKeyPressed(Key::D))
+				dir += right;
+
+			if (Input::IsKeyPressed(Key::W))
+				dir += front;
+			if (Input::IsKeyPressed(Key::S))
+				dir += front * -1.0f;
+
+			glm::vec3 position = m_Transform.GetLocalTranslation();
+			position += dir * m_Speed * dt;
+			m_Transform.SetLocalTranslation(position);
+		}
+	}
+
+	void EditorCamera::HandleMouse()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		float dt = (float)Time::GetDeltaTime();
+
+		glm::vec2 mousePos = Input::GetMousePosition();
+
+		static bool firstClick = true;
+		if (Input::IsMouseButtonPressed(Mouse::Button_Right))
+		{
+			if (firstClick)
+			{
+				m_LastMousePos = mousePos;
+				firstClick = false;
+			}
+
+			glm::vec2 delta = mousePos - m_LastMousePos;
+			m_LastMousePos = mousePos;
+
+			if (m_Mode == EditorCameraMode::FLYCAM)
+			{
+				const float sign = m_Transform.GetLocalUpDirection().y < 0.0f ? 1.0f : -1.0f; // Maybe change this?
+				float yaw = m_Transform.GetLocalRotation().y;
+				float pitch = m_Transform.GetLocalRotation().x;
+				const float sensitivity = 0.1f; // Maybe change this?
+				yaw += sign * delta.x * sensitivity;
+				pitch += sign * delta.y * sensitivity;
+
+				m_Transform.SetLocalRotation({ pitch, yaw, 0.0f });
+			}
+		}
+		else
+		{
+			firstClick = false;
 		}
 	}
 
