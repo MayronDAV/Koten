@@ -86,16 +86,14 @@ namespace KTN::UI
 		}
 	}
 
-	KTN_API bool DrawColorEdit4(const std::string& p_Label, glm::vec4& p_Values, float p_ResetValue)
+	KTN_API bool ColorEdit4(const std::string& p_Label, glm::vec4& p_Values, float p_ResetValue)
 	{
 		KTN_PROFILE_FUNCTION();
 
 		ImGui::PushID(p_Label.c_str());
 
-		ImGui::Spacing();
-
 		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0, 100.0f); // TODO: Maybe change to tables?
+		ImGui::SetColumnWidth(0, 100.0f); // TODO: Maybe change this?
 		ImGui::Text(p_Label.c_str());
 		ImGui::NextColumn();
 
@@ -113,7 +111,7 @@ namespace KTN::UI
 		return result;
 	}
 
-	KTN_API void DrawFloat3(const std::string& p_Label, glm::vec3& p_Values, float p_ResetValue)
+	KTN_API void DragFloat3(const std::string& p_Label, glm::vec3& p_Values, float p_ResetValue)
 	{
 		KTN_PROFILE_FUNCTION();
 
@@ -122,7 +120,7 @@ namespace KTN::UI
 		ImGui::PushID(p_Label.c_str());
 
 		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0, 100.0f); // TODO: Maybe change to tables?
+		ImGui::SetColumnWidth(0, 100.0f); // TODO: Maybe change this?
 		ImGui::Text(p_Label.c_str());
 		ImGui::NextColumn();
 
@@ -188,5 +186,38 @@ namespace KTN::UI
 		}
 
 		ImGui::PopStyleVar();
+	}
+
+	bool Combo(const char* p_Label, const char* p_PreviewText, const char* p_Items[], int p_ItemsCount, int* p_CurrentItem, float p_Spacing)
+	{
+		bool valueChanged = false;
+
+		ImGui::BeginGroup();
+
+		ImGui::Text("%s", p_Label);
+
+		ImGui::SameLine(0.0f, p_Spacing);
+
+		std::string comboLabel = "##Combo" + std::string(p_Label);
+
+		if (ImGui::BeginCombo(comboLabel.c_str(), p_PreviewText)) 
+		{
+			for (int i = 0; i < p_ItemsCount; i++) 
+			{
+				bool isSelected = (*p_CurrentItem == i);
+				if (ImGui::Selectable(p_Items[i], isSelected)) 
+				{
+					*p_CurrentItem = i;
+					valueChanged = true;
+				}
+
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::EndGroup();
+		return valueChanged;
 	}
 } // namespace KTN::UI

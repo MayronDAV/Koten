@@ -2,6 +2,7 @@
 #include "Panels/HierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
 #include "Panels/SceneViewPanel.h"
+#include "Panels/SettingsPanel.h"
 
 // lib
 #include <imgui.h>
@@ -97,15 +98,51 @@ namespace KTN
 
 		m_ActiveScene = CreateRef<Scene>();
 
+		m_Settings = CreateRef<SettingsPanel>();
+
 		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
 		m_Panels.emplace_back(CreateRef<InspectorPanel>());
+
 
 		for (auto& panel : m_Panels)
 		{
 			panel->SetContext(m_ActiveScene);
 			panel->SetEditor(this);
 		}
+
+		#pragma region Settings
+
+		static const char* general = "General";
+
+		Tab tab;
+		{
+			tab.Name = "Editor Camera";
+			tab.Content = [&]()
+			{
+				int currentItem = (int)m_Camera->GetMode();
+				static const char* items[] = { "Two Dim", "Fly Cam" };
+				static const int itemsCount = IM_ARRAYSIZE(items);
+
+				if (UI::Combo("Mode",  items[currentItem], items, itemsCount, &currentItem, 50.0f))
+				{
+					m_Camera->SetMode((EditorCameraMode)currentItem);
+				}
+
+				float speed = m_Camera->GetSpeed();
+				if (ImGui::DragFloat("Speed", &speed, 0.1f, 0.0f, 0.0f, "%.2f"))
+					m_Camera->SetSpeed(speed);
+
+				float sensitivity = m_Camera->GetSensitivity();
+				if (ImGui::DragFloat("Sensitivity", &sensitivity, 0.1f, 0.0f, 0.0f, "%.2f"))
+					m_Camera->SetSensitivity(sensitivity);
+			};
+
+			m_Settings->AddTab(general, tab);
+		}
+
+
+		#pragma endregion
 	}
 
 	void Editor::OnDetach()
@@ -148,6 +185,9 @@ namespace KTN
 		ImGuizmo::BeginFrame();
 
 		DrawMenuBar();
+
+		if (m_Settings->IsActive())
+			m_Settings->OnImgui();
 
 		for (auto& panel : m_Panels)
 		{
@@ -216,6 +256,13 @@ namespace KTN
 					ImGui::MenuItem(name.c_str(), nullptr, &active);
 				}
 
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Tools"))
+			{
+				if (ImGui::MenuItem(ICON_MDI_COGS "  Settings"))
+					m_Settings->SetActive(!m_Settings->IsActive());
 				ImGui::EndMenu();
 			}
 

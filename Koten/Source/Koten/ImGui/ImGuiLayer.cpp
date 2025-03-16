@@ -101,12 +101,21 @@ namespace KTN
 		icons_config.GlyphMinAdvanceX = 4.0f;
 		icons_config.SizePixels = 12.0f;
 
+		//static const ImWchar ranges[] = {
+		//	0x0020,
+		//	0x00FF,
+		//	0x0400,
+		//	0x044F,
+		//	0,
+		//};
 		static const ImWchar ranges[] = {
-			0x0020,
-			0x00FF,
-			0x0400,
-			0x044F,
-			0,
+			0x0020, 0x00FF, // Basic Latin + Latin Supplement
+			0x0100, 0x017F, // Latin Extended-A
+			0x0180, 0x024F, // Latin Extended-B
+			0x0300, 0x036F, // Combining Diacritical Marks
+			0x0400, 0x04FF, // Cyrillic
+			0x0100, 0x017F, // Caracteres específicos (ex: ç, ã, é, ñ)
+			0
 		};
 
 		io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize, &icons_config, ranges);
@@ -141,7 +150,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (m_BlockEvents)
+		if (!m_BlockEvents)
 		{
 			ImGuiIO& io		 = ImGui::GetIO();
 			p_Event.Handled |= p_Event.IsInCategory(EventCategoryMouse)		& io.WantCaptureMouse;

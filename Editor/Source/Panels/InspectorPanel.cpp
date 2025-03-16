@@ -111,15 +111,15 @@ namespace KTN
 			[](TransformComponent& p_Transform)
 			{
 				glm::vec3 translation = p_Transform.GetLocalTranslation();
-				UI::DrawFloat3("Translation", translation);
+				UI::DragFloat3("Translation", translation);
 				p_Transform.SetLocalTranslation(translation);
 
 				glm::vec3 rotation = p_Transform.GetLocalRotation();
-				UI::DrawFloat3("Rotation", rotation);
+				UI::DragFloat3("Rotation", rotation);
 				p_Transform.SetLocalRotation(rotation);
 
 				glm::vec3 scale = p_Transform.GetLocalScale();
-				UI::DrawFloat3("Scale", scale, 1.0f);
+				UI::DragFloat3("Scale", scale, 1.0f);
 				p_Transform.SetLocalScale(scale);
 			});
 		}
@@ -193,7 +193,8 @@ namespace KTN
 			DrawComponent<SpriteComponent>("Sprite", p_Entity,
 			[](SpriteComponent& p_Sprite)
 			{
-				UI::DrawColorEdit4("Color", p_Sprite.Color, 1.0f);
+				ImGui::Spacing();
+				UI::ColorEdit4("Color", p_Sprite.Color, 1.0f);
 
 				// TODO: Show the name of the texture loaded
 				if (ImGui::Button("Texture"))

@@ -39,7 +39,7 @@ namespace KTN
 
 		private:
 			float m_FontSize = 14.0f;
-			bool  m_BlockEvents = true;
+			bool  m_BlockEvents = false;
 	};
 
 } // namespace KTN

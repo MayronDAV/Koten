@@ -6,6 +6,8 @@
 
 namespace KTN
 {
+	class SettingsPanel;
+
 	class Editor : public Layer
 	{
 		public:
@@ -38,6 +40,7 @@ namespace KTN
 			Ref<Scene> m_ActiveScene = nullptr;
 
 			std::vector<Ref<EditorPanel>> m_Panels;
+			Ref<SettingsPanel> m_Settings = nullptr;
 
 			Entity m_SelectedEntt;
 

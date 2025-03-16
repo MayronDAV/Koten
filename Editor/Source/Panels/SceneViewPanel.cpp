@@ -103,6 +103,7 @@ namespace KTN
 		m_Context->SetRenderTarget(m_MainTexture);
 		auto& camera = m_Editor->GetCamera();
 		camera->SetViewportSize(m_Width, m_Height);
+		Application::Get().GetImGui()->BlockEvents(m_HandleCameraEvents);
 		camera->SetHandleEvents(m_HandleCameraEvents);
 		m_Context->SetViewportSize(m_Width, m_Height);
 		m_Context->OnUpdate();

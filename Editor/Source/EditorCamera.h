@@ -23,9 +23,11 @@ namespace KTN
 
 			void SetMode(EditorCameraMode p_Mode) { m_Mode = p_Mode; m_Camera.SetIsOrthographic(p_Mode == EditorCameraMode::TWODIM); }
 			void SetSpeed(float p_Speed) { m_Speed = p_Speed; }
+			void SetSensitivity(float p_Sensitivity) { m_Sensitivity = p_Sensitivity; }
 			void SetHandleEvents(bool p_Value) { m_HandleEvents = p_Value; }
 
 			float GetSpeed() const { return m_Speed; }
+			float GetSensitivity() const { return m_Sensitivity; }
 			Camera& GetCamera() { return m_Camera; }
 			EditorCameraMode GetMode() const { return m_Mode; }
 			const glm::mat4& GetProjection() const { return m_Camera.GetProjection(); }
@@ -40,6 +42,7 @@ namespace KTN
 			Camera m_Camera{ false, 800, 600 };
 			EditorCameraMode m_Mode = EditorCameraMode::FLYCAM;
 			float m_Speed = 5.0f;
+			float m_Sensitivity = 0.1f;
 
 			Math::Transform m_Transform;
 

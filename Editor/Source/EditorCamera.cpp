@@ -120,9 +120,8 @@ namespace KTN
 				const float sign = m_Transform.GetLocalUpDirection().y < 0.0f ? 1.0f : -1.0f; // Maybe change this?
 				float yaw = m_Transform.GetLocalRotation().y;
 				float pitch = m_Transform.GetLocalRotation().x;
-				const float sensitivity = 0.1f; // Maybe change this?
-				yaw += sign * delta.x * sensitivity;
-				pitch += sign * delta.y * sensitivity;
+				yaw += sign * delta.x * m_Sensitivity;
+				pitch += sign * delta.y * m_Sensitivity;
 
 				m_Transform.SetLocalRotation({ pitch, yaw, 0.0f });
 			}
