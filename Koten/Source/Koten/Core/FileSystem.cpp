@@ -24,6 +24,27 @@ namespace KTN
 		return path.string();
 	}
 
+	bool FileSystem::WriteFile(const std::string& p_Path, uint8_t* p_Buffer, uint32_t p_Size)
+	{
+		std::ofstream stream(p_Path, std::ios::binary | std::ios::trunc);
+
+		if (!stream)
+		{
+			stream.close();
+			return false;
+		}
+
+		stream.write((char*)p_Buffer, p_Size);
+		stream.close();
+
+		return true;
+	}
+
+	bool FileSystem::WriteTextFile(const std::string& p_Path, const std::string& p_Text)
+	{
+		return WriteFile(p_Path, (uint8_t*)&p_Text[0], (uint32_t)p_Text.size());
+	}
+
 	std::string FileSystem::ReadFile(const std::string& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();

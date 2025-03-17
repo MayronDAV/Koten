@@ -70,3 +70,5 @@
 // UTILS
 
 #include "Koten/Utils/Utils.h"
+#include "Koten/Utils/StringUtils.h"
+#include "Koten/Utils/IniFile.h"

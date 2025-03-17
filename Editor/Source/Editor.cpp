@@ -82,6 +82,26 @@ namespace KTN
 	Editor::Editor()
 		: Layer("Editor")
 	{
+		auto file = IniFile("Resources/Engine.ini");
+		const auto& data = file.GetData();
+
+		file.Add<std::string>("Test", "On", "True");
+		file.Add<bool>("Test", "Off", false);
+		file.Add<int>("Test", "Test", 1);
+		file.Add<float>("Test", "Test2", 1.6f);
+
+		file.Rewrite();
+
+		KTN_CORE_INFO("Engine.ini:");
+		for (const auto& [group, values] : data)
+		{
+			KTN_CORE_TRACE("");
+			KTN_CORE_TRACE("[{0}]", group);
+			for (const auto& [key, value] : values)
+			{
+				KTN_CORE_TRACE("{0}={1}", key, value);
+			}
+		}
 	}
 
 	Editor::~Editor()
@@ -261,7 +281,7 @@ namespace KTN
 
 			if (ImGui::BeginMenu("Tools"))
 			{
-				if (ImGui::MenuItem(ICON_MDI_COGS "  Settings"))
+				if (ImGui::MenuItem(ICON_MDI_COGS "  Settings..."))
 					m_Settings->SetActive(!m_Settings->IsActive());
 				ImGui::EndMenu();
 			}
