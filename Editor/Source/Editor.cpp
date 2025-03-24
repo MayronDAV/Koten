@@ -117,170 +117,174 @@ namespace KTN
 
 		#pragma region Settings
 
-		static const char* general = "General";
-
 		Tab tab;
 
-		// Editor Camera
+		// General
 		{
-			tab.Name = "Editor Camera";
-			tab.Content = [&]()
+			static const char* group_name = "General";
+
+			// Editor Camera
 			{
-				int currentItem = (int)m_Camera->GetMode();
-				static const char* items[] = { "Two Dim", "Fly Cam" };
-				static const int itemsCount = IM_ARRAYSIZE(items);
-
-				if (UI::Combo("Mode",  items[currentItem], items, itemsCount, &currentItem, 50.0f))
-				{
-					m_Camera->SetMode((EditorCameraMode)currentItem);
-				}
-
-				float speed = m_Camera->GetSpeed();
-				if (ImGui::DragFloat("Speed", &speed, 0.1f, 0.0f, 0.0f, "%.2f"))
-					m_Camera->SetSpeed(speed);
-
-				float sensitivity = m_Camera->GetSensitivity();
-				if (ImGui::DragFloat("Sensitivity", &sensitivity, 0.1f, 0.0f, 0.0f, "%.2f"))
-					m_Camera->SetSensitivity(sensitivity);
-			};
-
-			m_Settings->AddTab(general, tab);
-		}
-
-		// Shortcuts
-		{
-			tab.Name = "Shortcuts";
-			tab.Content = [&]()
-			{
-				std::unordered_map<std::string, std::vector<int>>& shortcuts = Shortcuts::GetShortcuts();
-				
-				static std::unordered_map<std::string, std::string> lastShortcuts;
-				static bool showCaptureWindow = false;
-				static std::string editAction = "";
-
-				auto size = ImGui::GetContentRegionAvail();
-
-				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
-				ImGui::BeginChild("##shortcuts_child", { size.x, size.y - (lineHeight * 1.5f) }, false);
-				ImGui::PopStyleVar();
-
-				ImGui::Columns(2, "##shortcuts_table", false);
-				ImGui::SetColumnWidth(0, 150.0f);
-				ImGui::SetColumnWidth(1, 250.0f);
-
-				if (lastShortcuts.empty())
-				{
-					for (auto& [action, keys] : shortcuts)
-						lastShortcuts[action] = Shortcuts::KeysToString(keys);
-				}
-
-				for (auto& [action, keys] : shortcuts) 
-				{
-					ImGui::Text(action.c_str());
-					ImGui::NextColumn();
-
-					std::string keyCombination = Shortcuts::KeysToString(keys);
-
-					if (ImGui::Button(("##button_" + action).c_str(), ImVec2(200.0f, lineHeight)))
+				tab.Name = "Editor Camera";
+				tab.Content = [&]()
 					{
-						editAction = action;
-						showCaptureWindow = true;
-						m_CaptureShortcuts = false;
-					}
+						int currentItem = (int)m_Camera->GetMode();
+						static const char* items[] = { "Two Dim", "Fly Cam" };
+						static const int itemsCount = IM_ARRAYSIZE(items);
 
-					auto cursor = ImGui::GetCursorPos();
-
-					ImVec2 buttonPos = ImGui::GetItemRectMin();
-					ImVec2 rectSize = ImGui::GetItemRectSize();
-
-					// Reset button
-					{
-						ImGui::SameLine();
-
-						if (ImGui::Button((ICON_MDI_RESTART "##reset_" + action).c_str(), { lineHeight, lineHeight }))
+						if (UI::Combo("Mode", items[currentItem], items, itemsCount, &currentItem, 50.0f))
 						{
-							if (keyCombination != lastShortcuts[action])
+							m_Camera->SetMode((EditorCameraMode)currentItem);
+						}
+
+						float speed = m_Camera->GetSpeed();
+						if (ImGui::DragFloat("Speed", &speed, 0.1f, 0.0f, 0.0f, "%.2f"))
+							m_Camera->SetSpeed(speed);
+
+						float sensitivity = m_Camera->GetSensitivity();
+						if (ImGui::DragFloat("Sensitivity", &sensitivity, 0.1f, 0.0f, 0.0f, "%.2f"))
+							m_Camera->SetSensitivity(sensitivity);
+					};
+
+				m_Settings->AddTab(group_name, tab);
+			}
+
+			// Shortcuts
+			{
+				tab.Name = "Shortcuts";
+				tab.Content = [&]()
+					{
+						std::unordered_map<std::string, std::vector<int>>& shortcuts = Shortcuts::GetShortcuts();
+
+						static std::unordered_map<std::string, std::string> lastShortcuts;
+						static bool showCaptureWindow = false;
+						static std::string editAction = "";
+
+						auto size = ImGui::GetContentRegionAvail();
+
+						float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+
+						ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+						ImGui::BeginChild("##shortcuts_child", { size.x, size.y - (lineHeight * 1.5f) }, false);
+						ImGui::PopStyleVar();
+
+						ImGui::Columns(2, "##shortcuts_table", false);
+						ImGui::SetColumnWidth(0, 150.0f);
+						ImGui::SetColumnWidth(1, 250.0f);
+
+						if (lastShortcuts.empty())
+						{
+							for (auto& [action, keys] : shortcuts)
+								lastShortcuts[action] = Shortcuts::KeysToString(keys);
+						}
+
+						for (auto& [action, keys] : shortcuts)
+						{
+							ImGui::Text(action.c_str());
+							ImGui::NextColumn();
+
+							std::string keyCombination = Shortcuts::KeysToString(keys);
+
+							if (ImGui::Button(("##button_" + action).c_str(), ImVec2(200.0f, lineHeight)))
 							{
-								keyCombination = lastShortcuts[action];
-								Shortcuts::SetShortcut(action, Shortcuts::StringToKeys(keyCombination));
+								editAction = action;
+								showCaptureWindow = true;
+								m_CaptureShortcuts = false;
+							}
+
+							auto cursor = ImGui::GetCursorPos();
+
+							ImVec2 buttonPos = ImGui::GetItemRectMin();
+							ImVec2 rectSize = ImGui::GetItemRectSize();
+
+							// Reset button
+							{
+								ImGui::SameLine();
+
+								if (ImGui::Button((ICON_MDI_RESTART "##reset_" + action).c_str(), { lineHeight, lineHeight }))
+								{
+									if (keyCombination != lastShortcuts[action])
+									{
+										keyCombination = lastShortcuts[action];
+										Shortcuts::SetShortcut(action, Shortcuts::StringToKeys(keyCombination));
+									}
+								}
+							}
+
+							ImVec2 textSize = ImGui::CalcTextSize(keyCombination.c_str());
+							ImGui::SetCursorScreenPos(ImVec2(
+								buttonPos.x + (rectSize.x - textSize.x) * 0.5f,
+								buttonPos.y + (rectSize.y - textSize.y) * 0.5f
+							));
+							ImGui::TextUnformatted(keyCombination.c_str());
+
+							ImGui::NextColumn();
+						}
+
+						ImGui::Columns(1);
+
+						ImGui::EndChild();
+
+						if (ImGui::Button("Save", { 100.0f, lineHeight }))
+						{
+							auto file = IniFile("Resources/Engine.ini"); // TODO
+							Shortcuts::UploadShortcuts(file);
+						}
+
+						if (showCaptureWindow && !editAction.empty())
+						{
+							static std::vector<int> keys;
+							static std::string keyCombination = "";
+
+							ImGui::OpenPopup("Capture Shortcut");
+							if (ImGui::BeginPopupModal("Capture Shortcut", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+							{
+								ImGui::Text("Press the key combination you want to capture...");
+
+								ImGui::Separator();
+
+								int key = Input::GetKeyPressed();
+								if (key != -1)
+								{
+									if (std::find(keys.begin(), keys.end(), key) == keys.end())
+										keys.push_back(key);
+								}
+
+								if (!keys.empty())
+									keyCombination = Shortcuts::KeysToString(keys);
+
+								ImGui::Text("Keys: %s", keyCombination.c_str());
+
+								if (ImGui::Button("Ok"))
+								{
+									lastShortcuts[editAction] = Shortcuts::GetShortcutStr(editAction);
+									Shortcuts::SetShortcut(editAction, keys);
+									editAction = "";
+									keyCombination = "";
+									showCaptureWindow = false;
+									m_CaptureShortcuts = true;
+									keys.clear();
+								}
+
+								ImGui::SameLine();
+
+								if (ImGui::Button("Cancel"))
+								{
+									editAction = "";
+									keyCombination = "";
+									showCaptureWindow = false;
+									m_CaptureShortcuts = true;
+									keys.clear();
+								}
+								ImGui::EndPopup();
 							}
 						}
-					}
+					};
 
-					ImVec2 textSize = ImGui::CalcTextSize(keyCombination.c_str());
-					ImGui::SetCursorScreenPos(ImVec2(
-						buttonPos.x + (rectSize.x - textSize.x) * 0.5f,
-						buttonPos.y + (rectSize.y - textSize.y) * 0.5f
-					));
-					ImGui::TextUnformatted(keyCombination.c_str());
-
-					ImGui::NextColumn();
-				}
-
-				ImGui::Columns(1);
-
-				ImGui::EndChild();
-
-				if (ImGui::Button("Save", { 100.0f, lineHeight }))
-				{
-					auto file = IniFile("Resources/Engine.ini"); // TODO
-					Shortcuts::UploadShortcuts(file);
-				}
-
-				if (showCaptureWindow && !editAction.empty())
-				{
-					static std::vector<int> keys;
-					static std::string keyCombination = "";
-
-					ImGui::OpenPopup("Capture Shortcut");
-					if (ImGui::BeginPopupModal("Capture Shortcut", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-					{
-						ImGui::Text("Press the key combination you want to capture...");
-
-						ImGui::Separator();
-
-						int key = Input::GetKeyPressed();
-						if (key != -1)
-						{
-							if (std::find(keys.begin(), keys.end(), key) == keys.end())
-								keys.push_back(key);
-						}
-
-						if (!keys.empty())
-							keyCombination = Shortcuts::KeysToString(keys);
-
-						ImGui::Text("Keys: %s", keyCombination.c_str());
-
-						if (ImGui::Button("Ok"))
-						{
-							lastShortcuts[editAction] = Shortcuts::GetShortcutStr(editAction);
-							Shortcuts::SetShortcut(editAction, keys);
-							editAction = "";
-							keyCombination = "";
-							showCaptureWindow = false;
-							m_CaptureShortcuts = true;
-							keys.clear();
-						}
-
-						ImGui::SameLine();
-
-						if (ImGui::Button("Cancel"))
-						{
-							editAction = "";
-							keyCombination = "";
-							showCaptureWindow = false;
-							m_CaptureShortcuts = true;
-							keys.clear();
-						}
-						ImGui::EndPopup();
-					}
-				}
-			};
-
-			m_Settings->AddTab(general, tab);
+				m_Settings->AddTab(group_name, tab);
+			}
 		}
+
 
 		#pragma endregion
 	}
