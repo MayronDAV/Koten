@@ -31,6 +31,10 @@ namespace KTN
 
 		private:
 			void DrawMenuBar();
+			void Shortcuts();
+
+			void OpenScene();
+			void SaveSceneAs();
 
 		private:
 			Ref<Texture2D> m_MainTexture = nullptr;
@@ -45,6 +49,7 @@ namespace KTN
 			Entity m_SelectedEntt;
 
 			Ref<EditorCamera> m_Camera = nullptr;
+			bool m_CaptureShortcuts = true;
 	};
 
 } // namespace KTN

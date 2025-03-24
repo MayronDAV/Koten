@@ -71,7 +71,7 @@ namespace KTN
 			World2 = 162, /* non-US #2 */
 
 			/* Function keys */
-			Escape = 256,
+			Esc = 256,
 			Enter = 257,
 			Tab = 258,
 			Backspace = 259,
@@ -135,15 +135,24 @@ namespace KTN
 			KPEnter = 335,
 			KPEqual = 336,
 
-			LeftShift = 340,
-			LeftControl = 341,
-			LeftAlt = 342,
-			LeftSuper = 343,
-			RightShift = 344,
-			RightControl = 345,
-			RightAlt = 346,
-			RightSuper = 347,
+			LShift = 340,
+			LCtrl = 341,
+			LAlt = 342,
+			LSuper = 343,
+			RShift = 344,
+			RCtrl = 345,
+			RAlt = 346,
+			RSuper = 347,
 			Menu = 348
+		};
+
+		inline const std::vector<KeyCode> Map = { 
+			Space, Apostrophe, Comma, Minus, Period, Slash, D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, Semicolon, Equal,
+			A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, LeftBracket, Backslash, RightBracket,
+			GraveAccent, World1, World2, Esc, Enter, Tab, Backspace, Insert, Delete, Right, Left, Down, Up, PageUp, PageDown, 
+			Home, End, CapsLock, ScrollLock, NumLock, PrintScreen, Pause, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, 
+			F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, F25, KP0, KP1, KP2, KP3, KP4, KP5, KP6, KP7, KP8, KP9, KPDecimal, 
+			KPDivide, KPMultiply, KPSubtract, KPAdd, KPEnter, KPEqual, LShift, LCtrl, LAlt, LSuper, RShift, RCtrl, RAlt, RSuper, Menu
 		};
 
 	} // namespace Key

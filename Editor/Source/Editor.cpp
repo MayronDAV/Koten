@@ -3,6 +3,7 @@
 #include "Panels/InspectorPanel.h"
 #include "Panels/SceneViewPanel.h"
 #include "Panels/SettingsPanel.h"
+#include "Shortcuts.h"
 
 // lib
 #include <imgui.h>
@@ -18,7 +19,7 @@ namespace KTN
 {
 	namespace
 	{
-		void BeginDockspace(bool p_MenuBar)
+		static void BeginDockspace(bool p_MenuBar)
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -70,7 +71,7 @@ namespace KTN
 			}
 		}
 
-		void EndDockspace()
+		static void EndDockspace()
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -83,25 +84,8 @@ namespace KTN
 		: Layer("Editor")
 	{
 		auto file = IniFile("Resources/Engine.ini");
-		const auto& data = file.GetData();
-
-		file.Add<std::string>("Test", "On", "True");
-		file.Add<bool>("Test", "Off", false);
-		file.Add<int>("Test", "Test", 1);
-		file.Add<float>("Test", "Test2", 1.6f);
-
-		file.Rewrite();
-
-		KTN_CORE_INFO("Engine.ini:");
-		for (const auto& [group, values] : data)
-		{
-			KTN_CORE_TRACE("");
-			KTN_CORE_TRACE("[{0}]", group);
-			for (const auto& [key, value] : values)
-			{
-				KTN_CORE_TRACE("{0}={1}", key, value);
-			}
-		}
+		
+		Shortcuts::Init(file);
 	}
 
 	Editor::~Editor()
@@ -136,6 +120,8 @@ namespace KTN
 		static const char* general = "General";
 
 		Tab tab;
+
+		// Editor Camera
 		{
 			tab.Name = "Editor Camera";
 			tab.Content = [&]()
@@ -161,6 +147,140 @@ namespace KTN
 			m_Settings->AddTab(general, tab);
 		}
 
+		// Shortcuts
+		{
+			tab.Name = "Shortcuts";
+			tab.Content = [&]()
+			{
+				std::unordered_map<std::string, std::vector<int>>& shortcuts = Shortcuts::GetShortcuts();
+				
+				static std::unordered_map<std::string, std::string> lastShortcuts;
+				static bool showCaptureWindow = false;
+				static std::string editAction = "";
+
+				auto size = ImGui::GetContentRegionAvail();
+
+				float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+				ImGui::BeginChild("##shortcuts_child", { size.x, size.y - (lineHeight * 1.5f) }, false);
+				ImGui::PopStyleVar();
+
+				ImGui::Columns(2, "##shortcuts_table", false);
+				ImGui::SetColumnWidth(0, 150.0f);
+				ImGui::SetColumnWidth(1, 250.0f);
+
+				if (lastShortcuts.empty())
+				{
+					for (auto& [action, keys] : shortcuts)
+						lastShortcuts[action] = Shortcuts::KeysToString(keys);
+				}
+
+				for (auto& [action, keys] : shortcuts) 
+				{
+					ImGui::Text(action.c_str());
+					ImGui::NextColumn();
+
+					std::string keyCombination = Shortcuts::KeysToString(keys);
+
+					if (ImGui::Button(("##button_" + action).c_str(), ImVec2(200.0f, lineHeight)))
+					{
+						editAction = action;
+						showCaptureWindow = true;
+						m_CaptureShortcuts = false;
+					}
+
+					auto cursor = ImGui::GetCursorPos();
+
+					ImVec2 buttonPos = ImGui::GetItemRectMin();
+					ImVec2 rectSize = ImGui::GetItemRectSize();
+
+					// Reset button
+					{
+						ImGui::SameLine();
+
+						if (ImGui::Button((ICON_MDI_RESTART "##reset_" + action).c_str(), { lineHeight, lineHeight }))
+						{
+							if (keyCombination != lastShortcuts[action])
+							{
+								keyCombination = lastShortcuts[action];
+								Shortcuts::SetShortcut(action, Shortcuts::StringToKeys(keyCombination));
+							}
+						}
+					}
+
+					ImVec2 textSize = ImGui::CalcTextSize(keyCombination.c_str());
+					ImGui::SetCursorScreenPos(ImVec2(
+						buttonPos.x + (rectSize.x - textSize.x) * 0.5f,
+						buttonPos.y + (rectSize.y - textSize.y) * 0.5f
+					));
+					ImGui::TextUnformatted(keyCombination.c_str());
+
+					ImGui::NextColumn();
+				}
+
+				ImGui::Columns(1);
+
+				ImGui::EndChild();
+
+				if (ImGui::Button("Save", { 100.0f, lineHeight }))
+				{
+					auto file = IniFile("Resources/Engine.ini"); // TODO
+					Shortcuts::UploadShortcuts(file);
+				}
+
+				if (showCaptureWindow && !editAction.empty())
+				{
+					static std::vector<int> keys;
+					static std::string keyCombination = "";
+
+					ImGui::OpenPopup("Capture Shortcut");
+					if (ImGui::BeginPopupModal("Capture Shortcut", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+					{
+						ImGui::Text("Press the key combination you want to capture...");
+
+						ImGui::Separator();
+
+						int key = Input::GetKeyPressed();
+						if (key != -1)
+						{
+							if (std::find(keys.begin(), keys.end(), key) == keys.end())
+								keys.push_back(key);
+						}
+
+						if (!keys.empty())
+							keyCombination = Shortcuts::KeysToString(keys);
+
+						ImGui::Text("Keys: %s", keyCombination.c_str());
+
+						if (ImGui::Button("Ok"))
+						{
+							lastShortcuts[editAction] = Shortcuts::GetShortcutStr(editAction);
+							Shortcuts::SetShortcut(editAction, keys);
+							editAction = "";
+							keyCombination = "";
+							showCaptureWindow = false;
+							m_CaptureShortcuts = true;
+							keys.clear();
+						}
+
+						ImGui::SameLine();
+
+						if (ImGui::Button("Cancel"))
+						{
+							editAction = "";
+							keyCombination = "";
+							showCaptureWindow = false;
+							m_CaptureShortcuts = true;
+							keys.clear();
+						}
+						ImGui::EndPopup();
+					}
+				}
+			};
+
+			m_Settings->AddTab(general, tab);
+		}
 
 		#pragma endregion
 	}
@@ -175,6 +295,8 @@ namespace KTN
 	void Editor::OnUpdate()
 	{
 		KTN_PROFILE_FUNCTION();
+
+		Shortcuts();
 
 		m_Camera->OnUpdate();
 
@@ -220,7 +342,6 @@ namespace KTN
 
 	void Editor::OnEvent(Event& p_Event)
 	{
-
 	}
 
 	void Editor::DrawMenuBar()
@@ -229,35 +350,13 @@ namespace KTN
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("Save Scene As"))
-				{
-					std::string path = "";
-					if (FileDialog::Save("", "Assets", path) == FileDialogResult::SUCCESS)
-					{
-						SceneSerializer serializer(m_ActiveScene);
-						serializer.Serialize(path);
-					}
-				}
+				auto shortcut = Shortcuts::GetShortcutStr("Save Scene As");
+				if (ImGui::MenuItem("Save Scene As", shortcut.c_str()))
+					SaveSceneAs();
 
-				if (ImGui::MenuItem("Load Scene"))
-				{
-					auto scene = CreateRef<Scene>();
-					std::string path = "";
-					if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
-					{
-						SceneSerializer serializer(scene);
-						if (!serializer.Deserialize(path))
-							KTN_CORE_ERROR("Failed to Deserialize!");
-
-						UnSelectEntt();
-						m_ActiveScene = scene;
-
-						for (auto& panel : m_Panels)
-						{
-							panel->SetContext(m_ActiveScene);
-						}
-					}
-				}
+				shortcut = Shortcuts::GetShortcutStr("Open Scene");
+				if (ImGui::MenuItem("Open Scene", shortcut.c_str()))
+					OpenScene();
 
 				ImGui::Separator();
 
@@ -281,12 +380,58 @@ namespace KTN
 
 			if (ImGui::BeginMenu("Tools"))
 			{
-				if (ImGui::MenuItem(ICON_MDI_COGS "  Settings..."))
+				auto shortcut = Shortcuts::GetShortcutStr("Open Settings");
+				if (ImGui::MenuItem(ICON_MDI_COGS "  Settings...", shortcut.c_str()))
 					m_Settings->SetActive(!m_Settings->IsActive());
 				ImGui::EndMenu();
 			}
 
 			ImGui::EndMenuBar();
+		}
+	}
+
+	void Editor::Shortcuts()
+	{
+		if (!m_CaptureShortcuts)
+			return;
+
+		if (Shortcuts::IsActionPressed("Open Scene"))
+			OpenScene();
+
+		if (Shortcuts::IsActionPressed("Save Scene As"))
+			SaveSceneAs();
+
+		if (Shortcuts::IsActionPressed("Open Settings"))
+			m_Settings->SetActive(true); // Maybe change this to toggle in the future
+	}
+
+	void Editor::OpenScene()
+	{
+		auto scene = CreateRef<Scene>();
+		std::string path = "";
+		if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
+		{
+			SceneSerializer serializer(scene);
+			if (!serializer.Deserialize(path))
+				KTN_CORE_ERROR("Failed to Deserialize!");
+
+			UnSelectEntt();
+			m_ActiveScene = scene;
+
+			for (auto& panel : m_Panels)
+			{
+				panel->SetContext(m_ActiveScene);
+			}
+		}
+	}
+
+	void Editor::SaveSceneAs()
+	{
+		std::string path = "";
+		if (FileDialog::Save("", "Assets", path) == FileDialogResult::SUCCESS)
+		{
+			SceneSerializer serializer(m_ActiveScene);
+			serializer.Serialize(path);
 		}
 	}
 

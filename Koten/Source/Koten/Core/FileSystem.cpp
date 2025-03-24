@@ -68,6 +68,11 @@ namespace KTN
 		return result;
 	}
 
+	bool FileSystem::Exists(const std::string& p_Path)
+	{
+		return std::filesystem::exists(p_Path);
+	}
+
 	void FileSystem::CreateDirectories(const std::string& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();

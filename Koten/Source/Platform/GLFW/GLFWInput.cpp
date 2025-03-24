@@ -2,6 +2,7 @@
 #include "GLFWBase.h"
 #include "Koten/OS/Input.h"
 #include "Koten/Core/Application.h"
+#include "Koten/OS/KeyCodes.h"
 
 
 
@@ -43,6 +44,14 @@ namespace KTN
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
 
+	bool Input::IsKeyReleased(int p_Key)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
+		auto state = glfwGetKey(window, p_Key);
+		return state == GLFW_RELEASE;
+	}
+
 	bool Input::IsMouseButtonPressed(int p_Button)
 	{
 		KTN_PROFILE_FUNCTION_LOW();
@@ -76,6 +85,17 @@ namespace KTN
 
 		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
 		return GetMousePosition().y;
+	}
+
+	int Input::GetKeyPressed()
+	{
+		for (int key : Key::Map)
+		{
+			if (IsKeyPressed(key))
+				return key;
+		}
+
+		return -1;
 	}
 
 } // namespace KTN

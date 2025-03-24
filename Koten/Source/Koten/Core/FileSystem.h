@@ -19,6 +19,8 @@ namespace KTN
 			static bool WriteTextFile(const std::string& p_Path, const std::string& p_Text);
 			static std::string ReadFile(const std::string& p_Path);
 
+			static bool Exists(const std::string& p_Path);
+
 			static void CreateDirectories(const std::string& p_Path);
 	};
 

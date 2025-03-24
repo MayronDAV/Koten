@@ -100,6 +100,9 @@ namespace KTN
 		if (m_FilePath.empty())
 			return;
 
+		if (!FileSystem::Exists(m_FilePath))
+			return;
+
 		auto fileString = FileSystem::ReadFile(m_FilePath);
 		auto lines = StringUtils::GetLines(fileString);
 
