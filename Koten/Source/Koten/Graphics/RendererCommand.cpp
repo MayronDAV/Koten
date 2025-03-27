@@ -72,6 +72,17 @@ namespace KTN
 		s_API->ClearRenderTarget(p_Texture, p_Value);
 	}
 
+	void* RendererCommand::ReadPixel(const Ref<Texture2D>& p_Texture, uint32_t p_X, uint32_t p_Y)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		KTN_CORE_ASSERT(s_API);
+		if (Engine::GetSettings().MousePicking)
+			return s_API->ReadPixel(p_Texture, p_X, p_Y);
+
+		return nullptr;
+	}
+
 	void RendererCommand::SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height)
 	{
 		KTN_PROFILE_FUNCTION();

@@ -11,8 +11,9 @@ namespace KTN::GLUtils
 		switch (p_Format)
 		{
 			case TextureFormat::R8:
-			case TextureFormat::R32_INT:
 				return GL_RED;
+			case TextureFormat::R32_INT:
+				return GL_RED_INTEGER;
 			case TextureFormat::RG32_UINT:
 				return GL_RG;
 			case TextureFormat::RGB8:
@@ -51,6 +52,31 @@ namespace KTN::GLUtils
 			case TextureFormat::D16_S8_UINT:
 			case TextureFormat::D24_S8_UINT:
 				return GL_DEPTH24_STENCIL8;
+		}
+
+		KTN_CORE_ERROR("Unsupported texture format");
+		return 0;
+	}
+
+	uint32_t TextureFormatToGLType(TextureFormat p_Format)
+	{
+		switch (p_Format)
+		{
+			case TextureFormat::R32_INT:			return GL_INT;
+			case TextureFormat::RG32_UINT:			return GL_UNSIGNED_INT;
+			case TextureFormat::D32_FLOAT:
+			case TextureFormat::RGBA32_FLOAT:		
+				return GL_FLOAT;
+			case TextureFormat::D16:
+			case TextureFormat::R8:
+			case TextureFormat::RGB8:
+			case TextureFormat::RGBA8:
+				return GL_UNSIGNED_BYTE;
+			case TextureFormat::D16_S8_UINT:
+			case TextureFormat::D24_S8_UINT:
+				return GL_UNSIGNED_BYTE | GL_UNSIGNED_INT;
+			case TextureFormat::D32_FLOAT_S8_UINT:	
+				return GL_FLOAT | GL_UNSIGNED_INT;
 		}
 
 		KTN_CORE_ERROR("Unsupported texture format");

@@ -85,6 +85,22 @@ namespace KTN
 	{
 		auto file = IniFile("Resources/Engine.ini");
 		
+		{
+			auto& settings = Engine::GetSettings();
+			if (file.IsGroupExisting("Settings"))
+			{
+				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
+				file.Rewrite();
+			}
+			else if (!file.IsKeyExisting("Settings", "Mouse Picking"))
+			{
+				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
+				file.Rewrite();
+			}
+
+			settings.MousePicking = file.Get<bool>("Settings", "Mouse Picking");
+		}
+
 		Shortcuts::Init(file);
 	}
 

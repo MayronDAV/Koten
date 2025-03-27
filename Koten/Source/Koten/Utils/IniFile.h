@@ -31,6 +31,7 @@ namespace KTN
 			bool Remove(const std::string& p_Group, const std::string& p_Key);
 			void RemoveAll();
 			bool IsKeyExisting(const std::string& p_Group, const std::string& p_Key) const;
+			bool IsGroupExisting(const std::string& p_Group) const;
 
 			void RegisterPair(const std::string& p_Key, const std::string& p_Value);
 			void RegisterPair(const std::string& p_Group, const std::string& p_Key, const std::string& p_Value);
@@ -39,9 +40,9 @@ namespace KTN
 
 			void Load();
 
-			std::pair<std::string, std::string> ExtractKeyAndValue(const std::string& p_Line) const;
-			bool IsValidLine(const std::string& p_Line) const;
-			bool StringToBoolean(const std::string& p_Value) const;
+			static std::pair<std::string, std::string> ExtractKeyAndValue(const std::string& p_Line);
+			static bool IsValidLine(const std::string& p_Line);
+			static bool StringToBoolean(const std::string& p_Value);
 
 			const std::string& GetFilePath() const { return m_FilePath; }
 			const std::unordered_map<std::string, std::unordered_map<std::string, std::string>>& GetData() const { return m_Data; }

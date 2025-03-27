@@ -14,6 +14,7 @@ namespace KTN
 		static constexpr uint16_t MaxInstances = 5000;
 		static constexpr uint8_t MaxTextureSlots = 32;
 
+
 		struct DrawElementsIndirectCommand
 		{
 			uint32_t Count;
@@ -28,6 +29,7 @@ namespace KTN
 			Ref<Texture2D> RenderTarget			= nullptr;
 			Ref<Texture2D> ResolveTexture		= nullptr;
 			Ref<Texture2D> MainTexture			= nullptr;
+			Ref<Texture2D> MainPickingTexture	= nullptr;
 			Ref<Texture2D> MainDepthTexture		= nullptr;
 			uint32_t Width						= 0;
 			uint32_t Height						= 0;
@@ -53,6 +55,12 @@ namespace KTN
 				alignas(16) float TexIndex;
 			};
 
+			struct EntityBufferData
+			{
+				int Count = 0;
+				std::vector<int> EntityIDS;
+			};
+
 			struct QuadData
 			{
 				Ref<Shader> MainShader				= nullptr;
@@ -66,6 +74,10 @@ namespace KTN
 
 				uint32_t TextureSlotIndex = 1;
 				std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
+
+				Ref<Shader> PickingShader = nullptr;
+				Ref<DescriptorSet> PickingSet = nullptr;
+				EntityBufferData EntityBuffer = {};
 
 				void Init();
 				void Begin();
@@ -115,6 +127,8 @@ namespace KTN
 
 		if (s_Data->MainTexture)
 			RendererCommand::ClearRenderTarget(s_Data->MainTexture, s_Data->ClearColor);
+		if (s_Data->MainPickingTexture)
+			RendererCommand::ClearRenderTarget(s_Data->MainPickingTexture, -1);
 		if (s_Data->ResolveTexture)
 			RendererCommand::ClearRenderTarget(s_Data->ResolveTexture, s_Data->ClearColor);
 		if (s_Data->MainDepthTexture)
@@ -144,9 +158,15 @@ namespace KTN
 
 		s_Data->MainTexture			= Texture2D::Get(tspec);
 
+		tspec.Format				= TextureFormat::R32_INT;
+		tspec.Samples				= 1;
+		tspec.DebugName				= "MainPickingTexture";
+
+		s_Data->MainPickingTexture	= Texture2D::Get(tspec);
+
 		if (p_Info.Samples > 1)
 		{
-			tspec.Samples			= 1;
+			tspec.Format			= TextureFormat::RGBA32_FLOAT;
 			tspec.DebugName			= "MainResolveTexture";
 
 			s_Data->ResolveTexture  = Texture2D::Get(tspec);
@@ -214,6 +234,11 @@ namespace KTN
 		s_QuadData->Submit(p_Command);
 	}
 
+	Ref<Texture2D> Renderer::GetPickingTexture()
+	{
+		return s_Data->MainPickingTexture;
+	}
+
 	namespace
 	{
 		namespace R2D
@@ -249,6 +274,12 @@ namespace KTN
 				TextureSlots.fill(s_Data->WhiteTexture);
 
 				Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
+
+				if (Engine::GetSettings().MousePicking)
+				{
+					PickingShader = Shader::Create("Assets/Shaders/R2D_Picking.glsl");
+					PickingSet = DescriptorSet::Create({ 0, PickingShader });
+				}
 			}
 
 			void QuadData::Begin()
@@ -272,6 +303,9 @@ namespace KTN
 			{
 				Instances.clear();
 				TextureSlotIndex = 1;
+
+				EntityBuffer.Count = 0;
+				EntityBuffer.EntityIDS.clear();
 			}
 
 			void QuadData::FlushAndReset()
@@ -312,12 +346,53 @@ namespace KTN
 					Engine::GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
 
 					MainPipeline->End(commandBuffer);
+
+					if (Engine::GetSettings().MousePicking)
+					{
+						PipelineSpecification pspec = {};
+						pspec.pShader = PickingShader;
+						pspec.TransparencyEnabled = false;
+						pspec.ColorTargets[0] = s_Data->MainPickingTexture;
+						pspec.DepthTarget = s_Data->MainDepthTexture;
+						pspec.DepthWrite = false;
+						pspec.ClearTargets = false;
+						pspec.Samples = 1;
+						pspec.DebugName = "QuadPickingPipeline";
+
+						auto pipeline = Pipeline::Get(pspec);
+
+						pipeline->Begin(commandBuffer);
+
+						RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
+
+						PickingSet->SetUniform("Camera", "u_ViewProjection", &vp);
+						PickingSet->Upload(commandBuffer);
+
+						PickingSet->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(QuadInstanceData));
+						PickingSet->Upload(commandBuffer);
+
+						size_t bufferSize = sizeof(int) + sizeof(int) * EntityBuffer.EntityIDS.size();
+						PickingSet->PrepareStorageBuffer("EntityBuffer", bufferSize);
+						PickingSet->SetStorage("EntityBuffer", "Count", &EntityBuffer.Count, sizeof(int));
+						PickingSet->SetStorage("EntityBuffer", "EnttIDs", EntityBuffer.EntityIDS.data(), sizeof(int) * EntityBuffer.EntityIDS.size());
+						PickingSet->Upload(commandBuffer);
+
+						commandBuffer->BindSets(&PickingSet);
+						RendererCommand::DrawIndexedIndirect(DrawType::TRIANGLES, VAO, Buffer);
+
+						Engine::GetStats().DrawCalls += 1;
+
+						pipeline->End(commandBuffer);
+					}
 				}
 			}
 			void QuadData::Submit(const RenderCommand& p_Command)
 			{
 				if (Instances.size() >= (size_t)MaxInstances)
 					FlushAndReset();
+
+				EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
+				EntityBuffer.Count++;
 
 				float textureIndex = 0.0f; // White texture
 				if (p_Command.SpriteData.Texture)

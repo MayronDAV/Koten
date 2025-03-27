@@ -44,14 +44,41 @@ namespace KTN
 			m_Width = (uint32_t)viewportSize.x;
 			m_Height = (uint32_t)viewportSize.y;
 
+			glm::vec2 viewportBounds[2] = {
+				{ m_ViewportMinRegion.x + m_ViewportOffset.x, m_ViewportMinRegion.y + m_ViewportOffset.y },
+				{ m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
+			};
+
+			if (Engine::GetSettings().MousePicking)
+			{
+				auto [mx, my] = ImGui::GetMousePos();
+				mx -= viewportBounds[0].x;
+				my -= viewportBounds[0].y;
+				if (Engine::GetAPI() == RenderAPI::OpenGL)
+					my = m_Height - my;
+
+				glm::ivec2 mouse = { (int)mx, (int)my };
+
+				if ((mouse.x >= 0 && mouse.x < m_Width) &&
+					(mouse.y >= 0 && mouse.y < m_Height))
+				{
+					if (Input::IsMouseButtonPressed(Mouse::Button_Left) && !ImGuizmo::IsUsing())
+					{
+						auto texture = Renderer::GetPickingTexture();
+						int id = (int)RendererCommand::ReadPixel(texture, mouse.x, mouse.y);
+						if (id >= 0)
+							m_Editor->SetSelectedEntt({ (entt::entity)id, m_Context.get() });
+						else
+							m_Editor->UnSelectEntt();
+					}
+				}
+			}
+
+
 			// Gizmos
 			Entity selectedEntity = m_Editor->GetSelected();
 			if (selectedEntity && m_GuizmoType != 0)
 			{
-				glm::vec2 viewportBounds[2] = {
-					{ m_ViewportMinRegion.x + m_ViewportOffset.x, m_ViewportMinRegion.y + m_ViewportOffset.y },
-					{ m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
-				};
 
 				ImGuizmo::SetOrthographic(camera->GetMode() == EditorCameraMode::TWODIM);
 				ImGuizmo::SetDrawlist();

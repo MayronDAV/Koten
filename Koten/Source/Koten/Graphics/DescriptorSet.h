@@ -30,6 +30,8 @@ namespace KTN
 			virtual void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) = 0;
 			virtual void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) = 0;
 
+			virtual void PrepareStorageBuffer(const std::string& p_Name, size_t p_Size) = 0;
+
 			virtual void SetStorageData(const std::string& p_Name, const Ref<StorageBuffer>& p_StorageBuffer) = 0;
 			virtual void SetStorageData(const std::string& p_Name, void* p_Data) = 0;
 			virtual void SetStorageData(const std::string& p_Name, void* p_Data, size_t p_Size) = 0;

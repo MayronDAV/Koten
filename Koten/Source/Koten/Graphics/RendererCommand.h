@@ -20,6 +20,8 @@ namespace KTN
 			static void ClearRenderTarget(const Ref<Texture2D>& p_Texture, uint32_t p_Value);
 			static void ClearRenderTarget(const Ref<Texture2D>& p_Texture, const glm::vec4& p_Value);
 
+			static void* ReadPixel(const Ref<Texture2D>& p_Texture, uint32_t p_X, uint32_t p_Y);
+
 			static void SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height);
 			static void DispatchCompute(uint32_t p_NumGroups_X, uint32_t p_NumGroups_Y, uint32_t p_NumGroups_Z);
 

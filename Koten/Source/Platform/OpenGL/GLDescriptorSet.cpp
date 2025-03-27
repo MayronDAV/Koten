@@ -144,6 +144,24 @@ namespace KTN
 		KTN_CORE_ERROR("Unkown buffer name {} or member name {}", p_BufferName, p_MemberName);
 	}
 
+	void GLDescriptorSet::PrepareStorageBuffer(const std::string& p_Name, size_t p_Size)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		for (size_t i = 0; i < m_DescriptorsInfo.size(); i++)
+		{
+			auto& descriptor = m_DescriptorsInfo[i];
+			if (descriptor.Name == p_Name && descriptor.Type == DescriptorType::STORAGE_BUFFER)
+			{
+				// explicit reset
+				if (descriptor.Storage)
+					descriptor.Storage.reset();
+
+				descriptor.Storage = StorageBuffer::Create(p_Size);
+			}
+		}
+	}
+
 	void GLDescriptorSet::SetStorageData(const std::string& p_Name, const Ref<StorageBuffer>& p_StorageBuffer)
 	{
 		KTN_PROFILE_FUNCTION_LOW();

@@ -46,6 +46,7 @@ namespace KTN
 			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
 			{
 				RenderCommand command = {};
+				command.EntityID = (int)p_Entity;
 				command.Transform = p_Transform.GetWorldMatrix();
 				command.SpriteData.Color = p_Sprite.Color;
 				command.SpriteData.Texture = p_Sprite.Texture;
@@ -119,6 +120,7 @@ namespace KTN
 			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
 			{
 				RenderCommand command		= {};
+				command.EntityID			= (int)p_Entity;
 				command.Transform			= p_Transform.GetWorldMatrix();
 				command.SpriteData.Color	= p_Sprite.Color;
 				command.SpriteData.Texture  = p_Sprite.Texture;

@@ -14,6 +14,11 @@ namespace KTN
 		uint32_t DrawCalls			= 0;
 	};
 
+	struct Settings
+	{
+		bool MousePicking = true;
+	};
+
 	class KTN_API Engine
 	{
 		public:
@@ -27,9 +32,12 @@ namespace KTN
 				s_Stats.DrawCalls		= 0;
 			}
 
+			static Settings& GetSettings() { return s_Settings; }
+
 		private:
 			static RenderAPI s_API;
 			static Statistics s_Stats;
+			static Settings s_Settings;
 	};
 
 } // namespace KTN

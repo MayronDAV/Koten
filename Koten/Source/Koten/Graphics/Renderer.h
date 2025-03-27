@@ -12,6 +12,7 @@ namespace KTN
 {
 	struct RenderCommand 
 	{
+		int EntityID = -1;
 		enum class Type 
 		{
 			Sprite2D
@@ -60,6 +61,8 @@ namespace KTN
 			static void End();
 
 			static void Submit(const RenderCommand& p_Command);
+
+			static Ref<Texture2D> GetPickingTexture();
 	};
 
 } // namespace KTN

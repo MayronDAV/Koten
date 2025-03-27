@@ -17,6 +17,8 @@ namespace KTN
 			void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) override;
 			void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) override;
 
+			void PrepareStorageBuffer(const std::string& p_Name, size_t p_Size) override;
+
 			void SetStorageData(const std::string& p_Name, const Ref<StorageBuffer>& p_StorageBuffer) override;
 			void SetStorageData(const std::string& p_Name, void* p_Data) override;
 			void SetStorageData(const std::string& p_Name, void* p_Data, size_t p_Size) override;

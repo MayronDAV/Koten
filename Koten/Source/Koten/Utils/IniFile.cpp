@@ -75,6 +75,11 @@ namespace KTN
 		return groupIt->second.find(p_Key) != groupIt->second.end();
 	}
 
+	bool IniFile::IsGroupExisting(const std::string& p_Group) const
+	{
+		return m_Data.find(p_Group) != m_Data.end();
+	}
+
 	void IniFile::RegisterPair(const std::string& p_Key, const std::string& p_Value)
 	{
 		RegisterPair(std::make_pair(p_Key, p_Value));
@@ -121,7 +126,7 @@ namespace KTN
 		}
 	}
 
-	std::pair<std::string, std::string> IniFile::ExtractKeyAndValue(const std::string& p_Line) const
+	std::pair<std::string, std::string> IniFile::ExtractKeyAndValue(const std::string& p_Line)
 	{
 		std::string key;
 		std::string value;
@@ -139,7 +144,7 @@ namespace KTN
 		return std::make_pair(key, value);
 	}
 
-	bool IniFile::IsValidLine(const std::string& p_Line) const
+	bool IniFile::IsValidLine(const std::string& p_Line)
 	{
 		if (p_Line.size() == 0 || p_Line.empty())
 			return false;
@@ -153,7 +158,7 @@ namespace KTN
 		return true;
 	}
 
-	bool IniFile::StringToBoolean(const std::string& p_Value) const
+	bool IniFile::StringToBoolean(const std::string& p_Value)
 	{
 		return (p_Value == "1" || p_Value == "T" || p_Value == "t" || p_Value == "True" || p_Value == "true" || p_Value == "TRUE");
 	}
