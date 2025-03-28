@@ -120,14 +120,14 @@ namespace KTN
 
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-		int pixel = -1;
+		void* pixel;
 		glReadPixels(p_X, p_Y, 1, 1, 
 			GLUtils::TextureFormatToGLFormat(p_Texture->GetSpecification().Format), 
 			GLUtils::TextureFormatToGLType(p_Texture->GetSpecification().Format), &pixel);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		return (void*)pixel;
+		return pixel;
 	}
 
 	void GLRendererAPI::Begin()
