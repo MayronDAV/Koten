@@ -195,7 +195,10 @@ namespace KTN
 		ImGui::SetNextWindowSize(widgetSize, ImGuiCond_Always);
 		ImGui::Begin("Guizmo Widget", &m_Active, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 		{
-			auto selectedColor = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f); // TODO: Change this when we have themes
+			//auto selectedColor = ImVec4(155.0f / 255.0f, 130.0f / 255.0f, 207.0f / 255.0f, 1.00f); // TODO: Change this when we have themes
+			ImGuiContext& g = *GImGui;
+			const ImGuiStyle& style = g.Style;
+			auto selectedColor = style.Colors[ImGuiCol_FrameBgActive];
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 			bool selected = false;

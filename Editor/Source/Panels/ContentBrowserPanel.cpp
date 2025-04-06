@@ -206,7 +206,8 @@ namespace KTN
 				if (!std::filesystem::is_directory(entry.path()) && ImGui::BeginDragDropSource())
 				{
 					auto relativePath = "Assets" / std::filesystem::relative(entry.path(), m_BaseDir);
-					const wchar_t* itemPath = relativePath.c_str();
+					std::wstring wstr = relativePath.wstring();
+					const wchar_t* itemPath = wstr.c_str();
 					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
 
 					ImGui::EndDragDropSource();
@@ -392,8 +393,9 @@ namespace KTN
 
 						if (!std::filesystem::is_directory(entry.path()) && ImGui::BeginDragDropSource())
 						{
-							auto relativePath = "Assets" / std::filesystem::relative(entry.path(), m_BaseDir);
-							const wchar_t* itemPath = relativePath.c_str();
+							std::filesystem::path relativePath = "Assets" / std::filesystem::relative(entry.path(), m_BaseDir);
+							std::wstring wstr = relativePath.wstring();
+							const wchar_t* itemPath = wstr.c_str();
 							ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
 
 							ImGui::EndDragDropSource();
