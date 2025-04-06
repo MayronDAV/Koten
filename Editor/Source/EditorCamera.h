@@ -31,7 +31,7 @@ namespace KTN
 			Camera& GetCamera() { return m_Camera; }
 			EditorCameraMode GetMode() const { return m_Mode; }
 			const glm::mat4& GetProjection() const { return m_Camera.GetProjection(); }
-			const glm::mat4& GetView() const { return m_Transform.GetLocalMatrix() == glm::mat4(1.0f) ? glm::mat4(1.0f) : glm::inverse(m_Transform.GetLocalMatrix()); }
+			glm::mat4 GetView() const { return m_Transform.GetLocalMatrix() == glm::mat4(1.0f) ? glm::mat4(1.0f) : glm::inverse(m_Transform.GetLocalMatrix()); }
 			Math::Transform& GetTransform() { return m_Transform; }
 
 		private:

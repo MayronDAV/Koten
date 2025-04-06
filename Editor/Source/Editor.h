@@ -17,6 +17,8 @@ namespace KTN
 			void SetSelectedEntt(Entity p_Entt) { m_SelectedEntt = p_Entt; }
 			void UnSelectEntt() { m_SelectedEntt = {}; }
 
+			void OpenScene(const std::string& p_Path);
+
 			void OnAttach() override;
 			void OnDetach() override;
 			void OnUpdate() override;

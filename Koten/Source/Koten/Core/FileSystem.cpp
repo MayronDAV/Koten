@@ -68,6 +68,15 @@ namespace KTN
 		return result;
 	}
 
+	void FileSystem::Search(const std::string& p_Query, const std::string& p_Dir, std::vector<std::filesystem::path>& p_Results)
+	{
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(p_Dir))
+		{
+			if (entry.is_regular_file() && entry.path().filename().string().find(p_Query) != std::string::npos)
+				p_Results.push_back(entry.path());
+		}
+	}
+
 	bool FileSystem::Exists(const std::string& p_Path)
 	{
 		return std::filesystem::exists(p_Path);

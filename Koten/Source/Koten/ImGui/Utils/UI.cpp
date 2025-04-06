@@ -33,6 +33,23 @@ namespace KTN::UI
 
 		ImGui::Image(AddImage(p_Texture), p_Size, p_UV0, p_UV1, p_TintColor, p_BorderColor);
 	}
+
+	KTN_API void ImageButton(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		std::string id = "##" + p_Texture->GetSpecification().DebugName;
+		ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, {0, 1}, {1, 0});
+	}
+
+	void ImageButton(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec2& p_UV0, const ImVec2& p_UV1)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		std::string id = "##" + p_Texture->GetSpecification().DebugName;
+		ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, p_UV0, p_UV1);
+	}
+
 	KTN_API bool InputText(std::string& p_Text, const char* p_ID)
 	{
 		KTN_PROFILE_FUNCTION();

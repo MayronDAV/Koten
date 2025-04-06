@@ -230,6 +230,12 @@ namespace KTN
 		if (selectedEntt)
 		{
 			auto& registry = selectedEntt.GetScene()->GetRegistry();
+			if (!registry.valid(selectedEntt))
+			{
+				m_Editor->UnSelectEntt();
+				ImGui::End();
+				return;
+			}
 
 			auto name = selectedEntt.GetTag();
 

@@ -59,13 +59,13 @@ namespace KTN
 
 				glm::ivec2 mouse = { (int)mx, (int)my };
 
-				if ((mouse.x >= 0 && mouse.x < m_Width) &&
-					(mouse.y >= 0 && mouse.y < m_Height))
+				if ((mouse.x >= 0 && mouse.x < (int)m_Width) &&
+					(mouse.y >= 0 && mouse.y < (int)m_Height))
 				{
 					if (Input::IsMouseButtonPressed(Mouse::Button_Left) && !ImGuizmo::IsUsing())
 					{
 						auto texture = Renderer::GetPickingTexture();
-						int id = (int)RendererCommand::ReadPixel(texture, mouse.x, mouse.y);
+						int id = static_cast<int>((intptr_t)RendererCommand::ReadPixel(texture, mouse.x, mouse.y));
 						if (id >= 0)
 							m_Editor->SetSelectedEntt({ (entt::entity)id, m_Context.get() });
 						else
