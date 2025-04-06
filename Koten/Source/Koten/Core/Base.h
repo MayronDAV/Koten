@@ -64,3 +64,9 @@ namespace KTN
 #define KTN_GLFWLOG "[ GLFW ] : "
 #define KTN_GLLOG	"[OPENGL] : "
 #define KTN_VKLOG	"[VULKAN] : "
+
+#ifdef KTN_WINDOWS
+	#define Strncpy(dst, src, n) strncpy_s(dst, src, n - 1); dst[n - 1] = '\0';
+#else
+	#define Strncpy(dst, src, n) strncpy(dst, src, n - 1); dst[n - 1] = '\0';
+#endif

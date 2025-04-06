@@ -153,8 +153,7 @@ namespace KTN
 
 				if (ImGui::GetCurrentContext()->ActiveId == 0)
 				{
-					strncpy_s(renameBuffer, name.c_str(), sizeof(renameBuffer) - 1);
-					renameBuffer[sizeof(renameBuffer) - 1] = '\0';
+					Strncpy(renameBuffer, name.c_str(), sizeof(renameBuffer));
 				}
 
 				ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -411,7 +410,9 @@ namespace KTN
 						{
 							static char renameBuffer[256];
 							if (ImGui::GetCurrentContext()->ActiveId == 0)
-								strncpy_s(renameBuffer, filename.c_str(), sizeof(renameBuffer));
+							{
+								Strncpy(renameBuffer, filename.c_str(), sizeof(renameBuffer));
+							}
 
 							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
 							ImGui::SetNextItemWidth(m_ThumbnailSize);
