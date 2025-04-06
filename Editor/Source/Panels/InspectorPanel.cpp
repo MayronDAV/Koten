@@ -205,6 +205,20 @@ namespace KTN
 						p_Sprite.Texture = TextureImporter::LoadTexture2D(path);
 					}
 				}
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						auto filepath = std::filesystem::path(path);
+						if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
+						{
+							p_Sprite.Texture = TextureImporter::LoadTexture2D(filepath.string());
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
 			});
 		}
 

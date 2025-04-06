@@ -18,6 +18,8 @@ namespace KTN
 			void OnUpdate() override;
 			void OnRender() override;
 
+			void SetGuizmoType(int p_Type) { m_GuizmoType = p_Type; }
+
 		private:
 			void ToolWidget();
 

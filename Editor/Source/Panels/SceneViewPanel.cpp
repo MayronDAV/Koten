@@ -1,5 +1,6 @@
 #include "SceneViewPanel.h"
 #include "Editor.h"
+#include "Shortcuts.h"
 
 // lib
 #include <imgui_internal.h>
@@ -41,6 +42,18 @@ namespace KTN
 
 			UI::Image(m_MainTexture, { (float)m_Width, (float)m_Height });
 
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					auto filepath = std::filesystem::path(path);
+					if (filepath.extension() == ".ktscn")
+						m_Editor->OpenScene(filepath.string());
+				}
+				ImGui::EndDragDropTarget();
+			}
+
 			m_Width = (uint32_t)viewportSize.x;
 			m_Height = (uint32_t)viewportSize.y;
 
@@ -49,7 +62,7 @@ namespace KTN
 				{ m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
 			};
 
-			if (Engine::GetSettings().MousePicking)
+			if (Engine::GetSettings().MousePicking && !ImGui::IsDragDropActive())
 			{
 				auto [mx, my] = ImGui::GetMousePos();
 				mx -= viewportBounds[0].x;
@@ -134,6 +147,24 @@ namespace KTN
 		camera->SetHandleEvents(m_HandleCameraEvents);
 		m_Context->SetViewportSize(m_Width, m_Height);
 		m_Context->OnUpdate();
+
+		if (!Input::IsMouseButtonPressed(Mouse::Button_Right))
+		{
+			if (Shortcuts::IsActionPressed("Guizmo None"))
+				m_GuizmoType = 0;
+
+			if (Shortcuts::IsActionPressed("Guizmo Translate"))
+				m_GuizmoType = ImGuizmo::TRANSLATE;
+
+			if (Shortcuts::IsActionPressed("Guizmo Rotate"))
+				m_GuizmoType = ImGuizmo::ROTATE;
+
+			if (Shortcuts::IsActionPressed("Guizmo Scale"))
+				m_GuizmoType = ImGuizmo::SCALE;
+
+			if (Shortcuts::IsActionPressed("Guizmo Universal"))
+				m_GuizmoType = ImGuizmo::UNIVERSAL;
+		}
 	}
 
 	void SceneViewPanel::OnRender()

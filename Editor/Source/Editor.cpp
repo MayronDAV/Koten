@@ -88,13 +88,9 @@ namespace KTN
 		
 		{
 			auto& settings = Engine::GetSettings();
-			if (file.IsGroupExisting("Settings"))
+
 			{
 				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
-				file.Rewrite();
-			}
-			else if (!file.IsKeyExisting("Settings", "Mouse Picking"))
-			{
 				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
 				file.Rewrite();
 			}

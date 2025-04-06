@@ -238,18 +238,21 @@ namespace KTN
 
 	void Shortcuts::Init(IniFile& p_File)
 	{
-		const auto& data = p_File.GetData();
-		auto it = data.find("Shortcuts");
-		if (it == data.end())
+
 		{
 			p_File.Add<std::string>("Shortcuts", "Open Scene", "LCtrl+O");
 			p_File.Add<std::string>("Shortcuts", "Save Scene As", "LCtrl+LShift+S");
 			p_File.Add<std::string>("Shortcuts", "Open Settings", "LCtrl+.");
+			p_File.Add<std::string>("Shortcuts", "Guizmo None", "Q");
+			p_File.Add<std::string>("Shortcuts", "Guizmo Translate", "T");
+			p_File.Add<std::string>("Shortcuts", "Guizmo Rotate", "R");
+			p_File.Add<std::string>("Shortcuts", "Guizmo Scale", "E");
+			p_File.Add<std::string>("Shortcuts", "Guizmo Universal", "U");
 			p_File.Rewrite();
-
-			it = data.find("Shortcuts");
 		}
 
+		const auto& data = p_File.GetData();
+		auto it = data.find("Shortcuts");
 		for (const auto& [key, value] : it->second)
 		{
 			SetShortcut(key, StringToKeys(value));

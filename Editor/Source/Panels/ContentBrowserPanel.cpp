@@ -202,6 +202,16 @@ namespace KTN
 			else
 			{
 				bool open = ImGui::TreeNodeEx(path.c_str(), flags, (icon + " " + name).c_str());
+
+				if (!std::filesystem::is_directory(entry.path()) && ImGui::BeginDragDropSource())
+				{
+					auto relativePath = "Assets" / std::filesystem::relative(entry.path(), m_BaseDir);
+					const wchar_t* itemPath = relativePath.c_str();
+					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
+
+					ImGui::EndDragDropSource();
+				}
+
 				if (ImGui::IsItemClicked())
 				{
 					m_SelectedPath = path;
@@ -379,6 +389,16 @@ namespace KTN
 						// Thumbnail button
 						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 						UI::ImageButton(isDirectory ? m_DirectoryIcon : m_FileIcon, { m_ThumbnailSize, m_ThumbnailSize });
+
+						if (!std::filesystem::is_directory(entry.path()) && ImGui::BeginDragDropSource())
+						{
+							auto relativePath = "Assets" / std::filesystem::relative(entry.path(), m_BaseDir);
+							const wchar_t* itemPath = relativePath.c_str();
+							ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
+
+							ImGui::EndDragDropSource();
+						}
+
 						ImGui::PopStyleColor();
 
 						// Handle interactions
