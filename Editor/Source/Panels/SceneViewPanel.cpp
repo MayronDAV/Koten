@@ -142,8 +142,10 @@ namespace KTN
 
 		Renderer::Clear();
 
+		auto state = m_Editor->GetState();
+
 		m_Context->SetRenderTarget(m_MainTexture);
-		if (m_Editor->GetState() == RuntimeState::Edit)
+		if (state == RuntimeState::Edit)
 		{
 			auto& camera = m_Editor->GetCamera();
 			camera->SetViewportSize(m_Width, m_Height);
@@ -159,7 +161,7 @@ namespace KTN
 		}
 
 
-		if (m_Editor->GetState() == RuntimeState::Edit && !Input::IsMouseButtonPressed(Mouse::Button_Right))
+		if (state == RuntimeState::Edit && !Input::IsMouseButtonPressed(Mouse::Button_Right))
 		{
 			if (Shortcuts::IsActionPressed("Guizmo None"))
 				m_GuizmoType = 0;
@@ -175,6 +177,12 @@ namespace KTN
 
 			if (Shortcuts::IsActionPressed("Guizmo Universal"))
 				m_GuizmoType = ImGuizmo::UNIVERSAL;
+		}
+
+		if (state == RuntimeState::Play)
+		{
+			if (Shortcuts::IsActionPressed("Stop Runtime"))
+				m_Editor->SetState(RuntimeState::Edit);
 		}
 	}
 

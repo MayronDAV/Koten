@@ -59,6 +59,7 @@ namespace KTN
 			STRING_TO_KEY2("kp-", Key::KPSubtract);
 			STRING_TO_KEY2("kp.", Key::KPDecimal);
 			STRING_TO_KEY2("kp/", Key::KPDivide);
+			STRING_TO_KEY2("pause", Key::Pause);
 
 			STRING_TO_KEY(D0);
 			STRING_TO_KEY(D1);
@@ -149,6 +150,7 @@ namespace KTN
 			KEY_TO_STRING2(Key::KPSubtract, "kp-");
 			KEY_TO_STRING2(Key::KPDecimal, "kp.");
 			KEY_TO_STRING2(Key::KPDivide, "kp/");
+			KEY_TO_STRING2(Key::Pause, "pause");
 
 
 			KEY_TO_STRING(Up);
@@ -243,6 +245,7 @@ namespace KTN
 			p_File.Add<std::string>("Shortcuts", "Open Scene", "LCtrl+O");
 			p_File.Add<std::string>("Shortcuts", "Save Scene As", "LCtrl+LShift+S");
 			p_File.Add<std::string>("Shortcuts", "Open Settings", "LCtrl+.");
+			p_File.Add<std::string>("Shortcuts", "Stop Runtime", "Pause");
 			p_File.Add<std::string>("Shortcuts", "Guizmo None", "Q");
 			p_File.Add<std::string>("Shortcuts", "Guizmo Translate", "T");
 			p_File.Add<std::string>("Shortcuts", "Guizmo Rotate", "R");
