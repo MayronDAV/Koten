@@ -22,6 +22,7 @@ namespace KTN
 
 		private:
 			void ToolWidget();
+			void UIWidget();
 
 		private:
 			Ref<Texture2D> m_MainTexture	= nullptr;

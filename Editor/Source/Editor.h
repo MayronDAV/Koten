@@ -8,6 +8,12 @@ namespace KTN
 {
 	class SettingsPanel;
 
+	enum class RuntimeState
+	{
+		Edit,
+		Play
+	};
+
 	class Editor : public Layer
 	{
 		public:
@@ -31,6 +37,9 @@ namespace KTN
 
 			const Ref<EditorCamera>& GetCamera() { return m_Camera; }
 
+			void SetState(RuntimeState p_State) { m_State = p_State; }
+			RuntimeState GetState() const { return m_State; }
+
 		private:
 			void DrawMenuBar();
 			void Shortcuts();
@@ -49,6 +58,7 @@ namespace KTN
 			Ref<SettingsPanel> m_Settings = nullptr;
 
 			Entity m_SelectedEntt;
+			RuntimeState m_State = RuntimeState::Edit;
 
 			Ref<EditorCamera> m_Camera = nullptr;
 			bool m_CaptureShortcuts = true;
