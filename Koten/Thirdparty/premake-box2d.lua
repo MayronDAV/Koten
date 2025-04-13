@@ -27,6 +27,7 @@ project "box2d"
 		pic "on"
 		systemversion "latest"
 		linkoptions { "-Wmissing-prototypes" }
+		defines { "_POSIX_C_SOURCE=199309L" }
 
 
 	filter "configurations:Debug"
