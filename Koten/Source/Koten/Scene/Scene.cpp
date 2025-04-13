@@ -2,6 +2,8 @@
 #include "Scene.h"
 #include "Koten/Graphics/Renderer.h"
 #include "Entity.h"
+#include "SystemManager.h"
+#include "Koten/Physics/Box2D/B2Physics.h"
 
 
 
@@ -9,6 +11,8 @@ namespace KTN
 {
 	Scene::Scene()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		m_SceneGraph = CreateUnique<SceneGraph>();
 		m_SceneGraph->Init(m_Registry);
 	}
@@ -19,6 +23,8 @@ namespace KTN
 
 	Entity Scene::CreateEntity(const std::string& p_Tag)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto entt = Entity(m_Registry.create(), this);
 		entt.AddComponent<TagComponent>(p_Tag);
 		return entt;
@@ -26,11 +32,15 @@ namespace KTN
 
 	void Scene::OnUpdate()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		m_SceneGraph->Update(m_Registry);
 	}
 
 	void Scene::OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		RenderBeginInfo info = {};
 		info.RenderTarget = m_RenderTarget;
 		info.Width = m_Width;
@@ -57,14 +67,37 @@ namespace KTN
 		Renderer::End();
 	}
 
+	void Scene::OnRuntimeStart()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->OnStart(this);
+	}
+
+	void Scene::OnRuntimeStop()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->OnStop(this);
+	}
+
 	void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		m_Width = p_Width;
 		m_Height = p_Height;
 	}
 
 	void Scene::OnUpdateRuntime()
 	{
+		KTN_PROFILE_FUNCTION();
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->SyncTransforms(this);
+
 		m_SceneGraph->Update(m_Registry);
 
 		bool first = true;
@@ -93,6 +126,8 @@ namespace KTN
 
 	void Scene::OnRenderRuntime()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		RenderBeginInfo info				= {};
 		info.RenderTarget					= m_RenderTarget;
 		info.Width							= m_Width;

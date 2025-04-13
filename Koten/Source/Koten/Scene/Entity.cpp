@@ -1,5 +1,7 @@
 #include "ktnpch.h"
 #include "Entity.h"
+#include "SystemManager.h"
+#include "Koten/Physics/Box2D/B2Physics.h"
 
 
 
@@ -75,6 +77,13 @@ namespace KTN
 
 	void Entity::Destroy()
 	{
+		auto rbody2DComponent = TryGetComponent<Rigidbody2DComponent>();
+		if (rbody2DComponent)
+		{
+			auto b2Physics = SystemManager::GetSystem<B2Physics>();
+			b2Physics->DestroyBody(rbody2DComponent->Body);
+		}
+
 		auto hierarchyComponent = TryGetComponent<HierarchyComponent>();
 		if (hierarchyComponent)
 		{

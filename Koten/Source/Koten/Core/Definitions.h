@@ -22,6 +22,19 @@ namespace KTN
 		class CommandBuffer;
 		class Shader;
 
+		struct B2WorldID
+		{
+			uint16_t Index;
+			uint16_t Generation;
+		};
+
+		struct B2BodyID
+		{
+			int32_t Index;
+			uint16_t World;
+			uint16_t Generation;
+		};
+
 		inline constexpr uint8_t MAX_RENDER_TARGETS = 4;
 
 	#pragma endregion

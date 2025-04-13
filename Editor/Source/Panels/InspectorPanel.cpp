@@ -12,7 +12,7 @@ namespace KTN
 {
 	namespace
 	{
-		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent
+		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, Rigidbody2DComponent, BoxCollider2DComponent
 
 		template <typename Component>
 		void ComponentDrawView(entt::registry& p_Registry, Entity p_Entity) {}
@@ -222,6 +222,35 @@ namespace KTN
 			});
 		}
 
+		template <>
+		void ComponentDrawView<Rigidbody2DComponent>(entt::registry& p_Registry, Entity p_Entity)
+		{
+			DrawComponent<Rigidbody2DComponent>("Rigidbody2D", p_Entity,
+			[](Rigidbody2DComponent& p_RC)
+			{
+				int currentItem = (int)p_RC.Type;
+				static const char* items[] = { "Static", "Dynamic", "Kinematic" };
+				static const int itemsCount = IM_ARRAYSIZE(items);
+
+				if (UI::Combo("Type", items[currentItem], items, itemsCount, &currentItem, 50.0f))
+				{
+					p_RC.Type = (Rigidbody2DComponent::BodyType)currentItem;
+				}
+
+				ImGui::Checkbox("Fixed Rotation", &p_RC.FixedRotation);
+			});
+		}
+
+		template <>
+		void ComponentDrawView<BoxCollider2DComponent>(entt::registry& p_Registry, Entity p_Entity)
+		{
+			DrawComponent<BoxCollider2DComponent>("BoxCollider2D", p_Entity,
+			[](BoxCollider2DComponent& p_Box)
+			{
+
+			});
+		}
+
 	} // namespace
 
 	InspectorPanel::InspectorPanel()
@@ -281,6 +310,8 @@ namespace KTN
 					DisplayComponentEntry<TransformComponent>("Transform", selectedEntt);
 					DisplayComponentEntry<CameraComponent>("Camera", selectedEntt);
 					DisplayComponentEntry<SpriteComponent>("Sprite", selectedEntt);
+					DisplayComponentEntry<Rigidbody2DComponent>("Rigidbody2D", selectedEntt);
+					DisplayComponentEntry<BoxCollider2DComponent>("BoxCollider2D", selectedEntt);
 
 					ImGui::EndPopup();
 				}

@@ -1,6 +1,8 @@
 #include "SceneViewPanel.h"
 #include "Editor.h"
 #include "Shortcuts.h"
+#include "Koten/Scene/SystemManager.h"
+#include "Koten/Physics/Box2D/B2Physics.h"
 
 // lib
 #include <imgui_internal.h>
@@ -98,22 +100,25 @@ namespace KTN
 
 				ImGuizmo::SetRect(viewportBounds[0].x, viewportBounds[0].y, viewportBounds[1].x - viewportBounds[0].x, viewportBounds[1].y - viewportBounds[0].y);
 
-				auto& tc = selectedEntity.GetComponent<TransformComponent>();
-				glm::mat4 transform = tc.GetLocalMatrix();
-
-				ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-					(ImGuizmo::OPERATION)m_GuizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
-
-				if (ImGuizmo::IsUsing())
+				auto tc = selectedEntity.TryGetComponent<TransformComponent>();
+				if (tc)
 				{
-					glm::vec3 translation, rotation, scale;
-					Math::Transform::Decompose(transform, translation, scale, rotation);
+					glm::mat4 transform = tc->GetLocalMatrix();
 
-					glm::vec3 rt = tc.GetLocalRotation();
-					glm::vec3 deltaRotation = rotation - rt;
-					tc.SetLocalTranslation(translation);
-					tc.SetLocalRotation(rt + deltaRotation);
-					tc.SetLocalScale(scale);
+					ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+						(ImGuizmo::OPERATION)m_GuizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
+
+					if (ImGuizmo::IsUsing())
+					{
+						glm::vec3 translation, rotation, scale;
+						Math::Transform::Decompose(transform, translation, scale, rotation);
+
+						glm::vec3 rt = tc->GetLocalRotation();
+						glm::vec3 deltaRotation = rotation - rt;
+						tc->SetLocalTranslation(translation);
+						tc->SetLocalRotation(rt + deltaRotation);
+						tc->SetLocalScale(scale);
+					}
 				}
 			}
 		}
@@ -366,7 +371,24 @@ namespace KTN
 				std::string icon = state != RuntimeState::Play ? ICON_MDI_PLAY : ICON_MDI_STOP;
 
 				if (ImGui::Button(icon.c_str()))
+				{
+					if (state == RuntimeState::Play)
+					{
+						if (SystemManager::HasSystem<B2Physics>())
+							SystemManager::GetSystem<B2Physics>()->SetPaused(true);
+
+						m_Context->OnRuntimeStop();
+					}
+					else if (state == RuntimeState::Edit)
+					{
+						if (SystemManager::HasSystem<B2Physics>())
+							SystemManager::GetSystem<B2Physics>()->SetPaused(false);
+
+						m_Context->OnRuntimeStart();
+					}
+
 					m_Editor->SetState(state != RuntimeState::Play ? RuntimeState::Play : RuntimeState::Edit);
+				}
 
 				UI::Tooltip(state != RuntimeState::Play  ? "Play" : "Stop");
 			}

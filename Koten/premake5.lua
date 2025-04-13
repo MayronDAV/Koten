@@ -42,7 +42,9 @@ project "Koten"
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yamlcpp}",
-		"%{IncludeDir.optick}"
+		"%{IncludeDir.optick}",
+		"%{IncludeDir.box2d}/include",
+		"%{IncludeDir.box2d}/src"
 	}
 
 	links
@@ -54,7 +56,8 @@ project "Koten"
 		"glfw",
 		"stb",
 		"imgui",
-		"yaml-cpp"
+		"yaml-cpp",
+		"box2d"
 	}
 
 	defines { "KTN_EXPORT", "OPTICK_EXPORT", "KTN_PROFILE_ENABLED", "USE_OPTICK=1" }

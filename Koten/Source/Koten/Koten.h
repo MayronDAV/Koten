@@ -65,10 +65,14 @@
 #include "Koten/Scene/Components.h"
 #include "Koten/Scene/Entity.h"
 #include "Koten/Scene/Scene.h"
+#include "Koten/Scene/SceneGraph.h"
 #include "Koten/Scene/SceneSerializer.h"
+#include "Koten/Scene/System.h"
+#include "Koten/Scene/SystemManager.h"
 
 // UTILS
 
+#include "Koten/Utils/HashCombiner.h"
 #include "Koten/Utils/Utils.h"
 #include "Koten/Utils/StringUtils.h"
 #include "Koten/Utils/IniFile.h"

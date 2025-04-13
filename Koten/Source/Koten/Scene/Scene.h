@@ -27,6 +27,9 @@ namespace KTN
 			void OnUpdate();
 			void OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
 
+			void OnRuntimeStart();
+			void OnRuntimeStop();
+
 			void OnUpdateRuntime();
 			void OnRenderRuntime();
 

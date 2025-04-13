@@ -71,6 +71,37 @@ namespace KTN
 		HierarchyComponent(entt::entity p_Parent) : Parent(p_Parent) {}
 	};
 
-	#define ALL_COMPONENTS TagComponent, TransformComponent, SpriteComponent, CameraComponent, HierarchyComponent
+	struct Rigidbody2DComponent
+	{
+		enum class BodyType
+		{
+			Static = 0,
+			Dynamic,
+			Kinematic
+		};
+		BodyType Type = BodyType::Static;
+		bool FixedRotation = false;
+
+		B2BodyID Body = {}; // Physics body id
+
+		Rigidbody2DComponent() = default;
+		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
+	};
+
+	struct BoxCollider2DComponent
+	{
+		glm::vec2 Offset = { 0.0f, 0.0f };
+		glm::vec2 Size = { 0.5f, 0.5f };
+
+		float Density = 1;
+		float Friction = 0.5f;
+		float Restitution = 0.0f;
+		float RestitutionThreshold = 0.5f;
+
+		BoxCollider2DComponent() = default;
+		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
+	};
+
+	#define ALL_COMPONENTS TagComponent, TransformComponent, SpriteComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent
 
 } // namespace KTN
