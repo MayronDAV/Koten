@@ -20,3 +20,4 @@ All code tasks are listed here or should be listed here
 - [ ] Fix the size of widgets in the Scene View Panel when the window is resized.
 - [ ] Fix shortcuts that should only be done once at a time.
 - [ ] Fix imgui flickering when window is resized (doesn't always happen).
+- [ ] Fix content browser, files on final line are being cut off.

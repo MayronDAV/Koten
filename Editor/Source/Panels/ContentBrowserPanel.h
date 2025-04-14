@@ -29,6 +29,15 @@ namespace KTN
 			void PopupCreateFileDir();
 
 			void DrawContentBrowser();
+			void DrawContentTopPanel();
+			void DrawContentSearchResult();
+
+			void ClearStack()
+			{
+				while (!m_FuturePaths.empty())
+					m_FuturePaths.pop();
+			}
+
 
 		private:
 			std::filesystem::path m_BaseDir;
@@ -50,6 +59,9 @@ namespace KTN
 
 			Ref<Texture2D> m_FileIcon = nullptr;
 			Ref<Texture2D> m_DirectoryIcon = nullptr;
+
+			std::stack<std::filesystem::path> m_FuturePaths;
+			std::vector<std::filesystem::path> m_SearchResults;
 	};
 
 
