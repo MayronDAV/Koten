@@ -44,10 +44,21 @@ namespace KTN
 
 			UI::Image(m_MainTexture, { (float)m_Width, (float)m_Height });
 
+			auto state = m_Editor->GetState();
+
 			if (ImGui::BeginDragDropTarget())
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 				{
+					if (state == RuntimeState::Play)
+					{
+						if (SystemManager::HasSystem<B2Physics>())
+							SystemManager::GetSystem<B2Physics>()->SetPaused(true);
+
+						m_Context->OnRuntimeStop();
+						m_Editor->SetState(RuntimeState::Edit);
+					}
+
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					auto filepath = std::filesystem::path(path);
 					if (filepath.extension() == ".ktscn")
@@ -59,65 +70,66 @@ namespace KTN
 			m_Width = (uint32_t)viewportSize.x;
 			m_Height = (uint32_t)viewportSize.y;
 
-			glm::vec2 viewportBounds[2] = {
-				{ m_ViewportMinRegion.x + m_ViewportOffset.x, m_ViewportMinRegion.y + m_ViewportOffset.y },
-				{ m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
-			};
-
-			if (Engine::GetSettings().MousePicking && !ImGui::IsDragDropActive())
+			if (state == RuntimeState::Edit)
 			{
-				auto [mx, my] = ImGui::GetMousePos();
-				mx -= viewportBounds[0].x;
-				my -= viewportBounds[0].y;
-				if (Engine::GetAPI() == RenderAPI::OpenGL)
-					my = m_Height - my;
+				glm::vec2 viewportBounds[2] = {
+					{ m_ViewportMinRegion.x + m_ViewportOffset.x, m_ViewportMinRegion.y + m_ViewportOffset.y },
+					{ m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
+				};
 
-				glm::ivec2 mouse = { (int)mx, (int)my };
-
-				if ((mouse.x >= 0 && mouse.x < (int)m_Width) &&
-					(mouse.y >= 0 && mouse.y < (int)m_Height))
+				if (Engine::GetSettings().MousePicking && !ImGui::IsDragDropActive())
 				{
-					if (Input::IsMouseButtonPressed(Mouse::Button_Left) && !ImGuizmo::IsUsing())
+					auto [mx, my] = ImGui::GetMousePos();
+					mx -= viewportBounds[0].x;
+					my -= viewportBounds[0].y;
+					if (Engine::GetAPI() == RenderAPI::OpenGL)
+						my = m_Height - my;
+
+					glm::ivec2 mouse = { (int)mx, (int)my };
+
+					if ((mouse.x >= 0 && mouse.x < (int)m_Width) &&
+						(mouse.y >= 0 && mouse.y < (int)m_Height))
 					{
-						auto texture = Renderer::GetPickingTexture();
-						int id = static_cast<int>((intptr_t)RendererCommand::ReadPixel(texture, mouse.x, mouse.y));
-						if (id >= 0)
-							m_Editor->SetSelectedEntt({ (entt::entity)id, m_Context.get() });
-						else
-							m_Editor->UnSelectEntt();
+						if (Input::IsMouseButtonPressed(Mouse::Button_Left) && !ImGuizmo::IsUsing())
+						{
+							auto texture = Renderer::GetPickingTexture();
+							int id = static_cast<int>((intptr_t)RendererCommand::ReadPixel(texture, mouse.x, mouse.y));
+							if (id >= 0)
+								m_Editor->SetSelectedEntt({ (entt::entity)id, m_Context.get() });
+							else
+								m_Editor->UnSelectEntt();
+						}
 					}
 				}
-			}
 
 
-			// Gizmos
-			Entity selectedEntity = m_Editor->GetSelected();
-			if (selectedEntity && m_GuizmoType != 0)
-			{
-
-				ImGuizmo::SetOrthographic(camera->GetMode() == EditorCameraMode::TWODIM);
-				ImGuizmo::SetDrawlist();
-
-				ImGuizmo::SetRect(viewportBounds[0].x, viewportBounds[0].y, viewportBounds[1].x - viewportBounds[0].x, viewportBounds[1].y - viewportBounds[0].y);
-
-				auto tc = selectedEntity.TryGetComponent<TransformComponent>();
-				if (tc)
+				// Gizmos
+				Entity selectedEntity = m_Editor->GetSelected();
+				if (selectedEntity && m_GuizmoType != 0)
 				{
-					glm::mat4 transform = tc->GetLocalMatrix();
 
-					ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-						(ImGuizmo::OPERATION)m_GuizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
+					ImGuizmo::SetOrthographic(camera->GetMode() == EditorCameraMode::TWODIM);
+					ImGuizmo::SetDrawlist();
 
-					if (ImGuizmo::IsUsing())
+					ImGuizmo::SetRect(viewportBounds[0].x, viewportBounds[0].y, viewportBounds[1].x - viewportBounds[0].x, viewportBounds[1].y - viewportBounds[0].y);
+
+					auto tc = selectedEntity.TryGetComponent<TransformComponent>();
+					if (tc)
 					{
-						glm::vec3 translation, rotation, scale;
-						Math::Transform::Decompose(transform, translation, scale, rotation);
+						glm::mat4 transform = tc->GetLocalMatrix();
 
-						glm::vec3 rt = tc->GetLocalRotation();
-						glm::vec3 deltaRotation = rotation - rt;
-						tc->SetLocalTranslation(translation);
-						tc->SetLocalRotation(rt + deltaRotation);
-						tc->SetLocalScale(scale);
+						ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+							(ImGuizmo::OPERATION)m_GuizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
+
+						if (ImGuizmo::IsUsing())
+						{
+							glm::vec3 translation, rotation, scale;
+							Math::Transform::Decompose(transform, translation, scale, rotation);
+
+							tc->SetLocalTranslation(translation);
+							tc->SetLocalRotation(glm::degrees(rotation));
+							tc->SetLocalScale(scale);
+						}
 					}
 				}
 			}

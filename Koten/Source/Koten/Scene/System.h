@@ -27,8 +27,7 @@ namespace KTN
 
 		protected:
 			const char* m_DebugName = "System";
-
-			bool m_Paused = false;
+			bool m_Paused = true;
 	};
 
 } // namespace KTN
