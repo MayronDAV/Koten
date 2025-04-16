@@ -8,6 +8,7 @@
 #include "Koten/Core/Engine.h"
 #include "Koten/Core/FileSystem.h"
 #include "Koten/Core/Time.h"
+#include "Koten/Core/UUID.h"
 #include "Koten/Utils/HashCombiner.h"
 #include "Koten/Utils/Utils.h"
 

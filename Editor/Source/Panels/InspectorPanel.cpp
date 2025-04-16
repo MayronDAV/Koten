@@ -286,6 +286,10 @@ namespace KTN
 			{
 				if (UI::InputText(name, "##InspectorNameChange"))
 					selectedEntt.GetComponent<TagComponent>().Tag = name;
+
+				// for debugging, maybe create a variable to toggle this.
+				//auto id = (uint64_t)selectedEntt.GetUUID();
+				//UI::Tooltip(std::to_string(id).c_str());
 			}
 
 			ImGui::BeginChild("Components", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_None);

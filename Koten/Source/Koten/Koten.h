@@ -12,6 +12,7 @@
 #include "Koten/Core/LayerStack.h"
 #include "Koten/Core/FileSystem.h"
 #include "Koten/Core/Time.h"
+#include "Koten/Core/UUID.h"
 
 // EVENTS
 

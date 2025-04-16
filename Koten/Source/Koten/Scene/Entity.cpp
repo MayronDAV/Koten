@@ -70,6 +70,11 @@ namespace KTN
 		return Entity(entt::null, nullptr);
 	}
 
+	UUID Entity::GetUUID() const
+	{
+		return m_Scene->m_Registry.get<IDComponent>(m_Handle).ID;
+	}
+
 	std::string Entity::GetTag() const
 	{
 		return m_Scene->m_Registry.get<TagComponent>(m_Handle).Tag;

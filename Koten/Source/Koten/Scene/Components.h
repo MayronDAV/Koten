@@ -3,6 +3,7 @@
 #include "Koten/Math/Transform.h"
 #include "Koten/Graphics/Texture.h"
 #include "Koten/Graphics/Camera.h"
+#include "Koten/Core/UUID.h"
 
 // std
 #include <string>
@@ -16,6 +17,18 @@ namespace KTN
 {
 	using SceneCamera = Camera;
 	using TransformComponent = Math::Transform;
+
+	struct IDComponent
+	{
+		UUID ID;
+
+		inline operator UUID() const { return ID; }
+
+		IDComponent() = default;
+		IDComponent(const IDComponent&) = default;
+		IDComponent(const UUID& p_UUID)
+			: ID(p_UUID) {}
+	};
 
 	struct TagComponent
 	{

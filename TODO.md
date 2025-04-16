@@ -5,10 +5,12 @@ All code tasks are listed here or should be listed here
 - [ ] Verify the code style and fix it if needed.
 
 ## Features
-- [ ] Add physics support (use Box2D Physics).
-- [ ] Add UUIDs.
-- [ ] Add a way to draw circles and lines.
+- [X] Add physics support (use Box2D Physics).
+- [X] Add UUIDs.
 - [ ] Add Pause, Stop (with reset) and Simulate buttons to the Scene View Panel.
+- [ ] Add a way to automatically reload shaders.
+- [ ] Add UUIDs to scenes.
+- [ ] Add a way to draw circles and lines.
 - [ ] Add scripts support (use Lua and/or C#).
 - [ ] Add a way to use multiple scenes.
 - [ ] Add a way to create render targets and use them in cameras and/or elsewhere.

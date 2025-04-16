@@ -22,7 +22,8 @@ namespace KTN
 			Scene(const Scene&) = default;
 			~Scene();
 
-			Entity CreateEntity(const std::string& p_Tag);
+			Entity CreateEntity(const std::string& p_Tag = std::string());
+			Entity CreateEntity(UUID p_UUID, const std::string& p_Tag = std::string());
 
 			void OnUpdate();
 			void OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });

@@ -156,7 +156,7 @@ namespace KTN
 				continue;
 
 			out << YAML::BeginMap;
-			out << YAML::Key << "Entity" << YAML::Value << "123456789"; // TODO: UUID
+			out << YAML::Key << "Entity" << YAML::Value << entt.GetUUID();
 
 			ComponentSerialize<ALL_COMPONENTS>(out, m_Scene->GetRegistry(), entt);
 
@@ -198,9 +198,8 @@ namespace KTN
 		{
 			for (auto entt : entts)
 			{
-				auto enttID = entt["Entity"].as<std::string>(); // TODO
-
-				Entity deserializedEntt = m_Scene->CreateEntity("Entity");
+				auto enttID = entt["Entity"].as<uint64_t>();
+				Entity deserializedEntt = m_Scene->CreateEntity((UUID)enttID, "Entity");
 
 				ComponentDeserialize<ALL_COMPONENTS>(entt, m_Scene->GetRegistry(), deserializedEntt);
 			}

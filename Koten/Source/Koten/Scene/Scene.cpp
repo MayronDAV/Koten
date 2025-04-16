@@ -25,8 +25,16 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		return CreateEntity(UUID(), p_Tag);
+	}
+
+	Entity Scene::CreateEntity(UUID p_UUID, const std::string& p_Tag)
+	{
+		KTN_PROFILE_FUNCTION();
+
 		auto entt = Entity(m_Registry.create(), this);
-		entt.AddComponent<TagComponent>(p_Tag);
+		entt.AddComponent<IDComponent>(p_UUID);
+		entt.AddComponent<TagComponent>(p_Tag.empty() ? "Entity" : p_Tag);
 		return entt;
 	}
 
