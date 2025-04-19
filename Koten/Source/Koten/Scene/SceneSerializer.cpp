@@ -213,7 +213,6 @@ namespace KTN
 	{
 		#define ADD_KEY_VALUE(KeyName, KeyValue) p_Out << YAML::Key << KeyName << YAML::Value << KeyValue
 
-
 		template<>
 		void ComponentSerializeIfExist<TagComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
@@ -242,7 +241,7 @@ namespace KTN
 			p_Out << YAML::Key << "HierarchyComponent";
 			p_Out << YAML::BeginMap;
 
-			auto comp = p_Entity.GetComponent<HierarchyComponent>();
+			auto& comp = p_Entity.GetComponent<HierarchyComponent>();
 
 			ADD_KEY_VALUE("Parent", (uint32_t)comp.Parent);
 			ADD_KEY_VALUE("First", (uint32_t)comp.First);
@@ -264,7 +263,7 @@ namespace KTN
 			p_Out << YAML::Key << "TransformComponent";
 			p_Out << YAML::BeginMap;
 
-			auto comp = p_Entity.GetComponent<TransformComponent>();
+			auto& comp = p_Entity.GetComponent<TransformComponent>();
 			ADD_KEY_VALUE("Translation", comp.GetLocalTranslation());
 			ADD_KEY_VALUE("Rotation", comp.GetLocalRotation());
 			ADD_KEY_VALUE("Scale", comp.GetLocalScale());
@@ -283,7 +282,7 @@ namespace KTN
 			p_Out << YAML::Key << "CameraComponent";
 			p_Out << YAML::BeginMap;
 
-			auto comp = p_Entity.GetComponent<CameraComponent>();
+			auto& comp = p_Entity.GetComponent<CameraComponent>();
 			ADD_KEY_VALUE("Primary", comp.Primary);
 			ADD_KEY_VALUE("ClearColor", comp.ClearColor);
 			ADD_KEY_VALUE("Width", comp.Camera.GetViewportWidth());
@@ -310,8 +309,52 @@ namespace KTN
 			p_Out << YAML::Key << "SpriteComponent";
 			p_Out << YAML::BeginMap;
 
-			auto comp = p_Entity.GetComponent<SpriteComponent>();
+			auto& comp = p_Entity.GetComponent<SpriteComponent>();
 			ADD_KEY_VALUE("Color", comp.Color);
+
+			p_Out << YAML::EndMap;
+		}
+
+		template<>
+		void ComponentSerializeIfExist<Rigidbody2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<Rigidbody2DComponent>())
+				return;
+
+			p_Out << YAML::Key << "Rigidbody2DComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<Rigidbody2DComponent>();
+			auto bodyId = comp.Body;
+			ADD_KEY_VALUE("Index", bodyId.Index);
+			ADD_KEY_VALUE("World", bodyId.World);
+			ADD_KEY_VALUE("Generation", bodyId.Generation);
+			ADD_KEY_VALUE("Type", (int)comp.Type);
+			ADD_KEY_VALUE("FixedRotation", comp.FixedRotation);
+
+			p_Out << YAML::EndMap;
+		}
+
+		template<>
+		void ComponentSerializeIfExist<BoxCollider2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<BoxCollider2DComponent>())
+				return;
+
+			p_Out << YAML::Key << "BoxCollider2DComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<BoxCollider2DComponent>();
+			ADD_KEY_VALUE("Offset", comp.Offset);
+			ADD_KEY_VALUE("Size", comp.Size);
+			ADD_KEY_VALUE("Density", comp.Density);
+			ADD_KEY_VALUE("Friction", comp.Friction);
+			ADD_KEY_VALUE("Restitution", comp.Restitution);
+			ADD_KEY_VALUE("RestitutionThreshold", comp.RestitutionThreshold);
 
 			p_Out << YAML::EndMap;
 		}
@@ -324,6 +367,8 @@ namespace KTN
 		template<>
 		void ComponentDeserializeIfExist<TagComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			std::string tag = "Entity";
 			auto tagComp = p_Data["TagComponent"];
 			if (tagComp)
@@ -335,12 +380,15 @@ namespace KTN
 		template<>
 		void ComponentDeserializeIfExist<HierarchyComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
+			KTN_PROFILE_FUNCTION();
 			// TODO: make this when we have UUID
 		}
 
 		template<>
 		void ComponentDeserializeIfExist<TransformComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			auto transformComp = p_Data["TransformComponent"];
 			if (transformComp)
 			{
@@ -355,6 +403,8 @@ namespace KTN
 		template<>
 		void ComponentDeserializeIfExist<CameraComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			auto cameraComp = p_Data["CameraComponent"];
 			if (cameraComp)
 			{
@@ -388,6 +438,8 @@ namespace KTN
 		template<>
 		void ComponentDeserializeIfExist<SpriteComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			auto spriteComp = p_Data["SpriteComponent"];
 			if (spriteComp)
 			{
@@ -395,6 +447,41 @@ namespace KTN
 
 				p_Entity.AddComponent<SpriteComponent>(color);
 			}
+		}
+
+		template<>
+		void ComponentDeserializeIfExist<Rigidbody2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto rigidComp = p_Data["Rigidbody2DComponent"];
+			if (!rigidComp) return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<Rigidbody2DComponent>();
+
+			comp.Type = (Rigidbody2DComponent::BodyType)rigidComp["Type"].as<int>();
+			comp.FixedRotation = rigidComp["FixedRotation"].as<bool>();
+			comp.Body.Index = rigidComp["Index"].as<int32_t>();
+			comp.Body.World = rigidComp["World"].as<uint16_t>();
+			comp.Body.Generation = rigidComp["Generation"].as<uint16_t>();
+		}
+
+		template<>
+		void ComponentDeserializeIfExist<BoxCollider2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto boxComp = p_Data["BoxCollider2DComponent"];
+			if (!boxComp) return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<BoxCollider2DComponent>();
+
+			comp.Offset = boxComp["Offset"].as<glm::vec2>();
+			comp.Size = boxComp["Size"].as<glm::vec2>();
+			comp.Density = boxComp["Density"].as<float>();
+			comp.Friction = boxComp["Friction"].as<float>();
+			comp.Restitution = boxComp["Restitution"].as<float>();
+			comp.RestitutionThreshold = boxComp["RestitutionThreshold"].as<float>();
 		}
 
 	} // namespace

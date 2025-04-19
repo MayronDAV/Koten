@@ -115,6 +115,6 @@ namespace KTN
 		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
 
-	#define ALL_COMPONENTS TagComponent, TransformComponent, SpriteComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent
+	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent
 
 } // namespace KTN
