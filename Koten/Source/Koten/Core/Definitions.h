@@ -33,6 +33,20 @@ namespace KTN
 			int32_t Index;
 			uint16_t World;
 			uint16_t Generation;
+
+			inline bool operator== (const B2BodyID& p_Other) const
+			{
+				return Index == p_Other.Index &&
+					World == p_Other.World &&
+					Generation == p_Other.Generation;
+			}
+
+			inline bool operator== (B2BodyID& p_Other) const
+			{
+				return Index == p_Other.Index &&
+					World == p_Other.World &&
+					Generation == p_Other.Generation;
+			}
 		};
 
 		inline constexpr uint8_t MAX_RENDER_TARGETS = 4;

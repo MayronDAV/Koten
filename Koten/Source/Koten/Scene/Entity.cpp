@@ -85,8 +85,8 @@ namespace KTN
 		auto rbody2DComponent = TryGetComponent<Rigidbody2DComponent>();
 		if (rbody2DComponent)
 		{
-			auto b2Physics = SystemManager::GetSystem<B2Physics>();
-			b2Physics->DestroyBody(rbody2DComponent->Body);
+			if (rbody2DComponent->Body != B2BodyID{})
+				SystemManager::GetSystem<B2Physics>()->DestroyBody(rbody2DComponent->Body);
 		}
 
 		auto hierarchyComponent = TryGetComponent<HierarchyComponent>();
