@@ -48,10 +48,6 @@ namespace KTN
 			void SaveSceneAs();
 
 		private:
-			Ref<Texture2D> m_MainTexture = nullptr;
-			uint32_t m_Width = 800;
-			uint32_t m_Height = 600;
-
 			Ref<Scene> m_ActiveScene = nullptr;
 
 			std::vector<Ref<EditorPanel>> m_Panels;

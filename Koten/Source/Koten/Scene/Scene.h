@@ -22,6 +22,9 @@ namespace KTN
 			Scene(const Scene&) = default;
 			~Scene();
 
+			static void Copy(const Ref<Scene>& p_Src, const Ref<Scene>& p_Dest);
+			static Ref<Scene> Copy(const Ref<Scene>& p_Scene);
+
 			Entity CreateEntity(const std::string& p_Tag = std::string());
 			Entity CreateEntity(UUID p_UUID, const std::string& p_Tag = std::string());
 

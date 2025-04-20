@@ -157,8 +157,6 @@ namespace KTN
 
 		m_MainTexture = Texture2D::Get(tspec);
 
-		Renderer::Clear();
-
 		auto state = m_Editor->GetState();
 
 		m_Context->SetRenderTarget(m_MainTexture);
@@ -173,8 +171,8 @@ namespace KTN
 		}
 		else
 		{
-			m_Context->SetViewportSize(m_Width, m_Height);
-			m_Context->OnUpdateRuntime();
+			m_ActiveScene->SetViewportSize(m_Width, m_Height);
+			m_ActiveScene->OnUpdateRuntime();
 		}
 
 
@@ -194,18 +192,27 @@ namespace KTN
 
 			if (Shortcuts::IsActionPressed("Guizmo Universal"))
 				m_GuizmoType = ImGuizmo::UNIVERSAL;
+
+			if (Shortcuts::IsActionPressed("Play"))
+			{
+				Play();
+			}
 		}
 
 		if (state == RuntimeState::Play)
 		{
-			if (Shortcuts::IsActionPressed("Stop Runtime"))
-				m_Editor->SetState(RuntimeState::Edit);
+			if (Shortcuts::IsActionPressed("Stop"))
+			{
+				Stop();
+			}
 		}
 	}
 
 	void SceneViewPanel::OnRender()
 	{
 		KTN_PROFILE_FUNCTION();
+
+		Renderer::Clear();
 
 		if (m_Editor->GetState() == RuntimeState::Edit)
 		{
@@ -214,7 +221,7 @@ namespace KTN
 		}
 		else if (m_Editor->GetState() == RuntimeState::Play)
 		{
-			m_Context->OnRenderRuntime();
+			m_ActiveScene->OnRenderRuntime();
 		}
 	}
 
@@ -385,21 +392,9 @@ namespace KTN
 				if (ImGui::Button(icon.c_str()))
 				{
 					if (state == RuntimeState::Play)
-					{
-						if (SystemManager::HasSystem<B2Physics>())
-							SystemManager::GetSystem<B2Physics>()->SetPaused(true);
-
-						m_Context->OnRuntimeStop();
-					}
+						Stop();
 					else if (state == RuntimeState::Edit)
-					{
-						if (SystemManager::HasSystem<B2Physics>())
-							SystemManager::GetSystem<B2Physics>()->SetPaused(false);
-
-						m_Context->OnRuntimeStart();
-					}
-
-					m_Editor->SetState(state != RuntimeState::Play ? RuntimeState::Play : RuntimeState::Edit);
+						Play();
 				}
 
 				UI::Tooltip(state != RuntimeState::Play  ? "Play" : "Stop");
@@ -408,6 +403,36 @@ namespace KTN
 			ImGui::PopStyleColor();
 		}
 		ImGui::End();
+	}
+
+	void SceneViewPanel::Play()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (m_Editor->GetState() == RuntimeState::Play) return;
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->SetPaused(false);
+
+		m_ActiveScene = Scene::Copy(m_Context);
+		m_ActiveScene->OnRuntimeStart();
+
+		m_Editor->SetState(RuntimeState::Play);
+	}
+
+	void SceneViewPanel::Stop()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (m_Editor->GetState() == RuntimeState::Edit) return;
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->SetPaused(true);
+
+		m_ActiveScene->OnRuntimeStop();
+		m_ActiveScene = nullptr;
+
+		m_Editor->SetState(RuntimeState::Edit);
 	}
 
 } // namespace KTN

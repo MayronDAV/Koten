@@ -270,7 +270,9 @@ namespace KTN
 
 		ImGui::Begin(m_Name.c_str(), &m_Active);
 
-		if (selectedEntt)
+		// TODO: Change this to lock the imgui items instead of just not showing them
+		auto state = m_Editor->GetState();
+		if (selectedEntt && state == RuntimeState::Edit)
 		{
 			auto& registry = selectedEntt.GetScene()->GetRegistry();
 			if (!registry.valid(selectedEntt))

@@ -12,7 +12,9 @@ namespace KTN::Math
 	struct KTN_API WorldMatrix
 	{
 		WorldMatrix() = default;
+		WorldMatrix(const WorldMatrix&) = default;
 		WorldMatrix(const glm::mat4& p_Matrix);
+		~WorldMatrix() = default;
 
 		glm::mat4 Matrix{ 1.0f };
 

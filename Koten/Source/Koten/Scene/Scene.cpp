@@ -9,9 +9,54 @@
 
 namespace KTN
 {
+	namespace
+	{
+		template <typename Component, typename Dependency>
+		void AddDependency(entt::registry& p_Registry)
+		{
+			p_Registry.template on_construct<Component>().template connect<&entt::registry::get_or_emplace<Dependency>>();
+		}
+
+		template<typename... Component>
+		struct ComponentGroup
+		{
+		};
+
+		using AllComponents =
+			ComponentGroup<HierarchyComponent, TransformComponent, SpriteComponent,
+			CameraComponent, Rigidbody2DComponent, BoxCollider2DComponent>;
+
+		template<typename... Component>
+		static void CopyComponent(entt::registry& p_Dest, entt::registry& p_Src, const std::unordered_map<UUID, entt::entity>& p_Map)
+		{
+			([&]()
+			{
+				auto view = p_Src.view<Component>();
+				for (auto srcEntity : view)
+				{
+					entt::entity destEntity = p_Map.at(p_Src.get<IDComponent>(srcEntity).ID);
+
+					auto& srcComponent = p_Src.get<Component>(srcEntity);
+					p_Dest.emplace_or_replace<Component>(destEntity, srcComponent);
+				}
+			}(), ...);
+		}
+
+		template<typename... Component>
+		static void CopyComponent(ComponentGroup<Component...>, entt::registry& p_Dest, entt::registry& p_Src, const std::unordered_map<UUID, entt::entity>& p_Map)
+		{
+			CopyComponent<Component...>(p_Dest, p_Src, p_Map);
+		}
+	}
+
 	Scene::Scene()
 	{
 		KTN_PROFILE_FUNCTION();
+
+		AddDependency<SpriteComponent, TransformComponent>(m_Registry);
+		AddDependency<CameraComponent, TransformComponent>(m_Registry);
+		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
+		AddDependency<BoxCollider2DComponent, Rigidbody2DComponent>(m_Registry);
 
 		m_SceneGraph = CreateUnique<SceneGraph>();
 		m_SceneGraph->Init(m_Registry);
@@ -19,6 +64,44 @@ namespace KTN
 
 	Scene::~Scene()
 	{
+	}
+
+	void Scene::Copy(const Ref<Scene>& p_Src, const Ref<Scene>& p_Dest)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		p_Dest->m_Width = p_Src->m_Width;
+		p_Dest->m_Height = p_Src->m_Height;
+		p_Dest->m_RenderTarget = p_Src->m_RenderTarget;
+		p_Dest->m_Projection = p_Src->m_Projection;
+		p_Dest->m_View = p_Src->m_View;
+		p_Dest->m_ClearColor = p_Src->m_ClearColor;
+		p_Dest->m_HaveCamera = p_Src->m_HaveCamera;
+
+		auto& srcRegistry = p_Src->m_Registry;
+		auto& destRegistry = p_Dest->m_Registry;
+		std::unordered_map<UUID, entt::entity> enttMap;
+
+		srcRegistry.view<IDComponent, TagComponent>().each(
+		[&](auto p_Entity, IDComponent& p_ID, TagComponent& p_Tag)
+		{
+			UUID uuid = p_ID.ID;
+			const auto& name = p_Tag.Tag;
+
+			Entity newEntity = p_Dest->CreateEntity(uuid, name);
+			enttMap[uuid] = (entt::entity)newEntity;
+		});
+
+		CopyComponent(AllComponents{}, destRegistry, srcRegistry, enttMap);
+	}
+
+	Ref<Scene> Scene::Copy(const Ref<Scene>& p_Scene)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		Ref<Scene> newScene = CreateRef<Scene>();
+		Copy(p_Scene, newScene);
+		return newScene;
 	}
 
 	Entity Scene::CreateEntity(const std::string& p_Tag)

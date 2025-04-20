@@ -1,13 +1,13 @@
 # TODO List
 All code tasks are listed here or should be listed here
 
-## Maintenance
-- [ ] Verify the code style and fix it if needed.
-
 ## Features
 - [X] Add physics support (use Box2D Physics).
 - [X] Add UUIDs.
-- [ ] Add Pause, Stop (with reset) and Simulate buttons to the Scene View Panel.
+- [X] Add Stop (with reset) buttons to the Scene View Panel.
+- [ ] Add Pause functionality and the Pause button to the Scene View Panel.
+- [ ] Add Simulate functionality and the Simulate button to the Scene View Panel.
+- [ ] Add a way to change imgui items to read-only on runtime play, instead of just not showing them in the inspector panel.
 - [ ] Add a way to automatically reload shaders.
 - [ ] Add UUIDs to scenes.
 - [ ] Add a way to draw circles and lines.

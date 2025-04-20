@@ -1,0 +1,65 @@
+Scene: 435253463464
+Entities:
+  - Entity: 18241545563351049444
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      ClearColor: [0, 0, 0, 1]
+      Width: 0
+      Height: 0
+      IsOrthographic: false
+      IsAspectRatioFixed: false
+      FOV: 90
+      Far: 1000
+      Near: 0.001
+      Scale: 10
+      Zoom: 1
+  - Entity: 9134091759235243697
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, -4.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [13.7, 1, 1]
+    SpriteComponent:
+      Color: [1, 0, 0, 1]
+    Rigidbody2DComponent:
+      Index: 0
+      World: 0
+      Generation: 0
+      Type: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 10580865177713273455
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Color: [1, 1, 1, 1]
+    Rigidbody2DComponent:
+      Index: 0
+      World: 0
+      Generation: 0
+      Type: 1
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
