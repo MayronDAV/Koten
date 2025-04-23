@@ -32,19 +32,8 @@ layout(std430, set = 0, binding = 1) uniform u_Instances
 
 void main()
 {
-    vec2 min = Instances[gl_InstanceIndex].UVMin;
-    vec2 max = Instances[gl_InstanceIndex].UVMax;
-
-    vec2 uvs[4] = vec2[4](
-        vec2( min.x, min.y ),
-        vec2( max.x, min.y ),
-        vec2( max.x, max.y ),
-        vec2( min.x, max.y )
-    );
-
-
     Output.Color = Instances[gl_InstanceIndex].Color;
-    Output.UV = uvs[gl_VertexIndex];
+    Output.UV = mix(Instances[gl_InstanceIndex].UVMin, Instances[gl_InstanceIndex].UVMax, a_Position.xy);
     v_TexIndex = Instances[gl_InstanceIndex].TexIndex;
 
     gl_Position = u_ViewProjection * Instances[gl_InstanceIndex].Transform * vec4(a_Position, 1.0f);

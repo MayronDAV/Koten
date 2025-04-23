@@ -14,7 +14,6 @@ namespace KTN
 		static constexpr uint16_t MaxInstances = 5000;
 		static constexpr uint8_t MaxTextureSlots = 32;
 
-
 		struct DrawElementsIndirectCommand
 		{
 			uint32_t Count;
@@ -44,52 +43,52 @@ namespace KTN
 			Ref<DescriptorSet> FinalPassSet		= nullptr;
 		};
 
-		namespace R2D
-		{
-			struct QuadInstanceData
-			{
-				glm::mat4 Transform;
-				glm::vec4 Color;
-				glm::vec2 UVMin;
-				glm::vec2 UVMax;
-				alignas(16) float TexIndex;
-			};
-
-			struct EntityBufferData
-			{
-				int Count = 0;
-				std::vector<int> EntityIDS;
-			};
-
-			struct QuadData
-			{
-				Ref<Shader> MainShader				= nullptr;
-				Ref<DescriptorSet> Set				= nullptr;
-				Ref<Pipeline> MainPipeline			= nullptr;
-				Ref<IndirectBuffer> Buffer			= nullptr;
-
-				Ref<VertexArray> VAO				= nullptr;
-
-				std::vector<QuadInstanceData> Instances;
-
-				uint32_t TextureSlotIndex = 1;
-				std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
-
-				Ref<Shader> PickingShader = nullptr;
-				Ref<DescriptorSet> PickingSet = nullptr;
-				EntityBufferData EntityBuffer = {};
-
-				void Init();
-				void Begin();
-				void StartBatch();
-				void FlushAndReset();
-				void Flush();
-				void Submit(const RenderCommand& p_Command);
-			};
-
-		} // namespace R2D
-
 	} // namespace
+
+	namespace R2D
+	{
+		struct QuadInstanceData
+		{
+			glm::mat4 Transform;
+			glm::vec4 Color;
+			glm::vec2 UVMin;
+			glm::vec2 UVMax;
+			alignas(16) float TexIndex;
+		};
+
+		struct EntityBufferData
+		{
+			int Count = 0;
+			std::vector<int> EntityIDS;
+		};
+
+		struct QuadData
+		{
+			Ref<Shader> MainShader = nullptr;
+			Ref<DescriptorSet> Set = nullptr;
+			Ref<Pipeline> MainPipeline = nullptr;
+			Ref<IndirectBuffer> Buffer = nullptr;
+
+			Ref<VertexArray> VAO = nullptr;
+
+			std::vector<QuadInstanceData> Instances;
+
+			uint32_t TextureSlotIndex = 1;
+			std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
+
+			Ref<Shader> PickingShader = nullptr;
+			Ref<DescriptorSet> PickingSet = nullptr;
+			EntityBufferData EntityBuffer = {};
+
+			void Init();
+			void Begin();
+			void StartBatch();
+			void FlushAndReset();
+			void Flush();
+			void Submit(const RenderCommand& p_Command);
+		};
+
+	} // namespace R2D
 
 	static RenderData* s_Data					= nullptr;
 	static R2D::QuadData* s_QuadData			= nullptr;
@@ -231,7 +230,8 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		s_QuadData->Submit(p_Command);
+		if (p_Command.Type == RenderCommand::DrawType::Quad)
+			s_QuadData->Submit(p_Command);
 	}
 
 	Ref<Texture2D> Renderer::GetPickingTexture()
@@ -239,225 +239,223 @@ namespace KTN
 		return s_Data->MainPickingTexture;
 	}
 
-	namespace
+	namespace R2D
 	{
-		namespace R2D
+		void QuadData::Init()
 		{
-			void QuadData::Init()
+			MainShader = Shader::Create("Assets/Shaders/R2D_Quad.glsl");
+			Set = DescriptorSet::Create({ 0, MainShader });
+
+			VAO = VertexArray::Create();
+
+			float vertices[] = {
+				// positions
+				-0.5f, -0.5f, 0.0f,
+					0.5f, -0.5f, 0.0f,
+					0.5f,  0.5f, 0.0f,
+				-0.5f,  0.5f, 0.0f
+			};
+
+			auto vbo = VertexBuffer::Create(vertices, sizeof(vertices));
+			vbo->SetLayout({
+				{ DataType::Float3 , "a_Position"	}
+			});
+			VAO->SetVertexBuffer(vbo);
+
+			uint32_t indices[] = {
+				0, 1, 3, // first triangle
+				1, 2, 3  // second triangle
+			};
+			auto ebo = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+			VAO->SetIndexBuffer(ebo);
+
+			TextureSlots.fill(s_Data->WhiteTexture);
+
+			Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
+
+			if (Engine::GetSettings().MousePicking)
 			{
-				MainShader = Shader::Create("Assets/Shaders/R2D_Quad.glsl");
-				Set = DescriptorSet::Create({ 0, MainShader });
+				PickingShader = Shader::Create("Assets/Shaders/R2D_Picking.glsl");
+				PickingSet = DescriptorSet::Create({ 0, PickingShader });
+			}
+		}
 
-				VAO = VertexArray::Create();
+		void QuadData::Begin()
+		{
+			PipelineSpecification pspec = {};
+			pspec.pShader				= MainShader;
+			pspec.TransparencyEnabled	= false;
+			pspec.ColorTargets[0]		= s_Data->MainTexture;
+			pspec.DepthTarget			= s_Data->MainDepthTexture;
+			pspec.ClearTargets			= false;
+			pspec.ResolveTexture		= s_Data->ResolveTexture;
+			pspec.Samples				= s_Data->Samples;
+			pspec.DebugName				= "QuadMainPipeline";
 
-				float vertices[] = {
-					// positions
-					-0.5f, -0.5f, 0.0f,
-					 0.5f, -0.5f, 0.0f,
-					 0.5f,  0.5f, 0.0f,
-					-0.5f,  0.5f, 0.0f
+			MainPipeline = Pipeline::Get(pspec);
+
+			StartBatch();
+		}
+
+		void QuadData::StartBatch()
+		{
+			Instances.clear();
+			TextureSlotIndex = 1;
+
+			EntityBuffer.Count = 0;
+			EntityBuffer.EntityIDS.clear();
+		}
+
+		void QuadData::FlushAndReset()
+		{
+			Flush();
+			StartBatch();
+		}
+
+		void QuadData::Flush()
+		{
+			auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
+			auto vp = s_Data->Projection * s_Data->View;
+
+			if (!Instances.empty())
+			{
+				MainPipeline->Begin(commandBuffer);
+
+				RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
+
+				Set->SetUniform("Camera", "u_ViewProjection", &vp);
+				Set->Upload(commandBuffer);
+
+				Set->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(QuadInstanceData));
+				Set->Upload(commandBuffer);
+
+				Set->SetTexture("u_Textures", TextureSlots.data(), (uint32_t)TextureSlots.size());
+				Set->Upload(commandBuffer);
+
+				DrawElementsIndirectCommand command = {
+					6, (uint32_t)Instances.size(), 0, 0, 0
 				};
+				Buffer->SetData(&command, sizeof(command));
 
-				auto vbo = VertexBuffer::Create(vertices, sizeof(vertices));
-				vbo->SetLayout({
-					{ DataType::Float3 , "a_Position"	}
-				});
-				VAO->SetVertexBuffer(vbo);
+				commandBuffer->BindSets(&Set);
+				RendererCommand::DrawIndexedIndirect(DrawType::TRIANGLES, VAO, Buffer);
 
-				uint32_t indices[] = {
-					0, 1, 3, // first triangle
-					1, 2, 3  // second triangle
-				};
-				auto ebo = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
-				VAO->SetIndexBuffer(ebo);
+				Engine::GetStats().DrawCalls += 1;
+				Engine::GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
 
-				TextureSlots.fill(s_Data->WhiteTexture);
-
-				Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
+				MainPipeline->End(commandBuffer);
 
 				if (Engine::GetSettings().MousePicking)
 				{
-					PickingShader = Shader::Create("Assets/Shaders/R2D_Picking.glsl");
-					PickingSet = DescriptorSet::Create({ 0, PickingShader });
-				}
-			}
+					PipelineSpecification pspec = {};
+					pspec.pShader = PickingShader;
+					pspec.TransparencyEnabled = false;
+					pspec.ColorTargets[0] = s_Data->MainPickingTexture;
+					pspec.DepthTarget = s_Data->MainDepthTexture;
+					pspec.DepthWrite = false;
+					pspec.ClearTargets = false;
+					pspec.Samples = 1;
+					pspec.DebugName = "QuadPickingPipeline";
 
-			void QuadData::Begin()
-			{
-				PipelineSpecification pspec = {};
-				pspec.pShader				= MainShader;
-				pspec.TransparencyEnabled	= false;
-				pspec.ColorTargets[0]		= s_Data->MainTexture;
-				pspec.DepthTarget			= s_Data->MainDepthTexture;
-				pspec.ClearTargets			= false;
-				pspec.ResolveTexture		= s_Data->ResolveTexture;
-				pspec.Samples				= s_Data->Samples;
-				pspec.DebugName				= "QuadMainPipeline";
+					auto pipeline = Pipeline::Get(pspec);
 
-				MainPipeline = Pipeline::Get(pspec);
-
-				StartBatch();
-			}
-
-			void QuadData::StartBatch()
-			{
-				Instances.clear();
-				TextureSlotIndex = 1;
-
-				EntityBuffer.Count = 0;
-				EntityBuffer.EntityIDS.clear();
-			}
-
-			void QuadData::FlushAndReset()
-			{
-				Flush();
-				StartBatch();
-			}
-
-			void QuadData::Flush()
-			{
-				auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
-				auto vp = s_Data->Projection * s_Data->View;
-
-				if (!Instances.empty())
-				{
-					MainPipeline->Begin(commandBuffer);
+					pipeline->Begin(commandBuffer);
 
 					RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
 
-					Set->SetUniform("Camera", "u_ViewProjection", &vp);
-					Set->Upload(commandBuffer);
+					PickingSet->SetUniform("Camera", "u_ViewProjection", &vp);
+					PickingSet->Upload(commandBuffer);
 
-					Set->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(QuadInstanceData));
-					Set->Upload(commandBuffer);
+					PickingSet->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(QuadInstanceData));
+					PickingSet->Upload(commandBuffer);
 
-					Set->SetTexture("u_Textures", TextureSlots.data(), (uint32_t)TextureSlots.size());
-					Set->Upload(commandBuffer);
+					size_t bufferSize = sizeof(int) + sizeof(int) * EntityBuffer.EntityIDS.size();
+					PickingSet->PrepareStorageBuffer("EntityBuffer", bufferSize);
+					PickingSet->SetStorage("EntityBuffer", "Count", &EntityBuffer.Count, sizeof(int));
+					PickingSet->SetStorage("EntityBuffer", "EnttIDs", EntityBuffer.EntityIDS.data(), sizeof(int) * EntityBuffer.EntityIDS.size());
+					PickingSet->Upload(commandBuffer);
 
-					DrawElementsIndirectCommand command = {
-						6, (uint32_t)Instances.size(), 0, 0, 0
-					};
-					Buffer->SetData(&command, sizeof(command));
-
-					commandBuffer->BindSets(&Set);
+					commandBuffer->BindSets(&PickingSet);
 					RendererCommand::DrawIndexedIndirect(DrawType::TRIANGLES, VAO, Buffer);
 
 					Engine::GetStats().DrawCalls += 1;
-					Engine::GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
 
-					MainPipeline->End(commandBuffer);
-
-					if (Engine::GetSettings().MousePicking)
-					{
-						PipelineSpecification pspec = {};
-						pspec.pShader = PickingShader;
-						pspec.TransparencyEnabled = false;
-						pspec.ColorTargets[0] = s_Data->MainPickingTexture;
-						pspec.DepthTarget = s_Data->MainDepthTexture;
-						pspec.DepthWrite = false;
-						pspec.ClearTargets = false;
-						pspec.Samples = 1;
-						pspec.DebugName = "QuadPickingPipeline";
-
-						auto pipeline = Pipeline::Get(pspec);
-
-						pipeline->Begin(commandBuffer);
-
-						RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
-
-						PickingSet->SetUniform("Camera", "u_ViewProjection", &vp);
-						PickingSet->Upload(commandBuffer);
-
-						PickingSet->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(QuadInstanceData));
-						PickingSet->Upload(commandBuffer);
-
-						size_t bufferSize = sizeof(int) + sizeof(int) * EntityBuffer.EntityIDS.size();
-						PickingSet->PrepareStorageBuffer("EntityBuffer", bufferSize);
-						PickingSet->SetStorage("EntityBuffer", "Count", &EntityBuffer.Count, sizeof(int));
-						PickingSet->SetStorage("EntityBuffer", "EnttIDs", EntityBuffer.EntityIDS.data(), sizeof(int) * EntityBuffer.EntityIDS.size());
-						PickingSet->Upload(commandBuffer);
-
-						commandBuffer->BindSets(&PickingSet);
-						RendererCommand::DrawIndexedIndirect(DrawType::TRIANGLES, VAO, Buffer);
-
-						Engine::GetStats().DrawCalls += 1;
-
-						pipeline->End(commandBuffer);
-					}
+					pipeline->End(commandBuffer);
 				}
 			}
-			void QuadData::Submit(const RenderCommand& p_Command)
+		}
+			
+		void QuadData::Submit(const RenderCommand& p_Command)
+		{
+			if (Instances.size() >= (size_t)MaxInstances)
+				FlushAndReset();
+
+			EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
+			EntityBuffer.Count++;
+
+			float textureIndex = 0.0f; // White texture
+			if (p_Command.SpriteData.Texture)
 			{
-				if (Instances.size() >= (size_t)MaxInstances)
-					FlushAndReset();
-
-				EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
-				EntityBuffer.Count++;
-
-				float textureIndex = 0.0f; // White texture
-				if (p_Command.SpriteData.Texture)
+				for (uint32_t i = 1; i < TextureSlotIndex; i++)
 				{
-					for (uint32_t i = 1; i < TextureSlotIndex; i++)
+					// TODO: compare texture UUIDs
+					if (*TextureSlots[i].get() == *p_Command.SpriteData.Texture.get())
 					{
-						// TODO: compare texture UUIDs
-						if (*TextureSlots[i].get() == *p_Command.SpriteData.Texture.get())
-						{
-							textureIndex = (float)i;
-							break;
-						}
-					}
-
-					if (textureIndex == 0.0f)
-					{
-						if (TextureSlotIndex >= MaxTextureSlots)
-							FlushAndReset();
-
-						textureIndex = (float)TextureSlotIndex;
-						TextureSlots[TextureSlotIndex] = p_Command.SpriteData.Texture;
-						TextureSlotIndex++;
+						textureIndex = (float)i;
+						break;
 					}
 				}
 
-				QuadInstanceData data = {};
-				data.Transform = p_Command.Transform;
-				data.Color = p_Command.SpriteData.Color;
-				data.TexIndex = textureIndex;
-				data.UVMin = { 0.0f, 0.0f };
-				data.UVMax = { 1.0f, 1.0f };
-
-				if (p_Command.SpriteData.Texture)
+				if (textureIndex == 0.0f)
 				{
-					auto scale = p_Command.SpriteData.Scale;
-					auto offset = p_Command.SpriteData.Offset;
-					glm::vec2 size;
-					if (p_Command.SpriteData.Size.x == 0.0f && p_Command.SpriteData.Size.y == 0.0f)
-					{
-						size = { p_Command.SpriteData.Texture->GetWidth(), p_Command.SpriteData.Texture->GetHeight() };
-					}
-					else
-						size = p_Command.SpriteData.Size;
+					if (TextureSlotIndex >= MaxTextureSlots)
+						FlushAndReset();
 
-					float customTileSizeX = (scale.x == 0.0f) ? 1.0f : scale.x;
-					float customTileSizeY = (scale.y == 0.0f) ? 1.0f : scale.y;
-
-					glm::vec2 min = {
-						(p_Command.SpriteData.BySize ? offset.x * size.x : offset.x) / p_Command.SpriteData.Texture->GetWidth(),
-						(p_Command.SpriteData.BySize ? offset.y * size.y : offset.y) / p_Command.SpriteData.Texture->GetHeight()
-					};
-
-					glm::vec2 max = {
-						(p_Command.SpriteData.BySize ? (offset.x + customTileSizeX) * size.x : offset.x + (customTileSizeX * size.x)) / p_Command.SpriteData.Texture->GetWidth(),
-						(p_Command.SpriteData.BySize ? (offset.y + customTileSizeY) * size.y : offset.y + (customTileSizeY * size.x)) / p_Command.SpriteData.Texture->GetHeight()
-					};
-
-					data.UVMin = min;
-					data.UVMax = max;
+					textureIndex = (float)TextureSlotIndex;
+					TextureSlots[TextureSlotIndex] = p_Command.SpriteData.Texture;
+					TextureSlotIndex++;
 				}
-
-				Instances.push_back(data);
 			}
-		} // namespace R2D
 
-	} // namespace
+			QuadInstanceData data = {};
+			data.Transform = p_Command.Transform;
+			data.Color = p_Command.SpriteData.Color;
+			data.TexIndex = textureIndex;
+			data.UVMin = { 0.0f, 0.0f };
+			data.UVMax = { 1.0f, 1.0f };
+
+			if (p_Command.SpriteData.Texture)
+			{
+				auto scale = p_Command.SpriteData.Scale;
+				auto offset = p_Command.SpriteData.Offset;
+				glm::vec2 size;
+				if (p_Command.SpriteData.Size.x == 0.0f && p_Command.SpriteData.Size.y == 0.0f)
+				{
+					size = { p_Command.SpriteData.Texture->GetWidth(), p_Command.SpriteData.Texture->GetHeight() };
+				}
+				else
+					size = p_Command.SpriteData.Size;
+
+				float customTileSizeX = (scale.x == 0.0f) ? 1.0f : scale.x;
+				float customTileSizeY = (scale.y == 0.0f) ? 1.0f : scale.y;
+
+				glm::vec2 min = {
+					(p_Command.SpriteData.BySize ? offset.x * size.x : offset.x) / p_Command.SpriteData.Texture->GetWidth(),
+					(p_Command.SpriteData.BySize ? offset.y * size.y : offset.y) / p_Command.SpriteData.Texture->GetHeight()
+				};
+
+				glm::vec2 max = {
+					(p_Command.SpriteData.BySize ? (offset.x + customTileSizeX) * size.x : offset.x + (customTileSizeX * size.x)) / p_Command.SpriteData.Texture->GetWidth(),
+					(p_Command.SpriteData.BySize ? (offset.y + customTileSizeY) * size.y : offset.y + (customTileSizeY * size.x)) / p_Command.SpriteData.Texture->GetHeight()
+				};
+
+				data.UVMin = min;
+				data.UVMax = max;
+			}
+
+			Instances.push_back(data);
+		}
+	
+	} // namespace R2D
 
 } // namespace KTN

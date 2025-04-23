@@ -13,11 +13,12 @@ namespace KTN
 	struct RenderCommand 
 	{
 		int EntityID = -1;
-		enum class Type 
+		enum class DrawType 
 		{
-			Sprite2D
+			Quad = 0,
+			Circle
 		};
-		Type pType = Type::Sprite2D;
+		DrawType Type = DrawType::Quad;
 
 		glm::mat4 Transform			= { 1.0f };
 

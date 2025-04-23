@@ -51,13 +51,7 @@ namespace KTN
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 				{
 					if (state == RuntimeState::Play)
-					{
-						if (SystemManager::HasSystem<B2Physics>())
-							SystemManager::GetSystem<B2Physics>()->SetPaused(true);
-
-						m_Context->OnRuntimeStop();
-						m_Editor->SetState(RuntimeState::Edit);
-					}
+						Stop();
 
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					auto filepath = std::filesystem::path(path);

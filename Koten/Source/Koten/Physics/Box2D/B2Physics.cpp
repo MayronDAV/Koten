@@ -107,8 +107,11 @@ namespace KTN
 		registry.view<TransformComponent, Rigidbody2DComponent>().each(
 		[&](auto p_Entt, TransformComponent& p_Transform, Rigidbody2DComponent& p_RC)
 		{
-			DestroyBody(p_RC.Body);
-			p_RC.Body = {};
+			if (p_RC.Body != B2BodyID{})
+			{
+				DestroyBody(p_RC.Body);
+				p_RC.Body = {};
+			}
 		});
 
 		return true;
