@@ -19,6 +19,7 @@ All code tasks are listed here or should be listed here
 - [ ] Add a game view panel.
 
 ## Bugs
+- [X] Fix rotation of entities in box2D.
 - [ ] Fix the size of widgets in the Scene View Panel when the window is resized.
 - [ ] Fix shortcuts that should only be done once at a time.
 - [ ] Fix imgui flickering when window is resized (doesn't always happen).

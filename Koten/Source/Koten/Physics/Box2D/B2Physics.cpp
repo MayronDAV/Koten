@@ -83,7 +83,7 @@ namespace KTN
 			{
 				auto& bc2d = entt.GetComponent<BoxCollider2DComponent>();
 
-				b2Polygon box = b2MakeOffsetBox(bc2d.Size.x * scale.x, bc2d.Size.y * scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), b2MakeRot(0.0f));
+				b2Polygon box = b2MakeOffsetBox(bc2d.Size.x * scale.x, bc2d.Size.y * scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y),  b2MakeRot(0.0f));
 
 				b2ShapeDef shapeDef = b2DefaultShapeDef();
 				shapeDef.density = bc2d.Density;
@@ -168,7 +168,7 @@ namespace KTN
 			};
 
 			auto pos = b2Body_GetPosition(body);
-			float rot = b2Rot_GetAngle(b2Body_GetRotation(body));
+			float rot = glm::degrees(b2Rot_GetAngle(b2Body_GetRotation(body)));
 
 			p_Transform.SetLocalTranslation({ pos.x, pos.y, p_Transform.GetLocalTranslation().z });
 			p_Transform.SetLocalRotation({ p_Transform.GetLocalRotation().x, p_Transform.GetLocalRotation().y, rot });

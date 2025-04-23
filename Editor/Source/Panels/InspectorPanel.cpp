@@ -111,16 +111,16 @@ namespace KTN
 			[](TransformComponent& p_Transform)
 			{
 				glm::vec3 translation = p_Transform.GetLocalTranslation();
-				UI::DragFloat3("Translation", translation);
-				p_Transform.SetLocalTranslation(translation);
+				if (UI::DragFloat3("Translation", translation))
+					p_Transform.SetLocalTranslation(translation);
 
 				glm::vec3 rotation = p_Transform.GetLocalRotation();
-				UI::DragFloat3("Rotation", rotation);
-				p_Transform.SetLocalRotation(rotation);
+				if (UI::DragFloat3("Rotation", rotation))
+					p_Transform.SetLocalRotation(rotation);
 
 				glm::vec3 scale = p_Transform.GetLocalScale();
-				UI::DragFloat3("Scale", scale, 1.0f);
-				p_Transform.SetLocalScale(scale);
+				if (UI::DragFloat3("Scale", scale, 1.0f))
+					p_Transform.SetLocalScale(scale);
 			});
 		}
 
@@ -136,24 +136,13 @@ namespace KTN
 
 				ImGui::Checkbox("Primary", &p_Component.Primary);
 
-				const char* projectionTypeStrings[] = { "Perspective", "Orthographic" };
-				const char* currentProjectionTypeString = projectionTypeStrings[camera.IsOrthographic()];
-				if (ImGui::BeginCombo("Projection", currentProjectionTypeString))
+				int currentItem = (int)camera.IsOrthographic();
+				static const char* items[] = { "Perspective", "Orthographic" };
+				static const int itemsCount = IM_ARRAYSIZE(items);
+
+				if (UI::Combo("Type", items[currentItem], items, itemsCount, &currentItem, -1))
 				{
-					for (int i = 0; i < 2; i++)
-					{
-						bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
-						if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
-						{
-							currentProjectionTypeString = projectionTypeStrings[i];
-							camera.SetIsOrthographic(i == 1);
-						}
-
-						if (isSelected)
-							ImGui::SetItemDefaultFocus();
-					}
-
-					ImGui::EndCombo();
+					camera.SetIsOrthographic(currentItem == 1);
 				}
 
 				if (!camera.IsOrthographic())
@@ -247,7 +236,13 @@ namespace KTN
 			DrawComponent<BoxCollider2DComponent>("BoxCollider2D", p_Entity,
 			[](BoxCollider2DComponent& p_Box)
 			{
+				UI::InputFloat2("Offset", p_Box.Offset);
+				UI::InputFloat2("Size", p_Box.Size, 0.5f);
 
+				ImGui::InputFloat("Density", &p_Box.Density);
+				ImGui::InputFloat("Friction", &p_Box.Friction);
+				ImGui::InputFloat("Restitution", &p_Box.Restitution);
+				ImGui::InputFloat("RestitutionThreshold", &p_Box.RestitutionThreshold);
 			});
 		}
 
