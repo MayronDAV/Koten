@@ -104,6 +104,13 @@ namespace KTN
 		GetCurrentCommandBuffer()->Draw(p_Type, p_VertexArray, p_VertexCount);
 	}
 
+	void RendererCommand::DrawIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		GetCurrentCommandBuffer()->DrawIndirect(p_Type, p_VertexArray, p_Buffer);
+	}
+
 	void RendererCommand::DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray)
 	{
 		KTN_PROFILE_FUNCTION();

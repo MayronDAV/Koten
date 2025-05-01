@@ -20,6 +20,7 @@ namespace KTN
 			void SetStencil(StencilFace p_Face, StencilCompare p_Compare, uint32_t p_CompareMask, uint32_t p_WriteMask, int p_Reference) override;
 
 			void Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount) override;
+			void DrawIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer) override;
 			void DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray) override;
 			void DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer) override;
 	};

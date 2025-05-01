@@ -23,6 +23,20 @@ namespace KTN
 			uint32_t BaseInstance;
 		};
 
+		struct DrawIndirectCommand 
+		{
+			uint32_t VertexCount;
+			uint32_t InstanceCount;
+			uint32_t FirstVertex;
+			uint32_t BaseInstance;
+		};
+
+		struct EntityBufferData
+		{
+			int Count = 0;
+			std::vector<int> EntityIDS;
+		};
+
 		struct RenderData
 		{
 			Ref<Texture2D> RenderTarget			= nullptr;
@@ -55,12 +69,6 @@ namespace KTN
 			glm::vec4 Others; // Type, TexIndex, Thickness, Fade
 		};
 
-		struct EntityBufferData
-		{
-			int Count = 0;
-			std::vector<int> EntityIDS;
-		};
-
 		struct Data
 		{
 			Ref<Shader> MainShader = nullptr;
@@ -89,8 +97,38 @@ namespace KTN
 
 	} // namespace R2D
 
+	namespace Line
+	{
+		struct InstanceData
+		{
+			glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+			glm::vec4 Start = { 0.0f, 0.0f, 0.0f, 1.0f };
+			glm::vec4 End = { 1.0f, 0.0f, 0.0f, 1.0f };
+			alignas(16) float Width = 1.0f;
+		};
+
+		struct Data
+		{
+			Ref<Shader> MainShader = nullptr;
+			Ref<DescriptorSet> Set = nullptr;
+			Ref<IndirectBuffer> Buffer = nullptr;
+
+			// instances per width
+			std::unordered_map<float, std::vector<InstanceData>> Instances;
+
+			void Init();
+			void Begin();
+			void StartBatch();
+			void FlushAndReset();
+			void Flush();
+			void Submit(const RenderCommand& p_Command);
+		};
+
+	} // namespace Line
+
 	static RenderData* s_Data					= nullptr;
 	static R2D::Data* s_R2DData					= nullptr;
+	static Line::Data* s_LineData				= nullptr;
 
 	void Renderer::Init()
 	{
@@ -109,6 +147,12 @@ namespace KTN
 			s_R2DData = new R2D::Data();
 			s_R2DData->Init();
 		}
+
+		// Line
+		{
+			s_LineData = new Line::Data();
+			s_LineData->Init();
+		}
 	}
 
 	void Renderer::Shutdown()
@@ -117,6 +161,7 @@ namespace KTN
 
 		delete s_Data;
 		delete s_R2DData;
+		delete s_LineData;
 	}
 
 	void Renderer::Clear()
@@ -180,10 +225,8 @@ namespace KTN
 		if (p_Info.Clear)
 			Clear();
 
-		// R2D
-		{
-			s_R2DData->Begin();
-		}
+		s_R2DData->Begin();
+		s_LineData->Begin();
 	}
 
 	void Renderer::End()
@@ -192,10 +235,8 @@ namespace KTN
 
 		auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 
-		// R2D
-		{
-			s_R2DData->Flush();
-		}
+		s_R2DData->Flush();
+		s_LineData->Flush();
 
 		// Final Pass
 		{
@@ -231,6 +272,10 @@ namespace KTN
 
 		if (p_Command.Type == RenderType::R2D)
 			s_R2DData->Submit(p_Command);
+		else if (p_Command.Type == RenderType::Line)
+			s_LineData->Submit(p_Command);
+		else
+			KTN_CORE_ERROR("Unknown render type!");
 	}
 
 	Ref<Texture2D> Renderer::GetPickingTexture()
@@ -242,6 +287,8 @@ namespace KTN
 	{
 		void Data::Init()
 		{
+			KTN_PROFILE_FUNCTION();
+
 			MainShader = Shader::Create("Assets/Shaders/R2D_Shader.glsl");
 			Set = DescriptorSet::Create({ 0, MainShader });
 
@@ -281,6 +328,8 @@ namespace KTN
 
 		void Data::Begin()
 		{
+			KTN_PROFILE_FUNCTION();
+
 			PipelineSpecification pspec = {};
 			pspec.pShader				= MainShader;
 			pspec.TransparencyEnabled	= false;
@@ -298,6 +347,8 @@ namespace KTN
 
 		void Data::StartBatch()
 		{
+			KTN_PROFILE_FUNCTION();
+
 			Instances.clear();
 			TextureSlotIndex = 1;
 
@@ -307,12 +358,16 @@ namespace KTN
 
 		void Data::FlushAndReset()
 		{
+			KTN_PROFILE_FUNCTION();
+
 			Flush();
 			StartBatch();
 		}
 
 		void Data::Flush()
 		{
+			KTN_PROFILE_FUNCTION();
+
 			auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 			auto vp = s_Data->Projection * s_Data->View;
 
@@ -386,6 +441,8 @@ namespace KTN
 			
 		void Data::Submit(const RenderCommand& p_Command)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			if (Instances.size() >= (size_t)MaxInstances)
 				FlushAndReset();
 
@@ -457,5 +514,113 @@ namespace KTN
 		}
 	
 	} // namespace R2D
+
+	namespace Line
+	{
+		void Data::Init()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			MainShader = Shader::Create("Assets/Shaders/PrimitiveLine.glsl");
+			Set = DescriptorSet::Create({ 0, MainShader });
+
+			Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
+		}
+
+		void Data::Begin()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			StartBatch();
+		}
+
+		void Data::StartBatch()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			Instances.clear();
+		}
+
+		void Data::FlushAndReset()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			Flush();
+			StartBatch();
+		}
+
+		void Data::Flush()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (Instances.empty())
+				return;
+
+			auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
+			auto vp = s_Data->Projection * s_Data->View;
+
+			for (auto& [width, instances] : Instances)
+			{
+				if (instances.empty())
+					continue;
+
+				PipelineSpecification pspec = {};
+				pspec.pShader = MainShader;
+				pspec.TransparencyEnabled = false;
+				pspec.ColorTargets[0] = s_Data->MainTexture;
+				pspec.DepthTarget = s_Data->MainDepthTexture;
+				pspec.ClearTargets = false;
+				pspec.ResolveTexture = s_Data->ResolveTexture;
+				pspec.Samples = 1;
+				pspec.LineWidth = width;
+				pspec.DepthWrite = false;
+				pspec.DepthTest = false;
+				pspec.DebugName = "LineMainPipeline";
+
+				auto pipeline = Pipeline::Get(pspec);
+
+				pipeline->Begin(commandBuffer);
+
+				RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
+
+				Set->SetUniform("Camera", "u_ViewProjection", &vp);
+				Set->Upload(commandBuffer);
+		
+				Set->SetUniform("u_Instances", "Instances", instances.data(), instances.size() * sizeof(InstanceData));
+				Set->Upload(commandBuffer);
+
+				DrawIndirectCommand command = {
+					2, (uint32_t)instances.size(), 0, 0
+				};
+				Buffer->SetData(&command, sizeof(command));
+
+				commandBuffer->BindSets(&Set);
+				RendererCommand::DrawIndirect(DrawType::LINES, nullptr, Buffer);
+
+				Engine::GetStats().DrawCalls += 1;
+
+				pipeline->End(commandBuffer);
+			}
+		}
+
+		void Data::Submit(const RenderCommand& p_Command)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (Instances.size() >= (size_t)MaxInstances)
+				FlushAndReset();
+
+			InstanceData data = {};
+			data.Width = p_Command.Line.Width;
+			data.Start = p_Command.Transform * glm::vec4(p_Command.Line.Start, 1.0f);
+			data.End = p_Command.Transform * glm::vec4(p_Command.Line.End, 1.0f);
+			data.Color = p_Command.Line.Color;
+
+			// TODO: add support for non-primitive lines
+			if (p_Command.Line.Primitive)
+				Instances[p_Command.Line.Width].push_back(data);
+		}
+
+	} // namespace Line
 
 } // namespace KTN

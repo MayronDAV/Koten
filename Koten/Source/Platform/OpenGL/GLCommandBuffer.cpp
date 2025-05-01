@@ -49,7 +49,18 @@ namespace KTN
 		if (p_VertexArray)
 			p_VertexArray->Bind(this);
 
-		glDrawArrays(GLUtils::DrawTypeToGL(p_Type), 0, p_VertexCount);
+		GLCall(glDrawArrays(GLUtils::DrawTypeToGL(p_Type), 0, p_VertexCount));
+	}
+
+	void GLCommandBuffer::DrawIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		if (p_VertexArray)
+			p_VertexArray->Bind(this);
+
+		As<IndirectBuffer, GLIndirectBuffer>(p_Buffer)->Bind();
+		GLCall(glDrawArraysIndirect(GLUtils::DrawTypeToGL(p_Type), nullptr));
 	}
 
 	void GLCommandBuffer::DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray)
@@ -63,7 +74,7 @@ namespace KTN
 		p_VertexArray->Bind(this);
 		uint32_t count = p_VertexArray->GetIndexBuffer()->GetCount();
 
-		glDrawElements(GLUtils::DrawTypeToGL(p_Type), count, GL_UNSIGNED_INT, nullptr);
+		GLCall(glDrawElements(GLUtils::DrawTypeToGL(p_Type), count, GL_UNSIGNED_INT, nullptr));
 	}
 
 	void GLCommandBuffer::DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)

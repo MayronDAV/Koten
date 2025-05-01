@@ -143,6 +143,7 @@ namespace KTN
 
 		Renderer::Begin(info);
 		{
+
 			m_Registry.view<TransformComponent, SpriteComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
 			{
@@ -160,6 +161,45 @@ namespace KTN
 				command.Render2D.Offset = p_Sprite.Offset;
 				command.Render2D.Scale = p_Sprite.Scale;
 
+				Renderer::Submit(command);
+
+				// TEMPORARY, for test
+
+				glm::vec3 vertices[] = {
+					glm::vec3(-0.5f, -0.5f, 0.0f),
+					glm::vec3(0.5f, -0.5f, 0.0f),
+					glm::vec3(0.5f,  0.5f, 0.0f),
+					glm::vec3(-0.5f,  0.5f, 0.0f)
+				};
+
+				command.EntityID = -1;
+				command.Type = RenderType::Line;
+				command.Line.Primitive = true;
+				command.Line.Width = 4.0f;
+				command.Line.Color = { 1.0f, 0.0f, 1.0f, 1.0f };
+
+				command.Line.Start = vertices[0];
+				command.Line.End = vertices[1];
+				Renderer::Submit(command);
+
+				command.Line.Start = vertices[1];
+				command.Line.End = vertices[2];
+				Renderer::Submit(command);
+
+				command.Line.Start = vertices[2];
+				command.Line.End = vertices[3];
+				Renderer::Submit(command);
+
+				command.Line.Start = vertices[3];
+				command.Line.End = vertices[0];
+				Renderer::Submit(command);
+
+				command.Line.Start = vertices[1];
+				command.Line.End = vertices[3];
+				Renderer::Submit(command);
+
+				command.Line.Start = vertices[0];
+				command.Line.End = vertices[2];
 				Renderer::Submit(command);
 			});
 		}

@@ -347,7 +347,7 @@ namespace KTN
 		ImGui::PopStyleColor(2);
 		ImGui::PopStyleVar();
 	}
-
+	
 	void SceneViewPanel::UIWidget()
 	{
 		KTN_PROFILE_FUNCTION();

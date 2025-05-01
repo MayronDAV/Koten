@@ -28,6 +28,7 @@ namespace KTN
 			virtual void SetStencil(StencilFace p_Face, StencilCompare p_Compare, uint32_t p_CompareMask = 0xFF, uint32_t p_WriteMask = 0xFF, int p_Reference = 1) = 0;
 
 			virtual void Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount) = 0;
+			virtual void DrawIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer) = 0;
 			virtual void DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray) = 0;
 			virtual void DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer) = 0;
 

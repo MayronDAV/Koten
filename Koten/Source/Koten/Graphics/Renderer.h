@@ -12,7 +12,14 @@ namespace KTN
 {
 	enum class RenderType : uint8_t
 	{
-		R2D = 0
+		R2D = 0,
+		Line
+	};
+
+	struct LineWidthControlPoint
+	{
+		float Position = 0.0f; // clamped between 0.0f and 1.0f
+		float Width = 1.0f;
 	};
 
 	struct RenderCommand 
@@ -22,7 +29,7 @@ namespace KTN
 
 		glm::mat4 Transform			= { 1.0f };
 
-		struct 
+		struct Render2DData
 		{
 			RenderType2D Type		= RenderType2D::Quad;
 			Ref<Texture2D> Texture  = nullptr;
@@ -42,6 +49,20 @@ namespace KTN
 			glm::vec2 Offset		= { 0.0f, 0.0f };
 			glm::vec2 Scale			= { 1.0f, 1.0f };
 		} Render2D = {};
+
+		// TODO: Add more options for line rendering (e.g. dashed lines, material system, etc.)
+		struct LineData
+		{	
+			bool Primitive = true;
+
+			float Width = 1.0f;
+
+			glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+			glm::vec3 Start = { 0.0f, 0.0f, 0.0f };
+			glm::vec3 End = { 1.0f, 0.0f, 0.0f };
+
+		} Line = {};
 	};
 
 	struct RenderBeginInfo
