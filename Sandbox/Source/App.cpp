@@ -108,7 +108,7 @@ namespace KTN
 					{
 						glm::mat4 model			= glm::translate(glm::mat4(1.0f), { x, y, 0.0f }) * glm::scale(glm::mat4(1.0f), { m_TileSize, 1.0f });
 						command.Transform		= model;
-						command.SpriteData.Texture = m_WallTexture;
+						command.Render2D.Texture = m_WallTexture;
 
 						Renderer::Submit(command);
 					}
@@ -116,7 +116,7 @@ namespace KTN
 
 				glm::mat4 model					= glm::translate(glm::mat4(1.0f), m_Position);
 				command.Transform				= model;
-				command.SpriteData.Texture		= m_CheckerTexture;
+				command.Render2D.Texture		= m_CheckerTexture;
 
 				Renderer::Submit(command);
 
