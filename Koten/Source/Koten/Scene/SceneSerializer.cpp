@@ -1,6 +1,7 @@
 #include "ktnpch.h"
 #include "SceneSerializer.h"
 #include "Entity.h"
+#include "Koten/Graphics/TextureImporter.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -310,7 +311,15 @@ namespace KTN
 			p_Out << YAML::BeginMap;
 
 			auto& comp = p_Entity.GetComponent<SpriteComponent>();
+			ADD_KEY_VALUE("Type", (int)comp.Type);
 			ADD_KEY_VALUE("Color", comp.Color);
+			ADD_KEY_VALUE("Path", comp.Path);
+			ADD_KEY_VALUE("Thickness", comp.Thickness);
+			ADD_KEY_VALUE("Fade", comp.Fade);
+			ADD_KEY_VALUE("Size", comp.Size);
+			ADD_KEY_VALUE("BySize", comp.BySize);
+			ADD_KEY_VALUE("Offset", comp.Offset);
+			ADD_KEY_VALUE("Scale", comp.Scale);
 
 			p_Out << YAML::EndMap;
 		}
@@ -443,9 +452,31 @@ namespace KTN
 			auto spriteComp = p_Data["SpriteComponent"];
 			if (spriteComp)
 			{
+				auto type = (RenderType2D)spriteComp["Type"].as<int>();
 				auto color = spriteComp["Color"].as<glm::vec4>();
+				auto path = spriteComp["Path"].as<std::string>();
+				auto thickness = spriteComp["Thickness"].as<float>();
+				auto fade = spriteComp["Fade"].as<float>();
+				auto size = spriteComp["Size"].as<glm::vec2>();
+				auto bySize = spriteComp["BySize"].as<bool>();
+				auto offset = spriteComp["Offset"].as<glm::vec2>();
+				auto scale = spriteComp["Scale"].as<glm::vec2>();
 
-				p_Entity.AddComponent<SpriteComponent>(color);
+				auto& comp = p_Entity.AddComponent<SpriteComponent>(color);	
+				comp.Type = type;
+				comp.Path = path;
+				comp.Thickness = thickness;
+				comp.Fade = fade;
+				comp.Size = size;
+				comp.BySize = bySize;
+				comp.Offset = offset;
+				comp.Scale = scale;
+
+				// TODO: Change this when we have projects.
+				if (path != "")
+				{
+					comp.Texture = TextureImporter::LoadTexture2D(path);
+				}
 			}
 		}
 

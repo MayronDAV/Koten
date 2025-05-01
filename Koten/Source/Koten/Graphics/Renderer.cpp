@@ -47,13 +47,12 @@ namespace KTN
 
 	namespace R2D
 	{
-		struct QuadInstanceData
+		struct InstanceData
 		{
 			glm::mat4 Transform;
 			glm::vec4 Color;
-			glm::vec2 UVMin;
-			glm::vec2 UVMax;
-			alignas(16) float TexIndex;
+			glm::vec4 UV;
+			glm::vec4 Others; // Type, TexIndex, Thickness, Fade
 		};
 
 		struct EntityBufferData
@@ -62,7 +61,7 @@ namespace KTN
 			std::vector<int> EntityIDS;
 		};
 
-		struct QuadData
+		struct Data
 		{
 			Ref<Shader> MainShader = nullptr;
 			Ref<DescriptorSet> Set = nullptr;
@@ -71,7 +70,7 @@ namespace KTN
 
 			Ref<VertexArray> VAO = nullptr;
 
-			std::vector<QuadInstanceData> Instances;
+			std::vector<InstanceData> Instances;
 
 			uint32_t TextureSlotIndex = 1;
 			std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
@@ -91,7 +90,7 @@ namespace KTN
 	} // namespace R2D
 
 	static RenderData* s_Data					= nullptr;
-	static R2D::QuadData* s_QuadData			= nullptr;
+	static R2D::Data* s_R2DData					= nullptr;
 
 	void Renderer::Init()
 	{
@@ -107,8 +106,8 @@ namespace KTN
 
 		// R2D
 		{
-			s_QuadData = new R2D::QuadData();
-			s_QuadData->Init();
+			s_R2DData = new R2D::Data();
+			s_R2DData->Init();
 		}
 	}
 
@@ -117,7 +116,7 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		delete s_Data;
-		delete s_QuadData;
+		delete s_R2DData;
 	}
 
 	void Renderer::Clear()
@@ -183,7 +182,7 @@ namespace KTN
 
 		// R2D
 		{
-			s_QuadData->Begin();
+			s_R2DData->Begin();
 		}
 	}
 
@@ -191,25 +190,25 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		auto commandBuffer			= RendererCommand::GetCurrentCommandBuffer();
+		auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 
 		// R2D
 		{
-			s_QuadData->Flush();
+			s_R2DData->Flush();
 		}
 
 		// Final Pass
 		{
 			PipelineSpecification pspec = {};
-			pspec.ColorTargets[0]		= s_Data->RenderTarget;
-			pspec.pShader				= s_Data->FinalPassShader;
-			pspec.SwapchainTarget		= s_Data->RenderTarget == nullptr;
-			pspec.ClearTargets			= true;
-			pspec.DepthTest				= false;
-			pspec.DepthWrite			= false;
-			pspec.DebugName				= "FinalPassPipeline";
+			pspec.ColorTargets[0] = s_Data->RenderTarget;
+			pspec.pShader = s_Data->FinalPassShader;
+			pspec.SwapchainTarget = s_Data->RenderTarget == nullptr;
+			pspec.ClearTargets = true;
+			pspec.DepthTest = false;
+			pspec.DepthWrite = false;
+			pspec.DebugName = "FinalPassPipeline";
 
-			auto pipeline				= Pipeline::Get(pspec);
+			auto pipeline = Pipeline::Get(pspec);
 
 			pipeline->Begin(commandBuffer);
 
@@ -230,8 +229,8 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (p_Command.Type == RenderCommand::DrawType::Quad)
-			s_QuadData->Submit(p_Command);
+		if (p_Command.Type == RenderType::R2D)
+			s_R2DData->Submit(p_Command);
 	}
 
 	Ref<Texture2D> Renderer::GetPickingTexture()
@@ -241,9 +240,9 @@ namespace KTN
 
 	namespace R2D
 	{
-		void QuadData::Init()
+		void Data::Init()
 		{
-			MainShader = Shader::Create("Assets/Shaders/R2D_Quad.glsl");
+			MainShader = Shader::Create("Assets/Shaders/R2D_Shader.glsl");
 			Set = DescriptorSet::Create({ 0, MainShader });
 
 			VAO = VertexArray::Create();
@@ -251,8 +250,8 @@ namespace KTN
 			float vertices[] = {
 				// positions
 				-0.5f, -0.5f, 0.0f,
-					0.5f, -0.5f, 0.0f,
-					0.5f,  0.5f, 0.0f,
+				 0.5f, -0.5f, 0.0f,
+				 0.5f,  0.5f, 0.0f,
 				-0.5f,  0.5f, 0.0f
 			};
 
@@ -280,7 +279,7 @@ namespace KTN
 			}
 		}
 
-		void QuadData::Begin()
+		void Data::Begin()
 		{
 			PipelineSpecification pspec = {};
 			pspec.pShader				= MainShader;
@@ -290,14 +289,14 @@ namespace KTN
 			pspec.ClearTargets			= false;
 			pspec.ResolveTexture		= s_Data->ResolveTexture;
 			pspec.Samples				= s_Data->Samples;
-			pspec.DebugName				= "QuadMainPipeline";
+			pspec.DebugName				= "R2DMainPipeline";
 
 			MainPipeline = Pipeline::Get(pspec);
 
 			StartBatch();
 		}
 
-		void QuadData::StartBatch()
+		void Data::StartBatch()
 		{
 			Instances.clear();
 			TextureSlotIndex = 1;
@@ -306,13 +305,13 @@ namespace KTN
 			EntityBuffer.EntityIDS.clear();
 		}
 
-		void QuadData::FlushAndReset()
+		void Data::FlushAndReset()
 		{
 			Flush();
 			StartBatch();
 		}
 
-		void QuadData::Flush()
+		void Data::Flush()
 		{
 			auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 			auto vp = s_Data->Projection * s_Data->View;
@@ -326,7 +325,7 @@ namespace KTN
 				Set->SetUniform("Camera", "u_ViewProjection", &vp);
 				Set->Upload(commandBuffer);
 
-				Set->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(QuadInstanceData));
+				Set->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(InstanceData));
 				Set->Upload(commandBuffer);
 
 				Set->SetTexture("u_Textures", TextureSlots.data(), (uint32_t)TextureSlots.size());
@@ -355,7 +354,7 @@ namespace KTN
 					pspec.DepthWrite = false;
 					pspec.ClearTargets = false;
 					pspec.Samples = 1;
-					pspec.DebugName = "QuadPickingPipeline";
+					pspec.DebugName = "R2DPickingPipeline";
 
 					auto pipeline = Pipeline::Get(pspec);
 
@@ -366,7 +365,7 @@ namespace KTN
 					PickingSet->SetUniform("Camera", "u_ViewProjection", &vp);
 					PickingSet->Upload(commandBuffer);
 
-					PickingSet->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(QuadInstanceData));
+					PickingSet->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(InstanceData));
 					PickingSet->Upload(commandBuffer);
 
 					size_t bufferSize = sizeof(int) + sizeof(int) * EntityBuffer.EntityIDS.size();
@@ -385,7 +384,7 @@ namespace KTN
 			}
 		}
 			
-		void QuadData::Submit(const RenderCommand& p_Command)
+		void Data::Submit(const RenderCommand& p_Command)
 		{
 			if (Instances.size() >= (size_t)MaxInstances)
 				FlushAndReset();
@@ -394,12 +393,12 @@ namespace KTN
 			EntityBuffer.Count++;
 
 			float textureIndex = 0.0f; // White texture
-			if (p_Command.SpriteData.Texture)
+			if (p_Command.Render2D.Texture)
 			{
 				for (uint32_t i = 1; i < TextureSlotIndex; i++)
 				{
 					// TODO: compare texture UUIDs
-					if (*TextureSlots[i].get() == *p_Command.SpriteData.Texture.get())
+					if (*TextureSlots[i].get() == *p_Command.Render2D.Texture.get())
 					{
 						textureIndex = (float)i;
 						break;
@@ -412,45 +411,46 @@ namespace KTN
 						FlushAndReset();
 
 					textureIndex = (float)TextureSlotIndex;
-					TextureSlots[TextureSlotIndex] = p_Command.SpriteData.Texture;
+					TextureSlots[TextureSlotIndex] = p_Command.Render2D.Texture;
 					TextureSlotIndex++;
 				}
 			}
 
-			QuadInstanceData data = {};
+			InstanceData data = {};
 			data.Transform = p_Command.Transform;
-			data.Color = p_Command.SpriteData.Color;
-			data.TexIndex = textureIndex;
-			data.UVMin = { 0.0f, 0.0f };
-			data.UVMax = { 1.0f, 1.0f };
+			data.Color = p_Command.Render2D.Color;
+			data.UV = { 0.0f, 0.0f, 1.0f, 1.0f };
+			data.Others.x = p_Command.Render2D.Type == RenderType2D::Quad ? 0.0f : 1.0f; // Type
+			data.Others.y = textureIndex; // Texture Index
+			data.Others.z = p_Command.Render2D.Thickness; // Thickness
+			data.Others.w = p_Command.Render2D.Fade; // Fade
 
-			if (p_Command.SpriteData.Texture)
+			if (p_Command.Render2D.Texture)
 			{
-				auto scale = p_Command.SpriteData.Scale;
-				auto offset = p_Command.SpriteData.Offset;
+				auto scale = p_Command.Render2D.Scale;
+				auto offset = p_Command.Render2D.Offset;
 				glm::vec2 size;
-				if (p_Command.SpriteData.Size.x == 0.0f && p_Command.SpriteData.Size.y == 0.0f)
+				if (p_Command.Render2D.Size.x == 0.0f && p_Command.Render2D.Size.y == 0.0f)
 				{
-					size = { p_Command.SpriteData.Texture->GetWidth(), p_Command.SpriteData.Texture->GetHeight() };
+					size = { p_Command.Render2D.Texture->GetWidth(), p_Command.Render2D.Texture->GetHeight() };
 				}
 				else
-					size = p_Command.SpriteData.Size;
+					size = p_Command.Render2D.Size;
 
 				float customTileSizeX = (scale.x == 0.0f) ? 1.0f : scale.x;
 				float customTileSizeY = (scale.y == 0.0f) ? 1.0f : scale.y;
 
 				glm::vec2 min = {
-					(p_Command.SpriteData.BySize ? offset.x * size.x : offset.x) / p_Command.SpriteData.Texture->GetWidth(),
-					(p_Command.SpriteData.BySize ? offset.y * size.y : offset.y) / p_Command.SpriteData.Texture->GetHeight()
+					(p_Command.Render2D.BySize ? offset.x * size.x : offset.x) / p_Command.Render2D.Texture->GetWidth(),
+					(p_Command.Render2D.BySize ? offset.y * size.y : offset.y) / p_Command.Render2D.Texture->GetHeight()
 				};
 
 				glm::vec2 max = {
-					(p_Command.SpriteData.BySize ? (offset.x + customTileSizeX) * size.x : offset.x + (customTileSizeX * size.x)) / p_Command.SpriteData.Texture->GetWidth(),
-					(p_Command.SpriteData.BySize ? (offset.y + customTileSizeY) * size.y : offset.y + (customTileSizeY * size.x)) / p_Command.SpriteData.Texture->GetHeight()
+					(p_Command.Render2D.BySize ? (offset.x + customTileSizeX) * size.x : offset.x + (customTileSizeX * size.x)) / p_Command.Render2D.Texture->GetWidth(),
+					(p_Command.Render2D.BySize ? (offset.y + customTileSizeY) * size.y : offset.y + (customTileSizeY * size.x)) / p_Command.Render2D.Texture->GetHeight()
 				};
 
-				data.UVMin = min;
-				data.UVMax = max;
+				data.UV = glm::vec4(min, max);
 			}
 
 			Instances.push_back(data);

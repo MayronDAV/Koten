@@ -10,22 +10,28 @@
 
 namespace KTN
 {
+	enum class RenderType : uint8_t
+	{
+		R2D = 0
+	};
+
 	struct RenderCommand 
 	{
-		int EntityID = -1;
-		enum class DrawType 
-		{
-			Quad = 0,
-			Circle
-		};
-		DrawType Type = DrawType::Quad;
+		int EntityID				= -1;
+		RenderType Type				= RenderType::R2D;
 
 		glm::mat4 Transform			= { 1.0f };
 
 		struct 
 		{
+			RenderType2D Type		= RenderType2D::Quad;
 			Ref<Texture2D> Texture  = nullptr;
 			glm::vec4 Color			= { 1.0f, 1.0f, 1.0f, 1.0f };
+
+			// Circle
+
+			float Thickness			= 1.0f;
+			float Fade				= 0.005f; // 0.0f = no fade, 1.0f = full fade
 
 			// UV Options
 
@@ -35,7 +41,7 @@ namespace KTN
 			bool BySize				= true;
 			glm::vec2 Offset		= { 0.0f, 0.0f };
 			glm::vec2 Scale			= { 1.0f, 1.0f };
-		} SpriteData = {};
+		} Render2D = {};
 	};
 
 	struct RenderBeginInfo

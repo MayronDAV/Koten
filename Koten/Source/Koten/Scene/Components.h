@@ -42,15 +42,26 @@ namespace KTN
 
 	struct SpriteComponent
 	{
-		glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		Ref<Texture2D> Texture = nullptr;
+		RenderType2D Type		= RenderType2D::Quad;
+		std::string Path		= "";
+		Ref<Texture2D> Texture	= nullptr;
+		glm::vec4 Color			= { 1.0f, 1.0f, 1.0f, 1.0f };
+		float Thickness			= 1.0f;
+		float Fade				= 0.005f;
+
+		glm::vec2 Size			= { 0.0f, 0.0f };
+		// [true] if you want to pass the tile coord as a multiplier of the tile size
+		// [false] if you want to pass the actual coord directly
+		bool BySize				= true;
+		glm::vec2 Offset		= { 0.0f, 0.0f };
+		glm::vec2 Scale			= { 1.0f, 1.0f };
 
 		SpriteComponent() = default;
 		SpriteComponent(const SpriteComponent&) = default;
-		SpriteComponent(const glm::vec4& p_Color)
-			: Color(p_Color) {}
-		SpriteComponent(const glm::vec4& p_Color, const Ref<Texture2D>& p_Texture)
-			: Color(p_Color), Texture(p_Texture) {}
+		SpriteComponent(const glm::vec4& p_Color, RenderType2D p_Type = RenderType2D::Quad, float p_Thickness = 1.0f, float p_Fade = 0.005f)
+			: Color(p_Color), Type(p_Type), Thickness(p_Thickness), Fade(p_Fade) {}
+		SpriteComponent(const glm::vec4& p_Color, const Ref<Texture2D>& p_Texture, RenderType2D p_Type = RenderType2D::Quad, float p_Thickness = 1.0f, float p_Fade = 0.005f)
+			: Color(p_Color), Texture(p_Texture), Type(p_Type), Thickness(p_Thickness), Fade(p_Fade) {}
 	};
 
 	struct CameraComponent

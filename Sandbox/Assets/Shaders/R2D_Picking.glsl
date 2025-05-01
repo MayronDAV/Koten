@@ -3,7 +3,14 @@
 
 layout(location = 0) in vec3 a_Position;
 
-layout(location = 0) out flat int v_EntityID;
+struct VertexData
+{
+    vec3 Position;
+    vec2 CircleData;
+};
+layout(location = 0) out VertexData Output;
+layout(location = 2) out flat float v_Type;
+layout(location = 3) out flat int v_EntityID;
 
 layout(std430, set = 0, binding = 0) uniform Camera
 {
@@ -14,11 +21,10 @@ layout(std430, set = 0, binding = 0) uniform Camera
 #define MAX_INSTANCES 5000
 struct InstanceData
 {
-    mat4  Transform;
-    vec4  Color;
-    vec2 UVMin;
-    vec2 UVMax;
-    float TexIndex;
+    mat4 Transform;
+    vec4 Color;
+    vec4 UV;
+    vec4 Others;
 };
 layout(std430, set = 0, binding = 1) uniform u_Instances
 {
@@ -35,6 +41,10 @@ layout(std430, set = 0, binding = 2) buffer EntityBuffer
 
 void main()
 {
+    Output.Position = a_Position;
+    Output.CircleData = vec2(Instances[gl_InstanceIndex].Others.zw);
+    v_Type = Instances[gl_InstanceIndex].Others.x;
+
     int count = b_EntityBuffer.Count;
     int isValid = int(gl_InstanceIndex < count);
     v_EntityID = isValid * b_EntityBuffer.EnttIDs[gl_InstanceIndex] + (1 - isValid) * (-1); // -1 is invalid
@@ -49,11 +59,31 @@ void main()
 
 layout(location = 0) out int o_Color;
 
-layout(location = 0) in flat int v_EntityID;
+struct VertexData
+{
+    vec3 Position;
+    vec2 CircleData;
+};
+layout(location = 0) in VertexData Input;
+layout(location = 2) in flat float v_Type;
+layout(location = 3) in flat int v_EntityID;
 
 
 
 void main()
 {
+    if (v_Type == 1.0)
+    {
+        float thickness = Input.CircleData.x;
+        float fade = Input.CircleData.y;
+
+        // Calculate distance and fill circle with white
+        float distance = 1.0 - length(Input.Position * 2.0);
+        float circle = smoothstep(0.0, fade, distance) * smoothstep(thickness + fade, thickness, distance);
+
+        if (circle <= 0.1)
+            discard;
+    }
+
     o_Color = v_EntityID;
 }

@@ -71,7 +71,8 @@ namespace KTN
 					{ m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
 				};
 
-				if (Engine::GetSettings().MousePicking && !ImGui::IsDragDropActive())
+				bool imguizmo = (m_GuizmoType != 0 && ImGuizmo::IsOver()) || ImGuizmo::IsUsing();
+				if (Engine::GetSettings().MousePicking && !ImGui::IsDragDropActive() && !imguizmo)
 				{
 					auto [mx, my] = ImGui::GetMousePos();
 					mx -= viewportBounds[0].x;
@@ -84,7 +85,7 @@ namespace KTN
 					if ((mouse.x >= 0 && mouse.x < (int)m_Width) &&
 						(mouse.y >= 0 && mouse.y < (int)m_Height))
 					{
-						if (Input::IsMouseButtonPressed(Mouse::Button_Left) && !ImGuizmo::IsUsing())
+						if (Input::IsMouseButtonPressed(Mouse::Button_Left))
 						{
 							auto texture = Renderer::GetPickingTexture();
 							int id = static_cast<int>((intptr_t)RendererCommand::ReadPixel(texture, mouse.x, mouse.y));

@@ -147,10 +147,18 @@ namespace KTN
 			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
 			{
 				RenderCommand command = {};
+				command.Type = RenderType::R2D;
 				command.EntityID = (int)p_Entity;
 				command.Transform = p_Transform.GetWorldMatrix();
-				command.SpriteData.Color = p_Sprite.Color;
-				command.SpriteData.Texture = p_Sprite.Texture;
+				command.Render2D.Type = p_Sprite.Type;
+				command.Render2D.Thickness = p_Sprite.Thickness;
+				command.Render2D.Fade = p_Sprite.Fade;
+				command.Render2D.Color = p_Sprite.Color;
+				command.Render2D.Texture = p_Sprite.Texture;
+				command.Render2D.Size = p_Sprite.Size;
+				command.Render2D.BySize = p_Sprite.BySize;
+				command.Render2D.Offset = p_Sprite.Offset;
+				command.Render2D.Scale = p_Sprite.Scale;
 
 				Renderer::Submit(command);
 			});
@@ -234,11 +242,19 @@ namespace KTN
 			m_Registry.view<TransformComponent, SpriteComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
 			{
-				RenderCommand command		= {};
-				command.EntityID			= (int)p_Entity;
-				command.Transform			= p_Transform.GetWorldMatrix();
-				command.SpriteData.Color	= p_Sprite.Color;
-				command.SpriteData.Texture  = p_Sprite.Texture;
+				RenderCommand command = {};
+				command.Type = RenderType::R2D;
+				command.EntityID = (int)p_Entity;
+				command.Transform = p_Transform.GetWorldMatrix();
+				command.Render2D.Type = p_Sprite.Type;
+				command.Render2D.Thickness = p_Sprite.Thickness;
+				command.Render2D.Fade = p_Sprite.Fade;
+				command.Render2D.Color = p_Sprite.Color;
+				command.Render2D.Texture = p_Sprite.Texture;
+				command.Render2D.Size = p_Sprite.Size;
+				command.Render2D.BySize = p_Sprite.BySize;
+				command.Render2D.Offset = p_Sprite.Offset;
+				command.Render2D.Scale = p_Sprite.Scale;
 
 				Renderer::Submit(command);
 			});

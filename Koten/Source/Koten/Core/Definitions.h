@@ -245,6 +245,12 @@ namespace KTN
 		DECR_WRAP
 	};
 
+	enum class RenderType2D : uint8_t
+	{
+		Quad = 0,
+		Circle
+	}; 
+
 	#pragma endregion
 
 	#pragma region Structs

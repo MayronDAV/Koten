@@ -180,33 +180,88 @@ namespace KTN
 		void ComponentDrawView<SpriteComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<SpriteComponent>("Sprite", p_Entity,
-			[](SpriteComponent& p_Sprite)
+			[&](SpriteComponent& p_Sprite)
 			{
-				ImGui::Spacing();
-				UI::ColorEdit4("Color", p_Sprite.Color, 1.0f);
+				
+				int currentItem = (int)p_Sprite.Type;
+				static const char* items[] = { "Quad", "Circle" };
+				static const int itemsCount = IM_ARRAYSIZE(items);
 
-				// TODO: Show the name of the texture loaded
-				if (ImGui::Button("Texture"))
+				if (UI::Combo("Type", items[currentItem], items, itemsCount, &currentItem, -1))
 				{
-					std::string path = "";
-					if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
-					{
-						p_Sprite.Texture = TextureImporter::LoadTexture2D(path);
-					}
+					p_Sprite.Type = (RenderType2D)currentItem;
 				}
 
-				if (ImGui::BeginDragDropTarget())
+				UI::ColorEdit4("Color", p_Sprite.Color, 1.0f);
+
+				ImGui::Spacing();
+
+				if (p_Sprite.Type == RenderType2D::Circle)
 				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					ImGui::InputFloat("Thickness", &p_Sprite.Thickness);
+					ImGui::InputFloat("Fade", &p_Sprite.Fade);
+				}
+
+				{
+					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+					if (ImGui::Button(ICON_MDI_CANCEL))
 					{
-						const wchar_t* path = (const wchar_t*)payload->Data;
-						auto filepath = std::filesystem::path(path);
-						if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
+						p_Sprite.Texture = nullptr;
+						p_Sprite.Path = "";
+					}
+
+					ImGui::SameLine();
+
+					std::string text = p_Sprite.Path.empty() ? "Texture" : p_Sprite.Path.c_str();
+					if (ImGui::Button(text.c_str()))
+					{
+						std::string path = "";
+						if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
 						{
-							p_Sprite.Texture = TextureImporter::LoadTexture2D(filepath.string());
+							p_Sprite.Texture = TextureImporter::LoadTexture2D(path);
+							p_Sprite.Path = path;
 						}
 					}
-					ImGui::EndDragDropTarget();
+
+					ImGui::PopStyleVar();
+
+					if (ImGui::BeginDragDropTarget())
+					{
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+						{
+							const wchar_t* path = (const wchar_t*)payload->Data;
+							auto filepath = std::filesystem::path(path);
+							if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
+							{
+								p_Sprite.Texture = TextureImporter::LoadTexture2D(filepath.string());
+								p_Sprite.Path = filepath.string();
+							}
+						}
+						ImGui::EndDragDropTarget();
+					}
+
+					ImGui::Spacing();
+				}
+			
+				const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen
+					| ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_Framed |
+					ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_FramePadding;
+
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 4, 4 });
+				bool open = ImGui::TreeNodeEx("UV", treeNodeFlags);
+				ImGui::PopStyleVar();
+
+				if (open)
+				{
+					ImGui::InputFloat2("Size", &p_Sprite.Size[0], "%.2f");
+					UI::Tooltip("Sprite size, if 0.0 the texture width and height will be used");
+					ImGui::Checkbox("By Size", &p_Sprite.BySize);
+					UI::Tooltip("If true, the tile coord will be multiplied by the size");
+					ImGui::InputFloat2("Offset", &p_Sprite.Offset[0], "%.2f");
+					ImGui::InputFloat2("Scale", &p_Sprite.Scale[0], "%.2f");
+
+					ImGui::TreePop();
 				}
 			});
 		}

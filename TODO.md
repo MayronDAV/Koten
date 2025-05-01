@@ -17,6 +17,7 @@ All code tasks are listed here or should be listed here
 - [ ] Add a way to use multiple cameras with different render targets (primary is only one).
 - [ ] Add a way to change the imgui theme.
 - [ ] Add a game view panel.
+- [X] Add a way to save and load textures.
 
 ## Bugs
 - [X] Fix rotation of entities in box2D.

@@ -23,11 +23,19 @@ Entities:
     TagComponent:
       Tag: Square
     TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
+      Translation: [-0.69411725, 1.4901161e-08, 0.3010888]
+      Rotation: [0, -0, 0]
+      Scale: [0.5, 1, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: Assets\Textures\RPGpack_sheet.png
+      Thickness: 1
+      Fade: 0.005
+      Size: [64, 64]
+      BySize: true
+      Offset: [0.5, 2]
+      Scale: [1, 2]
   - Entity: 14718375011947609537
     TagComponent:
       Tag: Square
@@ -36,7 +44,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 14329399193143605203
     TagComponent:
       Tag: Square
@@ -45,7 +61,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 17464339883813707781
     TagComponent:
       Tag: Square
@@ -54,7 +78,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 6231509702609372590
     TagComponent:
       Tag: Square
@@ -63,16 +95,32 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 4726812126280913968
     TagComponent:
       Tag: Square
     TransformComponent:
       Translation: [1, 0, 0]
-      Rotation: [0, 0, 0]
+      Rotation: [0, -0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 15921589041929318763
     TagComponent:
       Tag: Square
@@ -81,7 +129,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 8760118643019860853
     TagComponent:
       Tag: Square
@@ -90,7 +146,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 16562578832230348317
     TagComponent:
       Tag: Square
@@ -99,7 +163,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 14470944171828874222
     TagComponent:
       Tag: Square
@@ -108,7 +180,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 15043150270711483075
     TagComponent:
       Tag: Square
@@ -117,16 +197,32 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 12574990810542669002
     TagComponent:
       Tag: Square
     TransformComponent:
       Translation: [2, 1, 0]
-      Rotation: [0, 0, 0]
+      Rotation: [0, -0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
-      Color: [1, 1, 0, 1]
+      Type: 0
+      Color: [1, 1, 1, 1]
+      Path: Assets\Textures\wall.jpg
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 16431713904048092266
     TagComponent:
       Tag: Square
@@ -135,7 +231,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 15897534195576792778
     TagComponent:
       Tag: Square
@@ -144,7 +248,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 16223289179794700981
     TagComponent:
       Tag: Square
@@ -153,7 +265,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 12075007633000967989
     TagComponent:
       Tag: Square
@@ -162,7 +282,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 10667183586200005185
     TagComponent:
       Tag: Square
@@ -171,7 +299,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 15547390782567183298
     TagComponent:
       Tag: Square
@@ -180,7 +316,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 12715578858855261235
     TagComponent:
       Tag: Square
@@ -189,7 +333,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 18021703890221866297
     TagComponent:
       Tag: Square
@@ -198,7 +350,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 3597844719408492027
     TagComponent:
       Tag: Square
@@ -207,7 +367,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 13619714890328200866
     TagComponent:
       Tag: Square
@@ -216,7 +384,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 12246726734215021146
     TagComponent:
       Tag: Square
@@ -225,7 +401,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 14736412518601642704
     TagComponent:
       Tag: Square
@@ -234,13 +418,29 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
+      Type: 0
       Color: [1, 1, 0, 1]
+      Path: ""
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
   - Entity: 17106511639760153886
     TagComponent:
       Tag: Square
     TransformComponent:
       Translation: [4, 4, 0]
-      Rotation: [0, 0, 0]
+      Rotation: [0, -0, 0]
       Scale: [0.9, 0.9, 1]
     SpriteComponent:
-      Color: [1, 1, 0, 1]
+      Type: 0
+      Color: [0, 1, 0.8744185, 1]
+      Path: Assets\Textures\checkerboard.png
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
