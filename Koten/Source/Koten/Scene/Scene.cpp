@@ -23,7 +23,7 @@ namespace KTN
 		};
 
 		using AllComponents =
-			ComponentGroup<HierarchyComponent, TransformComponent, SpriteComponent,
+			ComponentGroup<HierarchyComponent, TransformComponent, SpriteComponent, LineRendererComponent,
 			CameraComponent, Rigidbody2DComponent, BoxCollider2DComponent>;
 
 		template<typename... Component>
@@ -54,6 +54,7 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		AddDependency<SpriteComponent, TransformComponent>(m_Registry);
+		AddDependency<LineRendererComponent, TransformComponent>(m_Registry);
 		AddDependency<CameraComponent, TransformComponent>(m_Registry);
 		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
 		AddDependency<BoxCollider2DComponent, Rigidbody2DComponent>(m_Registry);
@@ -143,64 +144,42 @@ namespace KTN
 
 		Renderer::Begin(info);
 		{
-
-			m_Registry.view<TransformComponent, SpriteComponent>().each(
-			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
+			m_Registry.view<TransformComponent>().each(
+			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
 				RenderCommand command = {};
-				command.Type = RenderType::R2D;
 				command.EntityID = (int)p_Entity;
 				command.Transform = p_Transform.GetWorldMatrix();
-				command.Render2D.Type = p_Sprite.Type;
-				command.Render2D.Thickness = p_Sprite.Thickness;
-				command.Render2D.Fade = p_Sprite.Fade;
-				command.Render2D.Color = p_Sprite.Color;
-				command.Render2D.Texture = p_Sprite.Texture;
-				command.Render2D.Size = p_Sprite.Size;
-				command.Render2D.BySize = p_Sprite.BySize;
-				command.Render2D.Offset = p_Sprite.Offset;
-				command.Render2D.Scale = p_Sprite.Scale;
 
-				Renderer::Submit(command);
+				auto sprite = m_Registry.try_get<SpriteComponent>(p_Entity);
+				if (sprite)
+				{
+					command.Type = RenderType::R2D;
+					command.Render2D.Type = sprite->Type;
+					command.Render2D.Thickness = sprite->Thickness;
+					command.Render2D.Fade = sprite->Fade;
+					command.Render2D.Color = sprite->Color;
+					command.Render2D.Texture = sprite->Texture;
+					command.Render2D.Size = sprite->Size;
+					command.Render2D.BySize = sprite->BySize;
+					command.Render2D.Offset = sprite->Offset;
+					command.Render2D.Scale = sprite->Scale;
 
-				// TEMPORARY, for test
+					Renderer::Submit(command);
+				}
 
-				glm::vec3 vertices[] = {
-					glm::vec3(-0.5f, -0.5f, 0.0f),
-					glm::vec3(0.5f, -0.5f, 0.0f),
-					glm::vec3(0.5f,  0.5f, 0.0f),
-					glm::vec3(-0.5f,  0.5f, 0.0f)
-				};
+				auto line = m_Registry.try_get<LineRendererComponent>(p_Entity);
+				if (line)
+				{
+					command.Type = RenderType::Line;
+					command.Line.Primitive = line->Primitive;
+					command.Line.Color = line->Color;
+					command.Line.Width = line->Width;
+					command.Line.Start = line->Start;
+					command.Line.End = line->End;
 
-				command.EntityID = -1;
-				command.Type = RenderType::Line;
-				command.Line.Primitive = true;
-				command.Line.Width = 4.0f;
-				command.Line.Color = { 1.0f, 0.0f, 1.0f, 1.0f };
-
-				command.Line.Start = vertices[0];
-				command.Line.End = vertices[1];
-				Renderer::Submit(command);
-
-				command.Line.Start = vertices[1];
-				command.Line.End = vertices[2];
-				Renderer::Submit(command);
-
-				command.Line.Start = vertices[2];
-				command.Line.End = vertices[3];
-				Renderer::Submit(command);
-
-				command.Line.Start = vertices[3];
-				command.Line.End = vertices[0];
-				Renderer::Submit(command);
-
-				command.Line.Start = vertices[1];
-				command.Line.End = vertices[3];
-				Renderer::Submit(command);
-
-				command.Line.Start = vertices[0];
-				command.Line.End = vertices[2];
-				Renderer::Submit(command);
+					Renderer::Submit(command);
+				}
 			});
 		}
 		Renderer::End();
@@ -279,24 +258,42 @@ namespace KTN
 		
 		Renderer::Begin(info);
 		{
-			m_Registry.view<TransformComponent, SpriteComponent>().each(
-			[&](auto p_Entity, const TransformComponent& p_Transform, const SpriteComponent& p_Sprite)
+			m_Registry.view<TransformComponent>().each(
+			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
 				RenderCommand command = {};
-				command.Type = RenderType::R2D;
 				command.EntityID = (int)p_Entity;
 				command.Transform = p_Transform.GetWorldMatrix();
-				command.Render2D.Type = p_Sprite.Type;
-				command.Render2D.Thickness = p_Sprite.Thickness;
-				command.Render2D.Fade = p_Sprite.Fade;
-				command.Render2D.Color = p_Sprite.Color;
-				command.Render2D.Texture = p_Sprite.Texture;
-				command.Render2D.Size = p_Sprite.Size;
-				command.Render2D.BySize = p_Sprite.BySize;
-				command.Render2D.Offset = p_Sprite.Offset;
-				command.Render2D.Scale = p_Sprite.Scale;
 
-				Renderer::Submit(command);
+				auto sprite = m_Registry.try_get<SpriteComponent>(p_Entity);
+				if (sprite)
+				{
+					command.Type = RenderType::R2D;
+					command.Render2D.Type = sprite->Type;
+					command.Render2D.Thickness = sprite->Thickness;
+					command.Render2D.Fade = sprite->Fade;
+					command.Render2D.Color = sprite->Color;
+					command.Render2D.Texture = sprite->Texture;
+					command.Render2D.Size = sprite->Size;
+					command.Render2D.BySize = sprite->BySize;
+					command.Render2D.Offset = sprite->Offset;
+					command.Render2D.Scale = sprite->Scale;
+
+					Renderer::Submit(command);
+				}
+
+				auto line = m_Registry.try_get<LineRendererComponent>(p_Entity);
+				if (line)
+				{
+					command.Type = RenderType::Line;
+					command.Line.Primitive = line->Primitive;
+					command.Line.Color = line->Color;
+					command.Line.Width = line->Width;
+					command.Line.Start = line->Start;
+					command.Line.End = line->End;
+
+					Renderer::Submit(command);
+				}
 			});
 		}
 		Renderer::End();

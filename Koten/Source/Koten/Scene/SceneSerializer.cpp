@@ -325,6 +325,27 @@ namespace KTN
 		}
 
 		template<>
+		void ComponentSerializeIfExist<LineRendererComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<LineRendererComponent>())
+				return;
+
+			p_Out << YAML::Key << "LineRendererComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<LineRendererComponent>();
+			ADD_KEY_VALUE("Color", comp.Color);
+			ADD_KEY_VALUE("Width", comp.Width);
+			ADD_KEY_VALUE("Primitive", comp.Primitive);
+			ADD_KEY_VALUE("Start", comp.Start);
+			ADD_KEY_VALUE("End", comp.End);
+
+			p_Out << YAML::EndMap;
+		}
+
+		template<>
 		void ComponentSerializeIfExist<Rigidbody2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
@@ -478,6 +499,24 @@ namespace KTN
 					comp.Texture = TextureImporter::LoadTexture2D(path);
 				}
 			}
+		}
+		
+
+		template<>
+		void ComponentDeserializeIfExist<LineRendererComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto lineComp = p_Data["LineRendererComponent"];
+			if (!lineComp) return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<LineRendererComponent>();
+
+			comp.Color = lineComp["Color"].as<glm::vec4>();
+			comp.Width = lineComp["Width"].as<float>();
+			comp.Primitive = lineComp["Primitive"].as<bool>();
+			comp.Start = lineComp["Start"].as<glm::vec3>();
+			comp.End = lineComp["End"].as<glm::vec3>();
 		}
 
 		template<>

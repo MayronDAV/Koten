@@ -23,7 +23,7 @@ namespace KTN
 		static void BeginDockspace(bool p_MenuBar)
 		{
 			KTN_PROFILE_FUNCTION();
-
+			
 			static bool opt_fullscreen = true;
 			static bool opt_padding = false;
 			static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
@@ -55,7 +55,7 @@ namespace KTN
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 1.0f });
 			if (!opt_padding)
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-			ImGui::Begin("SandboxDockspace", nullptr, window_flags);
+			ImGui::Begin("EditorDockspace", nullptr, window_flags);
 			if (!opt_padding)
 				ImGui::PopStyleVar();
 			ImGui::PopStyleColor(); // windowBg
@@ -71,7 +71,7 @@ namespace KTN
 				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 			}
 		}
-
+		
 		static void EndDockspace()
 		{
 			KTN_PROFILE_FUNCTION();
@@ -90,7 +90,6 @@ namespace KTN
 			auto& settings = Engine::GetSettings();
 
 			{
-				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
 				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
 				file.Rewrite();
 			}
@@ -123,7 +122,7 @@ namespace KTN
 			panel->SetContext(m_ActiveScene);
 		}
 	}
-
+	
 	void Editor::OnAttach()
 	{
 		KTN_PROFILE_FUNCTION();

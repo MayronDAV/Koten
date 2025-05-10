@@ -64,6 +64,19 @@ namespace KTN
 			: Color(p_Color), Texture(p_Texture), Type(p_Type), Thickness(p_Thickness), Fade(p_Fade) {}
 	};
 
+	struct LineRendererComponent
+	{
+		glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		float Width = 1.0f;
+		bool Primitive = true;
+
+		glm::vec3 Start = { -0.5f, 0.0f, 0.0f };
+		glm::vec3 End = { 0.5f, 0.0f, 0.0f };
+
+		LineRendererComponent() = default;
+		LineRendererComponent(const LineRendererComponent&) = default;
+	};
+
 	struct CameraComponent
 	{
 		SceneCamera Camera;
@@ -126,6 +139,6 @@ namespace KTN
 		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
 
-	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent
+	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent
 
 } // namespace KTN

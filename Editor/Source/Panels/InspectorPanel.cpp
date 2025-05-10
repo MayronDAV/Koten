@@ -12,7 +12,7 @@ namespace KTN
 {
 	namespace
 	{
-		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, Rigidbody2DComponent, BoxCollider2DComponent
+		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent
 
 		template <typename Component>
 		void ComponentDrawView(entt::registry& p_Registry, Entity p_Entity) {}
@@ -267,6 +267,26 @@ namespace KTN
 		}
 
 		template <>
+		void ComponentDrawView<LineRendererComponent>(entt::registry& p_Registry, Entity p_Entity)
+		{
+			DrawComponent<LineRendererComponent>("Line Renderer", p_Entity,
+			[](LineRendererComponent& p_Line)
+			{
+				ImGui::Checkbox("Primitive", &p_Line.Primitive);
+				ImGui::InputFloat("Width", &p_Line.Width);
+				UI::ColorEdit4("Color", p_Line.Color, 1.0f);
+
+				glm::vec3 start = p_Line.Start;
+				glm::vec3 end = p_Line.End;
+				if (UI::DragFloat3("Start", start))
+					p_Line.Start = start;
+				if (UI::DragFloat3("End", end))
+					p_Line.End = end;
+
+			});
+		}
+
+		template <>
 		void ComponentDrawView<Rigidbody2DComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<Rigidbody2DComponent>("Rigidbody2D", p_Entity,
@@ -366,6 +386,7 @@ namespace KTN
 					DisplayComponentEntry<TransformComponent>("Transform", selectedEntt);
 					DisplayComponentEntry<CameraComponent>("Camera", selectedEntt);
 					DisplayComponentEntry<SpriteComponent>("Sprite", selectedEntt);
+					DisplayComponentEntry<LineRendererComponent>("Line Renderer", selectedEntt);
 					DisplayComponentEntry<Rigidbody2DComponent>("Rigidbody2D", selectedEntt);
 					DisplayComponentEntry<BoxCollider2DComponent>("BoxCollider2D", selectedEntt);
 

@@ -34,7 +34,7 @@ namespace KTN
 			RenderType2D Type		= RenderType2D::Quad;
 			Ref<Texture2D> Texture  = nullptr;
 			glm::vec4 Color			= { 1.0f, 1.0f, 1.0f, 1.0f };
-
+			
 			// Circle
 
 			float Thickness			= 1.0f;

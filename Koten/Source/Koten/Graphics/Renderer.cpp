@@ -6,7 +6,6 @@
 #include "Koten/Graphics/RendererCommand.h"
 
 
-
 namespace KTN
 {
 	namespace
@@ -101,20 +100,24 @@ namespace KTN
 	{
 		struct InstanceData
 		{
-			glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-			glm::vec4 Start = { 0.0f, 0.0f, 0.0f, 1.0f };
-			glm::vec4 End = { 1.0f, 0.0f, 0.0f, 1.0f };
-			alignas(16) float Width = 1.0f;
+			glm::mat4 Start;
+			glm::mat4 End;
+			glm::vec4 Color;
+			alignas(16) float Width;
 		};
 
 		struct Data
 		{
-			Ref<Shader> MainShader = nullptr;
-			Ref<DescriptorSet> Set = nullptr;
+			Ref<Shader> PrimitiveShader = nullptr;
+			Ref<DescriptorSet> PrimitiveSet = nullptr;
+
+			Ref<Shader> NonPrimitiveShader = nullptr;
+			Ref<DescriptorSet> NonPrimitiveSet = nullptr;
+
 			Ref<IndirectBuffer> Buffer = nullptr;
 
 			// instances per width
-			std::unordered_map<float, std::vector<InstanceData>> Instances;
+			std::unordered_map<float, std::pair<bool, std::vector<InstanceData>>> Instances;
 
 			void Init();
 			void Begin();
@@ -521,8 +524,11 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION();
 
-			MainShader = Shader::Create("Assets/Shaders/PrimitiveLine.glsl");
-			Set = DescriptorSet::Create({ 0, MainShader });
+			PrimitiveShader = Shader::Create("Assets/Shaders/PrimitiveLine.glsl");
+			PrimitiveSet = DescriptorSet::Create({ 0, PrimitiveShader });
+
+			NonPrimitiveShader = Shader::Create("Assets/Shaders/NonPrimitiveLine.glsl");
+			NonPrimitiveSet = DescriptorSet::Create({ 0, NonPrimitiveShader });
 
 			Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
 		}
@@ -559,23 +565,24 @@ namespace KTN
 			auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 			auto vp = s_Data->Projection * s_Data->View;
 
-			for (auto& [width, instances] : Instances)
+			for (auto& [width, data] : Instances)
 			{
+				auto& [primitive, instances] = data;
 				if (instances.empty())
 					continue;
 
 				PipelineSpecification pspec = {};
-				pspec.pShader = MainShader;
+				pspec.pShader = primitive ? PrimitiveShader : NonPrimitiveShader;
 				pspec.TransparencyEnabled = false;
 				pspec.ColorTargets[0] = s_Data->MainTexture;
 				pspec.DepthTarget = s_Data->MainDepthTexture;
 				pspec.ClearTargets = false;
 				pspec.ResolveTexture = s_Data->ResolveTexture;
 				pspec.Samples = 1;
-				pspec.LineWidth = width;
+				pspec.LineWidth = primitive ? width : 1.0f;
 				pspec.DepthWrite = false;
 				pspec.DepthTest = false;
-				pspec.DebugName = "LineMainPipeline";
+				pspec.DebugName = std::string(primitive ? "Primitive" : "NonPrimitive") + "LineMainPipeline";
 
 				auto pipeline = Pipeline::Get(pspec);
 
@@ -583,18 +590,20 @@ namespace KTN
 
 				RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
 
-				Set->SetUniform("Camera", "u_ViewProjection", &vp);
-				Set->Upload(commandBuffer);
+				auto& set = primitive ? PrimitiveSet : NonPrimitiveSet;
+
+				set->SetUniform("Camera", "u_ViewProjection", &vp);
+				set->Upload(commandBuffer);
 		
-				Set->SetUniform("u_Instances", "Instances", instances.data(), instances.size() * sizeof(InstanceData));
-				Set->Upload(commandBuffer);
+				set->SetUniform("u_Instances", "Instances", instances.data(), instances.size() * sizeof(InstanceData));
+				set->Upload(commandBuffer);
 
 				DrawIndirectCommand command = {
 					2, (uint32_t)instances.size(), 0, 0
 				};
 				Buffer->SetData(&command, sizeof(command));
 
-				commandBuffer->BindSets(&Set);
+				commandBuffer->BindSets(&set);
 				RendererCommand::DrawIndirect(DrawType::LINES, nullptr, Buffer);
 
 				Engine::GetStats().DrawCalls += 1;
@@ -611,14 +620,13 @@ namespace KTN
 				FlushAndReset();
 
 			InstanceData data = {};
-			data.Width = p_Command.Line.Width;
-			data.Start = p_Command.Transform * glm::vec4(p_Command.Line.Start, 1.0f);
-			data.End = p_Command.Transform * glm::vec4(p_Command.Line.End, 1.0f);
+			data.Start = p_Command.Transform * glm::translate(glm::mat4(1.0f), p_Command.Line.Start);
+			data.End = p_Command.Transform * glm::translate(glm::mat4(1.0f), p_Command.Line.End);
 			data.Color = p_Command.Line.Color;
+			data.Width = p_Command.Line.Width;
 
-			// TODO: add support for non-primitive lines
-			if (p_Command.Line.Primitive)
-				Instances[p_Command.Line.Width].push_back(data);
+			Instances[p_Command.Line.Width].first = p_Command.Line.Primitive;
+			Instances[p_Command.Line.Width].second.push_back(data);
 		}
 
 	} // namespace Line
