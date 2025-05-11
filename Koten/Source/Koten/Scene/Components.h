@@ -139,6 +139,20 @@ namespace KTN
 		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
 
-	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent
+	struct CircleCollider2DComponent
+	{
+		glm::vec2 Offset = { 0.0f, 0.0f };
+		float Radius = 0.5f;
+
+		float Density = 1;
+		float Friction = 0.5f;
+		float Restitution = 0.0f;
+		float RestitutionThreshold = 0.5f;
+
+		CircleCollider2DComponent() = default;
+		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
+	};
+
+	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent
 
 } // namespace KTN

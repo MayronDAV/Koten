@@ -118,12 +118,12 @@ namespace KTN
 			if (m_Mode == EditorCameraMode::FLYCAM)
 			{
 				const float sign = m_Transform.GetLocalUpDirection().y < 0.0f ? 1.0f : -1.0f; // Maybe change this?
-				float yaw = m_Transform.GetLocalRotation().y;
-				float pitch = m_Transform.GetLocalRotation().x;
+				float yaw = glm::degrees(m_Transform.GetLocalRotation().y);
+				float pitch = glm::degrees(m_Transform.GetLocalRotation().x);
 				yaw += sign * delta.x * m_Sensitivity;
 				pitch += sign * delta.y * m_Sensitivity;
 
-				m_Transform.SetLocalRotation({ pitch, yaw, 0.0f });
+				m_Transform.SetLocalRotation(glm::radians(glm::vec3{ pitch, yaw, 0.0f }));
 			}
 		}
 		else

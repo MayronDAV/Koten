@@ -94,6 +94,24 @@ namespace KTN
 
 				b2CreatePolygonShape(body, &shapeDef, &box);
 			}
+
+			if (entt.HasComponent<CircleCollider2DComponent>())
+			{
+				auto& cc2d = entt.GetComponent<CircleCollider2DComponent>();
+
+				b2ShapeDef shapeDef = b2DefaultShapeDef();
+				shapeDef.density = cc2d.Density;
+				shapeDef.material.friction = cc2d.Friction;
+				shapeDef.material.restitution = cc2d.Restitution;
+				shapeDef.material.rollingResistance = cc2d.RestitutionThreshold;
+				shapeDef.enableHitEvents = true;
+
+				b2Circle circle = {};
+				circle.center = b2Vec2(cc2d.Offset.x, cc2d.Offset.y);
+				circle.radius = cc2d.Radius * scale.x;
+
+				b2CreateCircleShape(body, &shapeDef, &circle);
+			}
 		});
 
 		return true;
@@ -171,10 +189,9 @@ namespace KTN
 			};
 
 			auto pos = b2Body_GetPosition(body);
-			float rot = glm::degrees(b2Rot_GetAngle(b2Body_GetRotation(body)));
 
 			p_Transform.SetLocalTranslation({ pos.x, pos.y, p_Transform.GetLocalTranslation().z });
-			p_Transform.SetLocalRotation({ p_Transform.GetLocalRotation().x, p_Transform.GetLocalRotation().y, rot });
+			p_Transform.SetLocalRotation({ p_Transform.GetLocalRotation().x, p_Transform.GetLocalRotation().y, b2Rot_GetAngle(b2Body_GetRotation(body)) });
 			p_Transform.SetWorldMatrix(glm::mat4(1.0f));
 		});
 	}

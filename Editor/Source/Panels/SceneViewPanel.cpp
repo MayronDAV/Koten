@@ -122,7 +122,7 @@ namespace KTN
 							Math::Transform::Decompose(transform, translation, scale, rotation);
 
 							tc->SetLocalTranslation(translation);
-							tc->SetLocalRotation(glm::degrees(rotation));
+							tc->SetLocalRotation(rotation);
 							tc->SetLocalScale(scale);
 						}
 					}

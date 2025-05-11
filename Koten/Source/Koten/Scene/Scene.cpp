@@ -24,7 +24,7 @@ namespace KTN
 
 		using AllComponents =
 			ComponentGroup<HierarchyComponent, TransformComponent, SpriteComponent, LineRendererComponent,
-			CameraComponent, Rigidbody2DComponent, BoxCollider2DComponent>;
+			CameraComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
 
 		template<typename... Component>
 		static void CopyComponent(entt::registry& p_Dest, entt::registry& p_Src, const std::unordered_map<UUID, entt::entity>& p_Map)
@@ -58,6 +58,7 @@ namespace KTN
 		AddDependency<CameraComponent, TransformComponent>(m_Registry);
 		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
 		AddDependency<BoxCollider2DComponent, Rigidbody2DComponent>(m_Registry);
+		AddDependency<CircleCollider2DComponent, Rigidbody2DComponent>(m_Registry);
 
 		m_SceneGraph = CreateUnique<SceneGraph>();
 		m_SceneGraph->Init(m_Registry);

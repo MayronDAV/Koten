@@ -389,6 +389,28 @@ namespace KTN
 			p_Out << YAML::EndMap;
 		}
 
+		template<>
+		void ComponentSerializeIfExist<CircleCollider2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+			if (!p_Entity.HasComponent<CircleCollider2DComponent>())
+				return;
+
+			p_Out << YAML::Key << "CircleCollider2DComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<CircleCollider2DComponent>();
+
+			ADD_KEY_VALUE("Offset", comp.Offset);
+			ADD_KEY_VALUE("Radius", comp.Radius);
+			ADD_KEY_VALUE("Density", comp.Density);
+			ADD_KEY_VALUE("Friction", comp.Friction);
+			ADD_KEY_VALUE("Restitution", comp.Restitution);
+			ADD_KEY_VALUE("RestitutionThreshold", comp.RestitutionThreshold);
+
+			p_Out << YAML::EndMap;
+		}
+
 	} // namespace
 
 	// Deserialize
@@ -552,6 +574,24 @@ namespace KTN
 			comp.Friction = boxComp["Friction"].as<float>();
 			comp.Restitution = boxComp["Restitution"].as<float>();
 			comp.RestitutionThreshold = boxComp["RestitutionThreshold"].as<float>();
+		}
+
+		template<>
+		void ComponentDeserializeIfExist<CircleCollider2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto circleComp = p_Data["CircleCollider2DComponent"];
+			if (!circleComp) return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<CircleCollider2DComponent>();
+
+			comp.Offset = circleComp["Offset"].as<glm::vec2>();
+			comp.Radius = circleComp["Radius"].as<float>();
+			comp.Density = circleComp["Density"].as<float>();
+			comp.Friction = circleComp["Friction"].as<float>();
+			comp.Restitution = circleComp["Restitution"].as<float>();
+			comp.RestitutionThreshold = circleComp["RestitutionThreshold"].as<float>();
 		}
 
 	} // namespace

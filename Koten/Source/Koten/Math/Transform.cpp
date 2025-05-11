@@ -21,7 +21,7 @@ namespace KTN::Math
 
 	static glm::mat4 Rotate(const glm::vec3& p_Vector)
 	{
-		return glm::toMat4(glm::quat(glm::radians(p_Vector)));
+		return glm::toMat4(glm::quat(p_Vector));
 	}
 
 	Transform::Transform()
@@ -110,12 +110,12 @@ namespace KTN::Math
 
 	glm::quat Transform::GetWorldOrientation() const
 	{
-		return glm::quat(glm::radians(m_WorldMatrix.Rotation));
+		return glm::quat(m_WorldMatrix.Rotation);
 	}
 
 	glm::quat Transform::GetLocalOrientation() const
 	{
-		return glm::quat(glm::radians(m_LocalRotation));
+		return glm::quat(m_LocalRotation);
 	}
 
 	glm::mat4 Transform::GetWorldMatrix() const

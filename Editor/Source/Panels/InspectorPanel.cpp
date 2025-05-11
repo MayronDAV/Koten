@@ -12,7 +12,7 @@ namespace KTN
 {
 	namespace
 	{
-		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent
+		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent
 
 		template <typename Component>
 		void ComponentDrawView(entt::registry& p_Registry, Entity p_Entity) {}
@@ -114,9 +114,9 @@ namespace KTN
 				if (UI::DragFloat3("Translation", translation))
 					p_Transform.SetLocalTranslation(translation);
 
-				glm::vec3 rotation = p_Transform.GetLocalRotation();
+				glm::vec3 rotation = glm::degrees(p_Transform.GetLocalRotation());
 				if (UI::DragFloat3("Rotation", rotation))
-					p_Transform.SetLocalRotation(rotation);
+					p_Transform.SetLocalRotation(glm::radians(rotation));
 
 				glm::vec3 scale = p_Transform.GetLocalScale();
 				if (UI::DragFloat3("Scale", scale, 1.0f))
@@ -321,6 +321,22 @@ namespace KTN
 			});
 		}
 
+		template <>
+		void ComponentDrawView<CircleCollider2DComponent>(entt::registry& p_Registry, Entity p_Entity)
+		{
+			DrawComponent<CircleCollider2DComponent>("CircleCollider2D", p_Entity,
+			[](CircleCollider2DComponent& p_Circle)
+			{
+				UI::InputFloat2("Offset", p_Circle.Offset);
+				ImGui::InputFloat("Radius", &p_Circle.Radius);
+
+				ImGui::InputFloat("Density", &p_Circle.Density);
+				ImGui::InputFloat("Friction", &p_Circle.Friction);
+				ImGui::InputFloat("Restitution", &p_Circle.Restitution);
+				ImGui::InputFloat("RestitutionThreshold", &p_Circle.RestitutionThreshold);
+			});
+		}
+
 	} // namespace
 
 	InspectorPanel::InspectorPanel()
@@ -389,6 +405,7 @@ namespace KTN
 					DisplayComponentEntry<LineRendererComponent>("Line Renderer", selectedEntt);
 					DisplayComponentEntry<Rigidbody2DComponent>("Rigidbody2D", selectedEntt);
 					DisplayComponentEntry<BoxCollider2DComponent>("BoxCollider2D", selectedEntt);
+					DisplayComponentEntry<CircleCollider2DComponent>("CircleCollider2D", selectedEntt);
 
 					ImGui::EndPopup();
 				}

@@ -30,7 +30,7 @@ namespace KTN::Math
 			Transform();
 			Transform(const Transform&) = default;
 			Transform(const glm::mat4& p_LocalMatrix, const glm::mat4& p_WorldMatrix = glm::mat4(1.0f));
-			// p_LocalRotation In Degrees
+			// p_LocalRotation In Radians
 			Transform(const glm::vec3& p_LocalTranslation, const glm::vec3& p_LocalScale = { 1.0f, 1.0f, 1.0f }, const glm::vec3& p_LocalRotation = { 0.0f, 0.0f, 0.0f });
 			~Transform() = default;
 
@@ -38,7 +38,7 @@ namespace KTN::Math
 			void SetLocalMatrix(const glm::mat4& p_Matrix);
 
 			void SetLocalTranslation(const glm::vec3& p_Vector);
-			// In Degrees
+			// In Radians
 			void SetLocalRotation(const glm::vec3& p_Vector);
 			void SetLocalScale(const glm::vec3& p_Vector);
 
