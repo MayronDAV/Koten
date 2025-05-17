@@ -91,10 +91,16 @@ namespace KTN
 
 			{
 				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
+				file.Add<bool>("Settings", "Show Physics Collider", settings.ShowDebugPhysicsCollider);
+				file.Add<float>("Settings", "Debug Line Width", settings.DebugLineWidth);
+				file.Add<float>("Settings", "Debug Circle Thickness", settings.DebugCircleThickness);
 				file.Rewrite();
 			}
 
 			settings.MousePicking = file.Get<bool>("Settings", "Mouse Picking");
+			settings.ShowDebugPhysicsCollider = file.Get<bool>("Settings", "Show Physics Collider");
+			settings.DebugLineWidth = file.Get<float>("Settings", "Debug Line Width");
+			settings.DebugCircleThickness = file.Get<float>("Settings", "Debug Circle Thickness");
 		}
 
 		Shortcuts::Init(file);
@@ -103,13 +109,13 @@ namespace KTN
 	Editor::~Editor()
 	{
 	}
-
+	
 	void Editor::OpenScene(const std::string& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();
 
 		auto scene = CreateRef<Scene>();
-
+		
 		SceneSerializer serializer(scene);
 		if (!serializer.Deserialize(p_Path))
 			KTN_CORE_ERROR("Failed to Deserialize!");
@@ -156,6 +162,40 @@ namespace KTN
 		// General
 		{
 			static const char* group_name = "General";
+
+			// Debug
+			{
+				auto& settings = Engine::GetSettings();
+
+				tab.Name = "Debug";
+				tab.Content = [&]()
+				{
+					auto size = ImGui::GetContentRegionAvail();
+					float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+
+					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+					ImGui::BeginChild("##debug_child", { size.x, size.y - (lineHeight * 1.5f) }, false);
+					ImGui::PopStyleVar();
+					{
+						ImGui::Checkbox("Show Physics Collider", &settings.ShowDebugPhysicsCollider);
+						ImGui::DragFloat("Debug Line Width", &settings.DebugLineWidth, 0.01f, 0.0f, 0.0f, "%.2f");
+						ImGui::DragFloat("Debug Circle Thickness", &settings.DebugCircleThickness, 0.01f, 0.0f, 0.0f, "%.2f");
+					}
+					ImGui::EndChild();
+
+					// TODO: A way to save only changed settings
+					if (ImGui::Button("Save", { 100.0f, lineHeight }))
+					{
+						auto file = IniFile("Resources/Engine.ini");
+						file.Set<bool>("Settings", "Show Physics Collider", settings.ShowDebugPhysicsCollider);
+						file.Set<float>("Settings", "Debug Line Width", settings.DebugLineWidth);
+						file.Set<float>("Settings", "Debug Circle Thickness", settings.DebugCircleThickness);
+						file.Rewrite();
+					}
+				};
+
+				m_Settings->AddTab(group_name, tab);
+			}
 
 			// Editor Camera
 			{

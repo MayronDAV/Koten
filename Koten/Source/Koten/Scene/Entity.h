@@ -68,7 +68,7 @@ namespace KTN
 			bool IsParent(Entity p_Entity);
 			void SetParent(Entity p_Entity);
 			Entity GetParent();
-
+			entt::entity GetHandle() const { return m_Handle; }
 			UUID GetUUID() const;
 			std::string GetTag() const;
 			Scene* GetScene() const { return m_Scene; }

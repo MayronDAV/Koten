@@ -30,6 +30,13 @@ namespace KTN
 
 		m_Shader->Bind();
 
+		if (m_Spec.LineWidth > 0.0f)
+			GLCall(glLineWidth(m_Spec.LineWidth));
+		else
+		{
+			KTN_CORE_ERROR("Line width must be greater than 0.0f!");
+		}
+
 		if (m_Spec.DepthTest)
 			GLCall(glEnable(GL_DEPTH_TEST));
 		else
@@ -79,7 +86,7 @@ namespace KTN
 		KTN_PROFILE_FUNCTION_LOW();
 
 		m_Renderpass->End(p_CommandBuffer);
-
+		
 		m_Shader->Unbind();
 
 		GLCall(glDepthMask(GL_TRUE));
@@ -87,6 +94,7 @@ namespace KTN
 		GLCall(glDisable(GL_POLYGON_OFFSET_FILL));
 		GLCall(glDisable(GL_STENCIL_TEST));
 		GLCall(glDisable(GL_CULL_FACE));
+		GLCall(glLineWidth(1.0f));
 	}
 
 	const Ref<Framebuffer>& GLPipeline::GetFramebuffer(int p_MipIndex) const

@@ -15,8 +15,9 @@ layout(std430, set = 0, binding = 0) uniform Camera
 
 #define MAX_INSTANCES 5000
 struct InstanceData {
-    mat4 Start;
-    mat4 End;
+    mat4 Transform;
+    vec4 Start;
+    vec4 End;
     vec4 Color;
     float Width;
 };
@@ -31,10 +32,7 @@ void main()
 {
     Output.Color = Instances[gl_InstanceIndex].Color;
 
-    vec3 baseStart = vec3(-0.5, 0.0, 0.0);
-    vec3 baseEnd = vec3(0.5, 0.0, 0.0);
-
-    vec4 position = (gl_VertexIndex % 2) == 0 ? Instances[gl_InstanceIndex].Start * vec4(baseStart, 1.0) : Instances[gl_InstanceIndex].End * vec4(baseEnd, 1.0);
+    vec4 position = (gl_VertexIndex % 2) == 0 ? Instances[gl_InstanceIndex].Transform * Instances[gl_InstanceIndex].Start : Instances[gl_InstanceIndex].Transform * Instances[gl_InstanceIndex].End;
 
     gl_Position = u_ViewProjection * position;
 }

@@ -4,6 +4,7 @@
 #include "Entity.h"
 #include "SystemManager.h"
 #include "Koten/Physics/Box2D/B2Physics.h"
+#include "Koten/Graphics/DebugRenderer.h"
 
 
 
@@ -148,6 +149,9 @@ namespace KTN
 			m_Registry.view<TransformComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
+				if (Engine::GetSettings().ShowDebugPhysicsCollider)
+					DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
+
 				RenderCommand command = {};
 				command.EntityID = (int)p_Entity;
 				command.Transform = p_Transform.GetWorldMatrix();
@@ -262,6 +266,9 @@ namespace KTN
 			m_Registry.view<TransformComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
+				if (Engine::GetSettings().ShowDebugPhysicsCollider)
+					DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
+
 				RenderCommand command = {};
 				command.EntityID = (int)p_Entity;
 				command.Transform = p_Transform.GetWorldMatrix();

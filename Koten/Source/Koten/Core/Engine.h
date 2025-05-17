@@ -17,6 +17,10 @@ namespace KTN
 	struct Settings
 	{
 		bool MousePicking = true;
+
+		bool ShowDebugPhysicsCollider = false;
+		float DebugLineWidth = 2.0f;
+		float DebugCircleThickness = 0.03f;
 	};
 
 	class KTN_API Engine

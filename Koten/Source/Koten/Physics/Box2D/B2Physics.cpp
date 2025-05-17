@@ -106,9 +106,7 @@ namespace KTN
 				shapeDef.material.rollingResistance = cc2d.RestitutionThreshold;
 				shapeDef.enableHitEvents = true;
 
-				b2Circle circle = {};
-				circle.center = b2Vec2(cc2d.Offset.x, cc2d.Offset.y);
-				circle.radius = cc2d.Radius * scale.x;
+				b2Circle circle = { { cc2d.Offset.x, cc2d.Offset.y }, cc2d.Radius * scale.x };
 
 				b2CreateCircleShape(body, &shapeDef, &circle);
 			}
@@ -139,13 +137,14 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		b2Vec2 gravity = { 0.0f, -9.81f };
 		b2WorldDef worldDef = b2DefaultWorldDef();
-		worldDef.gravity = gravity;
+		worldDef.gravity = { m_Gravity.x, m_Gravity.y };
 
 		b2WorldId world = b2CreateWorld(&worldDef);
 		m_World.Index = world.index1;
 		m_World.Generation = world.generation;
+
+		b2AABB bounds = { { -FLT_MAX, -FLT_MAX }, { FLT_MAX, FLT_MAX } };
 
 		return true;
 	}
@@ -163,12 +162,25 @@ namespace KTN
 
 	void B2Physics::OnUpdate()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (m_Paused) return;
 
 		b2WorldId world = { .index1 = m_World.Index, .generation = m_World.Generation };
 
 		auto ts = Time::GetDeltaTime();
 		b2World_Step(world, (float)ts, 4);
+	}
+
+	void B2Physics::SetGravity(const glm::vec2& p_Gravity)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (m_Gravity == p_Gravity) return;
+
+		b2WorldId world = { .index1 = m_World.Index, .generation = m_World.Generation };
+		b2World_SetGravity(world, { p_Gravity.x, p_Gravity.y });
+		m_Gravity = p_Gravity;
 	}
 
 	void B2Physics::SyncTransforms(Scene* p_Scene)

@@ -2,6 +2,7 @@
 #include "Koten/Scene/System.h"
 
 
+
 namespace KTN
 {
 	class KTN_API B2Physics : public System
@@ -19,9 +20,13 @@ namespace KTN
 			void OnUpdate(Scene* p_Scene) override;
 			void OnUpdate() override;
 
+			void SetGravity(const glm::vec2& p_Gravity);
+
 			void SyncTransforms(Scene* p_Scene);
 
 		private:
+			glm::vec2 m_Gravity = { 0.0f, -9.81f };
+
 			B2WorldID m_World = {};
 			int32_t m_VelocityIterations = 6;
 			int32_t m_PositionIterations = 2;

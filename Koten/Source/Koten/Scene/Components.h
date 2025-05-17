@@ -145,7 +145,7 @@ namespace KTN
 		float Radius = 0.5f;
 
 		float Density = 1;
-		float Friction = 0.5f;
+		float Friction = 0.1f;
 		float Restitution = 0.0f;
 		float RestitutionThreshold = 0.5f;
 

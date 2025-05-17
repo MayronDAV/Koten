@@ -100,8 +100,9 @@ namespace KTN
 	{
 		struct InstanceData
 		{
-			glm::mat4 Start;
-			glm::mat4 End;
+			glm::mat4 Transform;
+			glm::vec4 Start;
+			glm::vec4 End;
 			glm::vec4 Color;
 			alignas(16) float Width;
 		};
@@ -620,8 +621,9 @@ namespace KTN
 				FlushAndReset();
 
 			InstanceData data = {};
-			data.Start = p_Command.Transform * glm::translate(glm::mat4(1.0f), p_Command.Line.Start);
-			data.End = p_Command.Transform * glm::translate(glm::mat4(1.0f), p_Command.Line.End);
+			data.Transform = p_Command.Transform;
+			data.Start = glm::vec4(p_Command.Line.Start, 1.0f);
+			data.End = glm::vec4(p_Command.Line.End, 1.0f);
 			data.Color = p_Command.Line.Color;
 			data.Width = p_Command.Line.Width;
 
