@@ -18,35 +18,24 @@ namespace KTN
 			p_Registry.template on_construct<Component>().template connect<&entt::registry::get_or_emplace<Dependency>>();
 		}
 
-		template<typename... Component>
-		struct ComponentGroup
+		template <typename T>
+		static void CopyComponentIfExists(entt::entity p_Src, entt::entity p_Dest, entt::registry& p_SrcRegistry, entt::registry& p_DestRegistry)
 		{
-		};
+			KTN_PROFILE_FUNCTION_LOW();
 
-		using AllComponents =
-			ComponentGroup<HierarchyComponent, TransformComponent, SpriteComponent, LineRendererComponent,
-			CameraComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
-
-		template<typename... Component>
-		static void CopyComponent(entt::registry& p_Dest, entt::registry& p_Src, const std::unordered_map<UUID, entt::entity>& p_Map)
-		{
-			([&]()
+			if (p_SrcRegistry.all_of<T>(p_Src))
 			{
-				auto view = p_Src.view<Component>();
-				for (auto srcEntity : view)
-				{
-					entt::entity destEntity = p_Map.at(p_Src.get<IDComponent>(srcEntity).ID);
-
-					auto& srcComponent = p_Src.get<Component>(srcEntity);
-					p_Dest.emplace_or_replace<Component>(destEntity, srcComponent);
-				}
-			}(), ...);
+				auto srcComponent = p_SrcRegistry.get<T>(p_Src);
+				p_DestRegistry.emplace_or_replace<T>(p_Dest, srcComponent);
+			}
 		}
 
-		template<typename... Component>
-		static void CopyComponent(ComponentGroup<Component...>, entt::registry& p_Dest, entt::registry& p_Src, const std::unordered_map<UUID, entt::entity>& p_Map)
+		template <typename... Component>
+		static void CopyEntity(entt::entity p_Src, entt::entity p_Dest, entt::registry& p_SrcRegistry, entt::registry& p_DestRegistry)
 		{
-			CopyComponent<Component...>(p_Dest, p_Src, p_Map);
+			KTN_PROFILE_FUNCTION_LOW();
+
+			(CopyComponentIfExists<Component>(p_Src, p_Dest, p_SrcRegistry, p_DestRegistry), ...);
 		}
 	}
 
@@ -83,7 +72,9 @@ namespace KTN
 
 		auto& srcRegistry = p_Src->m_Registry;
 		auto& destRegistry = p_Dest->m_Registry;
-		std::unordered_map<UUID, entt::entity> enttMap;
+		std::unordered_map<UUID, std::pair<entt::entity, entt::entity>> enttMap;
+
+		p_Dest->m_SceneGraph->DisableOnConstruct(destRegistry, true);
 
 		srcRegistry.view<IDComponent, TagComponent>().each(
 		[&](auto p_Entity, IDComponent& p_ID, TagComponent& p_Tag)
@@ -92,10 +83,35 @@ namespace KTN
 			const auto& name = p_Tag.Tag;
 
 			Entity newEntity = p_Dest->CreateEntity(uuid, name);
-			enttMap[uuid] = (entt::entity)newEntity;
+			enttMap[uuid].first = p_Entity;
+			enttMap[uuid].second = newEntity.GetHandle();
+
+			CopyEntity<ALL_COMPONENTS>(p_Entity, (entt::entity)newEntity, srcRegistry, destRegistry);
+
+			auto hcomp = newEntity.TryGetComponent<HierarchyComponent>();
+			if (hcomp)
+			{
+				hcomp->Parent = entt::null;
+				hcomp->First = entt::null;
+				hcomp->Prev = entt::null;
+				hcomp->Next = entt::null;
+			}
 		});
 
-		CopyComponent(AllComponents{}, destRegistry, srcRegistry, enttMap);
+		destRegistry.view<IDComponent, HierarchyComponent>().each(
+		[&](auto p_Entity, IDComponent& p_ID, HierarchyComponent& p_HC)
+		{
+			auto srcEntt = enttMap[p_ID.ID].first;
+
+			auto& srcHC = srcRegistry.get<HierarchyComponent>(srcEntt);
+			p_HC.Parent = srcHC.Parent != entt::null ? enttMap[srcRegistry.get<IDComponent>(srcHC.Parent).ID].second : entt::null;
+			p_HC.First  = srcHC.First != entt::null ? enttMap[srcRegistry.get<IDComponent>(srcHC.First).ID].second : entt::null;
+			p_HC.Prev   = srcHC.Prev != entt::null ? enttMap[srcRegistry.get<IDComponent>(srcHC.Prev).ID].second : entt::null;
+			p_HC.Next   = srcHC.Next != entt::null ? enttMap[srcRegistry.get<IDComponent>(srcHC.Next).ID].second : entt::null;
+			p_HC.ChildCount = srcHC.ChildCount;
+		});
+
+		p_Dest->m_SceneGraph->DisableOnConstruct(destRegistry, false);
 	}
 
 	Ref<Scene> Scene::Copy(const Ref<Scene>& p_Scene)
@@ -121,6 +137,7 @@ namespace KTN
 		auto entt = Entity(m_Registry.create(), this);
 		entt.AddComponent<IDComponent>(p_UUID);
 		entt.AddComponent<TagComponent>(p_Tag.empty() ? "Entity" : p_Tag);
+		m_EntityMap[p_UUID] = entt;
 		return entt;
 	}
 
@@ -264,6 +281,17 @@ namespace KTN
 
 		m_Width = p_Width;
 		m_Height = p_Height;
+	}
+
+	Entity Scene::GetEntityByUUID(UUID p_UUID)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto it = m_EntityMap.find(p_UUID);
+		if (it != m_EntityMap.end())
+			return it->second;
+
+		return Entity();
 	}
 
 	void Scene::OnUpdateRuntime()

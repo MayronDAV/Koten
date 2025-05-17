@@ -197,10 +197,17 @@ namespace KTN
 		auto entts = data["Entities"];
 		if (entts)
 		{
+			// TODO: Maybe find another way to load the entt hierarchy
 			for (auto entt : entts)
 			{
 				auto enttID = entt["Entity"].as<uint64_t>();
 				Entity deserializedEntt = m_Scene->CreateEntity((UUID)enttID, "Entity");
+			}
+
+			for (auto entt : entts)
+			{
+				auto enttID = entt["Entity"].as<uint64_t>();
+				Entity deserializedEntt = m_Scene->GetEntityByUUID((UUID)enttID);
 
 				ComponentDeserialize<ALL_COMPONENTS>(entt, m_Scene->GetRegistry(), deserializedEntt);
 			}
@@ -244,10 +251,38 @@ namespace KTN
 
 			auto& comp = p_Entity.GetComponent<HierarchyComponent>();
 
-			ADD_KEY_VALUE("Parent", (uint32_t)comp.Parent);
-			ADD_KEY_VALUE("First", (uint32_t)comp.First);
-			ADD_KEY_VALUE("Prev", (uint32_t)comp.Prev);
-			ADD_KEY_VALUE("Next", (uint32_t)comp.Next);
+			if (comp.Parent != entt::null)
+			{
+				auto entt = Entity{ comp.Parent, p_Entity.GetScene() };
+				ADD_KEY_VALUE("Parent", (uint64_t)entt.GetUUID());
+			}
+			else
+				ADD_KEY_VALUE("Parent", 0ul);
+
+			if (comp.First != entt::null)
+			{
+				auto entt = Entity{ comp.First, p_Entity.GetScene() };
+				ADD_KEY_VALUE("First", (uint64_t)entt.GetUUID());
+			}
+			else
+				ADD_KEY_VALUE("First", 0ul);
+			
+			if (comp.Prev != entt::null)
+			{
+				auto entt = Entity{ comp.Prev, p_Entity.GetScene() };
+				ADD_KEY_VALUE("Prev", (uint64_t)entt.GetUUID());
+			}
+			else
+				ADD_KEY_VALUE("Prev", 0ul);
+			
+			if (comp.Next != entt::null)
+			{
+				auto entt = Entity{ comp.Next, p_Entity.GetScene() };
+				ADD_KEY_VALUE("Next", (uint64_t)entt.GetUUID());
+			}
+			else
+				ADD_KEY_VALUE("Next", 0ul);
+
 			ADD_KEY_VALUE("ChildCount", comp.ChildCount);
 
 			p_Out << YAML::EndMap;
@@ -433,7 +468,23 @@ namespace KTN
 		void ComponentDeserializeIfExist<HierarchyComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
-			// TODO: make this when we have UUID
+
+			auto hierarchyComp = p_Data["HierarchyComponent"];
+			if (!hierarchyComp) return;
+
+			auto scene = p_Entity.GetScene();
+
+			auto parent = hierarchyComp["Parent"].as<uint64_t>();
+			auto first = hierarchyComp["First"].as<uint64_t>();
+			auto prev = hierarchyComp["Prev"].as<uint64_t>();
+			auto next = hierarchyComp["Next"].as<uint64_t>();
+
+			auto& comp = p_Entity.AddOrReplaceComponent<HierarchyComponent>();
+			comp.Parent = parent != 0ul ? scene->GetEntityByUUID(parent).GetHandle() : entt::null;
+			comp.First  = first != 0ul ? scene->GetEntityByUUID(first).GetHandle() : entt::null;
+			comp.Prev   = prev != 0ul ? scene->GetEntityByUUID(prev).GetHandle() : entt::null;
+			comp.Next   = next != 0ul ? scene->GetEntityByUUID(next).GetHandle() : entt::null;
+			comp.ChildCount = hierarchyComp["ChildCount"].as<uint32_t>();
 		}
 
 		template<>

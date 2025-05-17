@@ -44,7 +44,9 @@ namespace KTN
 			void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
 			void SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime = false);
 			void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
+
 			bool IsPaused() const { return m_IsPaused; }
+			Entity GetEntityByUUID(UUID p_UUID);
 
 			entt::registry& GetRegistry() { return m_Registry; }
 
@@ -57,6 +59,8 @@ namespace KTN
 			glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 			bool m_HaveCamera = false;
 			bool m_IsPaused = false;
+
+			std::unordered_map<UUID, Entity> m_EntityMap;
 
 			Unique<SceneGraph> m_SceneGraph = nullptr;
 
