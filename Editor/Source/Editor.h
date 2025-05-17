@@ -11,7 +11,8 @@ namespace KTN
 	enum class RuntimeState
 	{
 		Edit,
-		Play
+		Play,
+		Simulate
 	};
 
 	class Editor : public Layer

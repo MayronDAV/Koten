@@ -31,6 +31,10 @@ namespace KTN
 			void OnUpdate();
 			void OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
 
+			void OnSimulationStart();
+			void OnSimulationStop();
+			void OnUpdateSimulation();
+
 			void OnRuntimeStart();
 			void OnRuntimeStop();
 
@@ -39,6 +43,8 @@ namespace KTN
 
 			void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
 			void SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime = false);
+			void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
+			bool IsPaused() const { return m_IsPaused; }
 
 			entt::registry& GetRegistry() { return m_Registry; }
 
@@ -50,6 +56,7 @@ namespace KTN
 			glm::mat4 m_View{ 1.0f };
 			glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 			bool m_HaveCamera = false;
+			bool m_IsPaused = false;
 
 			Unique<SceneGraph> m_SceneGraph = nullptr;
 

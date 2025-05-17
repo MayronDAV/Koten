@@ -24,7 +24,9 @@ namespace KTN
 			void ToolWidget();
 			void UIWidget();
 
+			void TogglePause();
 			void Play();
+			void Simulate();
 			void Stop();
 
 		private:

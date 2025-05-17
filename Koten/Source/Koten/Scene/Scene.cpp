@@ -190,6 +190,58 @@ namespace KTN
 		Renderer::End();
 	}
 
+	void Scene::OnSimulationStart()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->OnStart(this);
+	}
+
+	void Scene::OnSimulationStop()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->OnStop(this);
+	}
+
+	void Scene::OnUpdateSimulation()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!m_IsPaused)
+		{
+			if (SystemManager::HasSystem<B2Physics>())
+				SystemManager::GetSystem<B2Physics>()->SyncTransforms(this);
+
+			m_SceneGraph->Update(m_Registry);
+		}
+
+		bool first = true;
+		m_Registry.view<TransformComponent, CameraComponent>().each(
+		[&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
+		{
+			p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+			p_Camera.Camera.OnUpdate();
+
+			if (p_Camera.Primary)
+			{
+				if (!first)
+				{
+					KTN_CORE_ERROR("there can only be one primary camera!");
+					return;
+				}
+
+				m_Projection = p_Camera.Camera.GetProjection();
+				m_View = glm::inverse(p_Transform.GetWorldMatrix());
+				m_ClearColor = p_Camera.ClearColor;
+				m_HaveCamera = true;
+				first = false;
+			}
+		});
+	}
+
 	void Scene::OnRuntimeStart()
 	{
 		KTN_PROFILE_FUNCTION();
@@ -218,10 +270,13 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->SyncTransforms(this);
+		if (!m_IsPaused)
+		{
+			if (SystemManager::HasSystem<B2Physics>())
+				SystemManager::GetSystem<B2Physics>()->SyncTransforms(this);
 
-		m_SceneGraph->Update(m_Registry);
+			m_SceneGraph->Update(m_Registry);
+		}
 
 		bool first = true;
 		m_Registry.view<TransformComponent, CameraComponent>().each(

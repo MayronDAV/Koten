@@ -364,6 +364,7 @@ namespace KTN
 			static const char* group_name = "Panels";
 
 			m_Settings->AddTab(group_name, contentBrowser->GetSettingsTab());
+
 		}
 
 

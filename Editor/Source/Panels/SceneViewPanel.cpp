@@ -164,10 +164,19 @@ namespace KTN
 			m_Context->SetViewportSize(m_Width, m_Height);
 			m_Context->OnUpdate();
 		}
-		else
+		else if (state == RuntimeState::Play)
 		{
 			m_ActiveScene->SetViewportSize(m_Width, m_Height);
 			m_ActiveScene->OnUpdateRuntime();
+		}
+		else if (state == RuntimeState::Simulate)
+		{
+			auto& camera = m_Editor->GetCamera();
+			camera->SetViewportSize(m_Width, m_Height);
+			Application::Get().GetImGui()->BlockEvents(m_HandleCameraEvents);
+			camera->SetHandleEvents(m_HandleCameraEvents);
+			m_ActiveScene->SetViewportSize(m_Width, m_Height);
+			m_ActiveScene->OnUpdateSimulation();
 		}
 
 
@@ -194,7 +203,7 @@ namespace KTN
 			}
 		}
 
-		if (state == RuntimeState::Play)
+		if (state != RuntimeState::Edit)
 		{
 			if (Shortcuts::IsActionPressed("Stop"))
 			{
@@ -209,12 +218,18 @@ namespace KTN
 
 		Renderer::Clear();
 
-		if (m_Editor->GetState() == RuntimeState::Edit)
+		auto state = m_Editor->GetState();
+		if (state == RuntimeState::Edit)
 		{
 			auto& camera = m_Editor->GetCamera();
 			m_Context->OnRender(camera->GetProjection(), camera->GetView());
 		}
-		else if (m_Editor->GetState() == RuntimeState::Play)
+		else if (state == RuntimeState::Simulate)
+		{
+			auto& camera = m_Editor->GetCamera();
+			m_ActiveScene->OnRender(camera->GetProjection(), camera->GetView());
+		}
+		else if (state == RuntimeState::Play)
 		{
 			m_ActiveScene->OnRenderRuntime();
 		}
@@ -355,7 +370,7 @@ namespace KTN
 		ImGuiContext& g = *GImGui;
 		const ImGuiStyle& style = g.Style;
 
-		auto widgetSize = ImVec2(35 + (style.WindowPadding.x / 2.0f), 35 + (style.WindowPadding.y / 2.0f));
+		auto widgetSize = ImVec2(70 + (style.WindowPadding.x / 2.0f), 35 + (style.WindowPadding.y / 2.0f));
 
 		ImVec2 widgetPos(
 			m_ViewportOffset.x + ((float)m_Width / 2.0f) - ((float)widgetSize.x / 2.0f),
@@ -376,6 +391,7 @@ namespace KTN
 			auto state = m_Editor->GetState();
 
 			bool hasPlayButton = state == RuntimeState::Edit || state == RuntimeState::Play;
+			bool hasSimulateButton = state == RuntimeState::Edit || state == RuntimeState::Simulate;
 			bool hasPauseButton = state != RuntimeState::Edit;
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
@@ -395,9 +411,52 @@ namespace KTN
 				UI::Tooltip(state != RuntimeState::Play  ? "Play" : "Stop");
 			}
 
+			if (hasSimulateButton)
+			{
+				if (hasPlayButton)
+					ImGui::SameLine();
+
+				// TODO: find an icon for simulate button
+				std::string icon = state != RuntimeState::Simulate ? ICON_MDI_PLAY_BOX_OUTLINE : ICON_MDI_STOP;
+
+				if (ImGui::Button(icon.c_str()))
+				{
+					if (state == RuntimeState::Simulate)
+						Stop();
+					else if (state == RuntimeState::Edit)
+						Simulate();
+				}
+
+				UI::Tooltip(state != RuntimeState::Simulate ? "Simulate" : "Stop");
+			}
+
+			if (hasPauseButton)
+			{
+				ImGui::SameLine();
+
+				std::string icon = ICON_MDI_PAUSE;
+				if (ImGui::Button(icon.c_str()))
+				{
+					TogglePause();
+				}
+
+				UI::Tooltip("Pause");
+			}
+
 			ImGui::PopStyleColor();
 		}
 		ImGui::End();
+	}
+
+	void SceneViewPanel::TogglePause()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		bool paused = !m_ActiveScene->IsPaused();
+		m_ActiveScene->SetIsPaused(paused);
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->SetPaused(paused);
 	}
 
 	void SceneViewPanel::Play()
@@ -415,16 +474,35 @@ namespace KTN
 		m_Editor->SetState(RuntimeState::Play);
 	}
 
+	void SceneViewPanel::Simulate()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (m_Editor->GetState() == RuntimeState::Simulate) return;
+
+		if (SystemManager::HasSystem<B2Physics>())
+			SystemManager::GetSystem<B2Physics>()->SetPaused(false);
+
+		m_ActiveScene = Scene::Copy(m_Context);
+		m_ActiveScene->OnSimulationStart();
+
+		m_Editor->SetState(RuntimeState::Simulate);
+	}
+
 	void SceneViewPanel::Stop()
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (m_Editor->GetState() == RuntimeState::Edit) return;
+		auto state = m_Editor->GetState();
+		if (state == RuntimeState::Edit) return;
 
 		if (SystemManager::HasSystem<B2Physics>())
 			SystemManager::GetSystem<B2Physics>()->SetPaused(true);
 
-		m_ActiveScene->OnRuntimeStop();
+		if (state == RuntimeState::Play)
+			m_ActiveScene->OnRuntimeStop();
+		if (state == RuntimeState::Simulate)
+			m_ActiveScene->OnSimulationStop();
 		m_ActiveScene = nullptr;
 
 		m_Editor->SetState(RuntimeState::Edit);
