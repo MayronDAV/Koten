@@ -60,7 +60,7 @@ namespace KTN
 			bool m_HaveCamera = false;
 			bool m_IsPaused = false;
 
-			std::unordered_map<UUID, Entity> m_EntityMap;
+			std::unordered_map<UUID, entt::entity> m_EntityMap;
 
 			Unique<SceneGraph> m_SceneGraph = nullptr;
 

@@ -83,8 +83,7 @@ namespace KTN
 			const auto& name = p_Tag.Tag;
 
 			Entity newEntity = p_Dest->CreateEntity(uuid, name);
-			enttMap[uuid].first = p_Entity;
-			enttMap[uuid].second = newEntity.GetHandle();
+			enttMap[uuid] = std::make_pair(p_Entity, newEntity.GetHandle());
 
 			CopyEntity<ALL_COMPONENTS>(p_Entity, (entt::entity)newEntity, srcRegistry, destRegistry);
 
@@ -137,7 +136,7 @@ namespace KTN
 		auto entt = Entity(m_Registry.create(), this);
 		entt.AddComponent<IDComponent>(p_UUID);
 		entt.AddComponent<TagComponent>(p_Tag.empty() ? "Entity" : p_Tag);
-		m_EntityMap[p_UUID] = entt;
+		m_EntityMap[p_UUID] = (entt::entity)entt;
 		return entt;
 	}
 
@@ -289,7 +288,7 @@ namespace KTN
 
 		auto it = m_EntityMap.find(p_UUID);
 		if (it != m_EntityMap.end())
-			return it->second;
+			return { it->second, this };
 
 		return Entity();
 	}
