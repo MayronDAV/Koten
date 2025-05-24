@@ -35,6 +35,7 @@ group ""
 
 group "Core"
 	include "Koten"
+	include "Koten-ScriptCore"
 group ""
 
 group "Tools"

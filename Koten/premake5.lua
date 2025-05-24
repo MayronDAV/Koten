@@ -44,7 +44,8 @@ project "Koten"
 		"%{IncludeDir.yamlcpp}",
 		"%{IncludeDir.optick}",
 		"%{IncludeDir.box2d}/include",
-		"%{IncludeDir.box2d}/src"
+		"%{IncludeDir.box2d}/src",
+		"%{IncludeDir.mono}"
 	}
 
 	links
@@ -72,7 +73,17 @@ project "Koten"
 	filter "system:windows"
 		systemversion "latest"
 		buildoptions { "/utf-8", "/Zc:char8_t-", "/wd4251", "/wd4275" }
-		links { "opengl32.lib" }
+
+		links
+		{
+			"opengl32.lib",
+			"%{Library.mono_windows}",
+			"%{Library.WinSock}",
+			"%{Library.WinMM}",
+			"%{Library.WinVersion}",
+			"%{Library.BCrypt}"
+		}
+
 		defines
 		{
 			"KTN_WINDOWS",
@@ -89,7 +100,7 @@ project "Koten"
 	
 	filter "system:linux"
         pic "on"
-		links { "GL" }
+		links { "GL", "%{Library.mono_linux}" }
 		buildoptions { "`pkg-config --cflags gtk+-3.0`", "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-fno-char8_t", "-Wno-effc++", "-fpermissive" }
 		linkoptions { "`pkg-config --libs gtk+-3.0`" }
 		defines

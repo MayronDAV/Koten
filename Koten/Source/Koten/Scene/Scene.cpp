@@ -119,7 +119,7 @@ namespace KTN
 
 		Ref<Scene> newScene = CreateRef<Scene>();
 		Copy(p_Scene, newScene);
-		return newScene;
+		return newScene;	
 	}
 
 	Entity Scene::CreateEntity(const std::string& p_Tag)

@@ -13,6 +13,7 @@
 #include "Koten/Core/FileSystem.h"
 #include "Koten/Core/Time.h"
 #include "Koten/Core/UUID.h"
+#include "Koten/Core/Buffer.h"
 
 // EVENTS
 
@@ -60,6 +61,10 @@
 #include "Koten/OS/MouseCodes.h"
 #include "Koten/OS/Input.h"
 #include "Koten/OS/Window.h"
+
+// SCRIPT
+
+#include "Koten/Script/ScriptEngine.h"
 
 // SCENE
 

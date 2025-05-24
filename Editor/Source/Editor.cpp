@@ -105,7 +105,7 @@ namespace KTN
 
 		Shortcuts::Init(file);
 	}
-
+	
 	Editor::~Editor()
 	{
 	}
@@ -132,7 +132,7 @@ namespace KTN
 	void Editor::OnAttach()
 	{
 		KTN_PROFILE_FUNCTION();
-
+		
 		m_Camera = CreateRef<EditorCamera>();
 
 		ImGuizmo::Init();
@@ -370,7 +370,7 @@ namespace KTN
 
 		#pragma endregion
 	}
-
+	
 	void Editor::OnDetach()
 	{
 		UnSelectEntt();

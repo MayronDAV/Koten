@@ -8,3 +8,5 @@ Cache/
 **.user
 *.log
 Koten/cpp.hint
+/Editor/Resources/Scripts/Intermediates
+*.csproj

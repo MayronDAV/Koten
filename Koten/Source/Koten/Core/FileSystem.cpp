@@ -68,6 +68,32 @@ namespace KTN
 		return result;
 	}
 
+	Buffer FileSystem::ReadFileBinary(const std::string& p_Path)
+	{
+		std::ifstream stream(p_Path, std::ios::binary | std::ios::ate);
+
+		if (!stream)
+		{
+			KTN_CORE_ERROR("Could not open file: {}", p_Path);
+			return {};
+		}
+
+		std::streampos end = stream.tellg();
+		stream.seekg(0, std::ios::beg);
+		uint64_t size = end - stream.tellg();
+
+		if (size == 0)
+		{
+			// File is empty
+			return {};
+		}
+
+		Buffer buffer(size);
+		stream.read(buffer.As<char>(), size);
+		stream.close();
+		return buffer;
+	}
+
 	void FileSystem::Search(const std::string& p_Query, const std::string& p_Dir, std::vector<std::filesystem::path>& p_Results)
 	{
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(p_Dir))

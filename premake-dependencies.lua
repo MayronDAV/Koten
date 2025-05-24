@@ -19,3 +19,17 @@ IncludeDir["glslang"] 		= "%{wks.location}/Koten/Thirdparty/glslang/"
 IncludeDir["SPIRVCross"] 	= "%{wks.location}/Koten/Thirdparty/SPIRV-Cross/"
 IncludeDir["stb"] 			= "%{wks.location}/Koten/Thirdparty/stb/"
 IncludeDir["box2d"] 		= "%{wks.location}/Koten/Thirdparty/box2d"
+IncludeDir["mono"] 			= "%{wks.location}/Koten/Thirdparty/mono/include"
+
+LibraryDir = {}
+LibraryDir["mono"] 			= "%{wks.location}/Koten/Thirdparty/mono/lib"
+
+Library = {}
+Library["mono_windows"] 	= "%{LibraryDir.mono}/libmono-static-sgen.lib"
+Library["mono_linux"] 		= "%{LibraryDir.mono}/libmonosgen-2.0.a"
+
+-- Windows
+Library["WinSock"] 			= "Ws2_32.lib"
+Library["WinMM"] 			= "Winmm.lib"
+Library["WinVersion"] 		= "Version.lib"
+Library["BCrypt"] 			= "Bcrypt.lib"

@@ -12,6 +12,7 @@
 #include "Koten/Graphics/Renderer.h"
 #include "Koten/Scene/SystemManager.h"
 #include "Koten/Physics/Box2D/B2Physics.h"
+#include "Koten/Script/ScriptEngine.h"
 
 
 
@@ -41,6 +42,7 @@ namespace KTN
 		PushOverlay(m_ImGui);
 
 		Renderer::Init();
+		ScriptEngine::Init();
 
 		SystemManager::RegisterSystem<B2Physics>();
 	}
@@ -60,6 +62,7 @@ namespace KTN
 
 		KTN_PROFILE_SHUTDOWN();
 
+		ScriptEngine::Shutdown();
 		RendererCommand::Release();
 
 		s_Instance = nullptr;
