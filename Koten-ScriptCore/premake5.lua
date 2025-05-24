@@ -18,6 +18,11 @@ project "Koten-ScriptCore"
 	filter "system:linux"
 		systemversion "latest"
 		dotnetframework "mono"
+		toolset "gcc"
+		buildoptions {
+            "--lib:%{cfg.targetdir}",
+            "--target:library"
+        }
 	
 	filter "configurations:Debug"
 		optimize "off"
