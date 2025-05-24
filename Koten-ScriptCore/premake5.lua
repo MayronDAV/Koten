@@ -17,11 +17,10 @@ project "Koten-ScriptCore"
 
 	filter "system:linux"
 		systemversion "latest"
-		dotnetframework "mono"
-		toolset "gcc"
+		toolset "mono"
 		buildoptions {
-            "--lib:%{cfg.targetdir}",
-            "--target:library"
+            "--target:library",
+            "-out:%{cfg.targetdir}/%{prj.name}.dll"
         }
 	
 	filter "configurations:Debug"
