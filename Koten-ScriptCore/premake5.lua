@@ -1,6 +1,7 @@
 project "Koten-ScriptCore"
 	kind "SharedLib"
 	language "C#"
+	dotnetframework "4.7.2"
 
 	targetdir ("%{wks.location}/Editor/Resources/Scripts")
 	objdir ("%{wks.location}/Editor/Resources/Scripts/Intermediates")
@@ -10,18 +11,6 @@ project "Koten-ScriptCore"
 		"Source/**.cs",
 		"Properties/**.cs"
 	}
-
-	filter "system:windows"
-		systemversion "latest"
-		dotnetframework "4.7.2"
-
-	filter "system:linux"
-		systemversion "latest"
-		toolset "mono"
-		buildoptions {
-            "--target:library",
-            "-out:%{cfg.targetdir}/%{prj.name}.dll"
-        }
 	
 	filter "configurations:Debug"
 		optimize "off"

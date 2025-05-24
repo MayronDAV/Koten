@@ -34,7 +34,7 @@ jobs:
     - name: Build ${{ matrix.platform }} ${{ matrix.config }}
       run: |
         chmod u+r+x Tools/Linux/premake5
-        Tools/Linux/premake5 gmake2
+        Tools/Linux/premake5 gmake2 --dotnet=mono
         make config=${{ matrix.config }} CC=gcc-11 CXX=g++-11 -j8
 
     - name: Upload Bin Artifacts
