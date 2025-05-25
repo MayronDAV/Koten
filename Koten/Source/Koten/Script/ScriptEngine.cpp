@@ -2,12 +2,15 @@
 #include "ScriptEngine.h"
 #include "Koten/Core/FileSystem.h"
 
+#include "ScriptGlue.h"
+
 // lib
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/object.h>
 #include <mono/metadata/tabledefs.h>
 #include <mono/metadata/mono-debug.h>
+#include <mono/metadata/exception.h>
 
 
 
@@ -22,6 +25,8 @@ namespace KTN
 
 			MonoAssembly* CoreAssembly = nullptr;
 			MonoImage* CoreAssemblyImage = nullptr;
+
+			ScriptClass EntityClass;
 		};
 
 		static ScriptEngineData* s_Data = nullptr;
@@ -36,9 +41,6 @@ namespace KTN
 			KTN_CORE_ASSERT(rootDomain);
 
 			s_Data->RootDomain = rootDomain;
-
-			s_Data->AppDomain = mono_domain_create_appdomain((char*)"KotenScriptRuntime", nullptr);
-			mono_domain_set(s_Data->AppDomain, true);
 		}
 
 		static void ShutdownMono()
@@ -95,7 +97,16 @@ namespace KTN
 			}
 		}
 
+		MonoObject* InstantiateClass(MonoClass* p_Class)
+		{
+			MonoObject* instance = mono_object_new(s_Data->AppDomain, p_Class);
+			mono_runtime_object_init(instance);
+			return instance;
+		}
+
 	} // namespace
+
+	#pragma region ScriptEngine
 
 	void ScriptEngine::Init()
 	{
@@ -105,35 +116,42 @@ namespace KTN
 
 		InitMono();
 
-		s_Data->CoreAssembly = LoadMonoAssembly("Resources/Scripts/Koten-ScriptCore.dll");
-		s_Data->CoreAssemblyImage = mono_assembly_get_image(s_Data->CoreAssembly);
-		PrintAssemblyTypes(s_Data->CoreAssembly);
-
-		MonoClass* monoClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "Main");
-		MonoObject* instance = mono_object_new(s_Data->AppDomain, monoClass);
-		mono_runtime_object_init(instance);
-
+		bool status = LoadAssembly("Resources/Scripts/Koten-ScriptCore.dll");
+		if (!status)
 		{
-			MonoMethod* method = mono_class_get_method_from_name(monoClass, "PrintMessage", -1);
-			MonoObject* exception = nullptr;
-			mono_runtime_invoke(method, instance, nullptr, &exception);
+			KTN_CORE_ERROR("[ScriptEngine] Could not load Koten-ScriptCore assembly.");
+			return;
 		}
 
-		{
-			MonoMethod* method = mono_class_get_method_from_name(monoClass, "PrintIntMessage", -1);
-			MonoObject* exception = nullptr;
-			int value = 3;
-			void* params = &value;
-			mono_runtime_invoke(method, instance, &params, &exception);
-		}
+		ScriptGlue::RegisterFunctions();
 
+		// Retrieve and instantiate class (with constructor)
+		s_Data->EntityClass = ScriptClass("KTN", "Entity");
+		MonoObject* instance = s_Data->EntityClass.Instantiate();
+
+		MonoMethod* printMessageFunc = s_Data->EntityClass.GetMethod("PrintMessage", 0);
+		s_Data->EntityClass.InvokeMethod(instance, printMessageFunc);
+
+		MonoMethod* printIntFunc = s_Data->EntityClass.GetMethod("PrintInt", 1);
+
+		int value = 5;
+		void* param = &value;
+
+		s_Data->EntityClass.InvokeMethod(instance, printIntFunc, &param);
+
+		MonoMethod* printIntsFunc = s_Data->EntityClass.GetMethod("PrintInts", 2);
+		int value2 = 508;
+		void* params[2] =
 		{
-			MonoMethod* method = mono_class_get_method_from_name(monoClass, "PrintCustomMessage", -1);
-			MonoObject* exception = nullptr;
-			MonoString* str = mono_string_new(s_Data->AppDomain, "Hello World from C++");
-			void* params = str;
-			mono_runtime_invoke(method, instance, &params, &exception);
-		}
+			&value,
+			&value2
+		};
+		s_Data->EntityClass.InvokeMethod(instance, printIntsFunc, params);
+
+		MonoString* monoString = mono_string_new(s_Data->AppDomain, "Hello World from C++!");
+		MonoMethod* printCustomMessageFunc = s_Data->EntityClass.GetMethod("PrintCustomMessage", 1);
+		void* stringParam = monoString;
+		s_Data->EntityClass.InvokeMethod(instance, printCustomMessageFunc, &stringParam);
 	}
 
 	void ScriptEngine::Shutdown()
@@ -148,5 +166,55 @@ namespace KTN
 			s_Data = nullptr;
 		}
 	}
+
+	bool ScriptEngine::LoadAssembly(const std::string& p_Path)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		s_Data->AppDomain = mono_domain_create_appdomain((char*)"KotenScriptRuntime", nullptr);
+		mono_domain_set(s_Data->AppDomain, true);
+
+		s_Data->CoreAssembly = LoadMonoAssembly(p_Path);
+		if (!s_Data->CoreAssembly)
+		{
+			KTN_CORE_ERROR("Failed to load assembly: {}", p_Path);
+			return false;
+		}
+
+		s_Data->CoreAssemblyImage = mono_assembly_get_image(s_Data->CoreAssembly);
+		return true;
+	}
+
+	#pragma endregion
+
+	#pragma region ScriptClass
+
+	ScriptClass::ScriptClass(const std::string& p_Namespace, const std::string& p_Name)
+		: m_Name(p_Name), m_Namespace(p_Namespace), m_Class(nullptr)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		m_Class = mono_class_from_name(s_Data->CoreAssemblyImage, p_Namespace.c_str(), p_Name.c_str());
+	}
+
+	MonoObject* ScriptClass::Instantiate()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		return InstantiateClass(m_Class);
+	}
+
+	MonoMethod* ScriptClass::GetMethod(const std::string& p_Name, int p_ParameterCount)
+	{
+		return mono_class_get_method_from_name(m_Class, p_Name.c_str(), p_ParameterCount);
+	}
+
+	MonoObject* ScriptClass::InvokeMethod(MonoObject* p_Instance, MonoMethod* p_Method, void** p_Params)
+	{
+		MonoObject* exception = nullptr;
+		return mono_runtime_invoke(p_Method, p_Instance, p_Params, &exception);
+	}
+
+	#pragma endregion
 
 } // namespace KTN
