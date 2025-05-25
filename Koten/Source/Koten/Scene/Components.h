@@ -153,6 +153,14 @@ namespace KTN
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
 	};
 
-	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent
+	struct ScriptComponent
+	{
+		std::string FullClassName;
+
+		ScriptComponent() = default;
+		ScriptComponent(const ScriptComponent&) = default;
+	};
+
+	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
 
 } // namespace KTN

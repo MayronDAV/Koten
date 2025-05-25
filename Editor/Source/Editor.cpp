@@ -154,7 +154,7 @@ namespace KTN
 			panel->SetContext(m_ActiveScene);
 			panel->SetEditor(this);
 		}
-
+		
 		#pragma region Settings
 
 		Tab tab;

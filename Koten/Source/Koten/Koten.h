@@ -65,6 +65,7 @@
 // SCRIPT
 
 #include "Koten/Script/ScriptEngine.h"
+#include "Koten/Script/ScriptGlue.h"
 
 // SCENE
 

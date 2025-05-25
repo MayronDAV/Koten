@@ -26,6 +26,11 @@ namespace KTN
 			MonoAssembly* CoreAssembly = nullptr;
 			MonoImage* CoreAssemblyImage = nullptr;
 
+			std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
+			std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
+
+			Scene* SceneContext = nullptr;
+
 			ScriptClass EntityClass;
 		};
 
@@ -80,11 +85,14 @@ namespace KTN
 			return assembly;
 		}
 
-		static void PrintAssemblyTypes(MonoAssembly* p_Assembly)
+		static void LoadAssemblyClasses(MonoAssembly* p_Assembly)
 		{
+			s_Data->EntityClasses.clear();
+
 			MonoImage* image = mono_assembly_get_image(p_Assembly);
 			const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
 			int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
+			MonoClass* entityClass = mono_class_from_name(image, "KTN", "Entity");
 
 			for (int32_t i = 0; i < numTypes; i++)
 			{
@@ -93,7 +101,20 @@ namespace KTN
 
 				const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
 				const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
-				KTN_CORE_TRACE("{}.{}", nameSpace, name);
+				std::string fullName;
+				if (strlen(nameSpace) != 0)
+					fullName = fmt::format("{}.{}", nameSpace, name);
+				else
+					fullName = name;
+
+				MonoClass* monoClass = mono_class_from_name(image, nameSpace, name);
+
+				if (monoClass == entityClass)
+					continue;
+
+				bool isEntity = mono_class_is_subclass_of(monoClass, entityClass, false);
+				if (isEntity)
+					s_Data->EntityClasses[fullName] = CreateRef<ScriptClass>(nameSpace, name);
 			}
 		}
 
@@ -122,36 +143,12 @@ namespace KTN
 			KTN_CORE_ERROR("[ScriptEngine] Could not load Koten-ScriptCore assembly.");
 			return;
 		}
+		LoadAssemblyClasses(s_Data->CoreAssembly);
 
+		ScriptGlue::RegisterComponents();
 		ScriptGlue::RegisterFunctions();
 
-		// Retrieve and instantiate class (with constructor)
 		s_Data->EntityClass = ScriptClass("KTN", "Entity");
-		MonoObject* instance = s_Data->EntityClass.Instantiate();
-
-		MonoMethod* printMessageFunc = s_Data->EntityClass.GetMethod("PrintMessage", 0);
-		s_Data->EntityClass.InvokeMethod(instance, printMessageFunc);
-
-		MonoMethod* printIntFunc = s_Data->EntityClass.GetMethod("PrintInt", 1);
-
-		int value = 5;
-		void* param = &value;
-
-		s_Data->EntityClass.InvokeMethod(instance, printIntFunc, &param);
-
-		MonoMethod* printIntsFunc = s_Data->EntityClass.GetMethod("PrintInts", 2);
-		int value2 = 508;
-		void* params[2] =
-		{
-			&value,
-			&value2
-		};
-		s_Data->EntityClass.InvokeMethod(instance, printIntsFunc, params);
-
-		MonoString* monoString = mono_string_new(s_Data->AppDomain, "Hello World from C++!");
-		MonoMethod* printCustomMessageFunc = s_Data->EntityClass.GetMethod("PrintCustomMessage", 1);
-		void* stringParam = monoString;
-		s_Data->EntityClass.InvokeMethod(instance, printCustomMessageFunc, &stringParam);
 	}
 
 	void ScriptEngine::Shutdown()
@@ -185,6 +182,97 @@ namespace KTN
 		return true;
 	}
 
+	void ScriptEngine::OnRuntimeStart(Scene* p_Scene)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		s_Data->SceneContext = p_Scene;
+
+		p_Scene->GetRegistry().view<TagComponent, ScriptComponent>().each(
+		[&](auto p_Entt, TagComponent& p_Tag, ScriptComponent& p_Sc)
+		{
+			auto entity = Entity(p_Entt, p_Scene);
+			OnCreateEntity(entity);
+		});
+	}
+
+	void ScriptEngine::OnRuntimeUpdate(Scene* p_Scene)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		p_Scene->GetRegistry().view<TagComponent, ScriptComponent>().each(
+		[&](auto p_Entt, TagComponent& p_Tag, ScriptComponent& p_Sc)
+		{
+			auto entity = Entity(p_Entt, p_Scene);
+			OnUpdateEntity(entity);
+		});
+	}
+
+	void ScriptEngine::OnRuntimeStop()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		s_Data->SceneContext = nullptr;
+
+		s_Data->EntityInstances.clear();
+	}
+
+	bool ScriptEngine::EntityClassExists(const std::string& p_FullClassName)
+	{
+		return s_Data->EntityClasses.find(p_FullClassName) != s_Data->EntityClasses.end();
+	}
+
+	void ScriptEngine::OnCreateEntity(Entity p_Entity)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto sc = p_Entity.TryGetComponent<ScriptComponent>();
+		if (!sc)
+			return;
+
+		if (ScriptEngine::EntityClassExists(sc->FullClassName))
+		{
+			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(s_Data->EntityClasses[sc->FullClassName], p_Entity);
+			s_Data->EntityInstances[p_Entity.GetUUID()] = instance;
+			instance->InvokeOnCreate();
+		}
+	}
+
+	void ScriptEngine::OnUpdateEntity(Entity p_Entity)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		UUID entityUUID = p_Entity.GetUUID();
+		if (s_Data->EntityInstances.find(entityUUID) == s_Data->EntityInstances.end())
+		{
+			KTN_CORE_ERROR("Script instance not found for entity: {}", (uint64_t)entityUUID);
+			return;
+		}
+
+		Ref<ScriptInstance> instance = s_Data->EntityInstances[entityUUID];
+		instance->InvokeOnUpdate();
+	}
+
+	const std::unordered_map<std::string, Ref<ScriptClass>>& ScriptEngine::GetEntityClasses()
+	{
+		return s_Data->EntityClasses;
+	}
+
+	const std::unordered_map<UUID, Ref<ScriptInstance>>& ScriptEngine::GetEntityInstances()
+	{
+		return s_Data->EntityInstances;
+	}
+
+	MonoImage* KTN::ScriptEngine::GetCoreAssemblyImage()
+	{
+		return s_Data->CoreAssemblyImage;
+	}
+
+	Scene* ScriptEngine::GetSceneContext()
+	{
+		return s_Data->SceneContext;
+	}
+
 	#pragma endregion
 
 	#pragma region ScriptClass
@@ -213,6 +301,45 @@ namespace KTN
 	{
 		MonoObject* exception = nullptr;
 		return mono_runtime_invoke(p_Method, p_Instance, p_Params, &exception);
+	}
+
+	#pragma endregion
+
+	#pragma region ScriptInstance
+
+	ScriptInstance::ScriptInstance(Ref<ScriptClass> p_ScriptClass, Entity p_Entity)
+		: m_ScriptClass(p_ScriptClass)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		m_Instance = p_ScriptClass->Instantiate();
+
+		m_Constructor = s_Data->EntityClass.GetMethod(".ctor", 1);
+		m_OnCreateMethod = p_ScriptClass->GetMethod("OnCreate", 0);
+		m_OnUpdateMethod = p_ScriptClass->GetMethod("OnUpdate", 0);
+
+		// Call Entity constructor
+		{
+			UUID entityID = p_Entity.GetUUID();
+			void* param = &entityID;
+			m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, &param);
+		}
+	}
+
+	void ScriptInstance::InvokeOnCreate()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (m_OnCreateMethod)
+			m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod);
+	}
+
+	void ScriptInstance::InvokeOnUpdate()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (m_OnUpdateMethod)
+			m_ScriptClass->InvokeMethod(m_Instance, m_OnUpdateMethod);
 	}
 
 	#pragma endregion

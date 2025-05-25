@@ -446,6 +446,24 @@ namespace KTN
 			p_Out << YAML::EndMap;
 		}
 
+		template<>
+		void ComponentSerializeIfExist<ScriptComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<ScriptComponent>())
+				return;
+
+			p_Out << YAML::Key << "ScriptComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<ScriptComponent>();
+			ADD_KEY_VALUE("FullClassName", comp.FullClassName);
+
+			p_Out << YAML::EndMap;
+		}
+
+
 	} // namespace
 
 	// Deserialize
@@ -574,7 +592,6 @@ namespace KTN
 			}
 		}
 		
-
 		template<>
 		void ComponentDeserializeIfExist<LineRendererComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
@@ -644,6 +661,22 @@ namespace KTN
 			comp.Restitution = circleComp["Restitution"].as<float>();
 			comp.RestitutionThreshold = circleComp["RestitutionThreshold"].as<float>();
 		}
+
+		template<>
+		void ComponentDeserializeIfExist<ScriptComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			std::string fullClassName = "";
+			auto comp = p_Data["ScriptComponent"];
+			if (comp)
+			{
+				fullClassName = comp["FullClassName"].as<std::string>();
+				p_Entity.AddOrReplaceComponent<ScriptComponent>().FullClassName = fullClassName;
+			}
+
+		}
+
 
 	} // namespace
 

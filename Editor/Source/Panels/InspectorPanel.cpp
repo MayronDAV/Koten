@@ -12,7 +12,7 @@ namespace KTN
 {
 	namespace
 	{
-		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent
+		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
 
 		template <typename Component>
 		void ComponentDrawView(entt::registry& p_Registry, Entity p_Entity) {}
@@ -337,6 +337,28 @@ namespace KTN
 			});
 		}
 
+		template <>
+		void ComponentDrawView<ScriptComponent>(entt::registry& p_Registry, Entity p_Entity)
+		{
+			DrawComponent<ScriptComponent>("Script", p_Entity,
+			[](ScriptComponent& p_SC)
+			{
+				bool exists = ScriptEngine::EntityClassExists(p_SC.FullClassName);
+
+				static char buffer[64];
+				strcpy_s(buffer, p_SC.FullClassName.c_str());
+
+				if (!exists)
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
+
+				if (ImGui::InputText("Class", buffer, sizeof(buffer)))
+					p_SC.FullClassName = buffer;
+
+				if (!exists)
+					ImGui::PopStyleColor();
+			});
+		}
+
 	} // namespace
 
 	InspectorPanel::InspectorPanel()
@@ -406,6 +428,7 @@ namespace KTN
 					DisplayComponentEntry<Rigidbody2DComponent>("Rigidbody2D", selectedEntt);
 					DisplayComponentEntry<BoxCollider2DComponent>("BoxCollider2D", selectedEntt);
 					DisplayComponentEntry<CircleCollider2DComponent>("CircleCollider2D", selectedEntt);
+					DisplayComponentEntry<ScriptComponent>("ScriptComponent", selectedEntt);
 
 					ImGui::EndPopup();
 				}

@@ -5,6 +5,7 @@
 #include "SystemManager.h"
 #include "Koten/Physics/Box2D/B2Physics.h"
 #include "Koten/Graphics/DebugRenderer.h"
+#include "Koten/Script/ScriptEngine.h"
 
 
 
@@ -264,11 +265,15 @@ namespace KTN
 
 		if (SystemManager::HasSystem<B2Physics>())
 			SystemManager::GetSystem<B2Physics>()->OnStart(this);
+
+		ScriptEngine::OnRuntimeStart(this);
 	}
 
 	void Scene::OnRuntimeStop()
 	{
 		KTN_PROFILE_FUNCTION();
+
+		ScriptEngine::OnRuntimeStop();
 
 		if (SystemManager::HasSystem<B2Physics>())
 			SystemManager::GetSystem<B2Physics>()->OnStop(this);
@@ -327,6 +332,8 @@ namespace KTN
 				first						= false;
 			}
 		});
+
+		ScriptEngine::OnRuntimeUpdate(this);
 	}
 
 	void Scene::OnRenderRuntime()
