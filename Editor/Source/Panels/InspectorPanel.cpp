@@ -343,19 +343,56 @@ namespace KTN
 			DrawComponent<ScriptComponent>("Script", p_Entity,
 			[](ScriptComponent& p_SC)
 			{
-				bool exists = ScriptEngine::EntityClassExists(p_SC.FullClassName);
+				static const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
-				static char buffer[128];
-				Strncpy(buffer, p_SC.FullClassName.c_str(), sizeof(buffer));
+				ImGui::Text("Class");
+				ImGui::SameLine();
 
-				if (!exists)
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
+				if (ImGui::Button(p_SC.FullClassName.c_str(), { 0.0f, lineHeight }))
+					ImGui::OpenPopup("ScriptClassSelector");
 
-				if (ImGui::InputText("Class", buffer, sizeof(buffer)))
-					p_SC.FullClassName = buffer;
+				if (ImGui::BeginPopup("ScriptClassSelector"))
+				{
+					KTN_PROFILE_FUNCTION();
 
-				if (!exists)
-					ImGui::PopStyleColor();
+					static char buffer[128];
+					buffer[0] = '\0'; // Clear the buffer initially
+
+					ImGui::Text(ICON_MDI_SEARCH_WEB);
+					ImGui::SameLine();
+					ImGui::InputText("##Search", buffer, sizeof(buffer), ImGuiInputTextFlags_AutoSelectAll);
+
+					auto size = ImGui::GetContentRegionAvail();
+					ImGui::SetNextWindowSizeConstraints({ size.x, 50.0f }, { size.x, 150.0f });
+					ImGui::BeginChild("##ClassesList", {0, 0}, true);
+					{
+						auto& classesMap = ScriptEngine::GetEntityClasses();
+						for (const auto& [name, classes] : classesMap)
+						{
+							if (buffer[0] != '\0')
+							{
+								std::string nameLower = name;
+								std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
+
+								char bufferLower[128];
+								Strncpy(bufferLower, buffer, sizeof(bufferLower));
+								std::transform(bufferLower, bufferLower + sizeof(bufferLower), bufferLower, ::tolower);
+
+								if (nameLower.find(bufferLower) == std::string::npos)
+									continue; // Skip if the name does not match the search
+							}
+
+							if (ImGui::Selectable(name.c_str(), p_SC.FullClassName == name))
+							{
+								p_SC.FullClassName = name;
+								ImGui::CloseCurrentPopup();
+							}
+						}
+					}
+					ImGui::EndChild();
+
+					ImGui::EndPopup();
+				}
 			});
 		}
 
