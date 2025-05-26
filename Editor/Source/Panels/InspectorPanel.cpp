@@ -345,8 +345,8 @@ namespace KTN
 			{
 				bool exists = ScriptEngine::EntityClassExists(p_SC.FullClassName);
 
-				static char buffer[64];
-				strcpy_s(buffer, p_SC.FullClassName.c_str());
+				static char buffer[128];
+				Strncpy(buffer, p_SC.FullClassName.c_str(), sizeof(buffer));
 
 				if (!exists)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
