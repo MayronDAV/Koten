@@ -18,7 +18,7 @@ namespace KTN
 	{
 		public:
 			ScriptClass() = default;
-			ScriptClass(const std::string& p_Namespace, const std::string& p_Name);
+			ScriptClass(const std::string& p_Namespace, const std::string& p_Name, bool p_IsCore = false);
 
 			MonoObject* Instantiate();
 			MonoMethod* GetMethod(const std::string& p_Name, int p_ParameterCount);
@@ -55,6 +55,7 @@ namespace KTN
 			static void Shutdown();
 
 			static bool LoadAssembly(const std::string& p_Path);
+			static bool LoadAppAssembly(const std::string& p_Path);
 
 			static void OnRuntimeStart(Scene* p_Scene);
 			static void OnRuntimeUpdate(Scene* p_Scene);
