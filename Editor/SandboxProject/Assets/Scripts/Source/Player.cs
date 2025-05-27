@@ -7,6 +7,11 @@ namespace Sandbox
 	public class Player : Entity
 	{
 		private Transform m_Transform;
+		public float Speed = 5.0f;
+		public float Timestep = 0.0f;
+
+		[ShowInEditor]
+		private float m_DeltaTime = 0.0f;
 
 		void OnCreate()
 		{
@@ -19,7 +24,10 @@ namespace Sandbox
 		{
 			// Console.WriteLine($"Player.OnUpdate: {ts}");
 
-			float speed = 5.0f;
+			m_DeltaTime = Time.DeltaTime;
+			Timestep += Time.DeltaTime;
+
+			float speed = Speed;
 			Vector3 velocity = Vector3.Zero;
 
 			if (Input.IsKeyPressed(KeyCode.W))

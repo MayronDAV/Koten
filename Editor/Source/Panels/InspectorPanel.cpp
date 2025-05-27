@@ -341,7 +341,7 @@ namespace KTN
 		void ComponentDrawView<ScriptComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<ScriptComponent>("Script", p_Entity,
-			[](ScriptComponent& p_SC)
+			[&](ScriptComponent& p_SC)
 			{
 				static const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
@@ -393,6 +393,36 @@ namespace KTN
 
 					ImGui::EndPopup();
 				}
+
+
+				// Fields
+
+				Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityScriptInstance(p_Entity.GetUUID());
+				if (scriptInstance)
+				{
+					const auto& fields = scriptInstance->GetScriptClass()->GetFields();
+
+					for (const auto& [name, field] : fields)
+					{
+						ImGui::Text(name.c_str());
+						ImGui::SameLine();
+
+						if (field.Type == ScriptFieldType::Float)
+						{
+							float data = scriptInstance->GetFieldValue<float>(name);
+							if (field.IsPrivate)
+							{
+								ImGui::InputFloat(std::string("##Input" + name).c_str(), &data, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+								continue; // Skip the drag for private fields
+							}
+
+							if (ImGui::DragFloat(std::string("##Drag" + name).c_str(), &data))
+							{
+								scriptInstance->SetFieldValue(name, data);
+							}
+						}
+					}
+				}
 			});
 		}
 
@@ -417,7 +447,7 @@ namespace KTN
 
 		// TODO: Change this to lock the imgui items instead of just not showing them
 		auto state = m_Editor->GetState();
-		if (selectedEntt && state == RuntimeState::Edit)
+		if (selectedEntt)
 		{
 			auto& registry = selectedEntt.GetScene()->GetRegistry();
 			if (!registry.valid(selectedEntt))
