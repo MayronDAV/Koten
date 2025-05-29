@@ -35,6 +35,39 @@ namespace KTN
 		MonoClassField* ClassField;
 	};
 
+	struct ScriptFieldInstance
+	{
+		ScriptField Field;
+
+		ScriptFieldInstance()
+		{
+			memset(m_Buffer, 0, sizeof(m_Buffer));
+		}
+
+		template<typename T>
+		T GetValue()
+		{
+			static_assert(sizeof(T) <= 8, "Type too large!");
+			return *(T*)m_Buffer;
+		}
+
+		template<typename T>
+		void SetValue(T p_Value)
+		{
+			static_assert(sizeof(T) <= 8, "Type too large!");
+			m_Changed = true;
+			memcpy(m_Buffer, &p_Value, sizeof(T));
+		}
+	private:
+		bool m_Changed = false;
+		uint8_t m_Buffer[8];
+
+		friend class ScriptEngine;
+		friend class ScriptInstance;
+	};
+
+	using ScriptFieldMap = std::unordered_map<std::string, ScriptFieldInstance>;
+
 	class KTN_API ScriptClass
 	{
 		public:
@@ -70,6 +103,10 @@ namespace KTN
 			template<typename T>
 			T GetFieldValue(const std::string& p_Name)
 			{
+				KTN_PROFILE_FUNCTION();
+
+				static_assert(sizeof(T) <= 8, "Type too large!");
+
 				static char fieldValueBuffer[8];
 				bool success = GetFieldValueInternal(p_Name, fieldValueBuffer);
 				if (!success)
@@ -79,8 +116,12 @@ namespace KTN
 			}
 
 			template<typename T>
-			void SetFieldValue(const std::string& p_Name, const T& p_Value)
+			void SetFieldValue(const std::string& p_Name, T p_Value)
 			{
+				KTN_PROFILE_FUNCTION();
+
+				static_assert(sizeof(T) <= 8, "Type too large!");
+
 				SetFieldValueInternal(p_Name, &p_Value);
 			}
 
@@ -95,6 +136,8 @@ namespace KTN
 			MonoMethod* m_Constructor = nullptr;
 			MonoMethod* m_OnCreateMethod = nullptr;
 			MonoMethod* m_OnUpdateMethod = nullptr;
+
+			friend class ScriptEngine;
 	};
 
 	class KTN_API ScriptEngine
@@ -114,7 +157,9 @@ namespace KTN
 			static void OnCreateEntity(Entity p_Entity);
 			static void OnUpdateEntity(Entity p_Entity);
 
+			static Ref<ScriptClass> GetEntityClass(const std::string& p_Name);
 			static Ref<ScriptInstance> GetEntityScriptInstance(UUID p_EntityID);
+			static ScriptFieldMap& GetScriptFieldMap(Entity p_Entity);
 			static const std::unordered_map<std::string, Ref<ScriptClass>>& GetEntityClasses();
 			static const std::unordered_map<UUID, Ref<ScriptInstance>>& GetEntityInstances();
 			static MonoImage* GetCoreAssemblyImage();

@@ -344,6 +344,7 @@ namespace KTN
 			[&](ScriptComponent& p_SC)
 			{
 				static const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+				bool scriptClassExists = ScriptEngine::EntityClassExists(p_SC.FullClassName);
 
 				ImGui::Text("Class");
 				ImGui::SameLine();
@@ -396,7 +397,6 @@ namespace KTN
 
 
 				// Fields
-
 				Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityScriptInstance(p_Entity.GetUUID());
 				if (scriptInstance)
 				{
@@ -420,6 +420,36 @@ namespace KTN
 							{
 								scriptInstance->SetFieldValue(name, data);
 							}
+						}
+					}
+				}
+				else if (scriptClassExists)
+				{
+					Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(p_SC.FullClassName);
+					const auto& fields = entityClass->GetFields();
+
+					auto& entityFields = ScriptEngine::GetScriptFieldMap(p_Entity);
+					for (const auto& [name, field] : fields)
+					{
+						ImGui::Text(name.c_str());
+						ImGui::SameLine();
+
+						if (field.Type == ScriptFieldType::Float)
+						{
+							ScriptFieldInstance& fieldInstance = entityFields.find(name) != entityFields.end() ? entityFields.at(name) : entityFields[name];
+							if (entityFields.find(name) == entityFields.end())
+								fieldInstance.Field = field;
+
+							float data = fieldInstance.GetValue<float>();
+
+							if (field.IsPrivate)
+							{
+								ImGui::InputFloat(std::string("##Input" + name).c_str(), &data, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+								continue; // Skip the drag for private fields
+							}
+
+							if (ImGui::DragFloat(std::string("##Drag" + name).c_str(), &data))
+								fieldInstance.SetValue(data);
 						}
 					}
 				}

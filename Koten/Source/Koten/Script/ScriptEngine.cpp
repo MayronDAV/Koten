@@ -53,6 +53,7 @@ namespace KTN
 
 			std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 			std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
+			std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
 
 			Scene* SceneContext = nullptr;
 
@@ -378,8 +379,22 @@ namespace KTN
 
 		if (ScriptEngine::EntityClassExists(sc->FullClassName))
 		{
+			UUID entityID = p_Entity.GetUUID();
+
 			Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(s_Data->EntityClasses[sc->FullClassName], p_Entity);
-			s_Data->EntityInstances[p_Entity.GetUUID()] = instance;
+			s_Data->EntityInstances[entityID] = instance;
+
+			// Copy field values
+			if (s_Data->EntityScriptFields.find(entityID) != s_Data->EntityScriptFields.end())
+			{
+				const ScriptFieldMap& fieldMap = s_Data->EntityScriptFields.at(entityID);
+				for (const auto& [name, fieldInstance] : fieldMap)
+				{
+					if (!fieldInstance.Field.IsPrivate && fieldInstance.m_Changed)
+						instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
+				}
+			}
+
 			instance->InvokeOnCreate();
 		}
 	}
@@ -399,6 +414,16 @@ namespace KTN
 		instance->InvokeOnUpdate();
 	}
 
+	Ref<ScriptClass> ScriptEngine::GetEntityClass(const std::string& p_Name)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (s_Data->EntityClasses.find(p_Name) == s_Data->EntityClasses.end())
+			return nullptr;
+
+		return s_Data->EntityClasses.at(p_Name);
+	}
+
 	Ref<ScriptInstance> ScriptEngine::GetEntityScriptInstance(UUID p_EntityID)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -408,6 +433,14 @@ namespace KTN
 			return it->second;
 
 		return nullptr;
+	}
+
+	ScriptFieldMap& ScriptEngine::GetScriptFieldMap(Entity p_Entity)
+	{
+		KTN_PROFILE_FUNCTION();
+		KTN_CORE_ASSERT(p_Entity);
+
+		return s_Data->EntityScriptFields[p_Entity.GetUUID()];
 	}
 
 	const std::unordered_map<std::string, Ref<ScriptClass>>& ScriptEngine::GetEntityClasses()
