@@ -2,6 +2,7 @@
 #include "Koten/Core/Base.h"
 #include "Koten/Scene/Scene.h"
 #include "Koten/Scene/Entity.h"
+#include "Utils.h"
 
 
 extern "C" {
@@ -15,22 +16,14 @@ extern "C" {
 
 namespace KTN
 {
-	enum class ScriptFieldType : uint8_t
-	{
-		None = 0,
-		Float, Double,
-		Bool, Char, Byte, Short, Int, Long,
-		UByte, UShort, UInt, ULong,
-		String,
-		Vector2, Vector3, Vector4,
-		Entity
-	};
-
 	struct ScriptField
 	{
 		ScriptFieldType Type;
 		std::string Name;
 		bool IsPrivate = false;
+
+		bool ShowInEditor = false;
+		bool Serialize = false;
 
 		MonoClassField* ClassField;
 	};
@@ -47,20 +40,20 @@ namespace KTN
 		template<typename T>
 		T GetValue()
 		{
-			static_assert(sizeof(T) <= 8, "Type too large!");
+			static_assert(sizeof(T) <= 16, "Type too large!");
 			return *(T*)m_Buffer;
 		}
 
 		template<typename T>
 		void SetValue(T p_Value)
 		{
-			static_assert(sizeof(T) <= 8, "Type too large!");
+			static_assert(sizeof(T) <= 16, "Type too large!");
 			m_Changed = true;
 			memcpy(m_Buffer, &p_Value, sizeof(T));
 		}
 	private:
 		bool m_Changed = false;
-		uint8_t m_Buffer[8];
+		uint8_t m_Buffer[16];
 
 		friend class ScriptEngine;
 		friend class ScriptInstance;
@@ -105,9 +98,9 @@ namespace KTN
 			{
 				KTN_PROFILE_FUNCTION();
 
-				static_assert(sizeof(T) <= 8, "Type too large!");
+				static_assert(sizeof(T) <= 16, "Type too large!");
 
-				static char fieldValueBuffer[8];
+				static char fieldValueBuffer[16];
 				bool success = GetFieldValueInternal(p_Name, fieldValueBuffer);
 				if (!success)
 					return T();
@@ -120,7 +113,7 @@ namespace KTN
 			{
 				KTN_PROFILE_FUNCTION();
 
-				static_assert(sizeof(T) <= 8, "Type too large!");
+				static_assert(sizeof(T) <= 16, "Type too large!");
 
 				SetFieldValueInternal(p_Name, &p_Value);
 			}

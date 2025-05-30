@@ -2,6 +2,7 @@
 #include "SceneSerializer.h"
 #include "Entity.h"
 #include "Koten/Graphics/TextureImporter.h"
+#include "Koten/Script/ScriptEngine.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -9,6 +10,23 @@
 
 namespace YAML
 {
+	template<>
+	struct convert<KTN::UUID>
+	{
+		static Node encode(const KTN::UUID& p_Uuid)
+		{
+			Node node;
+			node.push_back((uint64_t)p_Uuid);
+			return node;
+		}
+
+		static bool decode(const Node& node, KTN::UUID& p_Uuid)
+		{
+			p_Uuid = node.as<uint64_t>();
+			return true;
+		}
+	};
+
 	template<>
 	struct convert<glm::vec2>
 	{
@@ -451,6 +469,11 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION();
 
+			#define WRITE_SCRIPT_FIELD(FieldType, Type)           \
+				case ScriptFieldType::FieldType:          \
+					p_Out << scriptField.GetValue<Type>();  \
+					break
+
 			if (!p_Entity.HasComponent<ScriptComponent>())
 				return;
 
@@ -460,7 +483,55 @@ namespace KTN
 			auto& comp = p_Entity.GetComponent<ScriptComponent>();
 			ADD_KEY_VALUE("FullClassName", comp.FullClassName);
 
+			Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(comp.FullClassName);
+			const auto& fields = entityClass->GetFields();
+			if (fields.size() > 0)
+			{
+				p_Out << YAML::Key << "ScriptFields" << YAML::Value;
+				auto& entityFields = ScriptEngine::GetScriptFieldMap(p_Entity);
+				p_Out << YAML::BeginSeq;
+				for (const auto& [name, field] : fields)
+				{
+					if (entityFields.find(name) == entityFields.end())
+						continue;
+
+					if (field.IsPrivate && !field.Serialize)
+						continue;
+
+					p_Out << YAML::BeginMap; // ScriptField
+					ADD_KEY_VALUE("Name", name);
+					ADD_KEY_VALUE("Type", Utils::ScriptFieldTypeToString(field.Type));
+
+					p_Out << YAML::Key << "Data" << YAML::Value;
+					ScriptFieldInstance& scriptField = entityFields.at(name);
+
+					switch (field.Type)
+					{
+						WRITE_SCRIPT_FIELD(Float,   float);
+						WRITE_SCRIPT_FIELD(Double,  double);
+						WRITE_SCRIPT_FIELD(Bool,    bool);
+						WRITE_SCRIPT_FIELD(Char,    char);
+						WRITE_SCRIPT_FIELD(Byte,    int8_t);
+						WRITE_SCRIPT_FIELD(Short,   int16_t);
+						WRITE_SCRIPT_FIELD(Int,     int32_t);
+						WRITE_SCRIPT_FIELD(Long,    int64_t);
+						WRITE_SCRIPT_FIELD(UByte,   uint8_t);
+						WRITE_SCRIPT_FIELD(UShort,  uint16_t);
+						WRITE_SCRIPT_FIELD(UInt,    uint32_t);
+						WRITE_SCRIPT_FIELD(ULong,   uint64_t);
+						WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
+						WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
+						WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
+						WRITE_SCRIPT_FIELD(Entity,  UUID);
+					}
+					p_Out << YAML::EndMap; // ScriptFields
+				}
+				p_Out << YAML::EndSeq;
+			}
+
 			p_Out << YAML::EndMap;
+
+			#undef WRITE_SCRIPT_FIELD
 		}
 
 
@@ -499,9 +570,9 @@ namespace KTN
 
 			auto& comp = p_Entity.AddOrReplaceComponent<HierarchyComponent>();
 			comp.Parent = parent != 0ul ? scene->GetEntityByUUID(parent).GetHandle() : entt::null;
-			comp.First  = first != 0ul ? scene->GetEntityByUUID(first).GetHandle() : entt::null;
-			comp.Prev   = prev != 0ul ? scene->GetEntityByUUID(prev).GetHandle() : entt::null;
-			comp.Next   = next != 0ul ? scene->GetEntityByUUID(next).GetHandle() : entt::null;
+			comp.First = first != 0ul ? scene->GetEntityByUUID(first).GetHandle() : entt::null;
+			comp.Prev = prev != 0ul ? scene->GetEntityByUUID(prev).GetHandle() : entt::null;
+			comp.Next = next != 0ul ? scene->GetEntityByUUID(next).GetHandle() : entt::null;
 			comp.ChildCount = hierarchyComp["ChildCount"].as<uint32_t>();
 		}
 
@@ -574,7 +645,7 @@ namespace KTN
 				auto offset = spriteComp["Offset"].as<glm::vec2>();
 				auto scale = spriteComp["Scale"].as<glm::vec2>();
 
-				auto& comp = p_Entity.AddComponent<SpriteComponent>(color);	
+				auto& comp = p_Entity.AddComponent<SpriteComponent>(color);
 				comp.Type = type;
 				comp.Path = path;
 				comp.Thickness = thickness;
@@ -591,7 +662,7 @@ namespace KTN
 				}
 			}
 		}
-		
+
 		template<>
 		void ComponentDeserializeIfExist<LineRendererComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
@@ -667,16 +738,70 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION();
 
+			#define READ_SCRIPT_FIELD(FieldType, Type)             \
+				case ScriptFieldType::FieldType:                   \
+				{                                                  \
+					Type data = scriptField["Data"].as<Type>();    \
+					fieldInstance.SetValue(data);                  \
+					break;                                         \
+				}
+
 			std::string fullClassName = "";
 			auto comp = p_Data["ScriptComponent"];
 			if (comp)
 			{
-				fullClassName = comp["FullClassName"].as<std::string>();
-				p_Entity.AddOrReplaceComponent<ScriptComponent>().FullClassName = fullClassName;
+				auto& sc = p_Entity.AddOrReplaceComponent<ScriptComponent>();
+				sc.FullClassName = comp["FullClassName"].as<std::string>();
+
+				auto scriptFields = comp["ScriptFields"];
+				if (scriptFields)
+				{
+					Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(sc.FullClassName);
+					KTN_CORE_ASSERT(entityClass);
+					const auto& fields = entityClass->GetFields();
+					auto& entityFields = ScriptEngine::GetScriptFieldMap(p_Entity);
+
+					for (auto scriptField : scriptFields)
+					{
+						std::string name = scriptField["Name"].as<std::string>();
+						std::string typeString = scriptField["Type"].as<std::string>();
+						ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
+
+						ScriptFieldInstance& fieldInstance = entityFields[name];
+
+						if (fields.find(name) == fields.end())
+						{
+							KTN_CORE_WARN("Script field '{}' not found in class '{}'. Skipping...", name, sc.FullClassName);
+							continue;
+						}
+
+						fieldInstance.Field = fields.at(name);
+
+						switch (type)
+						{
+							READ_SCRIPT_FIELD(Float, float);
+							READ_SCRIPT_FIELD(Double, double);
+							READ_SCRIPT_FIELD(Bool, bool);
+							READ_SCRIPT_FIELD(Char, char);
+							READ_SCRIPT_FIELD(Byte, int8_t);
+							READ_SCRIPT_FIELD(Short, int16_t);
+							READ_SCRIPT_FIELD(Int, int32_t);
+							READ_SCRIPT_FIELD(Long, int64_t);
+							READ_SCRIPT_FIELD(UByte, uint8_t);
+							READ_SCRIPT_FIELD(UShort, uint16_t);
+							READ_SCRIPT_FIELD(UInt, uint32_t);
+							READ_SCRIPT_FIELD(ULong, uint64_t);
+							READ_SCRIPT_FIELD(Vector2, glm::vec2);
+							READ_SCRIPT_FIELD(Vector3, glm::vec3);
+							READ_SCRIPT_FIELD(Vector4, glm::vec4);
+							READ_SCRIPT_FIELD(Entity, UUID);
+						}
+					}
+				}
 			}
 
+			#undef READ_SCRIPT_FIELD
 		}
-
 
 	} // namespace
 

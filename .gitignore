@@ -10,3 +10,4 @@ Cache/
 *.log
 Koten/cpp.hint
 *.csproj
+/Editor/SandboxProject/Assets/Scripts/Binaries

@@ -129,37 +129,6 @@ namespace KTN
 			return it->second;
 		}
 
-		static const char* ScriptFieldTypeToString(ScriptFieldType p_Type)
-		{
-			KTN_PROFILE_FUNCTION();
-
-			#define SCRIPT_FIELD_TYPE_CASE(type) case ScriptFieldType::type: return #type
-
-			switch (p_Type)
-			{
-				SCRIPT_FIELD_TYPE_CASE(None);
-				SCRIPT_FIELD_TYPE_CASE(Float);
-				SCRIPT_FIELD_TYPE_CASE(Double);
-				SCRIPT_FIELD_TYPE_CASE(Bool);
-				SCRIPT_FIELD_TYPE_CASE(Char);
-				SCRIPT_FIELD_TYPE_CASE(Short);
-				SCRIPT_FIELD_TYPE_CASE(Int);
-				SCRIPT_FIELD_TYPE_CASE(Long);
-				SCRIPT_FIELD_TYPE_CASE(Byte);
-				SCRIPT_FIELD_TYPE_CASE(UShort);
-				SCRIPT_FIELD_TYPE_CASE(UInt);
-				SCRIPT_FIELD_TYPE_CASE(ULong);
-				SCRIPT_FIELD_TYPE_CASE(String);
-				SCRIPT_FIELD_TYPE_CASE(Vector2);
-				SCRIPT_FIELD_TYPE_CASE(Vector3);
-				SCRIPT_FIELD_TYPE_CASE(Vector4);
-				SCRIPT_FIELD_TYPE_CASE(Entity);
-				default: return "<Invalid>";
-			}
-
-			#undef SCRIPT_FIELD_TYPE_CASE
-		}
-
 		bool HasAttribute(MonoClassField* p_Field, MonoClass* p_Class, MonoImage* p_Image, const char* p_AttributeName, const char* p_NamespaceName = "KTN") 
 		{
 			MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_field(p_Class, p_Field);
@@ -220,21 +189,23 @@ namespace KTN
 					{
 						MonoType* type = mono_field_get_type(field);
 						ScriptFieldType fieldType = MonoTypeToScriptFieldType(type);
-						KTN_CORE_WARN("  {} ({})", fieldName, ScriptFieldTypeToString(fieldType));
+						KTN_CORE_WARN("  {} ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
-						fields[fieldName] = { fieldType, fieldName, false, field };
+						fields[fieldName] = { fieldType, fieldName, false, false, false, field };
 					}
 
 					if (flags & FIELD_ATTRIBUTE_PRIVATE)
 					{
-						if (!HasAttribute(field, monoClass, s_Data->CoreAssemblyImage, "ShowInEditor", "KTN"))
-							continue; // Skip private fields that are not marked with ShowInEditor
+						bool showInEditor = HasAttribute(field, monoClass, s_Data->CoreAssemblyImage, "ShowInEditor", "KTN");
+						bool serialize = HasAttribute(field, monoClass, s_Data->CoreAssemblyImage, "SerializeField", "KTN");
+						if (!showInEditor && !serialize)
+							continue; // Skip private fields that are not marked with ShowInEditor or SerializeField
 
 						MonoType* type = mono_field_get_type(field);
 						ScriptFieldType fieldType = MonoTypeToScriptFieldType(type);
-						KTN_CORE_WARN("  {} ({}) [Private]", fieldName, ScriptFieldTypeToString(fieldType));
+						KTN_CORE_WARN("  {} ({}) [Private]", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
-						fields[fieldName] = { fieldType, fieldName, true, field };
+						fields[fieldName] = { fieldType, fieldName, true, showInEditor, serialize, field };
 					}
 				}
 			}
@@ -556,12 +527,6 @@ namespace KTN
 			return false;
 
 		const ScriptField& field = it->second;
-		if (field.IsPrivate)
-		{
-			KTN_CORE_ERROR("Cannot set value for private field: {}", p_Name);
-			return false;
-		}
-
 		mono_field_set_value(m_Instance, field.ClassField, (void*)p_Value);
 		return true;
 	}

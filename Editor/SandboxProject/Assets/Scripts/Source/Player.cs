@@ -10,6 +10,7 @@ namespace Sandbox
 		public float Speed = 5.0f;
 		public float Timestep = 0.0f;
 
+		[SerializeField]
 		[ShowInEditor]
 		private float m_DeltaTime = 0.0f;
 

@@ -249,7 +249,18 @@ namespace KTN
 	{
 		Quad = 0,
 		Circle
-	}; 
+	};
+
+	enum class ScriptFieldType : uint8_t
+	{
+		None = 0,
+		Float, Double,
+		Bool, Char, Byte, Short, Int, Long,
+		UByte, UShort, UInt, ULong,
+		String,
+		Vector2, Vector3, Vector4,
+		Entity
+	};
 
 	#pragma endregion
 

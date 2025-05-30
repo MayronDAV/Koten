@@ -410,9 +410,11 @@ namespace KTN
 						if (field.Type == ScriptFieldType::Float)
 						{
 							float data = scriptInstance->GetFieldValue<float>(name);
+
 							if (field.IsPrivate)
 							{
-								ImGui::InputFloat(std::string("##Input" + name).c_str(), &data, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+								if (field.ShowInEditor)
+									ImGui::InputFloat(std::string("##Input" + name).c_str(), &data, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 								continue; // Skip the drag for private fields
 							}
 
@@ -444,7 +446,8 @@ namespace KTN
 
 							if (field.IsPrivate)
 							{
-								ImGui::InputFloat(std::string("##Input" + name).c_str(), &data, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+								if (field.ShowInEditor)
+									ImGui::InputFloat(std::string("##Input" + name).c_str(), &data, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 								continue; // Skip the drag for private fields
 							}
 
