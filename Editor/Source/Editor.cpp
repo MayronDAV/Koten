@@ -80,7 +80,7 @@ namespace KTN
 		}
 
 	} // namespace
-
+	
 	Editor::Editor()
 		: Layer("Editor")
 	{
@@ -96,7 +96,7 @@ namespace KTN
 				file.Add<float>("Settings", "Debug Circle Thickness", settings.DebugCircleThickness);
 				file.Rewrite();
 			}
-
+			
 			settings.MousePicking = file.Get<bool>("Settings", "Mouse Picking");
 			settings.ShowDebugPhysicsCollider = file.Get<bool>("Settings", "Show Physics Collider");
 			settings.DebugLineWidth = file.Get<float>("Settings", "Debug Line Width");

@@ -22,6 +22,7 @@
 #include "Koten/Events/WindowEvent.h"
 #include "Koten/Events/KeyEvent.h"
 #include "Koten/Events/MouseEvent.h"
+#include "Koten/Events/JoystickEvent.h"
 
 // GRAPHICS
 

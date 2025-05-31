@@ -5,6 +5,8 @@
 #include "Koten/Events/KeyEvent.h"
 #include "Koten/Events/MouseEvent.h"
 #include "Koten/Events/WindowEvent.h"
+#include "Koten/Events/JoystickEvent.h"
+#include "Koten/OS/Input.h"
 
 // lib
 #include <glad/glad.h>
@@ -21,6 +23,14 @@ namespace KTN
 		}
 
 		static uint8_t s_GLFWWindowCount = 0;
+
+		struct JoystickUserPointerData
+		{
+			void* Data = nullptr;
+			std::string Name = "";
+		};
+
+		static std::unordered_map<int, JoystickUserPointerData> s_UserPointerMap; // Map to store user pointers for joysticks
 
 	} // namespace
 
@@ -50,6 +60,7 @@ namespace KTN
 		KTN_PROFILE_FUNCTION_LOW();
 
 		glfwPollEvents();
+		UpdateControllers();
 	}
 
 	void GLFWWindow::Maximize()
@@ -203,7 +214,7 @@ namespace KTN
 		m_Data.Resizable	= p_Spec.Resizable;
 		m_Data.Vsync		= p_Spec.Vsync;
 
-		KTN_GLFW_INFO("Creating window {0} ({1}, {2}) Vsync: {3}", p_Spec.Title, p_Spec.Width, p_Spec.Height, p_Spec.Vsync ? "true" : "false");
+		KTN_GLFW_INFO(KTN_GLFWLOG "Creating window {0} ({1}, {2}) Vsync: {3}", p_Spec.Title, p_Spec.Width, p_Spec.Height, p_Spec.Vsync ? "true" : "false");
 
 		if (s_GLFWWindowCount == 0)
 		{
@@ -262,6 +273,8 @@ namespace KTN
 		}
 		++s_GLFWWindowCount;
 		m_Data.Context->Init(m_Window, m_Data.Title.c_str());
+		for (int jid = GLFW_JOYSTICK_1; jid <= GLFW_JOYSTICK_LAST; jid++)
+			s_UserPointerMap[jid] = { &m_Data, ""}; // Store user pointer for joystick callbacks
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 
@@ -376,6 +389,23 @@ namespace KTN
 			SET_EVENT(event);
 		});
 
+		glfwSetJoystickCallback([](int p_JoystickID, int p_Event)
+		{
+			WindowData& data = *(WindowData*)s_UserPointerMap[p_JoystickID].Data;
+
+			if (p_Event == GLFW_CONNECTED)
+			{
+				s_UserPointerMap[p_JoystickID].Name = glfwGetJoystickName(p_JoystickID);
+				JoystickConnectedEvent event(p_JoystickID, s_UserPointerMap[p_JoystickID].Name);
+				SET_EVENT(event);
+			}
+			else if (p_Event == GLFW_DISCONNECTED)
+			{
+				JoystickDisconnectedEvent event(p_JoystickID, s_UserPointerMap[p_JoystickID].Name);
+				SET_EVENT(event);
+			}
+		});
+
 		#undef SET_EVENT
 	}
 
@@ -383,13 +413,84 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION_LOW();
 
-		KTN_GLFW_WARN("{} window shutdown", m_Data.Title)
+		KTN_GLFW_WARN(KTN_GLFWLOG "{} window shutdown", m_Data.Title)
 		glfwDestroyWindow(m_Window);
 		--s_GLFWWindowCount;
 
 		if (s_GLFWWindowCount == 0)
 		{
+			s_UserPointerMap.clear();
 			glfwTerminate();
+		}
+	}
+
+	void GLFWWindow::UpdateControllers()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		for (int jid = GLFW_JOYSTICK_1; jid <= GLFW_JOYSTICK_LAST; jid++)
+		{
+			auto controller = Input::GetController(jid);
+			controller->Present = glfwJoystickPresent(jid) == GLFW_TRUE;
+			if (!controller->Present)
+			{
+				controller->Buttons.fill({});
+				continue;
+			}
+
+			GLFWgamepadstate state;
+			if (!glfwGetGamepadState(jid, &state)) {
+				KTN_CORE_ERROR(KTN_GLFWLOG "Something wrong! glfwGetGamepadState failed!");
+				controller->Present = false;
+				controller->Buttons.fill({});
+				return;
+			}
+
+			for (int button = GLFW_GAMEPAD_BUTTON_A; button <= GLFW_GAMEPAD_BUTTON_LAST; button++)
+			{
+				auto& btn = controller->Buttons[button];
+				btn.Button = button;
+				btn.PrevState = btn.State;
+
+				bool isPressed = state.buttons[button] == GLFW_PRESS;
+				if (isPressed && btn.PrevState != ButtonState::Pressed && btn.PrevState != ButtonState::Held)
+				{
+					btn.State = ButtonState::Pressed;
+
+					GamepadButtonPressedEvent event(jid, button);
+					m_Data.EventCallback(event);
+				}
+				else if (isPressed)
+				{
+					btn.State = ButtonState::Held;
+
+					GamepadButtonPressedEvent event(jid, button, true);
+					m_Data.EventCallback(event);
+				}
+
+				if (state.buttons[button] == GLFW_RELEASE && (btn.PrevState == ButtonState::Pressed || btn.PrevState == ButtonState::Held))
+				{
+					btn.State = ButtonState::Released;
+
+					GamepadButtonReleasedEvent event(jid, button);
+					m_Data.EventCallback(event);
+				}
+			}
+
+			for (int axis = GLFW_GAMEPAD_AXIS_LEFT_X; axis <= GLFW_GAMEPAD_AXIS_LAST; axis++)
+			{
+				float value = state.axes[axis];
+				if (axis == GLFW_GAMEPAD_AXIS_LEFT_TRIGGER || axis == GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER)
+					value = (value + 1.0f) / 2.0f;
+
+				controller->Axes[axis] = value;
+
+				if (abs(value) > 0.0001f)
+				{
+					GamepadAxisEvent event(jid, axis, value);
+					m_Data.EventCallback(event);
+				}
+			}
 		}
 	}
 

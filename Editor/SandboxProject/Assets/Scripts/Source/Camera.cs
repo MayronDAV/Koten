@@ -10,15 +10,23 @@ namespace Sandbox
 			float speed = 5.0f;
 			Vector3 velocity = Vector3.Zero;
 
-			if (Input.IsKeyPressed(KeyCode.Up))
-				velocity.Y = 1.0f;
-			else if (Input.IsKeyPressed(KeyCode.Down))
-				velocity.Y = -1.0f;
+			if (Input.IsControllerConnected(0))
+			{
+				velocity.X = Input.GetControllerAxis(0, GamepadCode.AxisRightX);
+				velocity.Y = Input.GetControllerAxis(0, GamepadCode.AxisRightY) * -1.0f;
+			}
+			else
+			{
+				if (Input.IsKeyPressed(KeyCode.W))
+					velocity.Y = 1.0f;
+				else if (Input.IsKeyPressed(KeyCode.S))
+					velocity.Y = -1.0f;
 
-			if (Input.IsKeyPressed(KeyCode.Left))
-				velocity.X = -1.0f;
-			else if (Input.IsKeyPressed(KeyCode.Right))
-				velocity.X = 1.0f;
+				if (Input.IsKeyPressed(KeyCode.A))
+					velocity.X = -1.0f;
+				else if (Input.IsKeyPressed(KeyCode.D))
+					velocity.X = 1.0f;
+			}
 
 			velocity *= speed;
 

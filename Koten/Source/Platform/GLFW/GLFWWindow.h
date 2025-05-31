@@ -46,6 +46,7 @@ namespace KTN
 		private:
 			void Init(const WindowSpecification& p_Spec);
 			void Shutdown() noexcept;
+			void UpdateControllers();
 
 		private:
 			GLFWwindow* m_Window				= nullptr;

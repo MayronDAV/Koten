@@ -4,6 +4,7 @@
 #include "Koten/OS/KeyCodes.h"
 #include "Koten/OS/MouseCodes.h"
 #include "Koten/OS/Input.h"
+#include "Koten/OS/GamepadCodes.h"
 
 // lib
 #include <mono/metadata/object.h>
@@ -70,6 +71,71 @@ namespace KTN
 			return Input::IsKeyPressed(p_Keycode);
 		}
 
+		static bool Input_IsKeyReleased(KeyCode p_Keycode)
+		{
+			return Input::IsKeyReleased(p_Keycode);
+		}
+
+		static bool Input_IsMouseButtonPressed(MouseCode p_MouseCode)
+		{
+			return Input::IsMouseButtonPressed(p_MouseCode);
+		}
+
+		static bool Input_IsMouseButtonReleased(MouseCode p_MouseCode)
+		{
+			return Input::IsMouseButtonReleased(p_MouseCode);
+		}
+
+		static bool Input_IsControllerButtonPressed(int p_ControllerIndex, GamepadCode p_Button)
+		{
+			return Input::IsControllerButtonPressed(p_ControllerIndex, p_Button);
+		}
+
+		static bool Input_IsControllerButtonReleased(int p_ControllerIndex, GamepadCode p_Button)
+		{
+			return Input::IsControllerButtonReleased(p_ControllerIndex, p_Button);
+		}
+
+		static bool Input_IsControllerButtonHeld(int p_ControllerIndex, GamepadCode p_Button)
+		{
+			return Input::IsControllerButtonHeld(p_ControllerIndex, p_Button);
+		}
+
+		static bool Input_IsControllerConnected(int p_ControllerIndex)
+		{
+			return Input::IsControllerPresent(p_ControllerIndex);
+		}
+
+		static float Input_GetControllerAxis(int p_ControllerIndex, GamepadAxisCode p_Axis)
+		{
+			return Input::GetControllerAxis(p_ControllerIndex, p_Axis);
+		}
+
+		static float Input_GetMouseX()
+		{
+			return Input::GetMouseX();
+		}
+
+		static float Input_GetMouseY()
+		{
+			return Input::GetMouseY();
+		}
+
+		static void Input_GetMousePosition(glm::vec2* p_Result)
+		{
+			*p_Result = Input::GetMousePosition();
+		}
+
+		static void Input_GetConnectedControllerIDs(MonoArray* p_Out, MonoException** p_Exception)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto data = Input::GetConnectedControllerIDs();
+			for (size_t i = 0; i < data.size(); ++i) 
+			{
+				mono_array_set(p_Out, int, (int)i, data[i]);
+			}
+		}
 
 		template <typename... Component>
 		static void RegisterComponent()
@@ -114,6 +180,17 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(TransformComponent_SetLocalTranslation);
 
 		KTN_ADD_INTERNAL_CALL(Input_IsKeyPressed);
+		KTN_ADD_INTERNAL_CALL(Input_IsKeyReleased);
+		KTN_ADD_INTERNAL_CALL(Input_IsMouseButtonPressed);
+		KTN_ADD_INTERNAL_CALL(Input_IsMouseButtonReleased);
+		KTN_ADD_INTERNAL_CALL(Input_IsControllerConnected);
+		KTN_ADD_INTERNAL_CALL(Input_IsControllerButtonPressed);
+		KTN_ADD_INTERNAL_CALL(Input_IsControllerButtonReleased);
+		KTN_ADD_INTERNAL_CALL(Input_IsControllerButtonHeld);
+		KTN_ADD_INTERNAL_CALL(Input_GetControllerAxis);
+		KTN_ADD_INTERNAL_CALL(Input_GetConnectedControllerIDs);
+		KTN_ADD_INTERNAL_CALL(Input_GetMouseX);
+		KTN_ADD_INTERNAL_CALL(Input_GetMouseY);
 	}
 
 } // namespace KTN

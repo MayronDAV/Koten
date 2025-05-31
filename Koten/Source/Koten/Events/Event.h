@@ -16,7 +16,9 @@ namespace KTN
 		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop,
 		AppTick, AppUpdate, AppRender,
 		KeyPressed, KeyReleased, KeyTyped,
-		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
+		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
+		JoystickConnected, JoystickDisconnected,
+		GamepadButtonPressed, GamepadButtonReleased, GamepadAxis
 	};
 
 	enum EventCategory
@@ -27,7 +29,8 @@ namespace KTN
 		EventCategoryInput			= BIT(2),
 		EventCategoryKeyboard		= BIT(3),
 		EventCategoryMouse			= BIT(4),
-		EventCategoryMouseButton	= BIT(5)
+		EventCategoryMouseButton	= BIT(5),
+		EventCategoryJoystick		= BIT(6)
 	};
 
 #define EVENT_CLASS_METHODS(type)															\

@@ -61,6 +61,15 @@ namespace KTN
 		return state == GLFW_PRESS;
 	}
 
+	bool Input::IsMouseButtonReleased(int p_Button)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
+		auto state = glfwGetMouseButton(window, p_Button);
+		return state == GLFW_RELEASE;
+	}
+
 	glm::vec2 Input::GetMousePosition()
 	{
 		KTN_PROFILE_FUNCTION_LOW();
