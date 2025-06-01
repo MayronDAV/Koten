@@ -41,6 +41,8 @@ namespace KTN
 			void SetState(RuntimeState p_State) { m_State = p_State; }
 			RuntimeState GetState() const { return m_State; }
 
+			void OpenProject(const std::filesystem::path& p_Path);
+
 		private:
 			void DrawMenuBar();
 			void Shortcuts();

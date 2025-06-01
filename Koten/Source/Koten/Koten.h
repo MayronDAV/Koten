@@ -63,6 +63,15 @@
 #include "Koten/OS/Input.h"
 #include "Koten/OS/Window.h"
 
+// PHYSICS
+
+#include "Koten/Physics/Box2D/B2Physics.h"
+
+// PROJECT
+
+#include "Koten/Project/Project.h"
+#include "Koten/Project/ProjectSerializer.h"
+
 // SCRIPT
 
 #include "Koten/Script/ScriptEngine.h"

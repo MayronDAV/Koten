@@ -3,6 +3,7 @@
 #include "Koten/Core/FileSystem.h"
 #include "ScriptGlue.h"
 #include "Koten/Core/Application.h"
+#include "Koten/Project/Project.h"
 
 // lib
 #include <mono/jit/jit.h>
@@ -50,6 +51,7 @@ namespace KTN
 
 			MonoAssembly* AppAssembly = nullptr;
 			MonoImage* AppAssemblyImage = nullptr;
+			std::string AppAssemblyPath = "";
 
 			std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 			std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
@@ -264,17 +266,6 @@ namespace KTN
 			return;
 		}
 
-		auto path = "SandboxProject/Assets/Scripts/Binaries/Sandbox.dll";
-		status = LoadAppAssembly(path);
-		if (!status)
-		{
-			KTN_CORE_ERROR("[ScriptEngine] Could not load app assembly: {0}", path);
-			return;
-		}
-
-		LoadAssemblyClasses();
-		ScriptGlue::RegisterComponents();
-
 		s_Data->EntityClass = ScriptClass("KTN", "Entity", true);
 	}
 
@@ -325,6 +316,10 @@ namespace KTN
 		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>(p_Path, OnAppAssemblyFileSystemEvent);
 		s_Data->AssemblyReloadPending = false;
 
+		LoadAssemblyClasses();
+		ScriptGlue::RegisterComponents();
+		s_Data->AppAssemblyPath = p_Path;
+
 		return true;
 	}
 
@@ -369,15 +364,29 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		if (s_Data->AppAssemblyPath.empty())
+		{
+			KTN_CORE_ERROR("[ScriptEngine] App assembly path is empty. Cannot reload assembly.");
+			return;
+		}
+
 		mono_domain_set(mono_get_root_domain(), false);
 		mono_domain_unload(s_Data->AppDomain);
 		s_Data->AppDomain = nullptr;
 
-		LoadAssembly("Resources/Scripts/Koten-ScriptCore.dll");
-		LoadAppAssembly("SandboxProject/Assets/Scripts/Binaries/Sandbox.dll");
-		LoadAssemblyClasses();
+		bool status = LoadAssembly("Resources/Scripts/Koten-ScriptCore.dll");
+		if (!status)
+		{
+			KTN_CORE_ERROR("[ScriptEngine] Could not load Koten-ScriptCore assembly.");
+			return;
+		}
 
-		ScriptGlue::RegisterComponents();
+		status = LoadAppAssembly(s_Data->AppAssemblyPath);
+		if (!status)
+		{
+			KTN_CORE_ERROR("[ScriptEngine] Could not load app assembly: {0}", s_Data->AppAssemblyPath);
+			return;
+		}
 
 		// Retrieve and instantiate class
 		s_Data->EntityClass = ScriptClass("KTN", "Entity", true);

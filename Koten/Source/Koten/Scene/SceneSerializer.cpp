@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "Koten/Graphics/TextureImporter.h"
 #include "Koten/Script/ScriptEngine.h"
+#include "Koten/Project/Project.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -655,10 +656,10 @@ namespace KTN
 				comp.Offset = offset;
 				comp.Scale = scale;
 
-				// TODO: Change this when we have projects.
 				if (path != "")
 				{
-					comp.Texture = TextureImporter::LoadTexture2D(path);
+					auto newPath = Project::GetAssetFileSystemPath(path);
+					comp.Texture = TextureImporter::LoadTexture2D(newPath.string());
 				}
 			}
 		}

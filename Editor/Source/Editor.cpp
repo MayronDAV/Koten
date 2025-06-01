@@ -133,11 +133,22 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 		
+		{
+			std::string path = "";
+			if (FileDialog::Open(".ktproj", "", path) == FileDialogResult::SUCCESS)
+			{
+				OpenProject(path);
+			}
+			
+			KTN_CORE_ASSERT(Project::GetActive(), "No project opened! Please open a project to continue.");
+		}
+
 		m_Camera = CreateRef<EditorCamera>();
 
 		ImGuizmo::Init();
 
-		m_ActiveScene = CreateRef<Scene>();
+		if (!m_ActiveScene)
+			m_ActiveScene = CreateRef<Scene>();
 
 		m_Settings = CreateRef<SettingsPanel>();
 
@@ -145,7 +156,7 @@ namespace KTN
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
 		m_Panels.emplace_back(CreateRef<InspectorPanel>());
 
-		auto contentBrowser = CreateRef<ContentBrowserPanel>();
+		auto contentBrowser = CreateRef<ContentBrowserPanel>(Project::GetAssetDirectory().string());
 		m_Panels.emplace_back(contentBrowser);
 
 		for (auto& panel : m_Panels)
@@ -427,6 +438,27 @@ namespace KTN
 
 	void Editor::OnEvent(Event& p_Event)
 	{
+	}
+
+	void Editor::OpenProject(const std::filesystem::path& p_Path)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (Project::Load(p_Path))
+		{
+			auto& config = Project::GetActive()->GetConfig();
+
+			if (!config.ScriptModulePath.empty())
+			{
+				ScriptEngine::LoadAppAssembly(Project::GetAssetFileSystemPath(config.ScriptModulePath).string());
+			}
+
+			if (!config.StartScene.empty())
+			{
+				auto startScenePath = Project::GetAssetFileSystemPath(config.StartScene);
+				OpenScene(startScenePath.string());
+			}
+		}
 	}
 
 	void Editor::DrawMenuBar()
