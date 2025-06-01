@@ -5,12 +5,7 @@
 
 namespace KTN
 {
-	std::mutex SystemManager::m_Mutex;
-
-	std::unordered_map<size_t, System*> SystemManager::m_Systems;
-
-
-	void SystemManager::Release()
+	SystemManager::~SystemManager()
 	{
 		for (auto& [key, system] : m_Systems)
 		{
@@ -18,6 +13,5 @@ namespace KTN
 		}
 		m_Systems.clear();
 	}
-
 
 } // namespace KTN

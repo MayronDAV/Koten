@@ -2,6 +2,7 @@
 #include "Koten/Core/Base.h"
 #include "Components.h"
 #include "SceneGraph.h"
+#include "SystemManager.h"
 
 // lib
 #include <entt/entt.hpp>
@@ -45,9 +46,12 @@ namespace KTN
 			void SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime = false);
 			void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
 
+			void Step(int p_Frames = 1);
+
 			bool IsPaused() const { return m_IsPaused; }
 			Entity GetEntityByUUID(UUID p_UUID);
 			Entity GetEntityByTag(const std::string& p_Tag);
+			Unique<SystemManager>& GetSystemManager() { return m_SystemManager; }
 
 			entt::registry& GetRegistry() { return m_Registry; }
 
@@ -60,6 +64,8 @@ namespace KTN
 			glm::vec4 m_ClearColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 			bool m_HaveCamera = false;
 			bool m_IsPaused = false;
+			int m_StepFrames = 0;
+			Unique<SystemManager> m_SystemManager = nullptr;
 
 			std::unordered_map<UUID, entt::entity> m_EntityMap;
 

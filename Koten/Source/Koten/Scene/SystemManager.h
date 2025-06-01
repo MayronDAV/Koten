@@ -11,12 +11,12 @@ namespace KTN
 	class KTN_API SystemManager
 	{
 		public:
-			static void Release();
+			SystemManager() = default;
+			~SystemManager();
 
 			template <typename T, typename... Args>
-			static System* RegisterSystem(Args&&... p_Args)
+			System* RegisterSystem(Args&&... p_Args)
 			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
 				auto typeName = typeid(T).hash_code();
 				KTN_CORE_ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
@@ -28,9 +28,8 @@ namespace KTN
 			}
 
 			template <typename T>
-			static System* RegisterSystem(T* p_System)
+			System* RegisterSystem(T* p_System)
 			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
 				auto typeName = typeid(T).hash_code();
 				KTN_CORE_ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
@@ -42,18 +41,16 @@ namespace KTN
 			}
 
 			template <typename T>
-			static void RemoveSystem()
+			void RemoveSystem()
 			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
 				auto typeName = typeid(T).hash_code();
 				delete m_Systems[typeName];
 				m_Systems.erase(typeName);
 			}
 
 			template <typename T>
-			static T* GetSystem()
+			T* GetSystem()
 			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
 				auto typeName = typeid(T).hash_code();
 
 				auto find = m_Systems.find(typeName);
@@ -65,44 +62,31 @@ namespace KTN
 			}
 
 			template <typename T>
-			static bool HasSystem()
+			bool HasSystem()
 			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
 				auto typeName = typeid(T).hash_code();
 				auto find = m_Systems.find(typeName);
 				return find != m_Systems.end();
 			}
 
-			static void OnUpdate(Scene* p_Scene)
+			void OnUpdate(Scene* p_Scene)
 			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
 				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
 				{
 					it->second->OnUpdate(p_Scene);
 				}
 			}
 
-			static void OnUpdate()
+			void OnStart(Scene* p_Scene)
 			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
-				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
-				{
-					it->second->OnUpdate();
-				}
-			}
-
-			static void OnStart(Scene* p_Scene)
-			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
 				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
 				{
 					it->second->OnStart(p_Scene);
 				}
 			}
 
-			static void OnStop(Scene* p_Scene)
+			void OnStop(Scene* p_Scene)
 			{
-				//std::scoped_lock<std::mutex> lock(m_Mutex);
 				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
 				{
 					it->second->OnStop(p_Scene);
@@ -110,8 +94,6 @@ namespace KTN
 			}
 
 		private:
-			static std::mutex m_Mutex;
-
-			static std::unordered_map<size_t, System*> m_Systems;
+			std::unordered_map<size_t, System*> m_Systems;
 	};
 } // namespace KTN

@@ -155,21 +155,12 @@ namespace KTN
 
 		if (m_Paused) return;
 
-		OnUpdate();
-
-		SyncTransforms(p_Scene);
-	}
-
-	void B2Physics::OnUpdate()
-	{
-		KTN_PROFILE_FUNCTION();
-
-		if (m_Paused) return;
-
 		b2WorldId world = { .index1 = m_World.Index, .generation = m_World.Generation };
 
 		auto ts = Time::GetDeltaTime();
 		b2World_Step(world, (float)ts, 4);
+
+		SyncTransforms(p_Scene);
 	}
 
 	void B2Physics::SetGravity(const glm::vec2& p_Gravity)

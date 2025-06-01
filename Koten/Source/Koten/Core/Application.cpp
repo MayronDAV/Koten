@@ -10,8 +10,6 @@
 #include "Koten/Graphics/Renderpass.h"
 #include "Koten/Graphics/Pipeline.h"
 #include "Koten/Graphics/Renderer.h"
-#include "Koten/Scene/SystemManager.h"
-#include "Koten/Physics/Box2D/B2Physics.h"
 #include "Koten/Script/ScriptEngine.h"
 
 
@@ -43,15 +41,11 @@ namespace KTN
 
 		Renderer::Init();
 		ScriptEngine::Init();
-
-		SystemManager::RegisterSystem<B2Physics>();
 	}
 
 	Application::~Application()
 	{
 		KTN_PROFILE_FUNCTION();
-
-		SystemManager::Release();
 
 		Renderer::Shutdown();
 
@@ -93,8 +87,6 @@ namespace KTN
 					m_Counter = 0;
 				}
 				m_Counter++;
-
-				SystemManager::OnUpdate();
 
 				for (auto& layer : m_LayerStack)
 					layer->OnUpdate();

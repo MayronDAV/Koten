@@ -128,7 +128,7 @@ namespace KTN
 			panel->SetContext(m_ActiveScene);
 		}
 	}
-	
+
 	void Editor::OnAttach()
 	{
 		KTN_PROFILE_FUNCTION();
@@ -147,7 +147,6 @@ namespace KTN
 
 		auto contentBrowser = CreateRef<ContentBrowserPanel>();
 		m_Panels.emplace_back(contentBrowser);
-
 
 		for (auto& panel : m_Panels)
 		{

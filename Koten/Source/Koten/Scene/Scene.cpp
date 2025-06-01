@@ -2,7 +2,6 @@
 #include "Scene.h"
 #include "Koten/Graphics/Renderer.h"
 #include "Entity.h"
-#include "SystemManager.h"
 #include "Koten/Physics/Box2D/B2Physics.h"
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Script/ScriptEngine.h"
@@ -50,6 +49,10 @@ namespace KTN
 		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
 		AddDependency<BoxCollider2DComponent, Rigidbody2DComponent>(m_Registry);
 		AddDependency<CircleCollider2DComponent, Rigidbody2DComponent>(m_Registry);
+
+		m_SystemManager = CreateUnique<SystemManager>();
+		// TODO: A way to add/remove this and other systems at runtime with script or an option
+		m_SystemManager->RegisterSystem<B2Physics>();
 
 		m_SceneGraph = CreateUnique<SceneGraph>();
 		m_SceneGraph->Init(m_Registry);
@@ -211,26 +214,23 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->OnStart(this);
+		m_SystemManager->OnStart(this);
 	}
 
 	void Scene::OnSimulationStop()
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->OnStop(this);
+		m_SystemManager->OnStop(this);
 	}
 
 	void Scene::OnUpdateSimulation()
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (!m_IsPaused)
+		if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
 		{
-			if (SystemManager::HasSystem<B2Physics>())
-				SystemManager::GetSystem<B2Physics>()->SyncTransforms(this);
+			m_SystemManager->OnUpdate(this);
 
 			m_SceneGraph->Update(m_Registry);
 		}
@@ -263,8 +263,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->OnStart(this);
+		m_SystemManager->OnStart(this);
 
 		ScriptEngine::OnRuntimeStart(this);
 	}
@@ -275,8 +274,7 @@ namespace KTN
 
 		ScriptEngine::OnRuntimeStop();
 
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->OnStop(this);
+		m_SystemManager->OnStop(this);
 	}
 
 	void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime)
@@ -285,6 +283,11 @@ namespace KTN
 
 		m_Width = p_Width;
 		m_Height = p_Height;
+	}
+
+	void Scene::Step(int p_Frames)
+	{
+		m_StepFrames = p_Frames;
 	}
 
 	Entity Scene::GetEntityByUUID(UUID p_UUID)
@@ -320,12 +323,13 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (!m_IsPaused)
+		if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
 		{
-			if (SystemManager::HasSystem<B2Physics>())
-				SystemManager::GetSystem<B2Physics>()->SyncTransforms(this);
+			m_SystemManager->OnUpdate(this);
 
 			m_SceneGraph->Update(m_Registry);
+			
+			ScriptEngine::OnRuntimeUpdate(this);
 		}
 
 		bool first = true;
@@ -350,8 +354,6 @@ namespace KTN
 				first						= false;
 			}
 		});
-
-		ScriptEngine::OnRuntimeUpdate(this);
 	}
 
 	void Scene::OnRenderRuntime()

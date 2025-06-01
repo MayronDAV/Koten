@@ -16,7 +16,6 @@ namespace KTN
 			virtual bool OnStop(Scene* p_Scene) = 0;
 			virtual bool OnInit() = 0;
 			virtual void OnUpdate(Scene* p_Scene) {};
-			virtual void OnUpdate() {};
 
 			virtual void SetPaused(bool p_Value) { m_Paused = p_Value; }
 
@@ -27,7 +26,7 @@ namespace KTN
 
 		protected:
 			const char* m_DebugName = "System";
-			bool m_Paused = true;
+			bool m_Paused = false;
 	};
 
 } // namespace KTN

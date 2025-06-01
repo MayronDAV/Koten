@@ -18,7 +18,6 @@ namespace KTN
 
 			bool OnInit() override;
 			void OnUpdate(Scene* p_Scene) override;
-			void OnUpdate() override;
 
 			void SetGravity(const glm::vec2& p_Gravity);
 

@@ -1,8 +1,6 @@
 #include "SceneViewPanel.h"
 #include "Editor.h"
 #include "Shortcuts.h"
-#include "Koten/Scene/SystemManager.h"
-#include "Koten/Physics/Box2D/B2Physics.h"
 
 // lib
 #include <imgui_internal.h>
@@ -370,7 +368,9 @@ namespace KTN
 		ImGuiContext& g = *GImGui;
 		const ImGuiStyle& style = g.Style;
 
-		auto widgetSize = ImVec2(70 + (style.WindowPadding.x / 2.0f), 35 + (style.WindowPadding.y / 2.0f));
+		bool isPaused = m_ActiveScene && m_ActiveScene->IsPaused();
+
+		auto widgetSize = ImVec2((isPaused ? 100.0f : 70.0f ) + (style.WindowPadding.x / 2.0f), 35.0f + (style.WindowPadding.y / 2.0f));
 
 		ImVec2 widgetPos(
 			m_ViewportOffset.x + ((float)m_Width / 2.0f) - ((float)widgetSize.x / 2.0f),
@@ -443,6 +443,19 @@ namespace KTN
 				UI::Tooltip("Pause");
 			}
 
+			if (isPaused)
+			{
+				ImGui::SameLine();
+
+				std::string icon = ICON_MDI_STEP_FORWARD;
+				if (ImGui::Button(icon.c_str()))
+				{
+					m_ActiveScene->Step();
+				}
+
+				UI::Tooltip("Step");
+			}
+
 			ImGui::PopStyleColor();
 		}
 		ImGui::End();
@@ -454,9 +467,6 @@ namespace KTN
 
 		bool paused = !m_ActiveScene->IsPaused();
 		m_ActiveScene->SetIsPaused(paused);
-
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->SetPaused(paused);
 	}
 
 	void SceneViewPanel::Play()
@@ -464,9 +474,6 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		if (m_Editor->GetState() == RuntimeState::Play) return;
-
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->SetPaused(false);
 
 		m_ActiveScene = Scene::Copy(m_Context);
 		m_ActiveScene->OnRuntimeStart();
@@ -480,9 +487,6 @@ namespace KTN
 
 		if (m_Editor->GetState() == RuntimeState::Simulate) return;
 
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->SetPaused(false);
-
 		m_ActiveScene = Scene::Copy(m_Context);
 		m_ActiveScene->OnSimulationStart();
 
@@ -495,9 +499,6 @@ namespace KTN
 
 		auto state = m_Editor->GetState();
 		if (state == RuntimeState::Edit) return;
-
-		if (SystemManager::HasSystem<B2Physics>())
-			SystemManager::GetSystem<B2Physics>()->SetPaused(true);
 
 		if (state == RuntimeState::Play)
 			m_ActiveScene->OnRuntimeStop();
