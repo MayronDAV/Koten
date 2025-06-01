@@ -45,7 +45,8 @@ project "Koten"
 		"%{IncludeDir.optick}",
 		"%{IncludeDir.box2d}/include",
 		"%{IncludeDir.box2d}/src",
-		"%{IncludeDir.mono}"
+		"%{IncludeDir.mono}",
+		"%{IncludeDir.filewatch}"
 	}
 
 	links

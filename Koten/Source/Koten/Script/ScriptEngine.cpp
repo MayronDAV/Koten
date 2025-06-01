@@ -1,8 +1,8 @@
 #include "ktnpch.h"
 #include "ScriptEngine.h"
 #include "Koten/Core/FileSystem.h"
-
 #include "ScriptGlue.h"
+#include "Koten/Core/Application.h"
 
 // lib
 #include <mono/jit/jit.h>
@@ -11,7 +11,7 @@
 #include <mono/metadata/tabledefs.h>
 #include <mono/metadata/mono-debug.h>
 #include <mono/metadata/exception.h>
-
+#include <filewatch/FileWatch.hpp>
 
 
 namespace KTN
@@ -54,6 +54,10 @@ namespace KTN
 			std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 			std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
 			std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
+
+			Unique<filewatch::FileWatch<std::string>> AppAssemblyFileWatcher;
+			bool AssemblyReloadPending = false;
+			bool IsRunning = false;
 
 			Scene* SceneContext = nullptr;
 
@@ -129,7 +133,7 @@ namespace KTN
 			return it->second;
 		}
 
-		bool HasAttribute(MonoClassField* p_Field, MonoClass* p_Class, MonoImage* p_Image, const char* p_AttributeName, const char* p_NamespaceName = "KTN") 
+		static bool HasAttribute(MonoClassField* p_Field, MonoClass* p_Class, MonoImage* p_Image, const char* p_AttributeName, const char* p_NamespaceName = "KTN") 
 		{
 			MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_field(p_Class, p_Field);
 			if (!attrInfo) return false;
@@ -211,13 +215,33 @@ namespace KTN
 			}
 		}
 
-		MonoObject* InstantiateClass(MonoClass* p_Class)
+		static MonoObject* InstantiateClass(MonoClass* p_Class)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			MonoObject* instance = mono_object_new(s_Data->AppDomain, p_Class);
 			mono_runtime_object_init(instance);
 			return instance;
+		}
+
+		static void OnAppAssemblyFileSystemEvent(const std::string& p_Path, const filewatch::Event p_ChangeType)
+		{
+			if (!s_Data->AssemblyReloadPending && p_ChangeType == filewatch::Event::modified)
+			{
+				s_Data->AssemblyReloadPending = true;
+
+				Application::Get().SubmitToMainThread([]()
+				{
+					s_Data->AppAssemblyFileWatcher.reset();
+					ScriptEngine::ReloadAssembly();
+
+					if (s_Data->IsRunning && s_Data->SceneContext)
+					{
+						s_Data->EntityInstances.clear();
+						ScriptEngine::OnRuntimeStart(s_Data->SceneContext);
+					}
+				});
+			}
 		}
 
 	} // namespace
@@ -297,6 +321,10 @@ namespace KTN
 		}
 
 		s_Data->AppAssemblyImage = mono_assembly_get_image(s_Data->AppAssembly);
+
+		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>(p_Path, OnAppAssemblyFileSystemEvent);
+		s_Data->AssemblyReloadPending = false;
+
 		return true;
 	}
 
@@ -304,6 +332,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		s_Data->IsRunning = true;
 		s_Data->SceneContext = p_Scene;
 
 		p_Scene->GetRegistry().view<TagComponent, ScriptComponent>().each(
@@ -330,6 +359,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		s_Data->IsRunning = false;
 		s_Data->SceneContext = nullptr;
 
 		s_Data->EntityInstances.clear();

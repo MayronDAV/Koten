@@ -7,7 +7,7 @@ namespace Sandbox
 	{
 		private Entity m_Player;
 
-		public float DistanceFromPlayer = 6.0f;
+		public float DistanceFromPlayer = 5.0f;
 
 		[ShowInEditor]
 		private bool m_FollowPlayer = false;

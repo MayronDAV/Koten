@@ -74,6 +74,8 @@ namespace KTN
 		{
 			KTN_PROFILE_FRAME("MainThread");
 
+			ExecuteMainThreadQueue();
+
 			// Update
 			if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
 			{
@@ -167,6 +169,15 @@ namespace KTN
 		m_LayerStack.PopOverlay(p_Overlay);
 	}
 
+	void Application::SubmitToMainThread(const std::function<void()>& p_Func)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+		
+		m_MainThreadQueue.emplace_back(p_Func);
+	}
+
 	void Application::OnEvent(Event& p_Event)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -193,6 +204,18 @@ namespace KTN
 			if (p_Event.Handled)
 				break;
 		}
+	}
+
+	void Application::ExecuteMainThreadQueue()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+
+		for (auto& func : m_MainThreadQueue)
+			func();
+
+		m_MainThreadQueue.clear();
 	}
 
 } // namespace KTN

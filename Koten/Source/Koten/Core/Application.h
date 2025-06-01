@@ -29,8 +29,12 @@ namespace KTN
 
 			static Application& Get() { return *s_Instance; }
 
+			void SubmitToMainThread(const std::function<void()>& p_Func);
+
 		private:
 			void OnEvent(Event& p_Event);
+
+			void ExecuteMainThreadQueue();
 
 		private:
 			bool m_UpdateMinimized	= true;
@@ -42,6 +46,9 @@ namespace KTN
 
 			double m_LastTime		= 0.0;
 			double m_Counter		= 0.0;
+
+			std::vector<std::function<void()>> m_MainThreadQueue;
+			std::mutex m_MainThreadQueueMutex;
 
 			static Application* s_Instance;
 	};

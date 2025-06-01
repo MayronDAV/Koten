@@ -20,6 +20,7 @@ IncludeDir["SPIRVCross"] 	= "%{wks.location}/Koten/Thirdparty/SPIRV-Cross/"
 IncludeDir["stb"] 			= "%{wks.location}/Koten/Thirdparty/stb/"
 IncludeDir["box2d"] 		= "%{wks.location}/Koten/Thirdparty/box2d"
 IncludeDir["mono"] 			= "%{wks.location}/Koten/Thirdparty/mono/include"
+IncludeDir["filewatch"] 	= "%{wks.location}/Koten/Thirdparty/filewatch/include"
 
 LibraryDir = {}
 LibraryDir["mono"] 			= "%{wks.location}/Koten/Thirdparty/mono/lib"
