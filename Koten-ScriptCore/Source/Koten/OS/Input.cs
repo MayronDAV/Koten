@@ -67,5 +67,10 @@ namespace KTN
 		{
 			InternalCalls.Input_GetConnectedControllerIDs(p_Array);
 		}
+
+		public static string GetControllerName(int p_ControllerIndex)
+		{
+			return InternalCalls.Input_GetControllerName(p_ControllerIndex);
+		}
 	}
 } // namespace KTN

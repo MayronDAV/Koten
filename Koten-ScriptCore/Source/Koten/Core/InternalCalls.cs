@@ -6,7 +6,13 @@ namespace KTN
 	public static class InternalCalls
 	{
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static object GetScriptInstance(ulong p_UUID);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Entity_HasComponent(ulong p_EntityID, Type p_ComponentType);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static ulong Entity_GetEntityByTag(string p_Tag);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void TransformComponent_GetLocalTranslation(ulong p_EntityID, out Vector3 p_Result);
@@ -52,6 +58,9 @@ namespace KTN
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern  static void Input_GetConnectedControllerIDs(int[] p_Array);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static string Input_GetControllerName(int p_ControllerIndex);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static float Time_GetTime();

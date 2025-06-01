@@ -6,6 +6,13 @@ namespace KTN
 
 		public static Vector3 Zero => new Vector3(0.0f);
 
+		public Vector3(Vector2 p_XY, float p_Z)
+		{
+			X = p_XY.X;
+			Y = p_XY.Y;
+			Z = p_Z;
+		}
+
 		public Vector3(float p_Scalar)
 		{
 			X = p_Scalar;

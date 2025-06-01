@@ -298,6 +298,24 @@ namespace KTN
 		return Entity();
 	}
 
+	Entity Scene::GetEntityByTag(const std::string& p_Tag)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		Entity entt = {};
+		m_Registry.view<TagComponent>().each(
+		[&](auto p_Entity, const TagComponent& p_Tc)
+		{
+			if (p_Tc.Tag == p_Tag)
+			{
+				entt = Entity{ p_Entity, this };
+				return;
+			}
+		});
+
+		return entt;
+	}
+
 	void Scene::OnUpdateRuntime()
 	{
 		KTN_PROFILE_FUNCTION();

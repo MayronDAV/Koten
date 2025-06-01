@@ -47,6 +47,7 @@ namespace KTN
 
 			bool IsPaused() const { return m_IsPaused; }
 			Entity GetEntityByUUID(UUID p_UUID);
+			Entity GetEntityByTag(const std::string& p_Tag);
 
 			entt::registry& GetRegistry() { return m_Registry; }
 

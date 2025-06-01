@@ -385,6 +385,11 @@ namespace KTN
 		instance->InvokeOnUpdate();
 	}
 
+	MonoString* ScriptEngine::CreateString(const char* p_String)
+	{
+		return mono_string_new(s_Data->AppDomain, p_String);
+	}
+
 	Ref<ScriptClass> ScriptEngine::GetEntityClass(const std::string& p_Name)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -427,6 +432,17 @@ namespace KTN
 	MonoImage* KTN::ScriptEngine::GetCoreAssemblyImage()
 	{
 		return s_Data->CoreAssemblyImage;
+	}
+
+	MonoObject* ScriptEngine::GetManagedInstance(UUID p_UUID)
+	{
+		if (s_Data->EntityInstances.find(p_UUID) == s_Data->EntityInstances.end())
+		{
+			KTN_CORE_ERROR("Script instance not found for entity: {}", (uint64_t)p_UUID);
+			return nullptr;
+		}
+
+		return s_Data->EntityInstances.at(p_UUID)->GetManagedObject();
 	}
 
 	Scene* ScriptEngine::GetSceneContext()

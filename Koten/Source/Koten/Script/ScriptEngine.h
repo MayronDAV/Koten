@@ -12,6 +12,7 @@ extern "C" {
 	typedef struct _MonoAssembly MonoAssembly;
 	typedef struct _MonoImage MonoImage;
 	typedef struct _MonoClassField MonoClassField;
+	typedef struct _MonoString MonoString;
 }
 
 namespace KTN
@@ -118,6 +119,8 @@ namespace KTN
 				SetFieldValueInternal(p_Name, &p_Value);
 			}
 
+			MonoObject* GetManagedObject() { return m_Instance; }
+
 		private:
 			bool GetFieldValueInternal(const std::string& p_Name, void* p_Buffer);
 			bool SetFieldValueInternal(const std::string& p_Name, const	void* p_Value);
@@ -150,12 +153,16 @@ namespace KTN
 			static void OnCreateEntity(Entity p_Entity);
 			static void OnUpdateEntity(Entity p_Entity);
 
+			static MonoString* CreateString(const char* p_String);
+
 			static Ref<ScriptClass> GetEntityClass(const std::string& p_Name);
 			static Ref<ScriptInstance> GetEntityScriptInstance(UUID p_EntityID);
 			static ScriptFieldMap& GetScriptFieldMap(Entity p_Entity);
 			static const std::unordered_map<std::string, Ref<ScriptClass>>& GetEntityClasses();
 			static const std::unordered_map<UUID, Ref<ScriptInstance>>& GetEntityInstances();
 			static MonoImage* GetCoreAssemblyImage();
+
+			static MonoObject* GetManagedInstance(UUID p_UUID);
 
 			// TEMPORARY: REMOVE WHEN WE HAVE A SCENE MANAGER
 			static Scene* GetSceneContext();

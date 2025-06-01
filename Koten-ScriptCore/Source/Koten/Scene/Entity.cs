@@ -42,5 +42,20 @@ namespace KTN
 			return component;
 		}
 
+		public Entity GetEntityByTag(string p_Tag)
+		{
+			ulong entityID = InternalCalls.Entity_GetEntityByTag(p_Tag);
+			if (entityID == 0)
+				return null;
+
+			return new Entity(entityID);
+		}
+
+		public T As<T>() where T : Entity, new()
+		{
+			object instance = InternalCalls.GetScriptInstance(ID);
+			return instance as T;
+		}
+
 	}
 } // namespace KTN

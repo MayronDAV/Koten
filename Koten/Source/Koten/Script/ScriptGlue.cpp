@@ -30,6 +30,11 @@ namespace KTN
 			return (float)Time::GetDeltaTime();
 		}
 
+		static MonoObject* GetScriptInstance(UUID p_UUID)
+		{
+			return ScriptEngine::GetManagedInstance(p_UUID);
+		}
+
 		static bool Entity_HasComponent(UUID p_EntityID, MonoReflectionType* p_ComponentType)
 		{
 			Scene* scene = ScriptEngine::GetSceneContext();
@@ -40,6 +45,20 @@ namespace KTN
 			MonoType* managedType = mono_reflection_type_get_type(p_ComponentType);
 			KTN_CORE_ASSERT(s_EntityHasComponentFuncs.find(managedType) != s_EntityHasComponentFuncs.end());
 			return s_EntityHasComponentFuncs.at(managedType)(entity);
+		}
+
+		static uint64_t Entity_GetEntityByTag(MonoString* p_Tag)
+		{
+			char* tagCStr = mono_string_to_utf8(p_Tag);
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByTag(tagCStr);
+			mono_free(tagCStr);
+			if (!entity)
+				return 0;
+
+			return entity.GetUUID();
 		}
 
 		static void TransformComponent_GetLocalTranslation(UUID p_EntityID, glm::vec3* p_Result)
@@ -137,6 +156,15 @@ namespace KTN
 			}
 		}
 
+		static MonoString* Input_GetControllerName(int p_ControllerIndex)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+			KTN_CORE_ASSERT(Input::IsControllerPresent(p_ControllerIndex), "Controller is not connected!");
+
+			std::string name = Input::GetController(p_ControllerIndex)->Name;
+			return ScriptEngine::CreateString(name.c_str());
+		}
+
 		template <typename... Component>
 		static void RegisterComponent()
 		{
@@ -175,7 +203,10 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(Time_GetTime);
 		KTN_ADD_INTERNAL_CALL(Time_GetDeltaTime);
 
+		KTN_ADD_INTERNAL_CALL(GetScriptInstance);
 		KTN_ADD_INTERNAL_CALL(Entity_HasComponent);
+		KTN_ADD_INTERNAL_CALL(Entity_GetEntityByTag);
+
 		KTN_ADD_INTERNAL_CALL(TransformComponent_GetLocalTranslation);
 		KTN_ADD_INTERNAL_CALL(TransformComponent_SetLocalTranslation);
 
@@ -189,6 +220,7 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(Input_IsControllerButtonHeld);
 		KTN_ADD_INTERNAL_CALL(Input_GetControllerAxis);
 		KTN_ADD_INTERNAL_CALL(Input_GetConnectedControllerIDs);
+		KTN_ADD_INTERNAL_CALL(Input_GetControllerName);
 		KTN_ADD_INTERNAL_CALL(Input_GetMouseX);
 		KTN_ADD_INTERNAL_CALL(Input_GetMouseY);
 	}
