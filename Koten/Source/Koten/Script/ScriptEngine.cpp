@@ -231,6 +231,7 @@ namespace KTN
 		s_Data = new ScriptEngineData();
 
 		InitMono();
+		ScriptGlue::RegisterFunctions();
 
 		bool status = LoadAssembly("Resources/Scripts/Koten-ScriptCore.dll");
 		if (!status)
@@ -239,9 +240,6 @@ namespace KTN
 			return;
 		}
 
-		ScriptGlue::RegisterComponents();
-		ScriptGlue::RegisterFunctions();
-
 		auto path = "SandboxProject/Assets/Scripts/Binaries/Sandbox.dll";
 		status = LoadAppAssembly(path);
 		if (!status)
@@ -249,7 +247,9 @@ namespace KTN
 			KTN_CORE_ERROR("[ScriptEngine] Could not load app assembly: {0}", path);
 			return;
 		}
+
 		LoadAssemblyClasses();
+		ScriptGlue::RegisterComponents();
 
 		s_Data->EntityClass = ScriptClass("KTN", "Entity", true);
 	}
@@ -333,6 +333,24 @@ namespace KTN
 		s_Data->SceneContext = nullptr;
 
 		s_Data->EntityInstances.clear();
+	}
+
+	void ScriptEngine::ReloadAssembly()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		mono_domain_set(mono_get_root_domain(), false);
+		mono_domain_unload(s_Data->AppDomain);
+		s_Data->AppDomain = nullptr;
+
+		LoadAssembly("Resources/Scripts/Koten-ScriptCore.dll");
+		LoadAppAssembly("SandboxProject/Assets/Scripts/Binaries/Sandbox.dll");
+		LoadAssemblyClasses();
+
+		ScriptGlue::RegisterComponents();
+
+		// Retrieve and instantiate class
+		s_Data->EntityClass = ScriptClass("KTN", "Entity", true);
 	}
 
 	bool ScriptEngine::EntityClassExists(const std::string& p_FullClassName)

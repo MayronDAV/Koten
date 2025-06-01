@@ -464,11 +464,25 @@ namespace KTN
 				ImGui::EndMenu();
 			}
 
+			if (ImGui::BeginMenu("Script"))
+			{
+				auto shortcut = Shortcuts::GetShortcutStr("Reload Scripts");
+				if (ImGui::MenuItem(ICON_MDI_RELOAD " Reload Script", shortcut.c_str()))
+				{
+					ScriptEngine::ReloadAssembly();
+				}
+
+				ImGui::EndMenu();
+			}
+
 			if (ImGui::BeginMenu("Tools"))
 			{
 				auto shortcut = Shortcuts::GetShortcutStr("Open Settings");
 				if (ImGui::MenuItem(ICON_MDI_COGS "  Settings...", shortcut.c_str()))
-					m_Settings->SetActive(!m_Settings->IsActive());
+				{
+					 m_Settings->SetActive(!m_Settings->IsActive());
+				}
+
 				ImGui::EndMenu();
 			}
 
@@ -480,6 +494,9 @@ namespace KTN
 	{
 		if (!m_CaptureShortcuts)
 			return;
+
+		if (Shortcuts::IsActionPressed("Reload Scripts"))
+			ScriptEngine::ReloadAssembly();
 
 		if (Shortcuts::IsActionPressed("Open Scene"))
 			OpenScene();

@@ -149,6 +149,8 @@ namespace KTN
 			static void OnRuntimeUpdate(Scene* p_Scene);
 			static void OnRuntimeStop();
 
+			static void ReloadAssembly();
+
 			static bool EntityClassExists(const std::string& p_FullClassName);
 			static void OnCreateEntity(Entity p_Entity);
 			static void OnUpdateEntity(Entity p_Entity);

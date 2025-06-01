@@ -214,7 +214,7 @@ namespace KTN
 		m_Data.Resizable	= p_Spec.Resizable;
 		m_Data.Vsync		= p_Spec.Vsync;
 
-		KTN_GLFW_INFO(KTN_GLFWLOG "Creating window {0} ({1}, {2}) Vsync: {3}", p_Spec.Title, p_Spec.Width, p_Spec.Height, p_Spec.Vsync ? "true" : "false");
+		KTN_GLFW_INFO("Creating window {0} ({1}, {2}) Vsync: {3}", p_Spec.Title, p_Spec.Width, p_Spec.Height, p_Spec.Vsync ? "true" : "false");
 
 		if (s_GLFWWindowCount == 0)
 		{
@@ -257,7 +257,7 @@ namespace KTN
 			glfwWindowHint(GLFW_RESIZABLE, p_Spec.Resizable);
 
 			m_Window = glfwCreateWindow((int)p_Spec.Width, (int)p_Spec.Height, p_Spec.Title.c_str(), nullptr, nullptr);
-			KTN_CORE_ASSERT(m_Window, "Failed to create window!");
+			KTN_CORE_ASSERT(m_Window, KTN_GLFWLOG "Failed to create window!");
 
 			if (p_Spec.Center && p_Spec.Mode == WindowMode::Windowed && !p_Spec.Maximize)
 			{
@@ -413,7 +413,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION_LOW();
 
-		KTN_GLFW_WARN(KTN_GLFWLOG "{} window shutdown", m_Data.Title)
+		KTN_GLFW_WARN("{} window shutdown", m_Data.Title)
 		glfwDestroyWindow(m_Window);
 		--s_GLFWWindowCount;
 
