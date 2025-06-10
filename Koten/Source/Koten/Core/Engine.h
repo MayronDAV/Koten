@@ -16,6 +16,7 @@ namespace KTN
 
 	struct Settings
 	{
+		bool AutoRecompile = true;
 		bool MousePicking = true;
 
 		bool ShowDebugPhysicsCollider = false;

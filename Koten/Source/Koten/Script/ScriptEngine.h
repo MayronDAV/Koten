@@ -144,12 +144,14 @@ namespace KTN
 
 			static bool LoadAssembly(const std::string& p_Path);
 			static bool LoadAppAssembly(const std::string& p_Path);
+			static bool CompileLoadAppAssembly();
 
 			static void OnRuntimeStart(Scene* p_Scene);
 			static void OnRuntimeUpdate(Scene* p_Scene);
 			static void OnRuntimeStop();
 
 			static void ReloadAssembly();
+			static void RecompileAppAssembly();
 
 			static bool EntityClassExists(const std::string& p_FullClassName);
 			static void OnCreateEntity(Entity p_Entity);

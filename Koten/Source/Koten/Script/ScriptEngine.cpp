@@ -12,7 +12,10 @@
 #include <mono/metadata/tabledefs.h>
 #include <mono/metadata/mono-debug.h>
 #include <mono/metadata/exception.h>
+#include <mono/metadata/debug-helpers.h>
 #include <filewatch/FileWatch.hpp>
+
+
 
 
 namespace KTN
@@ -228,14 +231,22 @@ namespace KTN
 
 		static void OnAppAssemblyFileSystemEvent(const std::string& p_Path, const filewatch::Event p_ChangeType)
 		{
-			if (!s_Data->AssemblyReloadPending && p_ChangeType == filewatch::Event::modified)
+		#ifdef KTN_WINDOWS
+			if (!Engine::GetSettings().AutoRecompile)
+				return;
+		#endif
+			if (!s_Data->AssemblyReloadPending && (p_ChangeType == filewatch::Event::modified || p_ChangeType == filewatch::Event::added || p_ChangeType == filewatch::Event::removed))
 			{
 				s_Data->AssemblyReloadPending = true;
 
 				Application::Get().SubmitToMainThread([]()
 				{
 					s_Data->AppAssemblyFileWatcher.reset();
+				#ifdef KTN_WINDOWS
+					ScriptEngine::RecompileAppAssembly();
+				#else
 					ScriptEngine::ReloadAssembly();
+				#endif
 
 					if (s_Data->IsRunning && s_Data->SceneContext)
 					{
@@ -246,6 +257,42 @@ namespace KTN
 			}
 		}
 
+		void PrintAssemblyTypes(MonoAssembly* assembly)
+		{
+			MonoImage* image = mono_assembly_get_image(assembly);
+			const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
+			int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
+
+			for (int32_t i = 0; i < numTypes; i++)
+			{
+				uint32_t cols[MONO_TYPEDEF_SIZE];
+				mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
+
+				const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
+				const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
+				KTN_CORE_TRACE("{}.{}", nameSpace, name);
+			}
+		}
+
+		MonoAssembly* CompileMonoScripts(const std::string& p_FolderPath, const std::string& p_OutputDllPath, const std::string& p_EngineCoreDllPath, const std::string& p_MonoAssemblyPath = "Mono/lib")
+		{
+			KTN_PROFILE_FUNCTION();
+
+			// TODO: make work on Linux
+
+			auto coreDll = std::filesystem::absolute(p_EngineCoreDllPath).string();
+			auto monoAssemblyPath = std::filesystem::absolute(p_MonoAssemblyPath).string();
+			std::string compileCommand = ".\\Mono\\mcs -w:0 -target:library -out:" + p_OutputDllPath + " " + p_FolderPath + "\\*.cs -reference:mscorlib.dll,System.dll,System.Core.dll," + coreDll + " -lib:" + monoAssemblyPath + "," + coreDll;
+		
+			int result = system(compileCommand.c_str());
+			if (result != 0)
+			{
+				KTN_CORE_ERROR("Failed to compile scripts with command: {}", compileCommand);
+				return nullptr;
+			}
+
+			return LoadMonoAssembly(p_OutputDllPath);
+		}
 	} // namespace
 
 	#pragma region ScriptEngine
@@ -313,13 +360,43 @@ namespace KTN
 
 		s_Data->AppAssemblyImage = mono_assembly_get_image(s_Data->AppAssembly);
 
+	#ifdef KTN_WINDOWS
+		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>((Project::GetAssetDirectory() / "Scripts").string(), OnAppAssemblyFileSystemEvent);
+	#else
 		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>(p_Path, OnAppAssemblyFileSystemEvent);
+	#endif
 		s_Data->AssemblyReloadPending = false;
 
 		LoadAssemblyClasses();
 		ScriptGlue::RegisterComponents();
 		s_Data->AppAssemblyPath = p_Path;
 
+		return true;
+	}
+
+	bool ScriptEngine::CompileLoadAppAssembly()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto outputDllPath = (Project::GetAssetDirectory() / "Scripts.dll");
+		auto sourcePath = (Project::GetAssetDirectory() / "Scripts").string();
+		std::filesystem::create_directories(outputDllPath.parent_path());
+
+		s_Data->AppAssembly = CompileMonoScripts(sourcePath, outputDllPath.string(), "Resources/Scripts/Koten-ScriptCore.dll");
+		if (!s_Data->AppAssembly)
+		{
+			KTN_CORE_ERROR("[ScriptEngine] Failed to compile scripts in path: {}", sourcePath);
+			return false;
+		}
+
+		s_Data->AppAssemblyImage = mono_assembly_get_image(s_Data->AppAssembly);
+
+		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>(sourcePath, OnAppAssemblyFileSystemEvent);
+		s_Data->AssemblyReloadPending = false;
+
+		LoadAssemblyClasses();
+		ScriptGlue::RegisterComponents();
+		s_Data->AppAssemblyPath = outputDllPath.string();
 		return true;
 	}
 
@@ -385,6 +462,32 @@ namespace KTN
 		if (!status)
 		{
 			KTN_CORE_ERROR("[ScriptEngine] Could not load app assembly: {0}", s_Data->AppAssemblyPath);
+			return;
+		}
+
+		// Retrieve and instantiate class
+		s_Data->EntityClass = ScriptClass("KTN", "Entity", true);
+	}
+
+	void ScriptEngine::RecompileAppAssembly()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		mono_domain_set(mono_get_root_domain(), false);
+		mono_domain_unload(s_Data->AppDomain);
+		s_Data->AppDomain = nullptr;
+
+		bool status = LoadAssembly("Resources/Scripts/Koten-ScriptCore.dll");
+		if (!status)
+		{
+			KTN_CORE_ERROR("[ScriptEngine] Could not load Koten-ScriptCore assembly.");
+			return;
+		}
+
+		status = CompileLoadAppAssembly();
+		if (!status)
+		{
+			KTN_CORE_ERROR("[ScriptEngine] Could not compile scripts!");
 			return;
 		}
 

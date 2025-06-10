@@ -31,7 +31,7 @@ namespace KTN
 			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
 			if (p_MenuBar)
 				window_flags |= ImGuiWindowFlags_MenuBar;
-
+			
 			if (opt_fullscreen)
 			{
 				const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -90,6 +90,7 @@ namespace KTN
 			auto& settings = Engine::GetSettings();
 
 			{
+				file.Add<bool>("Settings", "Auto Recompile Scripts", settings.AutoRecompile);
 				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
 				file.Add<bool>("Settings", "Show Physics Collider", settings.ShowDebugPhysicsCollider);
 				file.Add<float>("Settings", "Debug Line Width", settings.DebugLineWidth);
@@ -97,6 +98,7 @@ namespace KTN
 				file.Rewrite();
 			}
 			
+			settings.AutoRecompile = file.Get<bool>("Settings", "Auto Recompile Scripts");
 			settings.MousePicking = file.Get<bool>("Settings", "Mouse Picking");
 			settings.ShowDebugPhysicsCollider = file.Get<bool>("Settings", "Show Physics Collider");
 			settings.DebugLineWidth = file.Get<float>("Settings", "Debug Line Width");
@@ -187,6 +189,10 @@ namespace KTN
 					ImGui::BeginChild("##debug_child", { size.x, size.y - (lineHeight * 1.5f) }, false);
 					ImGui::PopStyleVar();
 					{
+					#ifdef KTN_WINDOWS
+						ImGui::Checkbox("Auto Recompile Scripts", &settings.AutoRecompile);
+					#endif
+						ImGui::Checkbox("Mouse Picking", &settings.MousePicking);
 						ImGui::Checkbox("Show Physics Collider", &settings.ShowDebugPhysicsCollider);
 						ImGui::DragFloat("Debug Line Width", &settings.DebugLineWidth, 0.01f, 0.0f, 0.0f, "%.2f");
 						ImGui::DragFloat("Debug Circle Thickness", &settings.DebugCircleThickness, 0.01f, 0.0f, 0.0f, "%.2f");
@@ -197,6 +203,8 @@ namespace KTN
 					if (ImGui::Button("Save", { 100.0f, lineHeight }))
 					{
 						auto file = IniFile("Resources/Engine.ini");
+						file.Set<bool>("Settings", "Auto Recompile Scripts", settings.AutoRecompile);
+						file.Set<bool>("Settings", "Mouse Picking", settings.MousePicking);
 						file.Set<bool>("Settings", "Show Physics Collider", settings.ShowDebugPhysicsCollider);
 						file.Set<float>("Settings", "Debug Line Width", settings.DebugLineWidth);
 						file.Set<float>("Settings", "Debug Circle Thickness", settings.DebugCircleThickness);
@@ -448,10 +456,15 @@ namespace KTN
 		{
 			auto& config = Project::GetActive()->GetConfig();
 
+			// TODO: Make this platform independent
+		#ifdef KTN_WINDOWS
+			ScriptEngine::CompileLoadAppAssembly();
+		#else
 			if (!config.ScriptModulePath.empty())
 			{
 				ScriptEngine::LoadAppAssembly(Project::GetAssetFileSystemPath(config.ScriptModulePath).string());
 			}
+		#endif
 
 			if (!config.StartScene.empty())
 			{
@@ -497,6 +510,13 @@ namespace KTN
 
 			if (ImGui::BeginMenu("Script"))
 			{
+			#ifdef KTN_WINDOWS
+				if (ImGui::MenuItem(ICON_MDI_RELOAD " Recompile Script"))
+				{
+					ScriptEngine::RecompileAppAssembly();
+				}
+			#endif
+
 				auto shortcut = Shortcuts::GetShortcutStr("Reload Scripts");
 				if (ImGui::MenuItem(ICON_MDI_RELOAD " Reload Script", shortcut.c_str()))
 				{
