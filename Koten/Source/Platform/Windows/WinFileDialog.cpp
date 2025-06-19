@@ -14,6 +14,8 @@ namespace KTN
 {
 	FileDialogResult FileDialog::Open(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		OPENFILENAMEA ofn;
 		char szFile[260] = { 0 };
 
@@ -38,6 +40,8 @@ namespace KTN
 
 	FileDialogResult FileDialog::OpenMultiple(const std::string& p_FilterList, const std::string& p_DefaultPath, std::vector<std::string>& p_OutPaths)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		OPENFILENAMEA ofn;
 		char szFile[1024] = { 0 };
 
@@ -77,6 +81,8 @@ namespace KTN
 
 	FileDialogResult FileDialog::Save(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		OPENFILENAMEA ofn;
 		char szFile[260] = { 0 };
 
@@ -101,6 +107,8 @@ namespace KTN
 
 	FileDialogResult FileDialog::PickFolder(const std::string& p_DefaultPath, std::string& p_OutPath)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		BROWSEINFOA bi;
 		ZeroMemory(&bi, sizeof(bi));
 		bi.hwndOwner = nullptr;

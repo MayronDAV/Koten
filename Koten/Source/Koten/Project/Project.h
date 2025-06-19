@@ -17,7 +17,6 @@ namespace KTN
 		std::filesystem::path StartScene;
 
 		std::filesystem::path AssetDirectory;
-		std::filesystem::path ScriptModulePath;
 	};
 
 	class KTN_API Project

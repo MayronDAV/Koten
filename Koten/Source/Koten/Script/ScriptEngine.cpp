@@ -231,10 +231,9 @@ namespace KTN
 
 		static void OnAppAssemblyFileSystemEvent(const std::string& p_Path, const filewatch::Event p_ChangeType)
 		{
-		#ifdef KTN_WINDOWS
 			if (!Engine::GetSettings().AutoRecompile)
 				return;
-		#endif
+
 			if (!s_Data->AssemblyReloadPending && (p_ChangeType == filewatch::Event::modified || p_ChangeType == filewatch::Event::added || p_ChangeType == filewatch::Event::removed))
 			{
 				s_Data->AssemblyReloadPending = true;
@@ -242,11 +241,7 @@ namespace KTN
 				Application::Get().SubmitToMainThread([]()
 				{
 					s_Data->AppAssemblyFileWatcher.reset();
-				#ifdef KTN_WINDOWS
 					ScriptEngine::RecompileAppAssembly();
-				#else
-					ScriptEngine::ReloadAssembly();
-				#endif
 
 					if (s_Data->IsRunning && s_Data->SceneContext)
 					{
@@ -278,12 +273,25 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION();
 
-			// TODO: make work on Linux
-
 			auto coreDll = std::filesystem::absolute(p_EngineCoreDllPath).string();
 			auto monoAssemblyPath = std::filesystem::absolute(p_MonoAssemblyPath).string();
-			std::string compileCommand = ".\\Mono\\mcs -w:0 -target:library -out:" + p_OutputDllPath + " " + p_FolderPath + "\\*.cs -reference:mscorlib.dll,System.dll,System.Core.dll," + coreDll + " -lib:" + monoAssemblyPath + "," + coreDll;
-		
+			#if defined(KTN_WINDOWS)
+				std::string comp = ".\\Mono\\mcs";
+			#elif defined(KTN_LINUX)
+				std::string comp = "mcs";
+			#endif
+
+			std::string compileCommand = comp + " -w:0 -target:library -sdk:4.5 -out:" + p_OutputDllPath + 
+				" " + p_FolderPath + 
+			#if defined(KTN_WINDOWS)
+				"\\*.cs" +
+			#elif defined(KTN_LINUX)
+				"/*.cs" +
+			#endif
+				" -reference:mscorlib.dll,System.dll,System.Core.dll," +
+				coreDll + 
+				" -lib:" + monoAssemblyPath + "," + coreDll;
+
 			int result = system(compileCommand.c_str());
 			if (result != 0)
 			{
@@ -360,11 +368,7 @@ namespace KTN
 
 		s_Data->AppAssemblyImage = mono_assembly_get_image(s_Data->AppAssembly);
 
-	#ifdef KTN_WINDOWS
 		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>((Project::GetAssetDirectory() / "Scripts").string(), OnAppAssemblyFileSystemEvent);
-	#else
-		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>(p_Path, OnAppAssemblyFileSystemEvent);
-	#endif
 		s_Data->AssemblyReloadPending = false;
 
 		LoadAssemblyClasses();

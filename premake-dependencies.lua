@@ -26,8 +26,7 @@ LibraryDir = {}
 LibraryDir["mono"] 			= "%{wks.location}/Koten/Thirdparty/mono/lib"
 
 Library = {}
-Library["mono_windows"] 	= "%{LibraryDir.mono}/libmono-static-sgen.lib"
-Library["mono_linux"] 		= "monosgen-2.0"
+Library["mono"] 			= "%{LibraryDir.mono}/libmono-static-sgen.lib"
 
 -- Windows
 Library["WinSock"] 			= "Ws2_32.lib"

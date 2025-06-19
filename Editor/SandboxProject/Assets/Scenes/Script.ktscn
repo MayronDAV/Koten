@@ -10,7 +10,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [0, 1, 0.8744185, 1]
-      Path: Textures\checkerboard.png
+      Path: Textures/checkerboard.png
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]
@@ -231,7 +231,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [1, 1, 1, 1]
-      Path: Textures\wall.jpg
+      Path: Textures/wall.jpg
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]
@@ -418,7 +418,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [1, 1, 0, 1]
-      Path: Textures\RPGpack_sheet.png
+      Path: Textures/RPGpack_sheet.png
       Thickness: 1
       Fade: 0.005
       Size: [64, 64]

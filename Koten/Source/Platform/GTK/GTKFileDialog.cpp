@@ -11,13 +11,14 @@
 
 namespace KTN
 {
-	FileDialogResult FileDialog::Open(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
+	FileDialogResult FileDialog::Open(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath) 
 	{
-		FileDialogResult result = FileDialogResult::CANCEL;
+		KTN_PROFILE_FUNCTION_LOW();
 
-		if (!gtk_init_check(nullptr, nullptr))
-		{
-			KTN_CORE_ERROR("Failed to initialize GTK!");
+		FileDialogResult result = FileDialogResult::CANCEL;
+		
+		if (!gtk_init_check(nullptr, nullptr)) {
+			KTN_CORE_ERROR("GTK initialization failed!");
 			return FileDialogResult::FAILED;
 		}
 
@@ -25,30 +26,41 @@ namespace KTN
 			"Open File",
 			nullptr,
 			GTK_FILE_CHOOSER_ACTION_OPEN,
-			"Cancel", GTK_RESPONSE_CANCEL,
-			"Open", GTK_RESPONSE_ACCEPT,
+			"_Cancel", GTK_RESPONSE_CANCEL,
+			"_Open", GTK_RESPONSE_ACCEPT,
 			nullptr);
 
-		if (!p_DefaultPath.empty())
-		{
+		if (!p_DefaultPath.empty()) {
 			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
 		}
 
-		if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
-		{
+		gint response = gtk_dialog_run(GTK_DIALOG(dialog));
+		if (response == GTK_RESPONSE_ACCEPT) {
 			char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 			p_OutPath = filename;
 			g_free(filename);
 			result = FileDialogResult::SUCCESS;
 		}
 
+		gtk_widget_hide_on_delete(dialog);
+		while (g_main_context_pending(nullptr)) {
+			g_main_context_iteration(nullptr, FALSE);
+		}
 		gtk_widget_destroy(dialog);
+		
+		for (int i = 0; i < 5; ++i) {
+			while (g_main_context_pending(nullptr)) {
+				g_main_context_iteration(nullptr, FALSE);
+			}
+		}
 
 		return result;
 	}
 
 	FileDialogResult FileDialog::OpenMultiple(const std::string& p_FilterList, const std::string& p_DefaultPath, std::vector<std::string>& p_OutPaths)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		FileDialogResult result = FileDialogResult::CANCEL;
 
 		if (!gtk_init_check(nullptr, nullptr))
@@ -91,6 +103,8 @@ namespace KTN
 
 	FileDialogResult FileDialog::Save(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+
 		FileDialogResult result = FileDialogResult::CANCEL;
 
 		if (!gtk_init_check(nullptr, nullptr))
@@ -127,6 +141,8 @@ namespace KTN
 
 	FileDialogResult FileDialog::PickFolder(const std::string& p_DefaultPath, std::string& p_OutPath)
 	{
+		KTN_PROFILE_FUNCTION_LOW();
+		
 		FileDialogResult result = FileDialogResult::CANCEL;
 
 		if (!gtk_init_check(nullptr, nullptr))

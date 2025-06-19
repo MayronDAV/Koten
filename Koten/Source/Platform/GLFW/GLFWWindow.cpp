@@ -273,6 +273,7 @@ namespace KTN
 		}
 		++s_GLFWWindowCount;
 		m_Data.Context->Init(m_Window, m_Data.Title.c_str());
+		m_Data.Context->SetVsync(m_Data.Vsync);
 		for (int jid = GLFW_JOYSTICK_1; jid <= GLFW_JOYSTICK_LAST; jid++)
 			s_UserPointerMap[jid] = { &m_Data, ""}; // Store user pointer for joystick callbacks
 

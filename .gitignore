@@ -11,3 +11,5 @@ Cache/
 Koten/cpp.hint
 *.csproj
 /Editor/SandboxProject/Assets/Scripts/Binaries
+Makefile
+*.make

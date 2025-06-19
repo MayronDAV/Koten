@@ -2,4 +2,3 @@ Project:
   Name: Sandbox
   StartScene: "Scenes/Script.ktscn"
   AssetDirectory: "Assets"
-  ScriptModulePath: "Scripts/Binaries/Sandbox.dll"

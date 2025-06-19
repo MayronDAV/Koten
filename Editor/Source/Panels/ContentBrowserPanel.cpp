@@ -41,36 +41,26 @@ namespace KTN
 			DrawContentTopPanel();
 
 			ImGuiStyle& style = ImGui::GetStyle();
-			auto padding = style.WindowPadding;
-			ImVec2 availableSize = ImGui::GetContentRegionAvail();
+			const float padding = style.WindowPadding.x;
+			const ImVec2 availableSize = ImGui::GetContentRegionAvail();
+			const float treeWidth = availableSize.x * 0.35f;
 
-			float treeWidth = availableSize.x * 0.35f;
-			float browserWidth = availableSize.x - treeWidth - padding.x;
-
-			if (ImGui::BeginTable("##ContenBrowser", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable))
+			ImGui::BeginChild("##Tree", ImVec2(treeWidth, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
 			{
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0);
-
-				ImGui::BeginChild("##Tree", ImVec2(treeWidth, 0));
-				{
-					DrawContentTreeNode(m_BaseDir);
-				}
-				ImGui::EndChild();
-
-				ImGui::TableSetColumnIndex(1);
-
-				ImGui::BeginChild("##Browser", ImVec2(ImGui::GetContentRegionAvail().x, 0));
-				{
-					if (m_SearchResults.empty())
-						DrawContentBrowser();
-					else
-						DrawContentSearchResult();
-				}
-				ImGui::EndChild();
-
-				ImGui::EndTable();
+				DrawContentTreeNode(m_BaseDir);
 			}
+			ImGui::EndChild();
+
+			ImGui::SameLine();
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() - padding);
+			ImGui::BeginChild("##Browser", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders);
+			{
+				if (m_SearchResults.empty())
+					DrawContentBrowser();
+				else
+					DrawContentSearchResult();
+			}
+			ImGui::EndChild();
 
 			PopupCreateFileDir();
 
@@ -117,8 +107,12 @@ namespace KTN
 
 			ImGui::PushID(name.c_str());
 
-			bool isAncestorOfSelected = !m_SelectedPath.empty() &&
-				(m_SelectedPath.find(path) == 0);
+			bool isAncestorOfSelected = false;
+			if (!m_SelectedPath.empty() && isDirectory)
+			{
+				std::string dirPath = path.back() != '/' ? path + '/' : path;			
+				isAncestorOfSelected = (m_SelectedPath == path) || (m_SelectedPath.find(dirPath) == 0);
+			}
 
 			ImGuiTreeNodeFlags flags = 
 				ImGuiTreeNodeFlags_OpenOnArrow |

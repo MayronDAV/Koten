@@ -54,6 +54,7 @@ project "Sandbox"
 		pic "on"
 		systemversion "latest"
 		buildoptions { "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-fno-char8_t", "-Wno-effc++" }
+		linkoptions { "-Wl,-rpath,$$ORIGIN" } 
 		defines "KTN_LINUX"
 
 		postbuildcommands 

@@ -78,7 +78,7 @@ project "Koten"
 		links
 		{
 			"opengl32.lib",
-			"%{Library.mono_windows}",
+			"%{Library.mono}",
 			"%{Library.WinSock}",
 			"%{Library.WinMM}",
 			"%{Library.WinVersion}",
@@ -101,7 +101,8 @@ project "Koten"
 	
 	filter "system:linux"
         pic "on"
-		links { "GL", "%{Library.mono_linux}" }
+		links { "GL", "monosgen-2.0" }
+		libdirs { "%{LibraryDir.mono}" }
 		buildoptions { "`pkg-config --cflags gtk+-3.0`", "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-fno-char8_t", "-Wno-effc++", "-fpermissive" }
 		linkoptions { "`pkg-config --libs gtk+-3.0`" }
 		defines

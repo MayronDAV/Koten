@@ -456,15 +456,7 @@ namespace KTN
 		{
 			auto& config = Project::GetActive()->GetConfig();
 
-			// TODO: Make this platform independent
-		#ifdef KTN_WINDOWS
 			ScriptEngine::CompileLoadAppAssembly();
-		#else
-			if (!config.ScriptModulePath.empty())
-			{
-				ScriptEngine::LoadAppAssembly(Project::GetAssetFileSystemPath(config.ScriptModulePath).string());
-			}
-		#endif
 
 			if (!config.StartScene.empty())
 			{

@@ -82,7 +82,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [1, 1, 1, 1]
-      Path: Textures\checkerboard.png
+      Path: Textures/checkerboard.png
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]

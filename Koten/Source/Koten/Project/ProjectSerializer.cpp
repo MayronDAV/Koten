@@ -28,7 +28,6 @@ namespace KTN
 				ADD_KEY_VALUE("Name", config.Name);
 				ADD_KEY_VALUE("StartScene", config.StartScene.string());
 				ADD_KEY_VALUE("AssetDirectory", config.AssetDirectory.string());
-				ADD_KEY_VALUE("ScriptModulePath", config.ScriptModulePath.string());
 				out << YAML::EndMap; // Project
 			}
 			out << YAML::EndMap; // Root
@@ -64,7 +63,6 @@ namespace KTN
 		config.Name = projectNode["Name"].as<std::string>();
 		config.StartScene = projectNode["StartScene"].as<std::string>();
 		config.AssetDirectory = projectNode["AssetDirectory"].as<std::string>();
-		config.ScriptModulePath = projectNode["ScriptModulePath"].as<std::string>();
 		return true;
 	}
 

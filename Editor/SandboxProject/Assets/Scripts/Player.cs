@@ -16,8 +16,6 @@ namespace Sandbox
 
 		void OnCreate()
 		{
-			Console.WriteLine($"Player.OnCreate - {ID}");
-
 			m_Transform = GetComponent<Transform>();
 		}
 
@@ -27,7 +25,7 @@ namespace Sandbox
 
 			m_DeltaTime = Time.DeltaTime;
 			Timestep += Time.DeltaTime;
-
+			
 			float speed = Speed;
 			Vector3 velocity = Vector3.Zero;
 
@@ -51,9 +49,9 @@ namespace Sandbox
 
 			velocity *= speed;
 
-			Vector3 translation = m_Transform.LocalTranslation;
+			Vector3 translation = LocalTranslation;
 			translation += velocity * Time.DeltaTime;
-			m_Transform.LocalTranslation = translation;
+			LocalTranslation = translation;
 		}
 
 	}

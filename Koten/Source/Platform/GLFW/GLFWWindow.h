@@ -58,7 +58,7 @@ namespace KTN
 				uint32_t Height					= 600;
 				WindowMode Mode					= WindowMode::Windowed;
 				bool Resizable					= true;
-				bool Vsync						= true;
+				bool Vsync						= false;
 				float DPIScale					= 1.0f;
 
 				EventCallbackFn EventCallback	= nullptr;

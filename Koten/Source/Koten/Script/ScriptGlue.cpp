@@ -165,6 +165,42 @@ namespace KTN
 			return ScriptEngine::CreateString(name.c_str());
 		}
 
+		std::string DemangleToKTNClassName(const std::string& p_MangledName) 
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto n3pos = p_MangledName.find("N3");
+			if (n3pos == std::string::npos) 
+				return p_MangledName; // no need to demangle
+
+			size_t currentPos = n3pos + 5;
+			std::string result = "KTN.";
+
+			while (currentPos < p_MangledName.length()) 
+			{
+				size_t numStart = currentPos;
+				size_t numEnd = p_MangledName.find_first_not_of("0123456789", numStart);
+				int segmentLength = std::stoi(p_MangledName.substr(numStart, numEnd - numStart));
+
+				size_t pos = numEnd + segmentLength;
+				std::string segment = p_MangledName.substr(numEnd, segmentLength);
+				if (pos < p_MangledName.length() && p_MangledName[pos] == 'E')
+					return result + segment;
+
+				currentPos = pos;
+			}
+
+			size_t numStart = n3pos + 5;
+			size_t numEnd = p_MangledName.find_first_not_of("0123456789", numStart);
+			if (numEnd != std::string::npos)
+			{
+				int length = std::stoi(p_MangledName.substr(numStart, numEnd - numStart));
+				return result + p_MangledName.substr(numEnd, length);
+			}
+
+			return p_MangledName;
+		}
+
 		template <typename... Component>
 		static void RegisterComponent()
 		{
@@ -175,7 +211,8 @@ namespace KTN
 				std::string_view typeName = typeid(Component).name();
 				size_t pos = typeName.find_last_of(':');
 				std::string_view structName = typeName.substr(pos + 1);
-				std::string managedTypename = std::string("KTN.") + std::string(structName.data());
+
+				std::string managedTypename = DemangleToKTNClassName(std::string("KTN.") + std::string(structName.data()));
 
 				MonoType* managedType = mono_reflection_type_from_name(managedTypename.data(), ScriptEngine::GetCoreAssemblyImage());
 				if (!managedType)
