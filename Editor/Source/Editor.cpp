@@ -84,6 +84,8 @@ namespace KTN
 	Editor::Editor()
 		: Layer("Editor")
 	{
+		Font font("Assets/Fonts/OpenSans/OpenSans-Regular.ttf");
+
 		auto file = IniFile("Resources/Engine.ini");
 		
 		{

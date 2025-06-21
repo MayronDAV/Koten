@@ -44,6 +44,7 @@
 #include "Koten/Graphics/Renderer.h"
 #include "Koten/Graphics/StorageBuffer.h"
 #include "Koten/Graphics/IndirectBuffer.h"
+#include "Koten/Graphics/Font.h"
 
 // DEBUG
 

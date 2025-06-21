@@ -23,3 +23,6 @@
 [submodule "Koten/Thirdparty/box2d"]
 	path = Koten/Thirdparty/box2d
 	url = https://github.com/erincatto/box2d.git
+[submodule "Koten/Thirdparty/msdf-atlas-gen"]
+	path = Koten/Thirdparty/msdf-atlas-gen
+	url = https://github.com/MayronDAV/msdf-atlas-gen

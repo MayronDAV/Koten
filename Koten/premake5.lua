@@ -38,6 +38,8 @@ project "Koten"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
+		"%{IncludeDir.msdfgen}",
+		"%{IncludeDir.msdf_atlas_gen}",
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.stb}",
 		"%{IncludeDir.entt}",
@@ -58,11 +60,12 @@ project "Koten"
 		"glfw",
 		"stb",
 		"imgui",
+		"msdf-atlas-gen",
 		"yaml-cpp",
 		"box2d"
 	}
 
-	defines { "KTN_EXPORT", "OPTICK_EXPORT", "KTN_PROFILE_ENABLED", "USE_OPTICK=1" }
+	defines { "KTN_EXPORT", "OPTICK_EXPORT", "KTN_PROFILE_ENABLED", "USE_OPTICK=1", "MSDFGEN_PUBLIC=" }
 
 	filter "action:vs*"
 		buildoptions { "/Zc:preprocessor" }
