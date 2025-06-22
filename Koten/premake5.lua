@@ -60,6 +60,8 @@ project "Koten"
 		"glfw",
 		"stb",
 		"imgui",
+		"freetype",
+		"msdfgen",
 		"msdf-atlas-gen",
 		"yaml-cpp",
 		"box2d"
