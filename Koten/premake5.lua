@@ -60,8 +60,6 @@ project "Koten"
 		"glfw",
 		"stb",
 		"imgui",
-		"freetype",
-		"msdfgen",
 		"msdf-atlas-gen",
 		"yaml-cpp",
 		"box2d"
@@ -106,7 +104,13 @@ project "Koten"
 	
 	filter "system:linux"
         pic "on"
-		links { "GL", "monosgen-2.0" }
+		links 
+		{ 
+			"GL",
+			"monosgen-2.0",
+			"freetype",
+			"msdfgen"
+		}
 		libdirs { "%{LibraryDir.mono}" }
 		buildoptions { "`pkg-config --cflags gtk+-3.0`", "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-fno-char8_t", "-Wno-effc++", "-fpermissive" }
 		linkoptions { "`pkg-config --libs gtk+-3.0`" }

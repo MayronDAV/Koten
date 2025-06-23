@@ -81,10 +81,12 @@ namespace KTN
 
 	} // namespace
 	
+	static MSDFFont* s_Font;
+
 	Editor::Editor()
 		: Layer("Editor")
 	{
-		Font font("Assets/Fonts/OpenSans/OpenSans-Regular.ttf");
+		s_Font = new MSDFFont("Assets/Fonts/OpenSans/OpenSans-Regular.ttf");
 
 		auto file = IniFile("Resources/Engine.ini");
 		
@@ -112,6 +114,7 @@ namespace KTN
 	
 	Editor::~Editor()
 	{
+		delete s_Font;
 	}
 	
 	void Editor::OpenScene(const std::string& p_Path)
@@ -442,6 +445,10 @@ namespace KTN
 			if (panel->IsActive())
 				panel->OnImgui();
 		}
+
+		ImGui::Begin("Atlas");
+		UI::Image(s_Font->GetAtlasTexture(), { 240, 160 });
+		ImGui::End();
 
 		EndDockspace();
 	}
