@@ -205,7 +205,8 @@ namespace KTN
 	{
 		TRIANGLES = 0,
 		POINTS,
-		LINES
+		LINES,
+		TRIANGLE_STRIP
 	};
 
 	enum class FrontFace : uint8_t

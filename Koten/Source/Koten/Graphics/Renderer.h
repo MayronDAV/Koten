@@ -2,6 +2,7 @@
 #include "Koten/Core/Base.h"
 #include "Koten/Graphics/Texture.h"
 #include "Koten/Graphics/Camera.h"
+#include "Koten/Graphics/MSDFFont.h"
 
 // lib
 #include <glm/glm.hpp>
@@ -89,6 +90,7 @@ namespace KTN
 			static void End();
 
 			static void Submit(const RenderCommand& p_Command);
+			static void SubmitString(const std::string& p_String, const Ref<MSDFFont>& p_Font, const glm::mat4& p_Transform, const glm::vec4& p_Color);
 
 			static Ref<Texture2D> GetPickingTexture();
 	};

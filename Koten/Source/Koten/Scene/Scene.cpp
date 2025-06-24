@@ -5,6 +5,7 @@
 #include "Koten/Physics/Box2D/B2Physics.h"
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Script/ScriptEngine.h"
+#include "Koten/Graphics/MSDFFont.h"
 
 
 
@@ -166,6 +167,8 @@ namespace KTN
 
 		Renderer::Begin(info);
 		{
+			Renderer::SubmitString("Koten Engine", MSDFFont::GetDefault(), glm::mat4(1.0f), glm::vec4(1.0f));
+
 			m_Registry.view<TransformComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{

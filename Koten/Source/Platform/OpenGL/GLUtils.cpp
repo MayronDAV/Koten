@@ -126,9 +126,10 @@ namespace KTN::GLUtils
 	{
 		switch (p_Type)
 		{
-			case KTN::DrawType::POINTS:  	return GL_POINTS;
-			case KTN::DrawType::TRIANGLES:  return GL_TRIANGLES;
-			case KTN::DrawType::LINES:		return GL_LINES;
+			case KTN::DrawType::TRIANGLES:		 return GL_TRIANGLES;
+			case KTN::DrawType::POINTS:  		 return GL_POINTS;
+			case KTN::DrawType::LINES:			 return GL_LINES;
+			case KTN::DrawType::TRIANGLE_STRIP:  return GL_TRIANGLE_STRIP;
 		}
 
 		KTN_CORE_ERROR("Unknown draw type!");

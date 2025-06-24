@@ -11,24 +11,25 @@
 
 
 
-
 namespace KTN
 {
 	namespace
 	{
 		template<typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
 		static Ref<Texture2D> CreateAndCacheAtlas(
-			const std::string& fontName, float fontSize, const std::vector<msdf_atlas::GlyphGeometry>& glyphs,
-			const msdf_atlas::FontGeometry& fontGeometry, uint32_t width, uint32_t height)
+			const std::string& p_FontName, float p_FontSize, const std::vector<msdf_atlas::GlyphGeometry>& p_Glyphs,
+			const msdf_atlas::FontGeometry& p_FontGeometry, uint32_t p_Width, uint32_t p_Height)
 		{
+			KTN_PROFILE_FUNCTION();
+
 			msdf_atlas::GeneratorAttributes attributes;
 			attributes.config.overlapSupport = true;
 			attributes.scanlinePass = true;
 
-			msdf_atlas::ImmediateAtlasGenerator<S, N, GenFunc, msdf_atlas::BitmapAtlasStorage<T, N>> generator(width, height);
+			msdf_atlas::ImmediateAtlasGenerator<S, N, GenFunc, msdf_atlas::BitmapAtlasStorage<T, N>> generator(p_Width, p_Height);
 			generator.setAttributes(attributes);
 			generator.setThreadCount(8);
-			generator.generate(glyphs.data(), (int)glyphs.size());
+			generator.generate(p_Glyphs.data(), (int)p_Glyphs.size());
 
 			msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>)generator.atlasStorage();
 
@@ -39,7 +40,10 @@ namespace KTN
 			spec.Format = TextureFormat::RGB8;
 			spec.GenerateMips = false;
 
-			return Texture2D::Create(spec, (void*)bitmap.pixels, bitmap.width * bitmap.height * 3);
+			//return Texture2D::Create(spec, (void*)bitmap.pixels, bitmap.width * bitmap.height * 3);
+			Ref<Texture2D> texture = Texture2D::Create(spec);
+			texture->SetData((void*)bitmap.pixels, (size_t)bitmap.width * bitmap.height * 3);
+			return texture;
 		}
 	} // namespace
 
@@ -52,10 +56,11 @@ namespace KTN
 	MSDFFont::MSDFFont(const std::string& p_Font)
 		: m_Data(new MSDFData())
 	{
+		KTN_PROFILE_FUNCTION();
+
 		msdfgen::FreetypeHandle* ft = msdfgen::initializeFreetype();
 		KTN_CORE_ASSERT(ft);
-		
-		// TODO(Yan): msdfgen::loadFontData loads from memory buffer which we'll need 
+
 		msdfgen::FontHandle* font = msdfgen::loadFont(ft, p_Font.c_str());
 		if (!font)
 		{
@@ -80,7 +85,7 @@ namespace KTN
 			for (uint32_t c = range.Begin; c <= range.End; c++)
 				charset.add(c);
 		}
-		
+
 		double fontScale = 1.0;
 		m_Data->FontGeometry = msdf_atlas::FontGeometry(&m_Data->Glyphs);
 		int glyphsLoaded = m_Data->FontGeometry.loadCharset(font, fontScale, charset);
@@ -93,7 +98,7 @@ namespace KTN
 		// atlasPacker.setDimensionsConstraint()
 		atlasPacker.setPixelRange(2.0);
 		atlasPacker.setMiterLimit(1.0);
-		atlasPacker.setInnerUnitPadding(0);
+		atlasPacker.setInnerPixelPadding(0);
 		atlasPacker.setScale(emSize);
 		int remaining = atlasPacker.pack(m_Data->Glyphs.data(), (int)m_Data->Glyphs.size());
 		KTN_CORE_ASSERT(remaining == 0);
@@ -102,23 +107,32 @@ namespace KTN
 		atlasPacker.getDimensions(width, height);
 		emSize = atlasPacker.getScale();
 
-		m_AtlasTexture = CreateAndCacheAtlas<uint8_t, float, 3, msdf_atlas::msdfGenerator>("Test", (float)emSize, m_Data->Glyphs, m_Data->FontGeometry, width, height);
+		#define DEFAULT_ANGLE_THRESHOLD 3.0
+		#define LCG_MULTIPLIER 6364136223846793005ull
+		#define LCG_INCREMENT 1442695040888963407ull
+		#define THREAD_COUNT 8
+		// if MSDF || MTSDF
 
-
-#if 0
-		msdfgen::Shape shape;
-		if (msdfgen::loadGlyph(shape, font, 'C'))
+		uint64_t coloringSeed = 0;
+		bool expensiveColoring = false;
+		if (expensiveColoring)
 		{
-			shape.normalize();
-			//                      max. angle
-			msdfgen::edgeColoringSimple(shape, 3.0);
-			//           image width, height
-			msdfgen::Bitmap<float, 3> msdf(32, 32);
-			//                     range, scale, translation
-			msdfgen::generateMSDF(msdf, shape, 4.0, 1.0, msdfgen::Vector2(4.0, 4.0));
-			msdfgen::savePng(msdf, "output.png");
+			msdf_atlas::Workload([&glyphs = m_Data->Glyphs, &coloringSeed](int i, int threadNo) -> bool {
+				unsigned long long glyphSeed = (LCG_MULTIPLIER * (coloringSeed ^ i) + LCG_INCREMENT) * !!coloringSeed;
+				glyphs[i].edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
+				return true;
+				}, m_Data->Glyphs.size()).finish(THREAD_COUNT);
 		}
-#endif
+		else {
+			unsigned long long glyphSeed = coloringSeed;
+			for (msdf_atlas::GlyphGeometry& glyph : m_Data->Glyphs)
+			{
+				glyphSeed *= LCG_MULTIPLIER;
+				glyph.edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
+			}
+		}
+
+		m_AtlasTexture = CreateAndCacheAtlas<uint8_t, float, 3, msdf_atlas::msdfGenerator>("Test", (float)emSize, m_Data->Glyphs, m_Data->FontGeometry, width, height);
 
 		msdfgen::destroyFont(font);
 		msdfgen::deinitializeFreetype(ft);
@@ -126,7 +140,25 @@ namespace KTN
 
 	MSDFFont::~MSDFFont()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		delete m_Data;
+	}
+
+	void* MSDFFont::GetFontGeometry()
+	{
+		return (void*)&m_Data->FontGeometry;
+	}
+
+	Ref<MSDFFont> MSDFFont::GetDefault()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		static Ref<MSDFFont> DefaultFont;
+		if (!DefaultFont)
+			DefaultFont = CreateRef<MSDFFont>("Assets/Fonts/OpenSans/OpenSans-Regular.ttf");
+
+		return DefaultFont;
 	}
 
 } // namespace KTN

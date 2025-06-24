@@ -5,6 +5,9 @@
 #include "Koten/Graphics/DescriptorSet.h"
 #include "Koten/Graphics/RendererCommand.h"
 
+// lib
+#include <FontGeometry.h>
+
 
 namespace KTN
 {
@@ -127,12 +130,50 @@ namespace KTN
 			void Flush();
 			void Submit(const RenderCommand& p_Command);
 		};
-
 	} // namespace Line
+	
+	namespace Text 
+	{
+		struct InstanceData
+		{
+			glm::mat4 Transform;
+			glm::vec4 Positions;
+			glm::vec4 Color;
+			glm::vec4 UV;
+			alignas(16) float TexIndex;
+
+			// TODO: BgColor, OutLineColor, etc...
+		};
+
+		struct Data
+		{
+			Ref<Shader> MainShader = nullptr;
+			Ref<DescriptorSet> Set = nullptr;
+			Ref<Pipeline> MainPipeline = nullptr;
+			Ref<IndirectBuffer> Buffer = nullptr;
+
+			std::vector<InstanceData> Instances;
+
+			uint32_t TextureIndex = 1;
+			std::array<Ref<Texture2D>, MaxTextureSlots> FontAtlasTextures;
+
+			Ref<Shader> PickingShader = nullptr;
+			Ref<DescriptorSet> PickingSet = nullptr;
+			EntityBufferData EntityBuffer = {};
+
+			void Init();
+			void Begin();
+			void StartBatch();
+			void FlushAndReset();
+			void Flush();
+		};
+		
+	} // Text
 
 	static RenderData* s_Data					= nullptr;
 	static R2D::Data* s_R2DData					= nullptr;
 	static Line::Data* s_LineData				= nullptr;
+	static Text::Data* s_TextData				= nullptr;
 
 	void Renderer::Init()
 	{
@@ -157,6 +198,12 @@ namespace KTN
 			s_LineData = new Line::Data();
 			s_LineData->Init();
 		}
+
+		// Text
+		{
+			s_TextData = new Text::Data();
+			s_TextData->Init();
+		}
 	}
 
 	void Renderer::Shutdown()
@@ -166,6 +213,7 @@ namespace KTN
 		delete s_Data;
 		delete s_R2DData;
 		delete s_LineData;
+		delete s_TextData;
 	}
 
 	void Renderer::Clear()
@@ -231,6 +279,7 @@ namespace KTN
 
 		s_R2DData->Begin();
 		s_LineData->Begin();
+		s_TextData->Begin();
 	}
 
 	void Renderer::End()
@@ -241,6 +290,7 @@ namespace KTN
 
 		s_R2DData->Flush();
 		s_LineData->Flush();
+		s_TextData->Flush();
 
 		// Final Pass
 		{
@@ -280,6 +330,112 @@ namespace KTN
 			s_LineData->Submit(p_Command);
 		else
 			KTN_CORE_ERROR("Unknown render type!");
+	}
+
+	void Renderer::SubmitString(const std::string& p_String, const Ref<MSDFFont>& p_Font, const glm::mat4& p_Transform, const glm::vec4& p_Color)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!s_TextData)
+		{
+			KTN_CORE_ERROR("Something wrong! s_TextData is nullptr");
+			return;
+		}
+
+		if (s_TextData->Instances.size() >= (size_t)MaxInstances)
+			s_TextData->FlushAndReset();
+
+		auto texture = p_Font->GetAtlasTexture();
+		float textureIndex = 0.0f; // White texture
+		if (texture)
+		{
+			for (uint32_t i = 1; i < s_TextData->TextureIndex; i++)
+			{
+				if (*s_TextData->FontAtlasTextures[i].get() == *texture.get())
+				{
+					textureIndex = (float)i;
+					break;
+				}
+			}
+
+			if (textureIndex == 0.0f)
+			{
+				if (s_TextData->TextureIndex >= MaxTextureSlots)
+					s_TextData->FlushAndReset();
+
+				textureIndex = (float)s_TextData->TextureIndex;
+				s_TextData->FontAtlasTextures[s_TextData->TextureIndex] = texture;
+				s_TextData->TextureIndex++;
+			}
+		}
+
+		msdf_atlas::FontGeometry& fontGeometry = *(msdf_atlas::FontGeometry*)p_Font->GetFontGeometry();
+		const auto& metrics = fontGeometry.getMetrics();
+
+		double x = 0.0;
+		double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
+		double y = 0.0;
+		float lineHeightOffset = 0.0f;
+
+		for (size_t i = 0; i < p_String.size(); i++)
+		{
+			char character = p_String[i];
+			if (character == '\r')
+				continue;
+
+			if (character == '\n')
+			{
+				x = 0;
+				y -= fsScale * metrics.lineHeight + lineHeightOffset;
+				continue;
+			}
+			auto glyph = fontGeometry.getGlyph(character);
+			if (!glyph)
+				glyph = fontGeometry.getGlyph('?');
+			if (!glyph)
+				return;
+
+			if (character == '\t')
+				glyph = fontGeometry.getGlyph(' ');
+
+			double al, ab, ar, at;
+			glyph->getQuadAtlasBounds(al, ab, ar, at);
+			glm::vec2 texCoordMin((float)al, (float)ab);
+			glm::vec2 texCoordMax((float)ar, (float)at);
+
+			double pl, pb, pr, pt;
+			glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+			glm::vec2 quadMin((float)pl, (float)pb);
+			glm::vec2 quadMax((float)pr, (float)pt);
+
+			quadMin *= fsScale, quadMax *= fsScale;
+			quadMin += glm::vec2(x, y);
+			quadMax += glm::vec2(x, y);
+
+			float texelWidth = 1.0f / texture->GetWidth();
+			float texelHeight = 1.0f / texture->GetHeight();
+			texCoordMin *= glm::vec2(texelWidth, texelHeight);
+			texCoordMax *= glm::vec2(texelWidth, texelHeight);
+
+			Text::InstanceData data = {};
+			data.Transform = p_Transform;
+			data.Positions = { quadMin, quadMax };
+			data.Color = p_Color;
+			data.UV = { texCoordMin, texCoordMax };
+			data.TexIndex = textureIndex;
+
+			s_TextData->Instances.push_back(data);
+
+			if (i < p_String.size() - 1)
+			{
+				double advance = glyph->getAdvance();
+				char nextCharacter = p_String[i + 1];
+				fontGeometry.getAdvance(advance, character, nextCharacter);
+
+				float kerningOffset = 0.0f;
+				x += fsScale * advance + kerningOffset;
+			}
+		}
 	}
 
 	Ref<Texture2D> Renderer::GetPickingTexture()
@@ -632,5 +788,141 @@ namespace KTN
 		}
 
 	} // namespace Line
+
+	namespace Text
+	{
+		void Data::Init()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			MainShader = Shader::Create("Assets/Shaders/RenderText.glsl");
+			Set = DescriptorSet::Create({ 0, MainShader });
+
+			FontAtlasTextures.fill(s_Data->WhiteTexture);
+
+			Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
+
+			if (Engine::GetSettings().MousePicking)
+			{
+				PickingShader = Shader::Create("Assets/Shaders/PickingText.glsl");
+				PickingSet = DescriptorSet::Create({ 0, PickingShader });
+			}
+		}
+
+		void Data::Begin()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			PipelineSpecification pspec = {};
+			pspec.pShader = MainShader;
+			pspec.TransparencyEnabled = true;
+			pspec.BlendModes[0] = BlendMode::SrcAlphaOneMinusSrcAlpha;
+			pspec.ColorTargets[0] = s_Data->MainTexture;
+			pspec.DepthTarget = s_Data->MainDepthTexture;
+			pspec.ClearTargets = false;
+			pspec.ResolveTexture = s_Data->ResolveTexture;
+			pspec.Samples = s_Data->Samples;
+			pspec.DebugName = "TextMainPipeline";
+
+			MainPipeline = Pipeline::Get(pspec);
+
+			StartBatch();
+		}
+
+		void Data::StartBatch()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			Instances.clear();
+			TextureIndex = 1;
+
+			EntityBuffer.Count = 0;
+			EntityBuffer.EntityIDS.clear();
+		}
+
+		void Data::FlushAndReset()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			Flush();
+			StartBatch();
+		}
+
+		void Data::Flush()
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
+			auto vp = s_Data->Projection * s_Data->View;
+
+			if (!Instances.empty())
+			{
+				MainPipeline->Begin(commandBuffer);
+
+				RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
+
+				Set->SetUniform("Camera", "u_ViewProjection", &vp);
+				Set->Upload(commandBuffer);
+
+				Set->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(InstanceData));
+				Set->Upload(commandBuffer);
+
+				Set->SetTexture("u_FontAtlasTextures", FontAtlasTextures.data(), (uint32_t)FontAtlasTextures.size());
+				Set->Upload(commandBuffer);
+
+				DrawElementsIndirectCommand command = {
+					6, (uint32_t)Instances.size(), 0, 0, 0
+				};
+				Buffer->SetData(&command, sizeof(command));
+
+				commandBuffer->BindSets(&Set);
+				RendererCommand::DrawIndirect(DrawType::TRIANGLE_STRIP, nullptr, Buffer);
+
+				Engine::GetStats().DrawCalls += 1;
+				Engine::GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
+
+				MainPipeline->End(commandBuffer);
+
+				if (Engine::GetSettings().MousePicking)
+				{
+					PipelineSpecification pspec = {};
+					pspec.pShader = PickingShader;
+					pspec.TransparencyEnabled = false;
+					pspec.ColorTargets[0] = s_Data->MainPickingTexture;
+					pspec.DepthTarget = s_Data->MainDepthTexture;
+					pspec.DepthWrite = false;
+					pspec.ClearTargets = false;
+					pspec.Samples = 1;
+					pspec.DebugName = "TextPickingPipeline";
+
+					auto pipeline = Pipeline::Get(pspec);
+
+					pipeline->Begin(commandBuffer);
+
+					RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
+
+					PickingSet->SetUniform("Camera", "u_ViewProjection", &vp);
+					PickingSet->Upload(commandBuffer);
+
+					PickingSet->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(InstanceData));
+					PickingSet->Upload(commandBuffer);
+
+					size_t bufferSize = sizeof(int) + sizeof(int) * EntityBuffer.EntityIDS.size();
+					PickingSet->PrepareStorageBuffer("EntityBuffer", bufferSize);
+					PickingSet->SetStorage("EntityBuffer", "Count", &EntityBuffer.Count, sizeof(int));
+					PickingSet->SetStorage("EntityBuffer", "EnttIDs", EntityBuffer.EntityIDS.data(), sizeof(int) * EntityBuffer.EntityIDS.size());
+					PickingSet->Upload(commandBuffer);
+
+					commandBuffer->BindSets(&PickingSet);
+					RendererCommand::DrawIndirect(DrawType::TRIANGLE_STRIP, nullptr, Buffer);
+
+					Engine::GetStats().DrawCalls += 1;
+
+					pipeline->End(commandBuffer);
+				}
+			}
+		}
+
+	} // Text
 
 } // namespace KTN
