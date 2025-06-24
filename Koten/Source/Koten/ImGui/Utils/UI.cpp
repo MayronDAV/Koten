@@ -50,7 +50,7 @@ namespace KTN::UI
 		ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, p_UV0, p_UV1);
 	}
 
-	KTN_API bool InputText(std::string& p_Text, const char* p_ID)
+	KTN_API bool InputText(const std::string& p_Label, std::string& p_Text, bool p_DrawLabel, ImGuiInputTextFlags p_Flags, float p_OutlineRouding, bool p_DrawOutlineWhenInactive, ImColor p_OutlineColor)
 	{
 		KTN_PROFILE_FUNCTION();
 
@@ -59,10 +59,17 @@ namespace KTN::UI
 		char buffer[256];
 		memset(buffer, 0, 256);
 		memcpy(buffer, p_Text.c_str(), p_Text.length());
-		ImGui::PushID(p_ID);
-		bool updated = ImGui::InputText("##SceneName", buffer, 256);
+		ImGui::PushID(p_Label.c_str());
 
-		DrawItemActivityOutline(2.0f, false);
+		if (p_DrawLabel)
+		{
+			ImGui::Text(p_Label.c_str());
+			ImGui::SameLine();
+		}
+
+		bool updated = ImGui::InputText("##SceneName", buffer, 256, p_Flags);
+
+		DrawItemOutline(p_OutlineRouding, 1.0f, p_DrawOutlineWhenInactive, p_OutlineColor, p_OutlineColor, p_OutlineColor);
 
 		if (updated)
 			p_Text = std::string(buffer);
@@ -73,7 +80,7 @@ namespace KTN::UI
 		return updated;
 	}
 
-	KTN_API void DrawItemActivityOutline(float p_Rounding, bool p_DrawWhenInactive, ImColor p_ColorWhenActive)
+	KTN_API void DrawItemOutline(float p_Rounding, float p_Thickness, bool p_DrawWhenInactive, ImColor p_Color, ImColor p_ColorHovered, ImColor p_ColorActived)
 	{
 		KTN_PROFILE_FUNCTION();
 
@@ -89,17 +96,17 @@ namespace KTN::UI
 		if (ImGui::IsItemHovered() && !ImGui::IsItemActive())
 		{
 			drawList->AddRect(rect.Min, rect.Max,
-				ImColor(60, 60, 60), p_Rounding, 0, 1.5f);
+				p_ColorHovered, p_Rounding, 0, p_Thickness);
 		}
 		if (ImGui::IsItemActive())
 		{
 			drawList->AddRect(rect.Min, rect.Max,
-				p_ColorWhenActive, p_Rounding, 0, 1.0f);
+				p_ColorActived, p_Rounding, 0, p_Thickness);
 		}
 		else if (!ImGui::IsItemHovered() && p_DrawWhenInactive)
 		{
 			drawList->AddRect(rect.Min, rect.Max,
-				ImColor(50, 50, 50), p_Rounding, 0, 1.0f);
+				p_Color, p_Rounding, 0, p_Thickness);
 		}
 	}
 

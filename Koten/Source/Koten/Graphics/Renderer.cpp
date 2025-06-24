@@ -139,10 +139,10 @@ namespace KTN
 			glm::mat4 Transform;
 			glm::vec4 Positions;
 			glm::vec4 Color;
+			glm::vec4 BgColor;
+			glm::vec4 OutlineColor;
 			glm::vec4 UV;
-			alignas(16) float TexIndex;
-
-			// TODO: BgColor, OutLineColor, etc...
+			alignas(16) glm::vec2 Others; // TexIndex, OutlineWidth
 		};
 
 		struct Data
@@ -253,11 +253,15 @@ namespace KTN
 
 		s_Data->MainTexture			= Texture2D::Get(tspec);
 
-		tspec.Format				= TextureFormat::R32_INT;
-		tspec.Samples				= 1;
-		tspec.DebugName				= "MainPickingTexture";
+		if (Engine::GetSettings().MousePicking)
+		{
+			tspec.Format				= TextureFormat::R32_INT;
+			tspec.Samples				= 1;
+			tspec.DebugName				= "MainPickingTexture";
 
-		s_Data->MainPickingTexture	= Texture2D::Get(tspec);
+			s_Data->MainPickingTexture	= Texture2D::Get(tspec);
+		}
+
 
 		if (p_Info.Samples > 1)
 		{
@@ -332,7 +336,7 @@ namespace KTN
 			KTN_CORE_ERROR("Unknown render type!");
 	}
 
-	void Renderer::SubmitString(const std::string& p_String, const Ref<MSDFFont>& p_Font, const glm::mat4& p_Transform, const glm::vec4& p_Color)
+	void Renderer::SubmitString(const std::string& p_String, const Ref<MSDFFont>& p_Font, const glm::mat4& p_Transform, const TextParams& p_Params, int p_EntityID)
 	{
 		KTN_PROFILE_FUNCTION();
 
@@ -375,7 +379,7 @@ namespace KTN
 		double x = 0.0;
 		double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
 		double y = 0.0;
-		float lineHeightOffset = 0.0f;
+		const float spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
 
 		for (size_t i = 0; i < p_String.size(); i++)
 		{
@@ -386,17 +390,36 @@ namespace KTN
 			if (character == '\n')
 			{
 				x = 0;
-				y -= fsScale * metrics.lineHeight + lineHeightOffset;
+				y -= fsScale * metrics.lineHeight + p_Params.LineSpacing;
 				continue;
 			}
+
+			if (character == ' ')
+			{
+				float advance = spaceGlyphAdvance;
+				if (i < p_String.size() - 1)
+				{
+					char nextCharacter = p_String[i + 1];
+					double dAdvance;
+					fontGeometry.getAdvance(dAdvance, character, nextCharacter);
+					advance = (float)dAdvance;
+				}
+
+				x += fsScale * advance + p_Params.Kerning;
+				continue;
+			}
+
+			if (character == '\t')
+			{
+				x += 4.0f * (fsScale * spaceGlyphAdvance + p_Params.Kerning);
+				continue;
+			}
+
 			auto glyph = fontGeometry.getGlyph(character);
 			if (!glyph)
 				glyph = fontGeometry.getGlyph('?');
 			if (!glyph)
 				return;
-
-			if (character == '\t')
-				glyph = fontGeometry.getGlyph(' ');
 
 			double al, ab, ar, at;
 			glyph->getQuadAtlasBounds(al, ab, ar, at);
@@ -416,13 +439,21 @@ namespace KTN
 			float texelHeight = 1.0f / texture->GetHeight();
 			texCoordMin *= glm::vec2(texelWidth, texelHeight);
 			texCoordMax *= glm::vec2(texelWidth, texelHeight);
+			
+			if (Engine::GetSettings().MousePicking)
+			{
+				s_TextData->EntityBuffer.EntityIDS.push_back(p_EntityID);
+				s_TextData->EntityBuffer.Count++;
+			}
 
 			Text::InstanceData data = {};
 			data.Transform = p_Transform;
 			data.Positions = { quadMin, quadMax };
-			data.Color = p_Color;
+			data.Color = p_Params.CharColor;
+			data.BgColor = p_Params.CharBgColor;
+			data.OutlineColor = p_Params.CharOutlineColor;
 			data.UV = { texCoordMin, texCoordMax };
-			data.TexIndex = textureIndex;
+			data.Others = { textureIndex, p_Params.CharOutlineWidth };
 
 			s_TextData->Instances.push_back(data);
 
@@ -432,8 +463,7 @@ namespace KTN
 				char nextCharacter = p_String[i + 1];
 				fontGeometry.getAdvance(advance, character, nextCharacter);
 
-				float kerningOffset = 0.0f;
-				x += fsScale * advance + kerningOffset;
+				x += fsScale * advance + p_Params.Kerning;
 			}
 		}
 	}
@@ -606,8 +636,11 @@ namespace KTN
 			if (Instances.size() >= (size_t)MaxInstances)
 				FlushAndReset();
 
-			EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
-			EntityBuffer.Count++;
+			if (Engine::GetSettings().MousePicking)
+			{
+				EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
+				EntityBuffer.Count++;
+			}
 
 			float textureIndex = 0.0f; // White texture
 			if (p_Command.Render2D.Texture)

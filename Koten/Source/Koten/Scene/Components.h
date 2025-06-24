@@ -4,6 +4,7 @@
 #include "Koten/Graphics/Texture.h"
 #include "Koten/Graphics/Camera.h"
 #include "Koten/Core/UUID.h"
+#include "Koten/Graphics/MSDFFont.h"
 
 // std
 #include <string>
@@ -75,6 +76,23 @@ namespace KTN
 
 		LineRendererComponent() = default;
 		LineRendererComponent(const LineRendererComponent&) = default;
+	};
+
+	struct TextRendererComponent
+	{
+		std::string String;
+		Ref<MSDFFont> Font = MSDFFont::GetDefault();
+
+		glm::vec4 CharColor{ 1.0f };
+		glm::vec4 CharBgColor{ 0.0f };
+		glm::vec4 CharOutlineColor{ 0.0f };
+		float CharOutlineWidth = 0.0f;
+
+		float Kerning = 0.0f;
+		float LineSpacing = 0.0f;
+
+		TextRendererComponent() = default;
+		TextRendererComponent(const TextRendererComponent&) = default;
 	};
 
 	struct CameraComponent
@@ -161,6 +179,6 @@ namespace KTN
 		ScriptComponent(const ScriptComponent&) = default;
 	};
 
-	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
+	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
 
 } // namespace KTN

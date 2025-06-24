@@ -12,7 +12,7 @@ namespace KTN
 {
 	namespace
 	{
-		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
+		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
 
 		template <typename Component>
 		void ComponentDrawView(entt::registry& p_Registry, Entity p_Entity) {}
@@ -269,7 +269,7 @@ namespace KTN
 		template <>
 		void ComponentDrawView<LineRendererComponent>(entt::registry& p_Registry, Entity p_Entity)
 		{
-			DrawComponent<LineRendererComponent>("Line Renderer", p_Entity,
+			DrawComponent<LineRendererComponent>("LineRenderer", p_Entity,
 			[](LineRendererComponent& p_Line)
 			{
 				ImGui::Checkbox("Primitive", &p_Line.Primitive);
@@ -283,6 +283,41 @@ namespace KTN
 				if (UI::DragFloat3("End", end))
 					p_Line.End = end;
 
+			});
+		}
+
+		template <>
+		void ComponentDrawView<TextRendererComponent>(entt::registry& p_Registry, Entity p_Entity)
+		{
+			DrawComponent<TextRendererComponent>("TextRenderer", p_Entity,
+			[](TextRendererComponent& p_Text)
+			{
+				UI::InputText("String", p_Text.String, true, 0, 2.0f, true);
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+				if (ImGui::Button(ICON_MDI_RESTART))
+				{
+					p_Text.Font = MSDFFont::GetDefault();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button(p_Text.Font->GetPath().c_str()))
+				{
+					std::string path = "";
+					if (FileDialog::Open("", "Fonts", path) == FileDialogResult::SUCCESS)
+					{
+						p_Text.Font = CreateRef<MSDFFont>(path);
+					}
+				}
+				ImGui::PopStyleVar();
+
+				ImGui::Spacing();
+				UI::ColorEdit4("Char Color", p_Text.CharColor, 1.0f);
+				UI::ColorEdit4("Char BgColor", p_Text.CharBgColor, 1.0f);
+				UI::ColorEdit4("Char Outline Color", p_Text.CharOutlineColor, 1.0f);
+				ImGui::Spacing();
+
+				ImGui::InputFloat("Char Outline Width", &p_Text.CharOutlineWidth);
+				ImGui::InputFloat("Kerning", &p_Text.Kerning);
+				ImGui::InputFloat("Line Spacing", &p_Text.LineSpacing);
 			});
 		}
 
@@ -494,7 +529,7 @@ namespace KTN
 
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
 			{
-				if (UI::InputText(name, "##InspectorNameChange"))
+				if (UI::InputText("##InspectorNameChange", name))
 					selectedEntt.GetComponent<TagComponent>().Tag = name;
 
 				// for debugging, maybe create a variable to toggle this.
@@ -524,7 +559,8 @@ namespace KTN
 					DisplayComponentEntry<TransformComponent>("Transform", selectedEntt);
 					DisplayComponentEntry<CameraComponent>("Camera", selectedEntt);
 					DisplayComponentEntry<SpriteComponent>("Sprite", selectedEntt);
-					DisplayComponentEntry<LineRendererComponent>("Line Renderer", selectedEntt);
+					DisplayComponentEntry<LineRendererComponent>("LineRenderer", selectedEntt);
+					DisplayComponentEntry<TextRendererComponent>("TextRenderer", selectedEntt);
 					DisplayComponentEntry<Rigidbody2DComponent>("Rigidbody2D", selectedEntt);
 					DisplayComponentEntry<BoxCollider2DComponent>("BoxCollider2D", selectedEntt);
 					DisplayComponentEntry<CircleCollider2DComponent>("CircleCollider2D", selectedEntt);

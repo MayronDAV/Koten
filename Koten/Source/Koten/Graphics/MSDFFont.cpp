@@ -54,7 +54,7 @@ namespace KTN
 	};
 
 	MSDFFont::MSDFFont(const std::string& p_Font)
-		: m_Data(new MSDFData())
+		: m_Data(new MSDFData()), m_FontPath(p_Font), m_FontName(FileSystem::GetStem(p_Font))
 	{
 		KTN_PROFILE_FUNCTION();
 

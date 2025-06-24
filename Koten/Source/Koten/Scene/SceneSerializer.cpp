@@ -400,6 +400,33 @@ namespace KTN
 		}
 
 		template<>
+		void ComponentSerializeIfExist<TextRendererComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<TextRendererComponent>())
+				return;
+
+			p_Out << YAML::Key << "TextRendererComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<TextRendererComponent>();
+			ADD_KEY_VALUE("String", comp.String);
+			if (comp.Font)
+				ADD_KEY_VALUE("Font", comp.Font->GetPath());
+			else
+				ADD_KEY_VALUE("Font", std::string()); // If no font is set, store an empty string
+			ADD_KEY_VALUE("CharColor", comp.CharColor);
+			ADD_KEY_VALUE("CharBgColor", comp.CharBgColor);
+			ADD_KEY_VALUE("CharOutlineColor", comp.CharOutlineColor);
+			ADD_KEY_VALUE("CharOutlineWidth", comp.CharOutlineWidth);
+			ADD_KEY_VALUE("Kerning", comp.Kerning);
+			ADD_KEY_VALUE("LineSpacing", comp.LineSpacing);
+
+			p_Out << YAML::EndMap;
+		}
+
+		template<>
 		void ComponentSerializeIfExist<Rigidbody2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
@@ -534,7 +561,6 @@ namespace KTN
 
 			#undef WRITE_SCRIPT_FIELD
 		}
-
 
 	} // namespace
 
@@ -679,6 +705,38 @@ namespace KTN
 			comp.Primitive = lineComp["Primitive"].as<bool>();
 			comp.Start = lineComp["Start"].as<glm::vec3>();
 			comp.End = lineComp["End"].as<glm::vec3>();
+		}
+
+		template<>
+		void ComponentDeserializeIfExist<TextRendererComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto textComp = p_Data["TextRendererComponent"];
+			if (!textComp) return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<TextRendererComponent>();
+
+			comp.String = textComp["String"].as<std::string>();
+			comp.Font = nullptr;
+			auto fontPath = textComp["Font"].as<std::string>();
+			if (!fontPath.empty())
+			{
+				auto fontDefault = MSDFFont::GetDefault();
+				comp.Font = fontPath != fontDefault->GetPath() ? CreateRef<MSDFFont>(fontPath) : fontDefault;
+				if (!comp.Font)
+				{
+					KTN_CORE_ERROR("Failed to load font from path: {}", fontPath);
+					return;
+				}
+			}
+
+			comp.CharColor = textComp["CharColor"].as<glm::vec4>();
+			comp.CharBgColor = textComp["CharBgColor"].as<glm::vec4>();
+			comp.CharOutlineColor = textComp["CharOutlineColor"].as<glm::vec4>();
+			comp.CharOutlineWidth = textComp["CharOutlineWidth"].as<float>();
+			comp.Kerning = textComp["Kerning"].as<float>();
+			comp.LineSpacing = textComp["LineSpacing"].as<float>();
 		}
 
 		template<>

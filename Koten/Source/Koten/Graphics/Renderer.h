@@ -78,6 +78,17 @@ namespace KTN
 		bool Clear					= true;
 	};
 
+	struct TextParams
+	{
+		glm::vec4 CharColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 CharBgColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+		glm::vec4 CharOutlineColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		float CharOutlineWidth = 0.0f;
+
+		float LineSpacing = 0.0f;
+		float Kerning = 0.0f;
+	};
+
 	class KTN_API Renderer
 	{
 		public:
@@ -90,7 +101,9 @@ namespace KTN
 			static void End();
 
 			static void Submit(const RenderCommand& p_Command);
-			static void SubmitString(const std::string& p_String, const Ref<MSDFFont>& p_Font, const glm::mat4& p_Transform, const glm::vec4& p_Color);
+
+			// Maybe we should define this in the RenderCommand ?
+			static void SubmitString(const std::string& p_String, const Ref<MSDFFont>& p_Font, const glm::mat4& p_Transform, const TextParams& p_Params = {}, int p_EntityID = -1);
 
 			static Ref<Texture2D> GetPickingTexture();
 	};

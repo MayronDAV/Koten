@@ -46,6 +46,7 @@ namespace KTN
 
 		AddDependency<SpriteComponent, TransformComponent>(m_Registry);
 		AddDependency<LineRendererComponent, TransformComponent>(m_Registry);
+		AddDependency<TextRendererComponent, TransformComponent>(m_Registry);
 		AddDependency<CameraComponent, TransformComponent>(m_Registry);
 		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
 		AddDependency<BoxCollider2DComponent, Rigidbody2DComponent>(m_Registry);
@@ -167,8 +168,6 @@ namespace KTN
 
 		Renderer::Begin(info);
 		{
-			Renderer::SubmitString("Koten Engine", MSDFFont::GetDefault(), glm::mat4(1.0f), glm::vec4(1.0f));
-
 			m_Registry.view<TransformComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
@@ -207,6 +206,13 @@ namespace KTN
 					command.Line.End = line->End;
 
 					Renderer::Submit(command);
+				}
+
+				auto text = m_Registry.try_get<TextRendererComponent>(p_Entity);
+				if (text)
+				{
+					Renderer::SubmitString(text->String, text->Font, p_Transform.GetWorldMatrix(),
+						{ text->CharColor, text->CharBgColor, text->CharOutlineColor, text->CharOutlineWidth, text->LineSpacing, text->Kerning }, (int)p_Entity);
 				}
 			});
 		}
@@ -413,6 +419,13 @@ namespace KTN
 					command.Line.End = line->End;
 
 					Renderer::Submit(command);
+				}
+
+				auto text = m_Registry.try_get<TextRendererComponent>(p_Entity);
+				if (text)
+				{
+					Renderer::SubmitString(text->String, text->Font, p_Transform.GetWorldMatrix(),
+						{ text->CharColor, text->CharBgColor, text->CharOutlineColor, text->CharOutlineWidth, text->LineSpacing, text->Kerning }, (int)p_Entity);
 				}
 			});
 		}
