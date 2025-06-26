@@ -22,6 +22,9 @@ namespace KTN
 			virtual void SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height) = 0;
 			virtual void DispatchCompute(uint32_t p_NumGroups_X, uint32_t p_NumGroups_Y, uint32_t p_NumGroups_Z) = 0;
 			
+			virtual void EnableDepthBias(bool p_Enable) = 0;
+			virtual void EnableStencil(bool p_Enable) = 0;
+
 			// sets the depth bias for the current pipeline
 			virtual void SetDepthBias(float p_ConstantFactor, float p_SlopeFactor) = 0;
 			// sets the stencil for the current pipeline, p_Compare is just for opengl

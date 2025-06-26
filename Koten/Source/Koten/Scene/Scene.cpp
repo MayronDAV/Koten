@@ -211,8 +211,15 @@ namespace KTN
 				auto text = m_Registry.try_get<TextRendererComponent>(p_Entity);
 				if (text)
 				{
-					Renderer::SubmitString(text->String, text->Font, p_Transform.GetWorldMatrix(),
-						{ text->CharColor, text->CharBgColor, text->CharOutlineColor, text->CharOutlineWidth, text->LineSpacing, text->Kerning }, (int)p_Entity);
+					TextParams params = {};
+					params.Color = text->Color;
+					params.BgColor = text->BgColor;
+					params.CharBgColor = text->CharBgColor;
+					params.DrawBg = text->DrawBg;
+					params.LineSpacing = text->LineSpacing;
+					params.Kerning = text->Kerning;
+
+					Renderer::SubmitString(text->String, text->Font, p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}
@@ -424,8 +431,15 @@ namespace KTN
 				auto text = m_Registry.try_get<TextRendererComponent>(p_Entity);
 				if (text)
 				{
-					Renderer::SubmitString(text->String, text->Font, p_Transform.GetWorldMatrix(),
-						{ text->CharColor, text->CharBgColor, text->CharOutlineColor, text->CharOutlineWidth, text->LineSpacing, text->Kerning }, (int)p_Entity);
+					TextParams params = {};
+					params.Color = text->Color;
+					params.BgColor = text->BgColor;
+					params.CharBgColor = text->CharBgColor;
+					params.DrawBg = text->DrawBg;
+					params.LineSpacing = text->LineSpacing;
+					params.Kerning = text->Kerning;
+
+					Renderer::SubmitString(text->String, text->Font, p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}

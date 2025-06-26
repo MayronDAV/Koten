@@ -22,11 +22,31 @@ namespace KTN
 		GLCall(glDispatchCompute(p_NumGroups_X, p_NumGroups_Y, p_NumGroups_Z));
 	}
 
+	void GLCommandBuffer::EnableDepthBias(bool p_Enable)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		if (p_Enable)
+			GLCall(glEnable(GL_POLYGON_OFFSET_FILL));
+		else
+			GLCall(glDisable(GL_POLYGON_OFFSET_FILL));
+	}
+
+	void GLCommandBuffer::EnableStencil(bool p_Enable)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		if (p_Enable)
+			GLCall(glEnable(GL_STENCIL_TEST));
+		else
+			GLCall(glDisable(GL_STENCIL_TEST));
+	}
+
 	void GLCommandBuffer::SetDepthBias(float p_ConstantFactor, float p_SlopeFactor)
 	{
 		KTN_PROFILE_FUNCTION_LOW();
 
-		GLCall(glPolygonOffset(p_ConstantFactor, p_SlopeFactor));
+		GLCall(glPolygonOffset(p_SlopeFactor, p_ConstantFactor));
 	}
 
 	void GLCommandBuffer::SetStencil(StencilFace p_Face, StencilCompare p_Compare, uint32_t p_CompareMask, uint32_t p_WriteMask, int p_Reference)

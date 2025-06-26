@@ -140,9 +140,8 @@ namespace KTN
 			glm::vec4 Positions;
 			glm::vec4 Color;
 			glm::vec4 BgColor;
-			glm::vec4 OutlineColor;
 			glm::vec4 UV;
-			alignas(16) glm::vec2 Others; // TexIndex, OutlineWidth
+			alignas(16) float TexIndex;
 		};
 
 		struct Data
@@ -349,6 +348,79 @@ namespace KTN
 		if (s_TextData->Instances.size() >= (size_t)MaxInstances)
 			s_TextData->FlushAndReset();
 
+		msdf_atlas::FontGeometry& fontGeometry = *(msdf_atlas::FontGeometry*)p_Font->GetFontGeometry();
+		const auto& metrics = fontGeometry.getMetrics();
+		const double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
+
+		double x = 0.0;
+		double y = 0.0;
+		glm::vec2 minPos(0.0f), maxPos(0.0f);
+		const float spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
+
+		if (p_Params.DrawBg && p_Params.BgColor.a > 0.0f)
+		{
+			for (size_t i = 0; i < p_String.size(); i++)
+			{
+				char character = p_String[i];
+				if (character == '\r') continue;
+
+				if (character == '\n')
+				{
+					x = 0;
+					y -= fsScale * metrics.lineHeight + p_Params.LineSpacing;
+					continue;
+				}
+
+				if (character == ' ' || character == '\t')
+				{
+					float advance = (character == '\t') ?
+						4.0f * (fsScale * spaceGlyphAdvance + p_Params.Kerning) :
+						fsScale * spaceGlyphAdvance + p_Params.Kerning;
+					x += advance;
+					continue;
+				}
+
+				auto glyph = fontGeometry.getGlyph(character);
+				if (!glyph) glyph = fontGeometry.getGlyph('?');
+				if (!glyph) continue;
+
+				double pl, pb, pr, pt;
+				glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+				glm::vec2 quadMin((float)pl, (float)pb);
+				glm::vec2 quadMax((float)pr, (float)pt);
+
+				quadMin *= fsScale, quadMax *= fsScale;
+				quadMin += glm::vec2(x, y);
+				quadMax += glm::vec2(x, y);
+
+				minPos = i == 0 ? quadMin : glm::min(minPos, quadMin);
+				maxPos = glm::max(maxPos, quadMax);
+
+				if (i < p_String.size() - 1)
+				{
+					double advance = glyph->getAdvance();
+					fontGeometry.getAdvance(advance, character, p_String[i + 1]);
+					x += fsScale * advance + p_Params.Kerning;
+				}
+			}
+
+			Text::InstanceData bgData = {};
+			bgData.Transform = p_Transform;
+			bgData.Positions = { minPos, maxPos };
+			bgData.Color = p_Params.BgColor;
+			bgData.BgColor = p_Params.BgColor;
+			bgData.UV = { glm::vec2(0.0f), glm::vec2(1.0f) };
+			bgData.TexIndex = 0.0f;
+
+			s_TextData->Instances.push_back(bgData);
+
+			if (Engine::GetSettings().MousePicking)
+			{
+				s_TextData->EntityBuffer.EntityIDS.push_back(p_EntityID);
+				s_TextData->EntityBuffer.Count++;
+			}
+		}
+
 		auto texture = p_Font->GetAtlasTexture();
 		float textureIndex = 0.0f; // White texture
 		if (texture)
@@ -373,14 +445,8 @@ namespace KTN
 			}
 		}
 
-		msdf_atlas::FontGeometry& fontGeometry = *(msdf_atlas::FontGeometry*)p_Font->GetFontGeometry();
-		const auto& metrics = fontGeometry.getMetrics();
-
-		double x = 0.0;
-		double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
-		double y = 0.0;
-		const float spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
-
+		x = 0.0;
+		y = 0.0;
 		for (size_t i = 0; i < p_String.size(); i++)
 		{
 			char character = p_String[i];
@@ -449,11 +515,10 @@ namespace KTN
 			Text::InstanceData data = {};
 			data.Transform = p_Transform;
 			data.Positions = { quadMin, quadMax };
-			data.Color = p_Params.CharColor;
+			data.Color = p_Params.Color;
 			data.BgColor = p_Params.CharBgColor;
-			data.OutlineColor = p_Params.CharOutlineColor;
 			data.UV = { texCoordMin, texCoordMax };
-			data.Others = { textureIndex, p_Params.CharOutlineWidth };
+			data.TexIndex = textureIndex;
 
 			s_TextData->Instances.push_back(data);
 

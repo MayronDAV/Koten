@@ -18,8 +18,22 @@ namespace KTN
 	{
 		static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
 
+		std::string MonoStringToString(MonoString* p_String)
+		{
+			char* cStr = mono_string_to_utf8(p_String);
+			std::string str(cStr);
+			mono_free(cStr);
+			return str;
+		}
+
 		#define KTN_ADD_INTERNAL_CALL(Name) mono_add_internal_call("KTN.InternalCalls::" #Name, Name)
 
+		static MonoObject* GetScriptInstance(UUID p_UUID)
+		{
+			return ScriptEngine::GetManagedInstance(p_UUID);
+		}
+
+		#pragma region Time
 		static float Time_GetTime()
 		{
 			return (float)Time::GetTime();
@@ -29,12 +43,9 @@ namespace KTN
 		{
 			return (float)Time::GetDeltaTime();
 		}
+		#pragma endregion
 
-		static MonoObject* GetScriptInstance(UUID p_UUID)
-		{
-			return ScriptEngine::GetManagedInstance(p_UUID);
-		}
-
+		#pragma region Entity
 		static bool Entity_HasComponent(UUID p_EntityID, MonoReflectionType* p_ComponentType)
 		{
 			Scene* scene = ScriptEngine::GetSceneContext();
@@ -60,7 +71,9 @@ namespace KTN
 
 			return entity.GetUUID();
 		}
+		#pragma	endregion
 
+		#pragma region TransformComponent
 		static void TransformComponent_GetLocalTranslation(UUID p_EntityID, glm::vec3* p_Result)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
@@ -84,7 +97,256 @@ namespace KTN
 
 			entity.GetComponent<TransformComponent>().SetLocalTranslation(*p_Value);
 		}
+		#pragma endregion
 
+		#pragma region TextRendererComponent
+		static MonoString* TextRendererComponent_GetString(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			return ScriptEngine::CreateString(tc.String.c_str());
+		}
+
+		static void TextRendererComponent_SetString(UUID p_EntityID, MonoString* p_String)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			tc.String = MonoStringToString(p_String);
+		}
+
+		static void TextRendererComponent_SetFont(UUID p_EntityID, MonoString* p_Path)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			std::string fontPath = MonoStringToString(p_Path);
+			if (fontPath.empty())
+				tc.Font = MSDFFont::GetDefault();
+			else
+			{
+				tc.Font = CreateRef<MSDFFont>(fontPath);
+				KTN_CORE_ASSERT(tc.Font, "Failed to load font from path: " + fontPath);
+			}
+		}
+
+		static MonoString* TextRendererComponent_GetFontPath(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			return ScriptEngine::CreateString(tc.Font->GetPath().c_str());
+		}
+
+		static MonoString* TextRendererComponent_GetFontName(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			return ScriptEngine::CreateString(tc.Font->GetName().c_str());
+		}
+
+		static void TextRendererComponent_GetColor(UUID p_EntityID, glm::vec4* p_Color)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			*p_Color = tc.Color;
+		}
+
+		static void TextRendererComponent_SetColor(UUID p_EntityID, glm::vec4* p_Color)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			tc.Color = *p_Color;
+		}
+
+		static void TextRendererComponent_GetBgColor(UUID p_EntityID, glm::vec4* p_Color)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			*p_Color = tc.BgColor;
+		}
+
+		static void TextRendererComponent_SetBgColor(UUID p_EntityID, glm::vec4* p_Color)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			tc.BgColor = *p_Color;
+		}
+
+		static void TextRendererComponent_GetCharBgColor(UUID p_EntityID, glm::vec4* p_Color)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			*p_Color = tc.CharBgColor;
+		}
+
+		static void TextRendererComponent_SetCharBgColor(UUID p_EntityID, glm::vec4* p_Color)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			tc.CharBgColor = *p_Color;
+		}
+
+		static bool TextRendererComponent_GetDrawBg(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			return tc.DrawBg;
+		}
+
+		static void TextRendererComponent_SetDrawBg(UUID p_EntityID, bool p_Enable)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			tc.DrawBg = p_Enable;
+		}
+
+		static float TextRendererComponent_GetKerning(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			return tc.Kerning;
+		}
+
+		static void TextRendererComponent_SetKerning(UUID p_EntityID, float p_Kerning)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			tc.Kerning = p_Kerning;
+		}
+
+		static float TextRendererComponent_GetLineSpacing(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			return tc.LineSpacing;
+		}
+
+		static void TextRendererComponent_SetLineSpacing(UUID p_EntityID, float p_LineSpacing)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Scene* scene = ScriptEngine::GetSceneContext();
+			KTN_CORE_ASSERT(scene);
+			Entity entity = scene->GetEntityByUUID(p_EntityID);
+			KTN_CORE_ASSERT(entity);
+			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			auto& tc = entity.GetComponent<TextRendererComponent>();
+
+			tc.LineSpacing = p_LineSpacing;
+		}
+		#pragma endregion
+
+		#pragma region Input
 		static bool Input_IsKeyPressed(KeyCode p_Keycode)
 		{
 			return Input::IsKeyPressed(p_Keycode);
@@ -164,6 +426,7 @@ namespace KTN
 			std::string name = Input::GetController(p_ControllerIndex)->Name;
 			return ScriptEngine::CreateString(name.c_str());
 		}
+		#pragma endregion
 
 		std::string DemangleToKTNClassName(const std::string& p_MangledName) 
 		{
@@ -237,15 +500,34 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		KTN_ADD_INTERNAL_CALL(GetScriptInstance);
+
 		KTN_ADD_INTERNAL_CALL(Time_GetTime);
 		KTN_ADD_INTERNAL_CALL(Time_GetDeltaTime);
 
-		KTN_ADD_INTERNAL_CALL(GetScriptInstance);
 		KTN_ADD_INTERNAL_CALL(Entity_HasComponent);
 		KTN_ADD_INTERNAL_CALL(Entity_GetEntityByTag);
 
 		KTN_ADD_INTERNAL_CALL(TransformComponent_GetLocalTranslation);
 		KTN_ADD_INTERNAL_CALL(TransformComponent_SetLocalTranslation);
+
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetString);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetString);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetFont);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetFontPath);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetFontName);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetColor);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetColor);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetBgColor);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetBgColor);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetCharBgColor);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetCharBgColor);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetDrawBg);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetDrawBg);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetKerning);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetKerning);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetLineSpacing);
+		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetLineSpacing);
 
 		KTN_ADD_INTERNAL_CALL(Input_IsKeyPressed);
 		KTN_ADD_INTERNAL_CALL(Input_IsKeyReleased);

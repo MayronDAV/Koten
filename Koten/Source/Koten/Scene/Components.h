@@ -83,11 +83,11 @@ namespace KTN
 		std::string String;
 		Ref<MSDFFont> Font = MSDFFont::GetDefault();
 
-		glm::vec4 CharColor{ 1.0f };
+		glm::vec4 Color{ 1.0f };
+		glm::vec4 BgColor{ 0.0f };
 		glm::vec4 CharBgColor{ 0.0f };
-		glm::vec4 CharOutlineColor{ 0.0f };
-		float CharOutlineWidth = 0.0f;
 
+		bool DrawBg = false;
 		float Kerning = 0.0f;
 		float LineSpacing = 0.0f;
 

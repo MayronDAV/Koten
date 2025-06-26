@@ -14,8 +14,9 @@ struct InstanceData
     mat4 Transform;
     vec4 Positions;
     vec4 Color;
+    vec4 BgColor;
     vec4 UV;
-    float TexIndex;
+    float TexIndex; // 0-31
 };
 layout(std430, set = 0, binding = 1) uniform u_Instances
 {
@@ -47,7 +48,8 @@ void main()
     int isValid = int(gl_InstanceIndex < count);
     v_EntityID = isValid * b_EntityBuffer.EnttIDs[gl_InstanceIndex] + (1 - isValid) * (-1); // -1 is invalid
 
-    gl_Position = u_ViewProjection  * Instances[gl_InstanceIndex].Transform * vec4(position, 0.0, 1.0);
+    float zPos = Instances[gl_InstanceIndex].TexIndex == 0.0 ? -0.001 : 0.0;
+    gl_Position = u_ViewProjection  * Instances[gl_InstanceIndex].Transform * vec4(position, zPos, 1.0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

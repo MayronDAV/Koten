@@ -80,11 +80,11 @@ namespace KTN
 
 	struct TextParams
 	{
-		glm::vec4 CharColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glm::vec4 BgColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 		glm::vec4 CharBgColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-		glm::vec4 CharOutlineColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-		float CharOutlineWidth = 0.0f;
 
+		bool DrawBg = false;
 		float LineSpacing = 0.0f;
 		float Kerning = 0.0f;
 	};

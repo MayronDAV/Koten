@@ -416,10 +416,12 @@ namespace KTN
 				ADD_KEY_VALUE("Font", comp.Font->GetPath());
 			else
 				ADD_KEY_VALUE("Font", std::string()); // If no font is set, store an empty string
-			ADD_KEY_VALUE("CharColor", comp.CharColor);
+
+			ADD_KEY_VALUE("Color", comp.Color);
+			ADD_KEY_VALUE("BgColor", comp.BgColor);
 			ADD_KEY_VALUE("CharBgColor", comp.CharBgColor);
-			ADD_KEY_VALUE("CharOutlineColor", comp.CharOutlineColor);
-			ADD_KEY_VALUE("CharOutlineWidth", comp.CharOutlineWidth);
+
+			ADD_KEY_VALUE("DrawBg", comp.DrawBg);
 			ADD_KEY_VALUE("Kerning", comp.Kerning);
 			ADD_KEY_VALUE("LineSpacing", comp.LineSpacing);
 
@@ -731,10 +733,11 @@ namespace KTN
 				}
 			}
 
-			comp.CharColor = textComp["CharColor"].as<glm::vec4>();
+			comp.Color = textComp["Color"].as<glm::vec4>();
+			comp.BgColor = textComp["BgColor"].as<glm::vec4>();
 			comp.CharBgColor = textComp["CharBgColor"].as<glm::vec4>();
-			comp.CharOutlineColor = textComp["CharOutlineColor"].as<glm::vec4>();
-			comp.CharOutlineWidth = textComp["CharOutlineWidth"].as<float>();
+
+			comp.DrawBg = textComp["DrawBg"].as<bool>();
 			comp.Kerning = textComp["Kerning"].as<float>();
 			comp.LineSpacing = textComp["LineSpacing"].as<float>();
 		}

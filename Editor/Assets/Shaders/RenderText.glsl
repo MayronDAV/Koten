@@ -5,12 +5,10 @@ struct VertexData
 {
     vec4 Color;
     vec4 BgColor;
-    vec4 OutlineColor;
     vec2 UV;
 };
 layout(location = 0) out VertexData Output;
-layout(location = 4) out flat float v_TexIndex;
-layout(location = 5) out flat float v_OutlineWidth;
+layout(location = 3) out flat float v_TexIndex;
 
 layout(std430, set = 0, binding = 0) uniform Camera
 {
@@ -24,9 +22,8 @@ struct InstanceData
     vec4 Positions;
     vec4 Color;
     vec4 BgColor;
-    vec4 OutlineColor;
     vec4 UV;
-    vec2 Others; // TexIndex, OutlineWidth
+    float TexIndex; // 0-31
 };
 layout(std430, set = 0, binding = 1) uniform u_Instances
 {
@@ -50,15 +47,14 @@ void main()
 
     Output.Color = Instances[gl_InstanceIndex].Color;
     Output.BgColor = Instances[gl_InstanceIndex].BgColor;
-    Output.OutlineColor = Instances[gl_InstanceIndex].OutlineColor;
     vec2 uvMin = Instances[gl_InstanceIndex].UV.xy;
     vec2 uvMax = Instances[gl_InstanceIndex].UV.zw;
     Output.UV = uvMin + rel * (uvMax - uvMin);
 
-    v_TexIndex = Instances[gl_InstanceIndex].Others.x;
-    v_OutlineWidth = Instances[gl_InstanceIndex].Others.y;
+    v_TexIndex = Instances[gl_InstanceIndex].TexIndex;
 
-    gl_Position = u_ViewProjection  * Instances[gl_InstanceIndex].Transform * vec4(position, 0.0, 1.0);
+    float zPos = Instances[gl_InstanceIndex].TexIndex == 0.0 ? -0.001 : 0.0;
+    gl_Position = u_ViewProjection  * Instances[gl_InstanceIndex].Transform * vec4(position, zPos, 1.0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,12 +68,10 @@ struct VertexData
 {
     vec4 Color;
     vec4 BgColor;
-    vec4 OutlineColor;
     vec2 UV;
 };
 layout(location = 0) in VertexData Input;
-layout(location = 4) in flat float v_TexIndex;
-layout(location = 5) in flat float v_OutlineWidth;
+layout(location = 3) in flat float v_TexIndex;
 
 layout(set = 0, binding = 2) uniform sampler2D u_FontAtlasTextures[32];
 
@@ -118,12 +112,8 @@ void main()
     screenPxDistance *= (sd - 0.5);
     float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
 
-    float outlineOpacity = clamp(screenPxDistance + v_OutlineWidth, 0.0, 1.0);
-
-    vec4 finalColor = Input.BgColor;
-    finalColor = mix(finalColor, Input.OutlineColor, outlineOpacity);
-    finalColor = mix(finalColor, Input.Color, opacity);
-
+    vec4 finalColor = mix(Input.BgColor, Input.Color, opacity);
     if (finalColor.a == 0.0) discard;
+
     o_Color = finalColor;
 }

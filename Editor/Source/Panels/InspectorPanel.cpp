@@ -310,12 +310,13 @@ namespace KTN
 				ImGui::PopStyleVar();
 
 				ImGui::Spacing();
-				UI::ColorEdit4("Char Color", p_Text.CharColor, 1.0f);
+				UI::ColorEdit4("Color", p_Text.Color, 1.0f);
+				UI::ColorEdit4("BgColor", p_Text.BgColor, 1.0f);
 				UI::ColorEdit4("Char BgColor", p_Text.CharBgColor, 1.0f);
-				UI::ColorEdit4("Char Outline Color", p_Text.CharOutlineColor, 1.0f);
+
 				ImGui::Spacing();
 
-				ImGui::InputFloat("Char Outline Width", &p_Text.CharOutlineWidth);
+				ImGui::Checkbox("Draw Bg", &p_Text.DrawBg);
 				ImGui::InputFloat("Kerning", &p_Text.Kerning);
 				ImGui::InputFloat("Line Spacing", &p_Text.LineSpacing);
 			});
@@ -381,10 +382,13 @@ namespace KTN
 				static const float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 				bool scriptClassExists = ScriptEngine::EntityClassExists(p_SC.FullClassName);
 
+				std::string id = "##ScriptClassSelector" + std::to_string(p_Entity.GetUUID());
+				ImGui::PushID(id.c_str());
+
 				ImGui::Text("Class");
 				ImGui::SameLine();
 
-				if (ImGui::Button(p_SC.FullClassName.c_str(), { 0.0f, lineHeight }))
+				if (ImGui::Button(p_SC.FullClassName.c_str(), {0.0f, lineHeight}))
 					ImGui::OpenPopup("ScriptClassSelector");
 
 				if (ImGui::BeginPopup("ScriptClassSelector"))
@@ -491,6 +495,8 @@ namespace KTN
 						}
 					}
 				}
+
+				ImGui::PopID();
 			});
 		}
 
