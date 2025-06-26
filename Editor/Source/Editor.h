@@ -19,6 +19,7 @@ namespace KTN
 	{
 		public:
 			Editor();
+			Editor(const std::string& p_ProjectPath);
 			~Editor();
 
 			void SetSelectedEntt(Entity p_Entt) { m_SelectedEntt = p_Entt; }
@@ -43,7 +44,12 @@ namespace KTN
 
 			void OpenProject(const std::filesystem::path& p_Path);
 
+			static void BeginDockspace(std::string p_ID, std::string p_Dockspace, bool p_MenuBar, ImGuiDockNodeFlags p_DockFlags = 0);
+			static void EndDockspace();
+
 		private:
+			void Init();
+
 			void DrawMenuBar();
 			void Shortcuts();
 

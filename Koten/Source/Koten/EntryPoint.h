@@ -16,13 +16,11 @@ namespace KTN
 	#endif
 
 		auto app = CreateApplication(p_Argc, p_Argv);
-		if (!app) 
+		if (app) 
 		{
-			KTN_CORE_ERROR("CreateApplication returned nullptr!")
-			return -1;
+			app->Run();
+			delete app;
 		}
-		app->Run();
-		delete app;
 		return 0;
 	}
 

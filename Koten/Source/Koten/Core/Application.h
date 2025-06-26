@@ -26,6 +26,7 @@ namespace KTN
 			Unique<Window>& GetWindow() { return m_Window; }
 			void Close() { m_Running = false; }
 			const Ref<ImGuiLayer>& GetImGui() { return m_ImGui; }
+			LayerStack& GetLayerStack() { return m_LayerStack; }
 
 			static Application& Get() { return *s_Instance; }
 

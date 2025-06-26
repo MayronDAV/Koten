@@ -19,6 +19,8 @@ namespace KTN
 			void PushOverlay(const Ref<Layer>& p_Overlay);
 			void PopLayer(const Ref<Layer>& p_Layer);
 			void PopOverlay(const Ref<Layer>& p_Overlay);
+			void PopLayer(uint32_t p_Index);
+			void PopOverlay(uint32_t p_Index);
 
 			std::vector<Ref<Layer>>::iterator begin() { return m_Layers.begin(); }
 			std::vector<Ref<Layer>>::iterator end() { return m_Layers.end(); }

@@ -30,6 +30,22 @@ namespace KTN
 		return s_ActiveProject;
 	}
 
+	Ref<Project> Project::New(const std::filesystem::path& p_FolderPath)
+	{
+		auto project = New();
+		project->GetConfig().AssetDirectory = "Assets";
+		project->GetConfig().StartScene = "";
+		project->GetConfig().Name = p_FolderPath.stem().string();
+		SaveActive(p_FolderPath / "Project.ktproj");
+
+		FileSystem::CreateDirectories((p_FolderPath / "Assets").string());
+		FileSystem::CreateDirectories((p_FolderPath / "Assets" / "Scenes").string());
+		FileSystem::CreateDirectories((p_FolderPath / "Assets" / "Scripts").string());
+		FileSystem::CreateDirectories((p_FolderPath / "Assets" / "Textures").string());
+
+		return project;
+	}
+
 	Ref<Project> Project::Load(const std::filesystem::path& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();

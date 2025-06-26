@@ -1,0 +1,4 @@
+Project:
+  Name: SandboxProject
+  StartScene: "Scenes/Script.ktscn"
+  AssetDirectory: "Assets"

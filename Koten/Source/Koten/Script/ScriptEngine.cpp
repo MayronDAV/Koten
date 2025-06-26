@@ -282,7 +282,7 @@ namespace KTN
 			#endif
 
 			std::string compileCommand = comp + " -w:0 -target:library -sdk:4.5 -out:" + p_OutputDllPath + 
-				" " + p_FolderPath + 
+				" " + p_FolderPath +
 			#if defined(KTN_WINDOWS)
 				"\\*.cs" +
 			#elif defined(KTN_LINUX)

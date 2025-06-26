@@ -18,78 +18,85 @@
 
 namespace KTN
 {
-	namespace
+	void Editor::BeginDockspace(std::string p_ID, std::string p_Dockspace, bool p_MenuBar, ImGuiDockNodeFlags p_DockFlags)
 	{
-		static void BeginDockspace(bool p_MenuBar)
+		KTN_PROFILE_FUNCTION();
+
+		static bool opt_fullscreen = true;
+		static bool opt_padding = false;
+		static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
+
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
+		if (p_MenuBar)
+			window_flags |= ImGuiWindowFlags_MenuBar;
+
+		if (opt_fullscreen)
 		{
-			KTN_PROFILE_FUNCTION();
-			
-			static bool opt_fullscreen = true;
-			static bool opt_padding = false;
-			static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
-
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-			if (p_MenuBar)
-				window_flags |= ImGuiWindowFlags_MenuBar;
-			
-			if (opt_fullscreen)
-			{
-				const ImGuiViewport* viewport = ImGui::GetMainViewport();
-				ImGui::SetNextWindowPos(viewport->WorkPos);
-				ImGui::SetNextWindowSize(viewport->WorkSize);
-				ImGui::SetNextWindowViewport(viewport->ID);
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-				window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
-					| ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-				window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-			}
-			else
-			{
-				dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-			}
-
-			if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-				window_flags |= ImGuiWindowFlags_NoBackground;
-
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 1.0f });
-			if (!opt_padding)
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-			ImGui::Begin("EditorDockspace", nullptr, window_flags);
-			if (!opt_padding)
-				ImGui::PopStyleVar();
-			ImGui::PopStyleColor(); // windowBg
-
-			if (opt_fullscreen)
-				ImGui::PopStyleVar(2);
-
-			// Submit the DockSpace
-			ImGuiIO& io = ImGui::GetIO();
-			if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-			{
-				ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-			}
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->WorkPos);
+			ImGui::SetNextWindowSize(viewport->WorkSize);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
+				| ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		}
-		
-		static void EndDockspace()
+		else
 		{
-			KTN_PROFILE_FUNCTION();
-
-			ImGui::End();
+			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
 		}
 
-	} // namespace
-	
-	static MSDFFont* s_Font;
+		if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+			window_flags |= ImGuiWindowFlags_NoBackground;
+
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, { 0.0f, 0.0f, 0.0f, 1.0f });
+		if (!opt_padding)
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::Begin(p_Dockspace.c_str(), nullptr, window_flags);
+		if (!opt_padding)
+			ImGui::PopStyleVar();
+		ImGui::PopStyleColor(); // windowBg
+
+		if (opt_fullscreen)
+			ImGui::PopStyleVar(2);
+
+		// Submit the DockSpace
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
+			ImGuiID dockspace_id = ImGui::GetID(p_ID.c_str());
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags | p_DockFlags);
+		}
+	}
+
+	void Editor::EndDockspace()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		ImGui::End();
+	}
 
 	Editor::Editor()
 		: Layer("Editor")
 	{
-		s_Font = new MSDFFont("Assets/Fonts/OpenSans/OpenSans-Regular.ttf");
+		Init();
+	}
 
-		auto file = IniFile("Resources/Engine.ini");
+	Editor::Editor(const std::string& p_ProjectPath)
+		: Layer("Editor")
+	{
+		KTN_CORE_ASSERT(!p_ProjectPath.empty(), "Project path cannot be empty!");
+
+		Init();
 		
+		OpenProject(p_ProjectPath);
+	}
+	
+	void Editor::Init()
+	{
+		auto file = IniFile("Resources/Engine.ini");
+
 		{
 			auto& settings = Engine::GetSettings();
 
@@ -101,7 +108,7 @@ namespace KTN
 				file.Add<float>("Settings", "Debug Circle Thickness", settings.DebugCircleThickness);
 				file.Rewrite();
 			}
-			
+
 			settings.AutoRecompile = file.Get<bool>("Settings", "Auto Recompile Scripts");
 			settings.MousePicking = file.Get<bool>("Settings", "Mouse Picking");
 			settings.ShowDebugPhysicsCollider = file.Get<bool>("Settings", "Show Physics Collider");
@@ -111,10 +118,9 @@ namespace KTN
 
 		Shortcuts::Init(file);
 	}
-	
+
 	Editor::~Editor()
 	{
-		delete s_Font;
 	}
 	
 	void Editor::OpenScene(const std::string& p_Path)
@@ -140,15 +146,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 		
-		{
-			std::string path = "";
-			if (FileDialog::Open(".ktproj", "", path) == FileDialogResult::SUCCESS)
-			{
-				OpenProject(path);
-			}
-			
-			KTN_CORE_ASSERT(Project::GetActive(), "No project opened! Please open a project to continue.");
-		}
+		KTN_CORE_ASSERT(Project::GetActive(), "No project opened! Please open a project to continue.");
 
 		m_Camera = CreateRef<EditorCamera>();
 
@@ -431,7 +429,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		BeginDockspace(true);
+		BeginDockspace("MyDockspace", "EditorDockspace", true);
 
 		ImGuizmo::BeginFrame();
 
@@ -446,10 +444,6 @@ namespace KTN
 				panel->OnImgui();
 		}
 
-		ImGui::Begin("Atlas");
-		UI::Image(s_Font->GetAtlasTexture(), { 240, 160 });
-		ImGui::End();
-
 		EndDockspace();
 	}
 
@@ -463,10 +457,10 @@ namespace KTN
 
 		if (Project::Load(p_Path))
 		{
+			if (std::filesystem::exists(Project::GetAssetFileSystemPath("Scripts.dll")))
+				ScriptEngine::CompileLoadAppAssembly();
+
 			auto& config = Project::GetActive()->GetConfig();
-
-			ScriptEngine::CompileLoadAppAssembly();
-
 			if (!config.StartScene.empty())
 			{
 				auto startScenePath = Project::GetAssetFileSystemPath(config.StartScene);

@@ -52,4 +52,33 @@ namespace KTN
 			m_Layers.erase(it);
 	}
 
+	void LayerStack::PopLayer(uint32_t p_Index)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (p_Index < m_Layers.size())
+		{
+			m_Layers.erase(m_Layers.begin() + p_Index);
+			if (p_Index < m_LayerInsertIndex)
+				m_LayerInsertIndex--;
+
+			return;
+		}
+
+		KTN_CORE_ERROR("Index out of bounds in LayerStack::PopLayer");
+	}
+
+	void LayerStack::PopOverlay(uint32_t p_Index)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (p_Index < m_Layers.size())
+		{
+			m_Layers.erase(m_Layers.begin() + p_Index);
+			return;
+		}
+		
+		KTN_CORE_ERROR("Index out of bounds in LayerStack::PopOverlay");
+	}
+
 } // namespace KTN

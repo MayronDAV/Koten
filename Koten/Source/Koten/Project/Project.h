@@ -27,6 +27,7 @@ namespace KTN
 			static std::filesystem::path GetAssetFileSystemPath(const std::filesystem::path& p_Path);
 
 			static Ref<Project> New();
+			static Ref<Project> New(const std::filesystem::path& p_FolderPath);
 			static Ref<Project> Load(const std::filesystem::path& p_Path);
 			static bool SaveActive(const std::filesystem::path& p_Path);
 
