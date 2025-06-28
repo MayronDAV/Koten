@@ -24,6 +24,18 @@ namespace KTN
 		return path.string();
 	}
 
+	std::string FileSystem::GetAbsolute(const std::string& p_Path)
+	{
+		auto path = std::filesystem::absolute(p_Path);
+		return path.string();
+	}
+
+	std::string FileSystem::GetRelative(const std::string& p_Path, const std::string& p_BasePath)
+	{
+		auto path = std::filesystem::relative(p_Path, p_BasePath);
+		return path.string();
+	}
+
 	bool FileSystem::WriteFile(const std::string& p_Path, uint8_t* p_Buffer, uint32_t p_Size)
 	{
 		std::ofstream stream(p_Path, std::ios::binary | std::ios::trunc);

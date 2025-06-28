@@ -101,7 +101,7 @@ namespace KTN
 
 		AssetHandle handle; // generate new handle
 		AssetMetadata metadata;
-		metadata.FilePath = p_FilePath;
+		metadata.FilePath = FileSystem::GetRelative(p_FilePath, Project::GetAssetDirectory().string());
 		metadata.Type = p_Type;
 		Ref<Asset> asset = AssetImporter::ImportAsset(handle, metadata);
 		if (asset)
@@ -197,7 +197,7 @@ namespace KTN
 		{
 			AssetHandle handle = node["Handle"].as<uint64_t>();
 			auto& metadata = m_AssetRegistry[handle];
-			metadata.FilePath = node["FilePath"].as<std::string>();
+			metadata.FilePath = (Project::GetAssetDirectory() / node["FilePath"].as<std::string>()).string();
 			auto type = node["Type"].as<std::string>();
 			metadata.Type = GetAssetTypeFromName(type.c_str());
 		}

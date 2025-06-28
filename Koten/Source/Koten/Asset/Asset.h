@@ -17,8 +17,8 @@ namespace KTN
 		Texture2D
 	};
 
-	KTN_API inline const char* GetAssetTypeName(AssetType p_Type);
-	KTN_API inline AssetType GetAssetTypeFromName(const char* p_Name);
+	KTN_API const char* GetAssetTypeName(AssetType p_Type);
+	KTN_API AssetType GetAssetTypeFromName(const char* p_Name);
 
 	#define ASSET_CLASS_METHODS(type)															\
 			static AssetType GetStaticType() { return AssetType::type; }						\
