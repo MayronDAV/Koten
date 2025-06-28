@@ -6,6 +6,7 @@
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Graphics/MSDFFont.h"
+#include "Koten/Project/Project.h"
 
 
 
@@ -186,7 +187,7 @@ namespace KTN
 					command.Render2D.Thickness = sprite->Thickness;
 					command.Render2D.Fade = sprite->Fade;
 					command.Render2D.Color = sprite->Color;
-					command.Render2D.Texture = sprite->Texture;
+					command.Render2D.Texture = As<Asset, Texture2D>(Project::GetActive()->GetAssetManager()->GetAsset(sprite->Texture));
 					command.Render2D.Size = sprite->Size;
 					command.Render2D.BySize = sprite->BySize;
 					command.Render2D.Offset = sprite->Offset;
@@ -406,7 +407,7 @@ namespace KTN
 					command.Render2D.Thickness = sprite->Thickness;
 					command.Render2D.Fade = sprite->Fade;
 					command.Render2D.Color = sprite->Color;
-					command.Render2D.Texture = sprite->Texture;
+					command.Render2D.Texture = As<Asset, Texture2D>(Project::GetActive()->GetAssetManager()->GetAsset(sprite->Texture));
 					command.Render2D.Size = sprite->Size;
 					command.Render2D.BySize = sprite->BySize;
 					command.Render2D.Offset = sprite->Offset;

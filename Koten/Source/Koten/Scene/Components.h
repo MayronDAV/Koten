@@ -5,6 +5,7 @@
 #include "Koten/Graphics/Camera.h"
 #include "Koten/Core/UUID.h"
 #include "Koten/Graphics/MSDFFont.h"
+#include "Koten/Asset/Asset.h"
 
 // std
 #include <string>
@@ -44,8 +45,7 @@ namespace KTN
 	struct SpriteComponent
 	{
 		RenderType2D Type		= RenderType2D::Quad;
-		std::string Path		= "";
-		Ref<Texture2D> Texture	= nullptr;
+		AssetHandle Texture		= 0;
 		glm::vec4 Color			= { 1.0f, 1.0f, 1.0f, 1.0f };
 		float Thickness			= 1.0f;
 		float Fade				= 0.005f;
@@ -59,10 +59,6 @@ namespace KTN
 
 		SpriteComponent() = default;
 		SpriteComponent(const SpriteComponent&) = default;
-		SpriteComponent(const glm::vec4& p_Color, RenderType2D p_Type = RenderType2D::Quad, float p_Thickness = 1.0f, float p_Fade = 0.005f)
-			: Color(p_Color), Type(p_Type), Thickness(p_Thickness), Fade(p_Fade) {}
-		SpriteComponent(const glm::vec4& p_Color, const Ref<Texture2D>& p_Texture, RenderType2D p_Type = RenderType2D::Quad, float p_Thickness = 1.0f, float p_Fade = 0.005f)
-			: Color(p_Color), Texture(p_Texture), Type(p_Type), Thickness(p_Thickness), Fade(p_Fade) {}
 	};
 
 	struct LineRendererComponent

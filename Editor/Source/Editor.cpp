@@ -450,7 +450,7 @@ namespace KTN
 	void Editor::OnEvent(Event& p_Event)
 	{
 		KTN_PROFILE_FUNCTION();
-
+		
 		// TODO: When the WindowDrop event is triggered, open the ImportAssetPanel
 
 		//p_Event.Dispatch<WindowDropEvent>([&](WindowDropEvent& p_DropEvent)

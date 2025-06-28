@@ -1,0 +1,10 @@
+AssetRegistry:
+  - Handle: 5602120082929960371
+    FilePath: D:\dev\Koten\Editor\SandboxProject\Assets\Textures\RPGpack_sheet.png
+    Type: Texture2D
+  - Handle: 13705870832924272369
+    FilePath: D:\dev\Koten\Editor\SandboxProject\Assets\Textures\wall.jpg
+    Type: Texture2D
+  - Handle: 17057033722069057403
+    FilePath: D:\dev\Koten\Editor\SandboxProject\Assets\Textures\checkerboard.png
+    Type: Texture2D

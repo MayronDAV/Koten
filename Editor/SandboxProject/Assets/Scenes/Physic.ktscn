@@ -29,7 +29,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [1, 0, 0, 1]
-      Path: ""
+      Texture: 0
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]
@@ -59,7 +59,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [1, 1, 1, 1]
-      Path: Textures/checkerboard.png
+      Texture: 0
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]

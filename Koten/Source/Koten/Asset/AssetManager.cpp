@@ -1,10 +1,42 @@
 #include "ktnpch.h"
 #include "AssetManager.h"
 #include "AssetImporter.h"
+#include "Koten/Project/Project.h"
+
+// lib
+#include <yaml-cpp/yaml.h>
 
 // std
+#include <fstream>
 #include <algorithm>
 
+
+
+namespace YAML {
+
+	template<>
+	struct convert<KTN::UUID>
+	{
+		static Node encode(const KTN::UUID& p_UUID)
+		{
+			Node node;
+			node.push_back((uint64_t)p_UUID);
+			return node;
+		}
+
+		static bool decode(const Node& p_Node, KTN::UUID& p_UUID)
+		{
+			p_UUID = p_Node.as<uint64_t>();
+			return true;
+		}
+	};
+
+	Emitter& operator<<(Emitter& p_Out, const KTN::AssetHandle& p_Handle)
+	{
+		p_Out << (uint64_t)p_Handle;
+		return p_Out;
+	}
+}
 
 
 namespace KTN
@@ -24,7 +56,12 @@ namespace KTN
 			const auto& metadata = GetMetadata(p_Handle);
 			auto asset = AssetImporter::ImportAsset(p_Handle, metadata);
 			if (!asset)
+			{
 				KTN_CORE_ERROR("AssetManager::GetAsset - Asset import failed!");
+				return nullptr;
+			}
+
+			m_LoadedAssets[p_Handle] = asset;
 			return asset;
 		}
 
@@ -57,6 +94,11 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		if (auto handle = GetHandleByPath(p_FilePath); IsAssetHandleValid(handle))
+		{
+			return handle;
+		}
+
 		AssetHandle handle; // generate new handle
 		AssetMetadata metadata;
 		metadata.FilePath = p_FilePath;
@@ -67,7 +109,7 @@ namespace KTN
 			asset->Handle = handle;
 			m_LoadedAssets[handle] = asset;
 			m_AssetRegistry[handle] = metadata;
-			// TODO: Serialize asset registry
+			SerializeAssetRegistry();
 			return handle;
 		}
 
@@ -93,10 +135,74 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		static AssetMetadata s_EmptyMetadata;
 		if (!IsAssetHandleValid(p_Handle))
-			return {};
+			return s_EmptyMetadata;
 
 		return m_AssetRegistry.at(p_Handle);
+	}
+
+	void AssetManager::SerializeAssetRegistry()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto path = Project::GetAssetDirectory() / "AssetRegistry.ktreg";
+
+		YAML::Emitter out;
+		{
+			out << YAML::BeginMap; // Root
+			out << YAML::Key << "AssetRegistry" << YAML::Value;
+
+			out << YAML::BeginSeq;
+			for (const auto& [handle, metadata] : m_AssetRegistry)
+			{
+				out << YAML::BeginMap;
+				out << YAML::Key << "Handle" << YAML::Value << handle;
+				out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
+				out << YAML::Key << "Type" << YAML::Value << (std::string)GetAssetTypeName(metadata.Type);
+				out << YAML::EndMap;
+			}
+			out << YAML::EndSeq;
+			out << YAML::EndMap; // Root
+		}
+
+		std::ofstream fout(path);
+		fout << out.c_str();
+	}
+
+	bool AssetManager::DeserializeAssetRegistry()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto path = Project::GetAssetDirectory() / "AssetRegistry.ktreg";
+		if (!FileSystem::Exists(path.string()))
+			return false;
+
+		YAML::Node data;
+		try
+		{
+			data = YAML::LoadFile(path.string());
+		}
+		catch (YAML::ParserException e)
+		{
+			KTN_CORE_ERROR("Failed to load asset registry file '{0}'\n     {1}", path.string(), e.what());
+			return false;
+		}
+
+		auto rootNode = data["AssetRegistry"];
+		if (!rootNode)
+			return false;
+
+		for (const auto& node : rootNode)
+		{
+			AssetHandle handle = node["Handle"].as<uint64_t>();
+			auto& metadata = m_AssetRegistry[handle];
+			metadata.FilePath = node["FilePath"].as<std::string>();
+			auto type = node["Type"].as<std::string>();
+			metadata.Type = GetAssetTypeFromName(type.c_str());
+		}
+
+		return true;
 	}
 
 

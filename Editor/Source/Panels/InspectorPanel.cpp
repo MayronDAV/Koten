@@ -182,7 +182,8 @@ namespace KTN
 			DrawComponent<SpriteComponent>("Sprite", p_Entity,
 			[&](SpriteComponent& p_Sprite)
 			{
-				
+				auto assetManager = Project::GetActive()->GetAssetManager();
+
 				int currentItem = (int)p_Sprite.Type;
 				static const char* items[] = { "Quad", "Circle" };
 				static const int itemsCount = IM_ARRAYSIZE(items);
@@ -206,21 +207,18 @@ namespace KTN
 					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
 					if (ImGui::Button(ICON_MDI_CANCEL))
-					{
-						p_Sprite.Texture = nullptr;
-						p_Sprite.Path = "";
-					}
+						p_Sprite.Texture = 0;
 
 					ImGui::SameLine();
 
-					std::string text = p_Sprite.Path.empty() ? "Texture" : p_Sprite.Path.c_str();
+					std::string path = p_Sprite.Texture != 0 ? assetManager->GetMetadata(p_Sprite.Texture).FilePath : "";
+					std::string text = path.empty() ? "Texture" : path.c_str();
 					if (ImGui::Button(text.c_str()))
 					{
 						std::string path = "";
 						if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
-						{
-							p_Sprite.Texture = TextureImporter::LoadTexture2D(path);
-							p_Sprite.Path = path;
+						{	
+							p_Sprite.Texture = assetManager->ImportAsset(AssetType::Texture2D, path);
 						}
 					}
 
@@ -234,8 +232,7 @@ namespace KTN
 							auto filepath = std::filesystem::path(path);
 							if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
 							{
-								p_Sprite.Texture = TextureImporter::LoadTexture2D(filepath.string());
-								p_Sprite.Path = filepath.string();
+								p_Sprite.Texture = assetManager->ImportAsset(AssetType::Texture2D, filepath.string());
 							}
 						}
 						ImGui::EndDragDropTarget();
