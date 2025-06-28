@@ -1,13 +1,13 @@
 #pragma once
-
 #include "Koten/Core/Base.h"
 #include "Koten/Core/Definitions.h"
+#include "Koten/Asset/Asset.h"
 
 
 
 namespace KTN
 {
-	class KTN_API Texture
+	class KTN_API Texture : public Asset
 	{
 		public:
 			virtual ~Texture() = default;
@@ -74,6 +74,8 @@ namespace KTN
 			static Ref<Texture2D> Create(const TextureSpecification& p_Spec, const uint8_t* p_Data, size_t p_Size);
 
 			static Ref<Texture2D> Get(const TextureSpecification& p_Spec = {});
+
+			ASSET_CLASS_METHODS(Texture2D)
 	};
 
 } // namespace KTN

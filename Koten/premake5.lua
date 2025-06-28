@@ -48,7 +48,8 @@ project "Koten"
 		"%{IncludeDir.box2d}/include",
 		"%{IncludeDir.box2d}/src",
 		"%{IncludeDir.mono}",
-		"%{IncludeDir.filewatch}"
+		"%{IncludeDir.filewatch}",
+		"%{IncludeDir.magic_enum}"
 	}
 
 	links

@@ -390,6 +390,18 @@ namespace KTN
 			SET_EVENT(event);
 		});
 
+		glfwSetDropCallback(m_Window, [](GLFWwindow* window, int pathCount, const char* paths[])
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+			std::vector<std::string> filepaths(pathCount);
+			for (int i = 0; i < pathCount; i++)
+				filepaths[i] = paths[i];
+
+			WindowDropEvent event(std::move(filepaths));
+			data.EventCallback(event);
+		});
+
 		glfwSetJoystickCallback([](int p_JoystickID, int p_Event)
 		{
 			WindowData& data = *(WindowData*)s_UserPointerMap[p_JoystickID].Data;

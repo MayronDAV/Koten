@@ -77,4 +77,9 @@ namespace KTN
 		return false;
 	}
 
+	Project::Project()
+		: m_Config({}), m_AssetManager(CreateRef<AssetManager>())
+	{
+	}
+
 } // namespace KTN

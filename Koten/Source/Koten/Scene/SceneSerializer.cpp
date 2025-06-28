@@ -1,7 +1,7 @@
 #include "ktnpch.h"
 #include "SceneSerializer.h"
 #include "Entity.h"
-#include "Koten/Graphics/TextureImporter.h"
+#include "Koten/Asset/TextureImporter.h"
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Project/Project.h"
 

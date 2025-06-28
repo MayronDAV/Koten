@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Koten/Core/Base.h"
+#include "Koten/Asset/AssetManager.h"
 
 // std
 #include <string>
@@ -34,11 +35,15 @@ namespace KTN
 			static Ref<Project> GetActive() { return s_ActiveProject; }
 
 		public:
+			Project();
+
+			Ref<AssetManager> GetAssetManager() { return m_AssetManager; }
 			ProjectConfig& GetConfig() { return m_Config; }
 
 		private:
 			ProjectConfig m_Config;
 			std::filesystem::path m_ProjectDirectory;
+			Ref<AssetManager> m_AssetManager;
 
 			inline static Ref<Project> s_ActiveProject;
 	};

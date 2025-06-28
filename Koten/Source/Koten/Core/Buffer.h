@@ -17,6 +17,11 @@ namespace KTN
 			Allocate(p_Size);
 		}
 
+		Buffer(const void* p_Data, uint64_t p_Size)
+			: Data((uint8_t*)p_Data), Size(p_Size)
+		{
+		}
+
 		Buffer(const Buffer&) = default;
 
 		static Buffer Copy(Buffer p_Other)
@@ -30,13 +35,13 @@ namespace KTN
 		{
 			Release();
 
-			Data = new uint8_t[p_Size];
+			Data = (uint8_t*)malloc(p_Size);
 			Size = p_Size;
 		}
 
 		void Release()
 		{
-			delete[] Data;
+			free(Data);
 			Data = nullptr;
 			Size = 0;
 		}

@@ -15,6 +15,13 @@
 #include "Koten/Core/UUID.h"
 #include "Koten/Core/Buffer.h"
 
+// ASSET
+
+#include "Koten/Asset/Asset.h"
+#include "Koten/Asset/AssetImporter.h"
+#include "Koten/Asset/AssetManager.h"
+#include "Koten/Asset/TextureImporter.h"
+
 // EVENTS
 
 #include "Koten/Events/Event.h"
@@ -34,7 +41,6 @@
 #include "Koten/Graphics/RendererAPI.h"
 #include "Koten/Graphics/RendererCommand.h"
 #include "Koten/Graphics/Texture.h"
-#include "Koten/Graphics/TextureImporter.h"
 #include "Koten/Graphics/UniformBuffer.h"
 #include "Koten/Graphics/DescriptorSet.h"
 #include "Koten/Graphics/Camera.h"

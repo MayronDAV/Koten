@@ -449,6 +449,22 @@ namespace KTN
 
 	void Editor::OnEvent(Event& p_Event)
 	{
+		KTN_PROFILE_FUNCTION();
+
+		// TODO: When the WindowDrop event is triggered, open the ImportAssetPanel
+
+		//p_Event.Dispatch<WindowDropEvent>([&](WindowDropEvent& p_DropEvent)
+		//{
+		//	auto proj = Project::GetActive();
+		//	if (proj)
+		//	{
+		//		auto handle = proj->GetAssetManager()->ImportAsset(AssetType::Texture2D, p_DropEvent.GetPaths()[0]);
+		//		if (handle != 0)
+		//			KTN_CORE_INFO("Asset imported: {}", (uint64_t)handle);
+		//	}
+
+		//	return false;
+		//});
 	}
 
 	void Editor::OpenProject(const std::filesystem::path& p_Path)

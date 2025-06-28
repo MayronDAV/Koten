@@ -5,6 +5,11 @@
 
 namespace KTN
 {
+	Ref<Texture2D> TextureImporter::ImportTexture2D(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+	{
+		return LoadTexture2D(p_Metadata.FilePath);
+	}
+
 	Ref<Texture2D> TextureImporter::LoadTexture2D(const std::string& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -17,7 +22,7 @@ namespace KTN
 		spec.AnisotropyEnable		= true;
 		spec.GenerateMips			= true;
 		spec.SRGB					= true;
-		spec.DebugName				= "Imported Texture2D";
+		spec.DebugName				= FileSystem::GetName(p_Path);
 
 		return LoadTexture2D(p_Path, spec);
 	}
