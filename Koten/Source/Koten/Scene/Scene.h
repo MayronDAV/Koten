@@ -3,6 +3,7 @@
 #include "Components.h"
 #include "SceneGraph.h"
 #include "SystemManager.h"
+#include "Koten/Asset/Asset.h"
 
 // lib
 #include <entt/entt.hpp>
@@ -16,7 +17,7 @@ namespace KTN
 {
 	class KTN_API Entity;
 
-	class KTN_API Scene
+	class KTN_API Scene : public Asset
 	{
 		public:
 			Scene();
@@ -54,6 +55,8 @@ namespace KTN
 			Unique<SystemManager>& GetSystemManager() { return m_SystemManager; }
 
 			entt::registry& GetRegistry() { return m_Registry; }
+
+			ASSET_CLASS_METHODS(Scene)
 
 		private:
 			entt::registry m_Registry;

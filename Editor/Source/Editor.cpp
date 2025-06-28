@@ -123,18 +123,19 @@ namespace KTN
 	{
 	}
 	
-	void Editor::OpenScene(const std::string& p_Path)
+	void Editor::OpenScene(AssetHandle p_Handle)
 	{
 		KTN_PROFILE_FUNCTION();
 
-		auto scene = CreateRef<Scene>();
-		
-		SceneSerializer serializer(scene);
-		if (!serializer.Deserialize(p_Path))
-			KTN_CORE_ERROR("Failed to Deserialize!");
+		auto asset = Project::GetActive()->GetAssetManager()->GetAsset(p_Handle);
+		if (!asset || asset->GetType() != AssetType::Scene)
+		{
+			KTN_CORE_ERROR("Invalid scene asset handle: {}", (uint64_t)p_Handle);
+			return;
+		}
 
 		UnSelectEntt();
-		m_ActiveScene = scene;
+		m_ActiveScene = As<Asset, Scene>(asset);
 
 		for (auto& panel : m_Panels)
 		{
@@ -477,10 +478,9 @@ namespace KTN
 				ScriptEngine::CompileLoadAppAssembly();
 
 			auto& config = Project::GetActive()->GetConfig();
-			if (!config.StartScene.empty())
+			if (config.StartScene != 0)
 			{
-				auto startScenePath = Project::GetAssetFileSystemPath(config.StartScene);
-				OpenScene(startScenePath.string());
+				OpenScene(config.StartScene);
 			}
 		}
 	}
@@ -573,19 +573,19 @@ namespace KTN
 	void Editor::OpenScene()
 	{
 		std::string path = "";
-		if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
+		if (FileDialog::Open(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
 		{
-			OpenScene(path);
+			AssetHandle handle = Project::GetActive()->GetAssetManager()->ImportAsset(AssetType::Scene, path);
+			OpenScene(handle);
 		}
 	}
 
 	void Editor::SaveSceneAs()
 	{
 		std::string path = "";
-		if (FileDialog::Save("", "Assets", path) == FileDialogResult::SUCCESS)
+		if (FileDialog::Save(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
 		{
-			SceneSerializer serializer(m_ActiveScene);
-			serializer.Serialize(path);
+			SceneImporter::SaveScene(m_ActiveScene, path);
 		}
 	}
 

@@ -219,7 +219,9 @@ namespace KTN
 					if (isDirectory)
 						m_CurrentDir = entry.path();
 					else if (entry.path().extension() == ".ktscn")
-						m_Editor->OpenScene(entry.path().string());
+					{
+						m_Editor->OpenScene(Project::GetActive()->GetAssetManager()->ImportAsset(AssetType::Scene, entry.path().string()));
+					}
 				}
 
 				if (ImGui::IsItemClicked())
@@ -292,7 +294,7 @@ namespace KTN
 			{
 				if (ImGui::MenuItem(ICON_MDI_OPEN_IN_APP " Open"))
 				{
-					m_Editor->OpenScene(p_Path.string());
+					m_Editor->OpenScene(Project::GetActive()->GetAssetManager()->ImportAsset(AssetType::Scene, p_Path.string()));
 				}
 			}
 
@@ -423,7 +425,7 @@ namespace KTN
 							if (isDirectory)
 								m_CurrentDir /= entry.path().filename();
 							else if (entry.path().extension() == ".ktscn")
-								m_Editor->OpenScene(entry.path().string());
+								m_Editor->OpenScene(Project::GetActive()->GetAssetManager()->ImportAsset(AssetType::Scene, entry.path().string()));
 						}
 
 						if (ImGui::IsItemClicked())
@@ -664,7 +666,7 @@ namespace KTN
 							if (isDirectory)
 								m_CurrentDir /= entry.filename();
 							else if (entry.extension() == ".ktscn")
-								m_Editor->OpenScene(entry.string());
+								m_Editor->OpenScene(Project::GetActive()->GetAssetManager()->ImportAsset(AssetType::Scene, entry.string()));
 						}
 
 						if (ImGui::IsItemClicked())

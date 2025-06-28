@@ -9,6 +9,27 @@
 
 
 
+
+namespace YAML
+{
+	template<>
+	struct convert<KTN::UUID>
+	{
+		static Node encode(const KTN::UUID& p_UUID)
+		{
+			Node node;
+			node.push_back((uint64_t)p_UUID);
+			return node;
+		}
+
+		static bool decode(const Node& p_Node, KTN::UUID& p_UUID)
+		{
+			p_UUID = p_Node.as<uint64_t>();
+			return true;
+		}
+	};
+}
+
 namespace KTN
 {
 	#define ADD_KEY_VALUE(key, value) out << YAML::Key << key << YAML::Value << value
@@ -26,7 +47,7 @@ namespace KTN
 			{
 				out << YAML::BeginMap;// Project
 				ADD_KEY_VALUE("Name", config.Name);
-				ADD_KEY_VALUE("StartScene", config.StartScene.string());
+				ADD_KEY_VALUE("StartScene", config.StartScene);
 				ADD_KEY_VALUE("AssetDirectory", config.AssetDirectory.string());
 				out << YAML::EndMap; // Project
 			}
@@ -61,7 +82,7 @@ namespace KTN
 			return false;
 
 		config.Name = projectNode["Name"].as<std::string>();
-		config.StartScene = projectNode["StartScene"].as<std::string>();
+		config.StartScene = projectNode["StartScene"].as<AssetHandle>();
 		config.AssetDirectory = projectNode["AssetDirectory"].as<std::string>();
 		return true;
 	}

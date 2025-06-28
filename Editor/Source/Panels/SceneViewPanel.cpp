@@ -54,7 +54,9 @@ namespace KTN
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					auto filepath = std::filesystem::path(path);
 					if (filepath.extension() == ".ktscn")
-						m_Editor->OpenScene(filepath.string());
+					{
+						m_Editor->OpenScene(Project::GetActive()->GetAssetManager()->ImportAsset(AssetType::Scene, filepath.string()));
+					}
 				}
 				ImGui::EndDragDropTarget();
 			}

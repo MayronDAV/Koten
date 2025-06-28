@@ -1,0 +1,41 @@
+#include "ktnpch.h"
+#include "SceneImporter.h"
+#include "Koten/Project/Project.h"
+#include "Koten/Scene/SceneSerializer.h"
+
+
+
+namespace KTN
+{
+	Ref<Scene> SceneImporter::ImportScene(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		return LoadScene(p_Metadata.FilePath);
+	}
+
+	Ref<Scene> SceneImporter::LoadScene(const std::string& p_Path)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto scene = CreateRef<Scene>();
+
+		SceneSerializer serializer(scene);
+		if (!serializer.Deserialize(p_Path))
+		{
+			KTN_CORE_ERROR("Failed to Deserialize!");
+			return nullptr;
+		}
+
+		return scene;
+	}
+
+	void SceneImporter::SaveScene(Ref<Scene> p_Scene, const std::string& p_Path)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		SceneSerializer serializer(p_Scene);
+		serializer.Serialize(p_Path);
+	}
+
+} // namespace KTN

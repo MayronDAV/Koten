@@ -1,6 +1,7 @@
 #include "ktnpch.h"
 #include "AssetImporter.h"
 
+#include "SceneImporter.h"
 #include "TextureImporter.h"
 
 
@@ -9,6 +10,7 @@ namespace KTN
 {
 	using AssetImportFunction = std::function<Ref<Asset>(AssetHandle, const AssetMetadata&)>;
 	static std::map<AssetType, AssetImportFunction> s_AssetImportFunctions = {
+		{ AssetType::Scene, SceneImporter::ImportScene },
 		{ AssetType::Texture2D, TextureImporter::ImportTexture2D }
 	};
 

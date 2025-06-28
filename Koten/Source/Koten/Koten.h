@@ -21,6 +21,7 @@
 #include "Koten/Asset/AssetImporter.h"
 #include "Koten/Asset/AssetManager.h"
 #include "Koten/Asset/TextureImporter.h"
+#include "Koten/Asset/SceneImporter.h"
 
 // EVENTS
 

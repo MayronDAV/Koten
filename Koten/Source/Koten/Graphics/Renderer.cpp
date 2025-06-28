@@ -427,7 +427,7 @@ namespace KTN
 		{
 			for (uint32_t i = 1; i < s_TextData->TextureIndex; i++)
 			{
-				if (*s_TextData->FontAtlasTextures[i].get() == *texture.get())
+				if (s_TextData->FontAtlasTextures[i]->Handle == texture->Handle)
 				{
 					textureIndex = (float)i;
 					break;
@@ -713,7 +713,7 @@ namespace KTN
 				for (uint32_t i = 1; i < TextureSlotIndex; i++)
 				{
 					// TODO: compare texture UUIDs
-					if (*TextureSlots[i].get() == *p_Command.Render2D.Texture.get())
+					if (TextureSlots[i]->Handle == p_Command.Render2D.Texture->Handle)
 					{
 						textureIndex = (float)i;
 						break;

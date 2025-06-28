@@ -34,7 +34,7 @@ namespace KTN
 	{
 		auto project = New();
 		project->GetConfig().AssetDirectory = "Assets";
-		project->GetConfig().StartScene = "";
+		project->GetConfig().StartScene = 0;
 		project->GetConfig().Name = p_FolderPath.stem().string();
 		SaveActive(p_FolderPath / "Project.ktproj");
 

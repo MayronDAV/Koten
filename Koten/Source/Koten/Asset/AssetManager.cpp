@@ -12,8 +12,8 @@
 
 
 
-namespace YAML {
-
+namespace YAML 
+{
 	template<>
 	struct convert<KTN::UUID>
 	{
@@ -101,7 +101,7 @@ namespace KTN
 
 		AssetHandle handle; // generate new handle
 		AssetMetadata metadata;
-		metadata.FilePath = FileSystem::GetRelative(p_FilePath, Project::GetAssetDirectory().string());
+		metadata.FilePath = (Project::GetAssetDirectory() / FileSystem::GetRelative(p_FilePath, Project::GetAssetDirectory().string())).string();
 		metadata.Type = p_Type;
 		Ref<Asset> asset = AssetImporter::ImportAsset(handle, metadata);
 		if (asset)
@@ -158,7 +158,7 @@ namespace KTN
 			{
 				out << YAML::BeginMap;
 				out << YAML::Key << "Handle" << YAML::Value << handle;
-				out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
+				out << YAML::Key << "FilePath" << YAML::Value << FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string());
 				out << YAML::Key << "Type" << YAML::Value << (std::string)GetAssetTypeName(metadata.Type);
 				out << YAML::EndMap;
 			}

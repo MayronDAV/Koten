@@ -166,7 +166,7 @@ namespace KTN
 
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << "435253463464"; // TODO: UUID
+		out << YAML::Key << "Scene" << YAML::Value << m_Scene->Handle;
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
 		for (auto entity : m_Scene->GetRegistry().view<entt::entity>())
@@ -210,8 +210,10 @@ namespace KTN
 		if (!data["Scene"])
 			return false;
 
-		auto sceneID = data["Scene"].as<std::string>(); // TODO
-		KTN_CORE_INFO("Deserializing scene: (filename: '{}', id: '{}')", FileSystem::GetName(p_Filepath), sceneID);
+		auto sceneID = data["Scene"].as<AssetHandle>();
+		KTN_CORE_INFO("Deserializing scene: (filename: '{}', id: '{}')", FileSystem::GetName(p_Filepath), (uint64_t)sceneID);
+		if (sceneID != 0)
+			m_Scene->Handle = sceneID;
 
 		auto entts = data["Entities"];
 		if (entts)
