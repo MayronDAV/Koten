@@ -289,6 +289,8 @@ namespace KTN
 			DrawComponent<TextRendererComponent>("TextRenderer", p_Entity,
 			[](TextRendererComponent& p_Text)
 			{
+				auto assetManager = Project::GetActive()->GetAssetManager();
+
 				UI::InputText("String", p_Text.String, true, 0, 2.0f, true);
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 				if (ImGui::Button(ICON_MDI_RESTART))
@@ -296,12 +298,13 @@ namespace KTN
 					p_Text.Font = MSDFFont::GetDefault();
 				}
 				ImGui::SameLine();
-				if (ImGui::Button(p_Text.Font->GetPath().c_str()))
+				const auto& filePath = assetManager->GetMetadata(p_Text.Font).FilePath;
+				if (ImGui::Button(filePath.c_str()))
 				{
 					std::string path = "";
-					if (FileDialog::Open("", "Fonts", path) == FileDialogResult::SUCCESS)
+					if (FileDialog::Open(".ttf", "Fonts", path) == FileDialogResult::SUCCESS)
 					{
-						p_Text.Font = CreateRef<MSDFFont>(path);
+						p_Text.Font = assetManager->ImportAsset(AssetType::Font, path);
 					}
 				}
 				ImGui::PopStyleVar();
@@ -316,6 +319,8 @@ namespace KTN
 				ImGui::Checkbox("Draw Bg", &p_Text.DrawBg);
 				ImGui::InputFloat("Kerning", &p_Text.Kerning);
 				ImGui::InputFloat("Line Spacing", &p_Text.LineSpacing);
+
+				ImGui::Spacing();
 			});
 		}
 

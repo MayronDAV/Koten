@@ -152,6 +152,7 @@ namespace KTN
 		RG16_FLOAT,
 
 		RGB8,
+		RGB32_FLOAT,
 
 		RGBA8,
 		RGBA16_FLOAT,
@@ -261,6 +262,44 @@ namespace KTN
 		String,
 		Vector2, Vector3, Vector4,
 		Entity
+	};
+
+	/// Type of atlas image contents
+	enum class FontImageType : uint8_t
+	{
+		/// Rendered glyphs without anti-aliasing (two colors only)
+		HARD_MASK,
+		/// Rendered glyphs with anti-aliasing
+		SOFT_MASK,
+		/// Signed (true) distance field
+		SDF,
+		/// Signed pseudo-distance field
+		PSDF,
+		/// Multi-channel signed distance field
+		MSDF,
+		/// Multi-channel & true signed distance field
+		MTSDF
+	};
+
+	/// Glyph identification
+	enum class GlyphIdentifierType : uint8_t
+	{
+		GLYPH_INDEX,
+		UNICODE_CODEPOINT
+	};
+
+	/// Atlas image encoding
+	enum class FontImageFormat : uint8_t
+	{
+		UNSPECIFIED,
+		PNG,
+		BMP,
+		TIFF,
+		TEXT,
+		TEXT_FLOAT,
+		BINARY,
+		BINARY_FLOAT,
+		BINARY_FLOAT_BE
 	};
 
 	#pragma endregion

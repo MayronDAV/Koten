@@ -8,6 +8,10 @@
 // lib
 #include <FontGeometry.h>
 
+// std
+#include <codecvt>
+#include <locale>
+
 
 namespace KTN
 {
@@ -58,6 +62,12 @@ namespace KTN
 			Ref<Shader> FinalPassShader			= nullptr;
 			Ref<DescriptorSet> FinalPassSet		= nullptr;
 		};
+
+		std::u32string UTF8ToUTF32(const std::string& p_UTF8)
+		{
+			std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
+			return converter.from_bytes(p_UTF8);
+		}
 
 	} // namespace
 
@@ -348,6 +358,14 @@ namespace KTN
 		if (s_TextData->Instances.size() >= (size_t)MaxInstances)
 			s_TextData->FlushAndReset();
 
+		if (p_Font == nullptr || p_Font->GetFontGeometry() == nullptr)
+		{
+			KTN_CORE_ERROR("Font is null or font geometry is null!");
+			return;
+		}
+
+		auto utf32String = UTF8ToUTF32(p_String);
+
 		msdf_atlas::FontGeometry& fontGeometry = *(msdf_atlas::FontGeometry*)p_Font->GetFontGeometry();
 		const auto& metrics = fontGeometry.getMetrics();
 		const double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
@@ -355,25 +373,29 @@ namespace KTN
 		double x = 0.0;
 		double y = 0.0;
 		glm::vec2 minPos(0.0f), maxPos(0.0f);
-		const float spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
+
+		const auto spaceGlyph = fontGeometry.getGlyph(U' ') ?
+			fontGeometry.getGlyph(U' ') :
+			fontGeometry.getGlyph(0x00A0);
+		const float spaceGlyphAdvance = spaceGlyph ? spaceGlyph->getAdvance() : metrics.ascenderY;
 
 		if (p_Params.DrawBg && p_Params.BgColor.a > 0.0f)
 		{
-			for (size_t i = 0; i < p_String.size(); i++)
+			for (size_t i = 0; i < utf32String.size(); i++)
 			{
-				char character = p_String[i];
-				if (character == '\r') continue;
+				char32_t character = utf32String[i];
+				if (character == U'\r') continue;
 
-				if (character == '\n')
+				if (character == U'\n')
 				{
 					x = 0;
 					y -= fsScale * metrics.lineHeight + p_Params.LineSpacing;
 					continue;
 				}
 
-				if (character == ' ' || character == '\t')
+				if (character == U' ' || character == U'\t')
 				{
-					float advance = (character == '\t') ?
+					float advance = (character == U'\t') ?
 						4.0f * (fsScale * spaceGlyphAdvance + p_Params.Kerning) :
 						fsScale * spaceGlyphAdvance + p_Params.Kerning;
 					x += advance;
@@ -381,7 +403,7 @@ namespace KTN
 				}
 
 				auto glyph = fontGeometry.getGlyph(character);
-				if (!glyph) glyph = fontGeometry.getGlyph('?');
+				if (!glyph) glyph = fontGeometry.getGlyph(U'?');
 				if (!glyph) continue;
 
 				double pl, pb, pr, pt;
@@ -396,10 +418,10 @@ namespace KTN
 				minPos = i == 0 ? quadMin : glm::min(minPos, quadMin);
 				maxPos = glm::max(maxPos, quadMax);
 
-				if (i < p_String.size() - 1)
+				if (i < utf32String.size() - 1)
 				{
 					double advance = glyph->getAdvance();
-					fontGeometry.getAdvance(advance, character, p_String[i + 1]);
+					fontGeometry.getAdvance(advance, character, utf32String[i + 1]);
 					x += fsScale * advance + p_Params.Kerning;
 				}
 			}
@@ -447,25 +469,25 @@ namespace KTN
 
 		x = 0.0;
 		y = 0.0;
-		for (size_t i = 0; i < p_String.size(); i++)
+		for (size_t i = 0; i < utf32String.size(); i++)
 		{
-			char character = p_String[i];
-			if (character == '\r')
+			char32_t character = utf32String[i];
+			if (character == U'\r')
 				continue;
 
-			if (character == '\n')
+			if (character == U'\n')
 			{
 				x = 0;
 				y -= fsScale * metrics.lineHeight + p_Params.LineSpacing;
 				continue;
 			}
 
-			if (character == ' ')
+			if (character == U' ')
 			{
 				float advance = spaceGlyphAdvance;
-				if (i < p_String.size() - 1)
+				if (i < utf32String.size() - 1)
 				{
-					char nextCharacter = p_String[i + 1];
+					char32_t nextCharacter = utf32String[i + 1];
 					double dAdvance;
 					fontGeometry.getAdvance(dAdvance, character, nextCharacter);
 					advance = (float)dAdvance;
@@ -475,7 +497,7 @@ namespace KTN
 				continue;
 			}
 
-			if (character == '\t')
+			if (character == U'\t')
 			{
 				x += 4.0f * (fsScale * spaceGlyphAdvance + p_Params.Kerning);
 				continue;
@@ -483,7 +505,7 @@ namespace KTN
 
 			auto glyph = fontGeometry.getGlyph(character);
 			if (!glyph)
-				glyph = fontGeometry.getGlyph('?');
+				glyph = fontGeometry.getGlyph(U'?');
 			if (!glyph)
 				return;
 
@@ -522,10 +544,10 @@ namespace KTN
 
 			s_TextData->Instances.push_back(data);
 
-			if (i < p_String.size() - 1)
+			if (i < utf32String.size() - 1)
 			{
 				double advance = glyph->getAdvance();
-				char nextCharacter = p_String[i + 1];
+				char32_t nextCharacter = utf32String[i + 1];
 				fontGeometry.getAdvance(advance, character, nextCharacter);
 
 				x += fsScale * advance + p_Params.Kerning;

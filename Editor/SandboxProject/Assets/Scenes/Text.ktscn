@@ -469,7 +469,7 @@ Entities:
       Scale: [1, 1, 1]
     TextRendererComponent:
       String: ""
-      Font: Assets/Fonts/OpenSans/OpenSans-Regular.ttf
+      Font: 601977210191106002
       Color: [1, 1, 1, 1]
       BgColor: [1, 0, 0, 1]
       CharBgColor: [0, 0, 0, 0]

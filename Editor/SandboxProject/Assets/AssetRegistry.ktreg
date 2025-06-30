@@ -1,4 +1,7 @@
 AssetRegistry:
+  - Handle: 601977210191106002
+    FilePath: ..\..\Assets\Fonts\Arial\Arial Regular.ttf
+    Type: Font
   - Handle: 5602120082929960371
     FilePath: Textures\RPGpack_sheet.png
     Type: Texture2D

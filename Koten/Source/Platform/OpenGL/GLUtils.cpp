@@ -16,6 +16,7 @@ namespace KTN::GLUtils
 				return GL_RED_INTEGER;
 			case TextureFormat::RG32_UINT:
 				return GL_RG;
+			case TextureFormat::RGB32_FLOAT:
 			case TextureFormat::RGB8:
 				return GL_RGB;
 			case TextureFormat::RGBA32_FLOAT:
@@ -45,6 +46,7 @@ namespace KTN::GLUtils
 			case TextureFormat::RG32_UINT:			return GL_RG32UI;
 			case TextureFormat::RGBA32_FLOAT:		return GL_RGBA32F;
 			case TextureFormat::RGB8:   			return GL_RGB8;
+			case TextureFormat::RGB32_FLOAT:		return GL_RGB32F;
 			case TextureFormat::RGBA8:  			return GL_RGBA8;
 			case TextureFormat::D16:				return GL_DEPTH_COMPONENT16;
 			case TextureFormat::D32_FLOAT:			return GL_DEPTH_COMPONENT32F;
@@ -62,10 +64,13 @@ namespace KTN::GLUtils
 	{
 		switch (p_Format)
 		{
-			case TextureFormat::R32_INT:			return GL_INT;
-			case TextureFormat::RG32_UINT:			return GL_UNSIGNED_INT;
+			case TextureFormat::R32_INT:
+				return GL_INT;
+			case TextureFormat::RG32_UINT:
+				return GL_UNSIGNED_INT;
 			case TextureFormat::D32_FLOAT:
-			case TextureFormat::RGBA32_FLOAT:		
+			case TextureFormat::RGBA32_FLOAT:
+			case TextureFormat::RGB32_FLOAT:
 				return GL_FLOAT;
 			case TextureFormat::D16:
 			case TextureFormat::R8:

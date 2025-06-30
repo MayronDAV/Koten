@@ -77,7 +77,7 @@ namespace KTN
 	struct TextRendererComponent
 	{
 		std::string String;
-		Ref<MSDFFont> Font = MSDFFont::GetDefault();
+		AssetHandle Font = MSDFFont::GetDefault();
 
 		glm::vec4 Color{ 1.0f };
 		glm::vec4 BgColor{ 0.0f };

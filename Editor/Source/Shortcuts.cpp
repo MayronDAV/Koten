@@ -245,7 +245,7 @@ namespace KTN
 			p_File.Add<std::string>("Shortcuts", "Open Scene", "LCtrl+O");
 			p_File.Add<std::string>("Shortcuts", "Save Scene As", "LCtrl+LShift+S");
 			p_File.Add<std::string>("Shortcuts", "Open Settings", "LCtrl+.");
-			p_File.Add<std::string>("Shortcuts", "Reload Scripts", "LCtrl+R");
+			p_File.Add<std::string>("Shortcuts", "Recompile Scripts", "LCtrl+R");
 			p_File.Add<std::string>("Shortcuts", "Play", "LCtrl+P");
 			p_File.Add<std::string>("Shortcuts", "Stop", "Pause");
 			p_File.Add<std::string>("Shortcuts", "Guizmo None", "Q");

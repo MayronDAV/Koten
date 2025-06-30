@@ -43,6 +43,7 @@ namespace KTN::Utils
 				return 2;
 
 			case TextureFormat::RGB8:
+			case TextureFormat::RGB32_FLOAT:
 				return 3;
 
 			case TextureFormat::RGBA8:
@@ -66,6 +67,7 @@ namespace KTN::Utils
 			case TextureFormat::R32_INT:
 			case TextureFormat::RG32_UINT:
 			case TextureFormat::RGBA32_FLOAT:
+			case TextureFormat::RGB32_FLOAT:
 				return 4;
 		}
 

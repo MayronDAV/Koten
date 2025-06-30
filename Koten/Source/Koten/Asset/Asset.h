@@ -14,6 +14,7 @@ namespace KTN
 	{
 		None = 0,
 		Scene,
+		Font,
 		Texture2D
 	};
 
@@ -36,6 +37,7 @@ namespace KTN
 	{
 		AssetType Type = AssetType::None;
 		std::string FilePath;
+		void* AssetData = nullptr; // Pointer to the actual asset data (e.g., for fonts, textures, etc.)
 
 		operator bool() const { return Type != AssetType::None; }
 	};

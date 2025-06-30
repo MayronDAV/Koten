@@ -220,7 +220,7 @@ namespace KTN
 					params.LineSpacing = text->LineSpacing;
 					params.Kerning = text->Kerning;
 
-					Renderer::SubmitString(text->String, text->Font, p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+					Renderer::SubmitString(text->String, As<Asset, MSDFFont>(Project::GetActive()->GetAssetManager()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}
@@ -440,7 +440,7 @@ namespace KTN
 					params.LineSpacing = text->LineSpacing;
 					params.Kerning = text->Kerning;
 
-					Renderer::SubmitString(text->String, text->Font, p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+					Renderer::SubmitString(text->String, As<Asset, MSDFFont>(Project::GetActive()->GetAssetManager()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}

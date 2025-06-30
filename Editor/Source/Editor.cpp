@@ -521,17 +521,10 @@ namespace KTN
 
 			if (ImGui::BeginMenu("Script"))
 			{
-			#ifdef KTN_WINDOWS
-				if (ImGui::MenuItem(ICON_MDI_RELOAD " Recompile Script"))
+				auto shortcut = Shortcuts::GetShortcutStr("Recompile Scripts");
+				if (ImGui::MenuItem(ICON_MDI_RELOAD " Recompile Scripts", shortcut.c_str()))
 				{
 					ScriptEngine::RecompileAppAssembly();
-				}
-			#endif
-
-				auto shortcut = Shortcuts::GetShortcutStr("Reload Scripts");
-				if (ImGui::MenuItem(ICON_MDI_RELOAD " Reload Script", shortcut.c_str()))
-				{
-					ScriptEngine::ReloadAssembly();
 				}
 
 				ImGui::EndMenu();
@@ -557,8 +550,8 @@ namespace KTN
 		if (!m_CaptureShortcuts)
 			return;
 
-		if (Shortcuts::IsActionPressed("Reload Scripts"))
-			ScriptEngine::ReloadAssembly();
+		if (Shortcuts::IsActionPressed("Recompile Scripts"))
+			ScriptEngine::RecompileAppAssembly();
 
 		if (Shortcuts::IsActionPressed("Open Scene"))
 			OpenScene();

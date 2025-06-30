@@ -414,11 +414,7 @@ namespace KTN
 
 			auto& comp = p_Entity.GetComponent<TextRendererComponent>();
 			ADD_KEY_VALUE("String", comp.String);
-			if (comp.Font)
-				ADD_KEY_VALUE("Font", comp.Font->GetPath());
-			else
-				ADD_KEY_VALUE("Font", std::string()); // If no font is set, store an empty string
-
+			ADD_KEY_VALUE("Font", comp.Font);
 			ADD_KEY_VALUE("Color", comp.Color);
 			ADD_KEY_VALUE("BgColor", comp.BgColor);
 			ADD_KEY_VALUE("CharBgColor", comp.CharBgColor);
@@ -707,18 +703,7 @@ namespace KTN
 			auto& comp = p_Entity.AddOrReplaceComponent<TextRendererComponent>();
 
 			comp.String = textComp["String"].as<std::string>();
-			comp.Font = nullptr;
-			auto fontPath = textComp["Font"].as<std::string>();
-			if (!fontPath.empty())
-			{
-				auto fontDefault = MSDFFont::GetDefault();
-				comp.Font = fontPath != fontDefault->GetPath() ? CreateRef<MSDFFont>(fontPath) : fontDefault;
-				if (!comp.Font)
-				{
-					KTN_CORE_ERROR("Failed to load font from path: {}", fontPath);
-					return;
-				}
-			}
+			comp.Font = textComp["Font"].as<AssetHandle>();
 
 			comp.Color = textComp["Color"].as<glm::vec4>();
 			comp.BgColor = textComp["BgColor"].as<glm::vec4>();

@@ -11,7 +11,17 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		return LoadScene(p_Metadata.FilePath);
+		if (p_Metadata.Type != AssetType::Scene)
+		{
+			KTN_CORE_ERROR("Invalid asset type for scene import: {}", GetAssetTypeName(p_Metadata.Type));
+			return nullptr;
+		}
+
+		auto scene = LoadScene(p_Metadata.FilePath);
+
+		if (scene) scene->Handle = p_Handle;
+
+		return scene;
 	}
 
 	Ref<Scene> SceneImporter::LoadScene(const std::string& p_Path)
