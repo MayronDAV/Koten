@@ -21,7 +21,15 @@ namespace KTN
 	class KTN_API AssetManager
 	{
 		public:
+			static Ref<AssetManager> Create(const AssetManagerConfig& p_Config = {});
+
+			static Ref<AssetManager> Get() { return s_Instance; }
+
+		public:
+			~AssetManager();
+
 			AssetHandle ImportAsset(AssetType p_Type, const std::string& p_FilePath);
+			AssetHandle ImportAsset(const AssetMetadata& p_Metadata);
 
 			bool IsAssetHandleValid(AssetHandle p_Handle) const;
 			bool IsAssetLoaded(AssetHandle p_Handle) const;
@@ -42,6 +50,8 @@ namespace KTN
 			AssetMap m_LoadedAssets;
 
 			AssetManagerConfig m_Config = {};
+
+			inline static Ref<AssetManager> s_Instance = nullptr;
 	};
 
 

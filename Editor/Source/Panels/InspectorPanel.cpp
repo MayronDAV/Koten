@@ -1,5 +1,6 @@
 #include "InspectorPanel.h"
 #include "Editor.h"
+#include "AssetImporterPanel.h"
 
 // lib
 #include <imgui.h>
@@ -15,15 +16,15 @@ namespace KTN
 		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
 
 		template <typename Component>
-		void ComponentDrawView(entt::registry& p_Registry, Entity p_Entity) {}
+		void ComponentDrawView(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity) {}
 
 		template <typename... Component>
-		static void ComponentView(entt::registry& p_Registry, Entity p_Entity)
+		static void ComponentView(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
-			(ComponentDrawView<Component>(p_Registry, p_Entity), ...);
+			(ComponentDrawView<Component>(p_This, p_Registry, p_Entity), ...);
 		}
 
-		static bool EntityHasComponent(entt::registry& p_Registry, Entity p_Entity)
+		static bool EntityHasComponent(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -103,7 +104,7 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<TransformComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<TransformComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -125,7 +126,7 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<CameraComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<CameraComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -177,7 +178,7 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<SpriteComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<SpriteComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<SpriteComponent>("Sprite", p_Entity,
 			[&](SpriteComponent& p_Sprite)
@@ -217,8 +218,9 @@ namespace KTN
 					{
 						std::string path = "";
 						if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
-						{	
-							p_Sprite.Texture = assetManager->ImportAsset(AssetType::Texture2D, path);
+						{
+							// TODO: Create a placeholder for assets and use the AssetImporterPanel to import if needed!
+							p_Sprite.Texture = p_Sprite.Texture = AssetManager::Get()->ImportAsset(AssetType::Texture2D, path);
 						}
 					}
 
@@ -232,7 +234,8 @@ namespace KTN
 							auto filepath = std::filesystem::path(path);
 							if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
 							{
-								p_Sprite.Texture = assetManager->ImportAsset(AssetType::Texture2D, filepath.string());
+								// TODO: Create a placeholder for assets and use the AssetImporterPanel to import if needed!
+								p_Sprite.Texture = AssetManager::Get()->ImportAsset(AssetType::Texture2D, filepath.string());
 							}
 						}
 						ImGui::EndDragDropTarget();
@@ -264,7 +267,7 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<LineRendererComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<LineRendererComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<LineRendererComponent>("LineRenderer", p_Entity,
 			[](LineRendererComponent& p_Line)
@@ -284,10 +287,10 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<TextRendererComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<TextRendererComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<TextRendererComponent>("TextRenderer", p_Entity,
-			[](TextRendererComponent& p_Text)
+			[&](TextRendererComponent& p_Text)
 			{
 				auto assetManager = Project::GetActive()->GetAssetManager();
 
@@ -304,7 +307,7 @@ namespace KTN
 					std::string path = "";
 					if (FileDialog::Open(".ttf", "Fonts", path) == FileDialogResult::SUCCESS)
 					{
-						p_Text.Font = assetManager->ImportAsset(AssetType::Font, path);
+						p_This->GetEditor()->GetAssetImporterPanel()->Open(path, AssetType::Font);
 					}
 				}
 				ImGui::PopStyleVar();
@@ -325,7 +328,7 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<Rigidbody2DComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<Rigidbody2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<Rigidbody2DComponent>("Rigidbody2D", p_Entity,
 			[](Rigidbody2DComponent& p_RC)
@@ -344,7 +347,7 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<BoxCollider2DComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<BoxCollider2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<BoxCollider2DComponent>("BoxCollider2D", p_Entity,
 			[](BoxCollider2DComponent& p_Box)
@@ -360,7 +363,7 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<CircleCollider2DComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<CircleCollider2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<CircleCollider2DComponent>("CircleCollider2D", p_Entity,
 			[](CircleCollider2DComponent& p_Circle)
@@ -376,7 +379,7 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<ScriptComponent>(entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<ScriptComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<ScriptComponent>("Script", p_Entity,
 			[&](ScriptComponent& p_SC)
@@ -547,9 +550,9 @@ namespace KTN
 
 			ImGui::BeginChild("Components", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_None);
 
-			if (EntityHasComponent(registry, selectedEntt))
+			if (EntityHasComponent(this, registry, selectedEntt))
 			{ 
-				ComponentView<ALL_VIEW_COMPONENTS>(registry, selectedEntt);
+				ComponentView<ALL_VIEW_COMPONENTS>(this, registry, selectedEntt);
 			}
 
 			ImGui::NewLine();

@@ -7,6 +7,7 @@
 namespace KTN
 {
 	class SettingsPanel;
+	class AssetImporterPanel;
 
 	enum class RuntimeState
 	{
@@ -36,6 +37,7 @@ namespace KTN
 
 			bool IsSelected(Entity p_Entt) const { return p_Entt == m_SelectedEntt; }
 			Entity GetSelected() const { return m_SelectedEntt; }
+			Ref<AssetImporterPanel> GetAssetImporterPanel() { return m_AssetImporter; }
 
 			const Ref<EditorCamera>& GetCamera() { return m_Camera; }
 
@@ -61,6 +63,7 @@ namespace KTN
 
 			std::vector<Ref<EditorPanel>> m_Panels;
 			Ref<SettingsPanel> m_Settings = nullptr;
+			Ref<AssetImporterPanel> m_AssetImporter = nullptr;
 
 			Entity m_SelectedEntt;
 			RuntimeState m_State = RuntimeState::Edit;

@@ -15,9 +15,9 @@ namespace KTN
 	{
 		std::string Name = "Untitled";
 
-		AssetHandle StartScene;
+		AssetHandle StartScene = 0;
 
-		std::filesystem::path AssetDirectory;
+		std::filesystem::path AssetDirectory = "Assets";
 	};
 
 	class KTN_API Project
@@ -29,6 +29,7 @@ namespace KTN
 
 			static Ref<Project> New();
 			static Ref<Project> New(const std::filesystem::path& p_FolderPath);
+			static Ref<Project> New(const std::filesystem::path& p_FolderPath, const ProjectConfig& p_Config);
 			static Ref<Project> Load(const std::filesystem::path& p_Path);
 			static bool SaveActive(const std::filesystem::path& p_Path);
 

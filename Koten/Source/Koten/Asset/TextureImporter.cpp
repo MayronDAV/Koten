@@ -17,15 +17,9 @@ namespace KTN
 
 		Ref<Texture2D> texture = nullptr;
 		if (p_Metadata.AssetData)
-		{
-			auto spec = static_cast<TextureSpecification*>(p_Metadata.AssetData);
-			texture = LoadTexture2D(p_Metadata.FilePath, *spec);
-			delete spec;	
-		}
+			texture = LoadTexture2D(p_Metadata.FilePath, *static_cast<TextureSpecification*>(p_Metadata.AssetData));
 		else
-		{
 			texture = LoadTexture2D(p_Metadata.FilePath);
-		}
 
 		if (texture) texture->Handle = p_Handle;
 

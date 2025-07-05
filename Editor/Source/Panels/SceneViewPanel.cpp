@@ -1,6 +1,7 @@
 #include "SceneViewPanel.h"
 #include "Editor.h"
 #include "Shortcuts.h"
+#include "AssetImporterPanel.h"
 
 // lib
 #include <imgui_internal.h>
@@ -55,7 +56,7 @@ namespace KTN
 					auto filepath = std::filesystem::path(path);
 					if (filepath.extension() == ".ktscn")
 					{
-						m_Editor->OpenScene(Project::GetActive()->GetAssetManager()->ImportAsset(AssetType::Scene, filepath.string()));
+						m_Editor->OpenScene(AssetManager::Get()->ImportAsset(AssetType::Scene, filepath.string()));
 					}
 				}
 				ImGui::EndDragDropTarget();

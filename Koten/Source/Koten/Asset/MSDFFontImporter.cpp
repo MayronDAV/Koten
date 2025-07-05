@@ -24,9 +24,6 @@ namespace KTN
 		if (font)
 			font->Handle = p_Handle;
 
-		if (p_Metadata.AssetData)
-			delete static_cast<MSDFFontConfig*>(p_Metadata.AssetData);
-
 		return font;
 	}
 }

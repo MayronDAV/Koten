@@ -384,8 +384,17 @@ namespace KTN
 
 		auto outputDllPath = (Project::GetAssetDirectory() / "Scripts.dll");
 		auto sourcePath = (Project::GetAssetDirectory() / "Scripts").string();
-		std::filesystem::create_directories(outputDllPath.parent_path());
 
+		bool existsSourceFiles = false;
+		for (const auto& entry : std::filesystem::directory_iterator(sourcePath))
+		{
+			if (entry.path().extension() == ".cs")
+				existsSourceFiles = true;
+		}
+		if (!existsSourceFiles)
+			return false;
+
+		std::filesystem::create_directories(outputDllPath.parent_path());
 		s_Data->AppAssembly = CompileMonoScripts(sourcePath, outputDllPath.string(), "Resources/Scripts/Koten-ScriptCore.dll");
 		if (!s_Data->AppAssembly)
 		{

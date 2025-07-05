@@ -4,6 +4,7 @@
 #include "Panels/SceneViewPanel.h"
 #include "Panels/SettingsPanel.h"
 #include "Panels/ContentBrowserPanel.h"
+#include "Panels/AssetImporterPanel.h"
 #include "Shortcuts.h"
 
 // lib
@@ -157,7 +158,10 @@ namespace KTN
 			m_ActiveScene = CreateRef<Scene>();
 
 		m_Settings = CreateRef<SettingsPanel>();
+		m_AssetImporter = CreateRef<AssetImporterPanel>();
 
+		m_Panels.emplace_back(m_AssetImporter);
+		m_Panels.emplace_back(m_Settings);
 		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
 		m_Panels.emplace_back(CreateRef<InspectorPanel>());
@@ -436,9 +440,6 @@ namespace KTN
 
 		DrawMenuBar();
 
-		if (m_Settings->IsActive())
-			m_Settings->OnImgui();
-
 		for (auto& panel : m_Panels)
 		{
 			if (panel->IsActive())
@@ -452,20 +453,25 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 		
-		// TODO: When the WindowDrop event is triggered, open the ImportAssetPanel
+		p_Event.Dispatch<WindowDropEvent>([&](WindowDropEvent& p_DropEvent)
+		{
+			auto& path = p_DropEvent.GetPaths()[0];
+			AssetType type = AssetType::None;
+			auto extension = FileSystem::GetExtension(path);
 
-		//p_Event.Dispatch<WindowDropEvent>([&](WindowDropEvent& p_DropEvent)
-		//{
-		//	auto proj = Project::GetActive();
-		//	if (proj)
-		//	{
-		//		auto handle = proj->GetAssetManager()->ImportAsset(AssetType::Texture2D, p_DropEvent.GetPaths()[0]);
-		//		if (handle != 0)
-		//			KTN_CORE_INFO("Asset imported: {}", (uint64_t)handle);
-		//	}
+			if (extension == ".ktscn")
+				type = AssetType::Scene;
 
-		//	return false;
-		//});
+			if (extension == ".ttf")
+				type = AssetType::Font;
+
+			if (extension == ".png" || extension == ".jpg" || extension == ".jpeg")
+				type = AssetType::Texture2D;
+
+			m_AssetImporter->Open(path, type);
+
+			return false;
+		});
 	}
 
 	void Editor::OpenProject(const std::filesystem::path& p_Path)
@@ -568,7 +574,7 @@ namespace KTN
 		std::string path = "";
 		if (FileDialog::Open(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
 		{
-			AssetHandle handle = Project::GetActive()->GetAssetManager()->ImportAsset(AssetType::Scene, path);
+			AssetHandle handle = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
 			OpenScene(handle);
 		}
 	}

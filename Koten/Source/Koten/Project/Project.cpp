@@ -32,16 +32,23 @@ namespace KTN
 
 	Ref<Project> Project::New(const std::filesystem::path& p_FolderPath)
 	{
-		auto project = New();
-		project->GetConfig().AssetDirectory = "Assets";
-		project->GetConfig().StartScene = 0;
-		project->GetConfig().Name = p_FolderPath.stem().string();
-		SaveActive(p_FolderPath / "Project.ktproj");
+		ProjectConfig config = {};
+		config.Name = p_FolderPath.stem().string();
+		config.AssetDirectory = "Assets";
+		config.StartScene = 0;
 
-		FileSystem::CreateDirectories((p_FolderPath / "Assets").string());
-		FileSystem::CreateDirectories((p_FolderPath / "Assets" / "Scenes").string());
-		FileSystem::CreateDirectories((p_FolderPath / "Assets" / "Scripts").string());
-		FileSystem::CreateDirectories((p_FolderPath / "Assets" / "Textures").string());
+		return New(p_FolderPath, config);
+	}
+
+	Ref<Project> Project::New(const std::filesystem::path& p_FolderPath, const ProjectConfig& p_Config)
+	{
+		auto project = New();
+		project->m_Config = p_Config;
+		SaveActive(p_FolderPath / (p_Config.Name + ".ktproj"));
+
+		FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Scenes").string());
+		FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Scripts").string());
+		FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Textures").string());
 
 		return project;
 	}
@@ -79,7 +86,7 @@ namespace KTN
 	}
 
 	Project::Project()
-		: m_Config({}), m_AssetManager(CreateRef<AssetManager>())
+		: m_Config({}), m_AssetManager(AssetManager::Create())
 	{
 	}
 

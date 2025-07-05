@@ -12,6 +12,8 @@ namespace KTN
 			~InspectorPanel() override = default;
 
 			void OnImgui() override;
+
+			Editor* GetEditor() const { return m_Editor; }
 	};
 
 } // namespace KTN

@@ -131,15 +131,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		auto assetManager = Project::GetActive()->GetAssetManager(); // TODO: Create a way to access the asset manager without Project::GetActive()
-		auto path = Project::GetAssetDirectory() / FileSystem::GetRelative("Assets/Fonts/Arial/Arial Regular.ttf", Project::GetAssetDirectory().string());
-		AssetHandle DefaultFont = assetManager->GetHandleByPath(path.string());
-		if (DefaultFont == 0)
-		{
-			DefaultFont = assetManager->ImportAsset(AssetType::Font, path.string());
-		}
-
-		return DefaultFont;
+		return AssetManager::Get()->ImportAsset(AssetType::Font, FileSystem::GetAbsolute("Assets/Fonts/Arial/Arial Regular.ttf"));
 	}
 
 	Ref<MSDFFont> MSDFFont::LoadFont(const std::string& p_Font, const MSDFFontConfig& p_Config)
@@ -172,7 +164,7 @@ namespace KTN
 
 		msdfgen::FontHandle* font = msdfgen::loadFont(ft, p_Font.c_str());
 		if (!font) {
-			KTN_CORE_ERROR(KTN_MSDFLOG "Failed to load font: {}", p_Font);
+			KTN_CORE_ERROR(KTN_FONTLOG "Failed to load font: {}", p_Font);
 			msdfgen::deinitializeFreetype(ft);
 			return;
 		}
@@ -243,7 +235,7 @@ namespace KTN
 				break;
 		}
 		KTN_CORE_ASSERT(glyphsLoaded >= 0);
-		KTN_CORE_INFO(KTN_MSDFLOG "Loaded {} glyphs from font (out of {})", glyphsLoaded, charset.size());
+		KTN_CORE_INFO(KTN_FONTLOG "Loaded {} glyphs from font (out of {})", glyphsLoaded, charset.size());
 
 		msdf_atlas::TightAtlasPacker atlasPacker;
 		atlasPacker.setPixelRange(p_Config.PxRange);
@@ -256,7 +248,7 @@ namespace KTN
 
 		int remaining = atlasPacker.pack(m_Data->Glyphs.data(), (int)m_Data->Glyphs.size());
 		if (remaining > 0)
-			KTN_CORE_WARN(KTN_MSDFLOG "{} glyphs didn't fit in the atlas", remaining);
+			KTN_CORE_WARN(KTN_FONTLOG "{} glyphs didn't fit in the atlas", remaining);
 
 		int finalWidth, finalHeight;
 		atlasPacker.getDimensions(finalWidth, finalHeight);

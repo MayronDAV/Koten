@@ -10,26 +10,6 @@
 
 
 
-namespace YAML
-{
-	template<>
-	struct convert<KTN::UUID>
-	{
-		static Node encode(const KTN::UUID& p_UUID)
-		{
-			Node node;
-			node.push_back((uint64_t)p_UUID);
-			return node;
-		}
-
-		static bool decode(const Node& p_Node, KTN::UUID& p_UUID)
-		{
-			p_UUID = p_Node.as<uint64_t>();
-			return true;
-		}
-	};
-}
-
 namespace KTN
 {
 	#define ADD_KEY_VALUE(key, value) out << YAML::Key << key << YAML::Value << value

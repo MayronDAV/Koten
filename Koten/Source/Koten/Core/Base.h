@@ -64,10 +64,14 @@ namespace KTN
 #define KTN_GLFWLOG "[ GLFW ] : "
 #define KTN_GLLOG	"[OPENGL] : "
 #define KTN_VKLOG	"[VULKAN] : "
-#define KTN_MSDFLOG "[ MSDF ] : "
+#define KTN_FONTLOG "[ FONT ] : "
 
 #ifdef KTN_WINDOWS
 	#define Strncpy(dst, src, n) strncpy_s(dst, src, n - 1); dst[n - 1] = '\0';
+	#define Strcpy(dst, src) strcpy_s(dst, src)
+	#define SScanf(buf, fmt, ...) sscanf_s(buf, fmt, __VA_ARGS__)
 #else
 	#define Strncpy(dst, src, n) strncpy(dst, src, n - 1); dst[n - 1] = '\0';
+	#define Strcpy(dst, src) strcpy(dst, src)
+	#define SScanf(buf, fmt, ...) sscanf(buf, fmt, __VA_ARGS__)
 #endif
