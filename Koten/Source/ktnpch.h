@@ -17,6 +17,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <yaml-cpp/yaml.h>
 
 // std
 #include <istream>
@@ -35,24 +36,24 @@
 #endif
 
 
-#ifdef KTN_EXPORT
-
-// lib
-#include <yaml-cpp/yaml.h>
-
 namespace YAML
 {
+#ifndef KTNPCH_H_YAMLCONVERSIONS
+	#ifndef KTN_WINDOWS
+		#define KTNPCH_H_YAMLCONVERSIONS
+	#endif
+
 	template<>
 	struct convert<KTN::UUID>
 	{
-		static Node encode(const KTN::UUID& p_UUID)
+		static inline Node encode(const KTN::UUID& p_UUID)
 		{
 			Node node;
 			node.push_back((uint64_t)p_UUID);
 			return node;
 		}
 
-		static bool decode(const Node& p_Node, KTN::UUID& p_UUID)
+		static inline bool decode(const Node& p_Node, KTN::UUID& p_UUID)
 		{
 			p_UUID = p_Node.as<uint64_t>();
 			return true;
@@ -62,7 +63,7 @@ namespace YAML
 	template<>
 	struct convert<glm::vec2>
 	{
-		static Node encode(const glm::vec2& p_Rhs)
+		static inline Node encode(const glm::vec2& p_Rhs)
 		{
 			Node node;
 			node.push_back(p_Rhs.x);
@@ -71,7 +72,7 @@ namespace YAML
 			return node;
 		}
 
-		static bool decode(const Node& p_Node, glm::vec2& p_Rhs)
+		static inline bool decode(const Node& p_Node, glm::vec2& p_Rhs)
 		{
 			if (!p_Node.IsSequence() || p_Node.size() != 2)
 				return false;
@@ -85,7 +86,7 @@ namespace YAML
 	template<>
 	struct convert<glm::vec3>
 	{
-		static Node encode(const glm::vec3& p_Rhs)
+		static inline Node encode(const glm::vec3& p_Rhs)
 		{
 			Node node;
 			node.push_back(p_Rhs.x);
@@ -95,7 +96,7 @@ namespace YAML
 			return node;
 		}
 
-		static bool decode(const Node& p_Node, glm::vec3& p_Rhs)
+		static inline bool decode(const Node& p_Node, glm::vec3& p_Rhs)
 		{
 			if (!p_Node.IsSequence() || p_Node.size() != 3)
 				return false;
@@ -110,7 +111,7 @@ namespace YAML
 	template<>
 	struct convert<glm::vec4>
 	{
-		static Node encode(const glm::vec4& p_Rhs)
+		static inline Node encode(const glm::vec4& p_Rhs)
 		{
 			Node node;
 			node.push_back(p_Rhs.x);
@@ -121,7 +122,7 @@ namespace YAML
 			return node;
 		}
 
-		static bool decode(const Node& p_Node, glm::vec4& p_Rhs)
+		static inline bool decode(const Node& p_Node, glm::vec4& p_Rhs)
 		{
 			if (!p_Node.IsSequence() || p_Node.size() != 4)
 				return false;
@@ -133,34 +134,10 @@ namespace YAML
 			return true;
 		}
 	};
-
-	inline Emitter& operator <<(Emitter& p_Out, const glm::vec2& p_Value)
-	{
-		p_Out << Flow;
-		p_Out << BeginSeq << p_Value.x << p_Value.y << EndSeq;
-		return p_Out;
-	}
-
-	inline Emitter& operator <<(Emitter& p_Out, const glm::vec3& p_Value)
-	{
-		p_Out << Flow;
-		p_Out << BeginSeq << p_Value.x << p_Value.y << p_Value.z << EndSeq;
-		return p_Out;
-	}
-
-	inline Emitter& operator <<(Emitter& p_Out, const glm::vec4& p_Value)
-	{
-		p_Out << Flow;
-		p_Out << BeginSeq << p_Value.x << p_Value.y << p_Value.z << p_Value.w << EndSeq;
-		return p_Out;
-	}
-
-	inline Emitter& operator<<(Emitter& p_Out, const KTN::AssetHandle& p_Handle)
-	{
-		p_Out << (uint64_t)p_Handle;
-		return p_Out;
-	}
-
-} // namespace YAML
-
 #endif
+
+    Emitter& operator<<(Emitter& p_Out, const glm::vec2& p_Value);
+    Emitter& operator<<(Emitter& p_Out, const glm::vec3& p_Value);
+    Emitter& operator<<(Emitter& p_Out, const glm::vec4& p_Value);
+    Emitter& operator<<(Emitter& p_Out, const KTN::AssetHandle& p_Handle);
+} // namespace YAML
