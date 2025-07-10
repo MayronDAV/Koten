@@ -28,8 +28,8 @@ namespace KTN
 		public:
 			~AssetManager();
 
-			AssetHandle ImportAsset(AssetType p_Type, const std::string& p_FilePath);
-			AssetHandle ImportAsset(const AssetMetadata& p_Metadata);
+			AssetHandle ImportAsset(AssetType p_Type, const std::string& p_FilePath, bool p_Force = false);
+			AssetHandle ImportAsset(const AssetMetadata& p_Metadata, bool p_Force = false);
 
 			bool IsAssetHandleValid(AssetHandle p_Handle) const;
 			bool IsAssetLoaded(AssetHandle p_Handle) const;

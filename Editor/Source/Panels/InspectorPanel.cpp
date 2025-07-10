@@ -212,7 +212,7 @@ namespace KTN
 
 					ImGui::SameLine();
 
-					std::string path = p_Sprite.Texture != 0 ? assetManager->GetMetadata(p_Sprite.Texture).FilePath : "";
+					std::string path = p_Sprite.Texture != 0 ? AssetManager::Get()->GetMetadata(p_Sprite.Texture).FilePath : "";
 					std::string text = path.empty() ? "Texture" : path.c_str();
 					if (ImGui::Button(text.c_str()))
 					{
@@ -292,25 +292,38 @@ namespace KTN
 			DrawComponent<TextRendererComponent>("TextRenderer", p_Entity,
 			[&](TextRendererComponent& p_Text)
 			{
-				auto assetManager = Project::GetActive()->GetAssetManager();
-
 				UI::InputText("String", p_Text.String, true, 0, 2.0f, true);
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 				if (ImGui::Button(ICON_MDI_RESTART))
 				{
-					p_Text.Font = MSDFFont::GetDefault();
+					p_Text.Font = DFFont::GetDefault();
 				}
 				ImGui::SameLine();
-				const auto& filePath = assetManager->GetMetadata(p_Text.Font).FilePath;
+				const auto& filePath = AssetManager::Get()->GetMetadata(p_Text.Font).FilePath;
 				if (ImGui::Button(filePath.c_str()))
 				{
 					std::string path = "";
 					if (FileDialog::Open(".ttf", "Fonts", path) == FileDialogResult::SUCCESS)
 					{
-						p_This->GetEditor()->GetAssetImporterPanel()->Open(path, AssetType::Font);
+						p_Text.Font = AssetManager::Get()->ImportAsset(AssetType::Font, path);
 					}
 				}
 				ImGui::PopStyleVar();
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						auto filepath = std::filesystem::path(path);
+						if (filepath.extension() == ".ttf")
+						{
+							// TODO: Create a placeholder for assets and use the AssetImporterPanel to import if needed!
+							p_Text.Font = AssetManager::Get()->ImportAsset(AssetType::Font, filepath.string());
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
 
 				ImGui::Spacing();
 				UI::ColorEdit4("Color", p_Text.Color, 1.0f);

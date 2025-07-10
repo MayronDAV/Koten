@@ -16,6 +16,7 @@ namespace KTN
 			static std::string GetName(const std::string& p_Path);
 			static std::string GetStem(const std::string& p_Path);
 			static std::string GetExtension(const std::string& p_Path);
+			static std::string GetParent(const std::string& p_Path);
 
 			static std::string GetAbsolute(const std::string& p_Path);
 			static std::string GetRelative(const std::string& p_Path, const std::string& p_BasePath);

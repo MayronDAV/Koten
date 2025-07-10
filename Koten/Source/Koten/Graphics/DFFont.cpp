@@ -1,6 +1,6 @@
 #include "ktnpch.h"
 #include "Koten/Core/Definitions.h"
-#include "MSDFFont.h"
+#include "DFFont.h"
 #include "Koten/Project/Project.h"
 
 #ifdef INFINITE
@@ -19,6 +19,8 @@ namespace KTN
 {
 	namespace
 	{
+		static const std::filesystem::path s_FontCachePath = "Resources/FontAtlases";
+
 		void hardmaskGenerator(const msdfgen::BitmapRef<float, 1>& p_Output, const msdf_atlas::GlyphGeometry& p_Glyph, const msdf_atlas::GeneratorAttributes& p_Attribs) 
 		{
 			msdfgen::rasterize(p_Output, p_Glyph.getShape(), p_Glyph.getBoxScale(), p_Glyph.getBoxTranslate(), MSDF_ATLAS_GLYPH_FILL_RULE);
@@ -74,8 +76,8 @@ namespace KTN
 		}
 
 		template<typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
-		static Ref<Texture2D> CreateAndCacheAtlas(
-			const std::string& p_FontName, bool p_FloatingPointFormat, const std::vector<msdf_atlas::GlyphGeometry>& p_Glyphs, uint32_t p_Width, uint32_t p_Height, const MSDFFontConfig& p_Config)
+		static Ref<Texture2D> CreateAtlas(
+			const std::string& p_FontName, bool p_FloatingPointFormat, const std::vector<msdf_atlas::GlyphGeometry>& p_Glyphs, uint32_t p_Width, uint32_t p_Height, const DFFontConfig& p_Config)
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -109,34 +111,113 @@ namespace KTN
 
 	} // namespace
 
-	struct MSDFData
+	struct SDFData
 	{
 		std::vector<msdf_atlas::GlyphGeometry> Glyphs;
 		msdf_atlas::FontGeometry FontGeometry;
 	};
 
-	MSDFFont::~MSDFFont()
+	struct AtlasCacheHeader 
+	{
+		uint32_t Width;
+		uint32_t Height;
+		TextureFormat Format;
+		size_t DataSize;
+	};
+
+	DFFont::~DFFont()
 	{
 		KTN_PROFILE_FUNCTION();
 
 		delete m_Data;
 	}
 
-	void* MSDFFont::GetFontGeometry()
+	void* DFFont::GetFontGeometry()
 	{
 		return (void*)&m_Data->FontGeometry;
 	}
 
-	AssetHandle MSDFFont::GetDefault()
+	std::vector<std::pair<glm::vec4, glm::vec4>> DFFont::CalculatePositions(const std::u32string& p_String, float p_LineSpacing, float p_Kerning) const
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto& fontGeometry = m_Data->FontGeometry;
+		const auto& metrics = fontGeometry.getMetrics();
+		const double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
+
+		double x = 0.0;
+		double y = 0.0;
+
+		const auto spaceGlyph = fontGeometry.getGlyph(U' ') ?
+			fontGeometry.getGlyph(U' ') :
+			fontGeometry.getGlyph(0x00A0);
+		const float spaceGlyphAdvance = spaceGlyph ? (float)spaceGlyph->getAdvance() : (float)metrics.ascenderY;
+
+		std::vector<std::pair<glm::vec4, glm::vec4>> result;
+
+		for (size_t i = 0; i < p_String.size(); i++)
+		{
+			char32_t character = p_String[i];
+			if (character == U'\r') continue;
+
+			if (character == U'\n')
+			{
+				x = 0;
+				y -= fsScale * metrics.lineHeight + p_LineSpacing;
+				continue;
+			}
+
+			if (character == U' ' || character == U'\t')
+			{
+				float advance = (character == U'\t') ?
+					4.0f * ((float)fsScale * spaceGlyphAdvance + p_Kerning) :
+					(float)fsScale * spaceGlyphAdvance + p_Kerning;
+				x += advance;
+				continue;
+			}
+
+			auto glyph = fontGeometry.getGlyph(character);
+			if (!glyph) glyph = fontGeometry.getGlyph(U'?');
+			if (!glyph) continue;
+
+			double al, ab, ar, at;
+			glyph->getQuadAtlasBounds(al, ab, ar, at);
+			glm::vec2 texCoordMin((float)al, (float)ab);
+			glm::vec2 texCoordMax((float)ar, (float)at);
+
+			double pl, pb, pr, pt;
+			glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+			glm::vec2 quadMin((float)pl, (float)pb);
+			glm::vec2 quadMax((float)pr, (float)pt);
+
+			quadMin *= fsScale, quadMax *= fsScale;
+			quadMin += glm::vec2(x, y);
+			quadMax += glm::vec2(x, y);
+
+			result.push_back(std::make_pair(glm::vec4{ quadMin, quadMax }, glm::vec4{ texCoordMin, texCoordMax }));
+
+			if (i < p_String.size() - 1)
+			{
+				double advance = glyph->getAdvance();
+				fontGeometry.getAdvance(advance, character, p_String[i + 1]);
+				x += fsScale * advance + p_Kerning;
+			}
+		}
+
+		return result;
+	}
+
+	AssetHandle DFFont::GetDefault()
 	{
 		KTN_PROFILE_FUNCTION();
 
 		return AssetManager::Get()->ImportAsset(AssetType::Font, FileSystem::GetAbsolute("Assets/Fonts/Arial/Arial Regular.ttf"));
 	}
 
-	Ref<MSDFFont> MSDFFont::LoadFont(const std::string& p_Font, const MSDFFontConfig& p_Config)
+	Ref<DFFont> DFFont::LoadFont(AssetHandle p_Handle, const std::string& p_Font, const DFFontConfig& p_Config)
 	{
-		auto font = CreateRef<MSDFFont>();
+		auto font = CreateRef<DFFont>();
+		font->Handle = p_Handle;
 		font->LoadFontImpl(p_Font, p_Config);
 		if (!font->GetAtlasTexture())
 		{
@@ -147,14 +228,14 @@ namespace KTN
 		return font;
 	}
 
-	void MSDFFont::LoadFontImpl(const std::string& p_Font, const MSDFFontConfig& p_Config) 
+	void DFFont::LoadFontImpl(const std::string& p_Font, const DFFontConfig& p_Config) 
 	{
 		KTN_PROFILE_FUNCTION();
 
 		static const auto LCG_MULTIPLIER = 6364136223846793005ull;
 		static const auto LCG_INCREMENT = 1442695040888963407ull;
 
-		m_Data = new MSDFData();
+		m_Data = new SDFData();
 		m_FontPath = p_Font;
 		m_FontName = FileSystem::GetStem(p_Font);
 		m_Config = p_Config;
@@ -280,66 +361,140 @@ namespace KTN
 		}
 
 		const bool floatingPoint = magic_enum::enum_name(p_Config.ImageFormat).find("FLOAT") != std::string::npos;
-		const int channelCount = DetermineChannelCount(p_Config.ImageType);
 
-		if (floatingPoint)
+		if (!TryLoadAtlasFromCache(floatingPoint))
 		{
-			switch (channelCount)
+			const int channelCount = DetermineChannelCount(p_Config.ImageType);
+			if (floatingPoint)
 			{
-				case 1:
+				switch (channelCount)
 				{
-					switch (p_Config.ImageType)
+					case 1:
 					{
-						case FontImageType::HARD_MASK:
-							m_AtlasTexture = CreateAndCacheAtlas<float, float, 1, hardmaskGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-							break;
-						case FontImageType::SOFT_MASK:
-							m_AtlasTexture = CreateAndCacheAtlas<float, float, 1, msdf_atlas::scanlineGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-							break;
-						case FontImageType::PSDF:
-							m_AtlasTexture = CreateAndCacheAtlas<float, float, 1, msdf_atlas::psdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-							break;
+						switch (p_Config.ImageType)
+						{
+							case FontImageType::HARD_MASK:
+								m_AtlasTexture = CreateAtlas<float, float, 1, hardmaskGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+								break;
+							case FontImageType::SOFT_MASK:
+								m_AtlasTexture = CreateAtlas<float, float, 1, msdf_atlas::scanlineGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+								break;
+							case FontImageType::PSDF:
+								m_AtlasTexture = CreateAtlas<float, float, 1, msdf_atlas::psdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+								break;
+						}
+						break;
 					}
-					break;
+					case 3:
+						m_AtlasTexture = CreateAtlas<float, float, 3, msdf_atlas::msdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+						break;
+					case 4:
+						m_AtlasTexture = CreateAtlas<float, float, 4, msdf_atlas::mtsdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+						break;
 				}
-				case 3:
-					m_AtlasTexture = CreateAndCacheAtlas<float, float, 3, msdf_atlas::msdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-					break;
-				case 4:
-					m_AtlasTexture = CreateAndCacheAtlas<float, float, 4, msdf_atlas::mtsdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-					break;
 			}
-		}
-		else
-		{
-			switch (channelCount)
+			else
 			{
-				case 1:
+				switch (channelCount)
 				{
-					switch (p_Config.ImageType)
+					case 1:
 					{
-						case FontImageType::HARD_MASK:
-							m_AtlasTexture = CreateAndCacheAtlas<uint8_t, float, 1, hardmaskGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-							break;
-						case FontImageType::SOFT_MASK:
-							m_AtlasTexture = CreateAndCacheAtlas<uint8_t, float, 1, msdf_atlas::scanlineGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-							break;
-						case FontImageType::PSDF:
-							m_AtlasTexture = CreateAndCacheAtlas<uint8_t, float, 1, msdf_atlas::psdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-							break;
+						switch (p_Config.ImageType)
+						{
+							case FontImageType::HARD_MASK:
+								m_AtlasTexture = CreateAtlas<uint8_t, float, 1, hardmaskGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+								break;
+							case FontImageType::SOFT_MASK:
+								m_AtlasTexture = CreateAtlas<uint8_t, float, 1, msdf_atlas::scanlineGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+								break;
+							case FontImageType::PSDF:
+								m_AtlasTexture = CreateAtlas<uint8_t, float, 1, msdf_atlas::psdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+								break;
+						}
+						break;
 					}
-					break;
+					case 3:
+						m_AtlasTexture = CreateAtlas<uint8_t, float, 3, msdf_atlas::msdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+						break;
+					case 4:
+						m_AtlasTexture = CreateAtlas<uint8_t, float, 4, msdf_atlas::mtsdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
+						break;
 				}
-				case 3:
-					m_AtlasTexture = CreateAndCacheAtlas<uint8_t, float, 3, msdf_atlas::msdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-					break;
-				case 4:
-					m_AtlasTexture = CreateAndCacheAtlas<uint8_t, float, 4, msdf_atlas::mtsdfGenerator>(p_Font, floatingPoint, m_Data->Glyphs, finalWidth, finalHeight, p_Config);
-					break;
 			}
+
+			SaveAtlasToCache();
 		}
 
 		msdfgen::destroyFont(font);
 		msdfgen::deinitializeFreetype(ft);
+	}
+
+	bool DFFont::TryLoadAtlasFromCache(bool p_FloatingPointFormat)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		const std::string cachePath = GetCachePath();
+		if (!FileSystem::Exists(cachePath))
+			return false;
+
+		std::ifstream file(cachePath, std::ios::binary);
+		AtlasCacheHeader header;
+		file.read((char*)&header, sizeof(header));
+
+		std::vector<uint8_t> textureData(header.DataSize);
+		file.read((char*)textureData.data(), header.DataSize);
+
+		TextureSpecification spec = {};
+		spec.Usage = TextureUsage::TEXTURE_SAMPLED;
+		spec.MinFilter = m_Config.ImageType == FontImageType::HARD_MASK ? TextureFilter::NEAREST : TextureFilter::LINEAR;
+		spec.MagFilter = m_Config.ImageType == FontImageType::HARD_MASK ? TextureFilter::NEAREST : TextureFilter::LINEAR;
+		spec.Width = header.Width;
+		spec.Height = header.Height;
+		spec.Format = header.Format;
+		spec.SRGB = !p_FloatingPointFormat && m_Config.ImageType != FontImageType::HARD_MASK;
+		spec.GenerateMips = false;
+		spec.AnisotropyEnable = false;
+		spec.DebugName = m_FontName + " Atlas Texture";
+
+		m_AtlasTexture = Texture2D::Create(spec);
+		if (!m_AtlasTexture)
+		{
+			KTN_CORE_ERROR(KTN_FONTLOG "Failed to create font atlas texture!");
+			return false;
+		}
+		m_AtlasTexture->SetData(textureData.data(), textureData.size());
+
+		return true;
+	}
+
+	void DFFont::SaveAtlasToCache()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		FileSystem::CreateDirectories(s_FontCachePath.string());
+		const std::string cachePath = GetCachePath();
+		std::ofstream stream(cachePath, std::ios::binary | std::ios::trunc);
+		if (!stream)
+		{
+			stream.close();
+			KTN_CORE_ERROR(KTN_FONTLOG "Failed to cache font atlas to {}", cachePath);
+			return;
+		}
+
+		AtlasCacheHeader header = {};
+		header.Width = m_AtlasTexture->GetWidth();
+		header.Height = m_AtlasTexture->GetHeight();
+		header.Format = m_AtlasTexture->GetSpecification().Format;
+		header.DataSize = m_AtlasTexture->GetEstimatedSize();
+
+		auto textureData = m_AtlasTexture->GetData();
+		stream.write((char*)&header, sizeof(AtlasCacheHeader));
+		stream.write((char*)textureData.data(), header.DataSize); // TODO: Compress
+	}
+
+	std::string DFFont::GetCachePath() const
+	{
+		auto path = s_FontCachePath / (m_FontName + "-" + std::to_string(Handle) + ".ktfc");
+		return path.string();
 	}
 } // namespace KTN

@@ -4,7 +4,7 @@
 #include "Koten/Graphics/Texture.h"
 #include "Koten/Graphics/Camera.h"
 #include "Koten/Core/UUID.h"
-#include "Koten/Graphics/MSDFFont.h"
+#include "Koten/Graphics/DFFont.h"
 #include "Koten/Asset/Asset.h"
 
 // std
@@ -77,7 +77,7 @@ namespace KTN
 	struct TextRendererComponent
 	{
 		std::string String;
-		AssetHandle Font = MSDFFont::GetDefault();
+		AssetHandle Font = DFFont::GetDefault();
 
 		glm::vec4 Color{ 1.0f };
 		glm::vec4 BgColor{ 0.0f };

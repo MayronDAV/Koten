@@ -10,10 +10,9 @@
 
 namespace KTN
 {
-	struct MSDFData;
+	struct SDFData;
 
-	// TODO: Create a way to use this struct in the AssetManager and save/load it correctly.
-	struct MSDFFontConfig 
+	struct DFFontConfig 
 	{
 		FontImageType ImageType = FontImageType::MSDF;
 		GlyphIdentifierType GlyphIdentifier = GlyphIdentifierType::UNICODE_CODEPOINT;
@@ -40,11 +39,12 @@ namespace KTN
 		};
 	};
 
-	class KTN_API MSDFFont : public Asset
+	// Distance Field Font
+	class KTN_API DFFont : public Asset
 	{
 		public:
-			MSDFFont() = default;
-			~MSDFFont();
+			DFFont() = default;
+			~DFFont();
 
 			void* GetFontGeometry();
 
@@ -52,20 +52,27 @@ namespace KTN
 
 			std::string GetPath() const { return m_FontPath; }
 			std::string GetName() const { return m_FontName; }
-			const MSDFFontConfig& GetConfig() const { return m_Config; }
+			const DFFontConfig& GetConfig() const { return m_Config; }
+
+			//						positions, uv bounds
+			std::vector<std::pair<glm::vec4, glm::vec4>> CalculatePositions(const std::u32string& p_String, float p_LineSpacing = 0.0f, float p_Kerning = 0.0f) const;
 
 			static AssetHandle GetDefault();
-			static Ref<MSDFFont> LoadFont(const std::string& p_Font, const MSDFFontConfig& p_Config);
-		
+			static Ref<DFFont> LoadFont(AssetHandle p_Handle, const std::string& p_Font, const DFFontConfig& p_Config = {});
+
 			ASSET_CLASS_METHODS(Font)
 
 		private:
-			void LoadFontImpl(const std::string& p_Font, const MSDFFontConfig& p_Config);
+			void LoadFontImpl(const std::string& p_Font, const DFFontConfig& p_Config);
+
+			bool TryLoadAtlasFromCache(bool p_FloatingPointFormat);
+			void SaveAtlasToCache();
+			std::string GetCachePath() const;
 
 		private:
-			MSDFData* m_Data = nullptr;
+			SDFData* m_Data = nullptr;
 			Ref<Texture2D> m_AtlasTexture;
-			MSDFFontConfig m_Config;
+			DFFontConfig m_Config;
 
 			std::string m_FontPath;
 			std::string m_FontName;

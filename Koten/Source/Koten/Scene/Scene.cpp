@@ -5,7 +5,7 @@
 #include "Koten/Physics/Box2D/B2Physics.h"
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Script/ScriptEngine.h"
-#include "Koten/Graphics/MSDFFont.h"
+#include "Koten/Graphics/DFFont.h"
 #include "Koten/Project/Project.h"
 
 
@@ -220,7 +220,7 @@ namespace KTN
 					params.LineSpacing = text->LineSpacing;
 					params.Kerning = text->Kerning;
 
-					Renderer::SubmitString(text->String, As<Asset, MSDFFont>(Project::GetActive()->GetAssetManager()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+					Renderer::SubmitString(text->String, As<Asset, DFFont>(Project::GetActive()->GetAssetManager()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}
@@ -440,7 +440,7 @@ namespace KTN
 					params.LineSpacing = text->LineSpacing;
 					params.Kerning = text->Kerning;
 
-					Renderer::SubmitString(text->String, As<Asset, MSDFFont>(Project::GetActive()->GetAssetManager()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+					Renderer::SubmitString(text->String, As<Asset, DFFont>(Project::GetActive()->GetAssetManager()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}

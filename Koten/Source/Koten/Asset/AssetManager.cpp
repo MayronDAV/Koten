@@ -2,7 +2,7 @@
 #include "AssetManager.h"
 #include "AssetImporter.h"
 #include "Koten/Project/Project.h"
-#include "Koten/Graphics/MSDFFont.h"
+#include "Koten/Graphics/DFFont.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -89,24 +89,20 @@ namespace KTN
 		m_AssetRegistry.clear();
 	}
 
-	AssetHandle AssetManager::ImportAsset(AssetType p_Type, const std::string& p_FilePath)
+	AssetHandle AssetManager::ImportAsset(AssetType p_Type, const std::string& p_FilePath, bool p_Force)
 	{
 		KTN_PROFILE_FUNCTION();
-
-		if (auto handle = GetHandleByPath(p_FilePath); IsAssetHandleValid(handle))
-		{
-			return handle;
-		}
 
 		AssetMetadata metadata;
 		metadata.FilePath = (Project::GetAssetDirectory() / FileSystem::GetRelative(p_FilePath, Project::GetAssetDirectory().string())).string();
 		metadata.Type = p_Type;
-		return ImportAsset(metadata);
+		return ImportAsset(metadata, p_Force);
 	}
 
-	AssetHandle AssetManager::ImportAsset(const AssetMetadata& p_Metadata)
+	AssetHandle AssetManager::ImportAsset(const AssetMetadata& p_Metadata, bool p_Force)
 	{
-		if (auto handle = GetHandleByPath(p_Metadata.FilePath); IsAssetHandleValid(handle))
+		if (auto handle = GetHandleByPath(p_Metadata.FilePath);
+			IsAssetHandleValid(handle) && !p_Force)
 		{
 			return handle;
 		}
@@ -175,7 +171,7 @@ namespace KTN
 					auto assetData = metadata.AssetData;
 					if (metadata.Type == AssetType::Font)
 					{
-						auto config = static_cast<MSDFFontConfig*>(assetData);
+						auto config = static_cast<DFFontConfig*>(assetData);
 						out << YAML::Key << "ImageType" << YAML::Value << (std::string)magic_enum::enum_name(config->ImageType).data();
 						out << YAML::Key << "GlyphIdentifier" << YAML::Value << (std::string)magic_enum::enum_name(config->GlyphIdentifier).data();
 						out << YAML::Key << "ImageFormat" << YAML::Value << (std::string)magic_enum::enum_name(config->ImageFormat).data();
@@ -264,7 +260,7 @@ namespace KTN
 				auto assetDataNode = node["AssetData"];
 				if (metadata.Type == AssetType::Font)
 				{
-					auto config = new MSDFFontConfig();
+					auto config = new DFFontConfig();
 
 					config->ImageType = magic_enum::enum_cast<FontImageType>(assetDataNode["ImageType"].as<std::string>().c_str()).value_or(config->ImageType);
 					config->GlyphIdentifier = magic_enum::enum_cast<GlyphIdentifierType>(assetDataNode["GlyphIdentifier"].as<std::string>().c_str()).value_or(config->GlyphIdentifier);

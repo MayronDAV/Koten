@@ -341,9 +341,14 @@ namespace KTN
 		std::unordered_map<ShaderType, std::vector<uint32_t>> spirv = {};
 		for (auto&& [stage, source] : shaderSource)
 		{
-			std::filesystem::path cachedPath = cacheDirectory / (FileSystem::GetStem(p_Path) + ShaderTypeCachedFileExtension(stage));
+			std::string file = FileSystem::GetStem(p_Path) + ShaderTypeCachedFileExtension(stage);
+			auto cachedPath = cacheDirectory / file;
+			auto cachedPath2 = (std::filesystem::path)FileSystem::GetParent(p_Path) / file;
 
-			std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
+			std::ifstream in( cachedPath, std::ios::in | std::ios::binary );
+			if (!in.is_open())
+				in = std::ifstream( cachedPath2, std::ios::in | std::ios::binary );
+
 			if (in.is_open())
 			{
 				in.seekg(0, std::ios::end);

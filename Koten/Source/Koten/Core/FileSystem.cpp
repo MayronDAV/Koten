@@ -24,6 +24,12 @@ namespace KTN
 		return path.string();
 	}
 
+	std::string FileSystem::GetParent(const std::string& p_Path)
+	{
+		auto path = std::filesystem::path(p_Path).parent_path();
+		return path.string();
+	}
+
 	std::string FileSystem::GetAbsolute(const std::string& p_Path)
 	{
 		auto path = std::filesystem::absolute(p_Path);

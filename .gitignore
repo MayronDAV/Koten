@@ -13,3 +13,4 @@ Koten/cpp.hint
 /Editor/SandboxProject/Assets/Scripts/Binaries
 Makefile
 *.make
+*.ktfc

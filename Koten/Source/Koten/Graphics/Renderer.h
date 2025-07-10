@@ -2,7 +2,7 @@
 #include "Koten/Core/Base.h"
 #include "Koten/Graphics/Texture.h"
 #include "Koten/Graphics/Camera.h"
-#include "Koten/Graphics/MSDFFont.h"
+#include "Koten/Graphics/DFFont.h"
 
 // lib
 #include <glm/glm.hpp>
@@ -103,7 +103,7 @@ namespace KTN
 			static void Submit(const RenderCommand& p_Command);
 
 			// Maybe we should define this in the RenderCommand ?
-			static void SubmitString(const std::string& p_String, const Ref<MSDFFont>& p_Font, const glm::mat4& p_Transform, const TextParams& p_Params = {}, int p_EntityID = -1);
+			static void SubmitString(const std::string& p_String, const Ref<DFFont>& p_Font, const glm::mat4& p_Transform, const TextParams& p_Params = {}, int p_EntityID = -1);
 
 			static Ref<Texture2D> GetPickingTexture();
 	};

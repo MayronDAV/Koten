@@ -33,6 +33,8 @@ namespace KTN
 
 			void SetData(const void* p_Data, size_t p_Size) override;
 
+			std::vector<uint8_t> GetData() const override;
+
 			bool operator== (const Texture& p_Other) const override
 			{
 				return m_RendererID == ((GLTexture2D&)p_Other).GetID();

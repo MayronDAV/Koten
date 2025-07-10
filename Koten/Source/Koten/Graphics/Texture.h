@@ -30,6 +30,8 @@ namespace KTN
 			virtual void Bind(uint32_t p_Slot = 0) = 0;
 			virtual void Unbind() = 0;
 
+			virtual std::vector<uint8_t> GetData() const = 0;
+
 			virtual bool operator== (const Texture& p_Other) const = 0;
 
 			static bool IsDepthStencilFormat(TextureFormat p_Format)

@@ -153,6 +153,19 @@ namespace KTN
 		GLCall(glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_Format, GL_UNSIGNED_BYTE, p_Data));
 	}
 
+	std::vector<uint8_t> GLTexture2D::GetData() const
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
+
+		std::vector<uint8_t> buffer(GetEstimatedSize());
+		GLCall(glGetTexImage(GL_TEXTURE_2D, 0, m_Format, GLUtils::TextureFormatToGLType(m_Specification.Format), buffer.data()));
+
+		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+		return buffer;
+	}
+
 	void GLTexture2D::Init(const TextureSpecification& p_Spec)
 	{
 		KTN_PROFILE_FUNCTION_LOW();

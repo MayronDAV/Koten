@@ -142,7 +142,7 @@ namespace KTN
 
 			std::string fontPath = MonoStringToString(p_Path);
 			if (fontPath.empty())
-				tc.Font = MSDFFont::GetDefault();
+				tc.Font = DFFont::GetDefault();
 			else
 			{
 				tc.Font = Project::GetActive()->GetAssetManager()->GetHandleByPath(fontPath);
