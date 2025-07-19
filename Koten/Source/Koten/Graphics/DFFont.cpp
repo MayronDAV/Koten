@@ -211,7 +211,10 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		return AssetManager::Get()->ImportAsset(AssetType::Font, FileSystem::GetAbsolute("Assets/Fonts/Arial/Arial Regular.ttf"));
+		if (Project::GetActive()->IsRuntime())
+			return AssetManager::Get()->ImportAsset(AssetType::Font, Project::GetAssetFileSystemPath("Fonts/Arial/Arial Regular.ttf").string());
+		else
+			return AssetManager::Get()->ImportAsset(AssetType::Font, FileSystem::GetAbsolute("Assets/Fonts/Arial/Arial Regular.ttf"));
 	}
 
 	Ref<DFFont> DFFont::LoadFont(AssetHandle p_Handle, const std::string& p_Font, const DFFontConfig& p_Config)

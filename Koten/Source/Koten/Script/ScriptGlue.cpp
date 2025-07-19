@@ -145,7 +145,7 @@ namespace KTN
 				tc.Font = DFFont::GetDefault();
 			else
 			{
-				tc.Font = Project::GetActive()->GetAssetManager()->GetHandleByPath(fontPath);
+				tc.Font = AssetManager::Get()->GetHandleByPath(fontPath);
 				KTN_CORE_ASSERT(tc.Font != 0, "Failed to load font from path: " + fontPath + ", Try importing the font first!");
 			}
 		}
@@ -161,7 +161,7 @@ namespace KTN
 			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
-			return ScriptEngine::CreateString(Project::GetActive()->GetAssetManager()->GetMetadata(tc.Font).FilePath.c_str());
+			return ScriptEngine::CreateString(AssetManager::Get()->GetMetadata(tc.Font).FilePath.c_str());
 		}
 
 		static MonoString* TextRendererComponent_GetFontName(UUID p_EntityID)
@@ -175,7 +175,7 @@ namespace KTN
 			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
-			return ScriptEngine::CreateString(FileSystem::GetStem(Project::GetActive()->GetAssetManager()->GetMetadata(tc.Font).FilePath).c_str());
+			return ScriptEngine::CreateString(FileSystem::GetStem(AssetManager::Get()->GetMetadata(tc.Font).FilePath).c_str());
 		}
 
 		static void TextRendererComponent_GetColor(UUID p_EntityID, glm::vec4* p_Color)

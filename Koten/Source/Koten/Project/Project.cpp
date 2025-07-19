@@ -1,7 +1,7 @@
 #include "ktnpch.h"
 #include "Project.h"
 #include "ProjectSerializer.h"
-
+#include "Koten/Script/ScriptEngine.h"
 
 
 namespace KTN
@@ -83,6 +83,28 @@ namespace KTN
 		}
 
 		return false;
+	}
+
+	Ref<Project> Project::LoadRuntime(const std::filesystem::path& p_Path)
+	{
+		Ref<Project> project = CreateRef<Project>();
+
+		ProjectSerializer serializer(project);
+		if (serializer.DeserializeRuntime(p_Path))
+		{
+			project->m_ProjectDirectory = p_Path.parent_path();
+			project->m_IsRuntime = true;
+			s_ActiveProject = project;
+			return s_ActiveProject;
+		}
+
+		return nullptr;
+	}
+
+	bool Project::SaveActiveRuntime(const std::filesystem::path& p_Path)
+	{
+		ProjectSerializer serializer(s_ActiveProject);
+		return serializer.SerializeRuntime(p_Path);
 	}
 
 	Project::Project()

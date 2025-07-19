@@ -12,7 +12,7 @@ namespace KTN
 	class Shortcuts
 	{
 		public:
-			static void Init(IniFile& p_File);
+			static void Init();
 			static bool IsActionPressed(const std::string& p_Action);
 
 			static void PushShortcutKey(const std::string& p_Action, int p_Key);
@@ -25,10 +25,11 @@ namespace KTN
 			static std::vector<int> GetShortcut(const std::string& p_Action) { return s_Shortcuts[p_Action]; }
 			static std::string GetShortcutStr(const std::string& p_Action) { return KeysToString(s_Shortcuts[p_Action]); }
 
-			static void UploadShortcuts(IniFile& p_File);
+			static void UploadShortcuts();
 			static std::unordered_map<std::string, std::vector<int>>& GetShortcuts() { return s_Shortcuts; }
 
 		private:
+			inline static IniFile m_File{ "Resources/Shortcuts.ini" };
 			static std::unordered_map<std::string, std::vector<int>> s_Shortcuts;
 	};
 

@@ -10,7 +10,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
+		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			return new GLRendererAPI();
 
 		KTN_CORE_ERROR("Unsupported API!");

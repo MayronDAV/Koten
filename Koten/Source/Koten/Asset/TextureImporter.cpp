@@ -49,7 +49,7 @@ namespace KTN
 
 		uint32_t width, height, channels = 4, bytes = 1;
 		bool isHDR					= false;
-		uint8_t* data				= Utils::LoadImageFromFile(p_Path.c_str(), &width, &height, &channels, &bytes, &isHDR, Engine::GetAPI() == RenderAPI::OpenGL);
+		uint8_t* data				= Utils::LoadImageFromFile(p_Path.c_str(), &width, &height, &channels, &bytes, &isHDR, Engine::Get().GetAPI() == RenderAPI::OpenGL);
 
 		TextureSpecification spec	= p_Spec;
 		spec.Width					= width;

@@ -73,12 +73,12 @@ namespace KTN
 				};
 
 				bool imguizmo = (m_GuizmoType != 0 && ImGuizmo::IsOver()) || ImGuizmo::IsUsing();
-				if (Engine::GetSettings().MousePicking && !ImGui::IsDragDropActive() && !imguizmo)
+				if (Engine::Get().GetSettings().MousePicking && !ImGui::IsDragDropActive() && !imguizmo)
 				{
 					auto [mx, my] = ImGui::GetMousePos();
 					mx -= viewportBounds[0].x;
 					my -= viewportBounds[0].y;
-					if (Engine::GetAPI() == RenderAPI::OpenGL)
+					if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 						my = m_Height - my;
 
 					glm::ivec2 mouse = { (int)mx, (int)my };
@@ -357,7 +357,7 @@ namespace KTN
 		ImGui::SetNextWindowSize({ 100, 20 }, ImGuiCond_Always);
 		ImGui::Begin("Fps", &m_Active, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
 		{
-			ImGui::Text("FPS: %u", Engine::GetStats().FramesPerSecond);
+			ImGui::Text("FPS: %u", Engine::Get().GetStats().FramesPerSecond);
 		}
 		ImGui::End();
 		ImGui::PopStyleColor(2);

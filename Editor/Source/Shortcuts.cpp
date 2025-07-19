@@ -238,25 +238,26 @@ namespace KTN
 
 	std::unordered_map<std::string, std::vector<int>> Shortcuts::s_Shortcuts;
 
-	void Shortcuts::Init(IniFile& p_File)
+	void Shortcuts::Init()
 	{
+		m_File.Load();
 
 		{
-			p_File.Add<std::string>("Shortcuts", "Open Scene", "LCtrl+O");
-			p_File.Add<std::string>("Shortcuts", "Save Scene As", "LCtrl+LShift+S");
-			p_File.Add<std::string>("Shortcuts", "Open Settings", "LCtrl+.");
-			p_File.Add<std::string>("Shortcuts", "Recompile Scripts", "LCtrl+R");
-			p_File.Add<std::string>("Shortcuts", "Play", "LCtrl+P");
-			p_File.Add<std::string>("Shortcuts", "Stop", "Pause");
-			p_File.Add<std::string>("Shortcuts", "Guizmo None", "Q");
-			p_File.Add<std::string>("Shortcuts", "Guizmo Translate", "T");
-			p_File.Add<std::string>("Shortcuts", "Guizmo Rotate", "R");
-			p_File.Add<std::string>("Shortcuts", "Guizmo Scale", "E");
-			p_File.Add<std::string>("Shortcuts", "Guizmo Universal", "U");
-			p_File.Rewrite();
+			m_File.Add<std::string>("Shortcuts", "Open Scene", "LCtrl+O");
+			m_File.Add<std::string>("Shortcuts", "Save Scene As", "LCtrl+LShift+S");
+			m_File.Add<std::string>("Shortcuts", "Open Settings", "LCtrl+.");
+			m_File.Add<std::string>("Shortcuts", "Recompile Scripts", "LCtrl+R");
+			m_File.Add<std::string>("Shortcuts", "Play", "LCtrl+P");
+			m_File.Add<std::string>("Shortcuts", "Stop", "Pause");
+			m_File.Add<std::string>("Shortcuts", "Guizmo None", "Q");
+			m_File.Add<std::string>("Shortcuts", "Guizmo Translate", "T");
+			m_File.Add<std::string>("Shortcuts", "Guizmo Rotate", "R");
+			m_File.Add<std::string>("Shortcuts", "Guizmo Scale", "E");
+			m_File.Add<std::string>("Shortcuts", "Guizmo Universal", "U");
+			m_File.Rewrite();
 		}
 
-		const auto& data = p_File.GetData();
+		const auto& data = m_File.GetData();
 		auto it = data.find("Shortcuts");
 		for (const auto& [key, value] : it->second)
 		{
@@ -328,13 +329,13 @@ namespace KTN
 		return keys;
 	}
 
-	void Shortcuts::UploadShortcuts(IniFile& p_File)
+	void Shortcuts::UploadShortcuts()
 	{
 		for (const auto& [key, value] : s_Shortcuts)
 		{
-			p_File.Set("Shortcuts", key, KeysToString(value));
+			m_File.Set("Shortcuts", key, KeysToString(value));
 		}
-		p_File.Rewrite();
+		m_File.Rewrite();
 	}
 
 

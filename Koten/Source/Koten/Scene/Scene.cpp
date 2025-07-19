@@ -172,7 +172,7 @@ namespace KTN
 			m_Registry.view<TransformComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
-				if (Engine::GetSettings().ShowDebugPhysicsCollider)
+				if (Engine::Get().GetSettings().ShowDebugPhysicsCollider)
 					DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
 
 				RenderCommand command = {};
@@ -187,7 +187,7 @@ namespace KTN
 					command.Render2D.Thickness = sprite->Thickness;
 					command.Render2D.Fade = sprite->Fade;
 					command.Render2D.Color = sprite->Color;
-					command.Render2D.Texture = As<Asset, Texture2D>(Project::GetActive()->GetAssetManager()->GetAsset(sprite->Texture));
+					command.Render2D.Texture = As<Asset, Texture2D>(AssetManager::Get()->GetAsset(sprite->Texture));
 					command.Render2D.Size = sprite->Size;
 					command.Render2D.BySize = sprite->BySize;
 					command.Render2D.Offset = sprite->Offset;
@@ -220,7 +220,7 @@ namespace KTN
 					params.LineSpacing = text->LineSpacing;
 					params.Kerning = text->Kerning;
 
-					Renderer::SubmitString(text->String, As<Asset, DFFont>(Project::GetActive()->GetAssetManager()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+					Renderer::SubmitString(text->String, As<Asset, DFFont>(AssetManager::Get()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}
@@ -251,29 +251,6 @@ namespace KTN
 
 			m_SceneGraph->Update(m_Registry);
 		}
-
-		bool first = true;
-		m_Registry.view<TransformComponent, CameraComponent>().each(
-		[&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
-		{
-			p_Camera.Camera.SetViewportSize(m_Width, m_Height);
-			p_Camera.Camera.OnUpdate();
-
-			if (p_Camera.Primary)
-			{
-				if (!first)
-				{
-					KTN_CORE_ERROR("there can only be one primary camera!");
-					return;
-				}
-
-				m_Projection = p_Camera.Camera.GetProjection();
-				m_View = glm::inverse(p_Transform.GetWorldMatrix());
-				m_ClearColor = p_Camera.ClearColor;
-				m_HaveCamera = true;
-				first = false;
-			}
-		});
 	}
 
 	void Scene::OnRuntimeStart()
@@ -294,7 +271,7 @@ namespace KTN
 		m_SystemManager->OnStop(this);
 	}
 
-	void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime)
+	void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height)
 	{
 		KTN_PROFILE_FUNCTION();
 
@@ -364,11 +341,11 @@ namespace KTN
 					return;
 				}
 
-				m_Projection				= p_Camera.Camera.GetProjection();
-				m_View						= glm::inverse(p_Transform.GetWorldMatrix());
-				m_ClearColor				= p_Camera.ClearColor;
-				m_HaveCamera				= true;
-				first						= false;
+				m_Projection = p_Camera.Camera.GetProjection();
+				m_View = glm::inverse(p_Transform.GetWorldMatrix());
+				m_ClearColor = p_Camera.ClearColor;
+				m_HaveCamera = true;
+				first = false;
 			}
 		});
 	}
@@ -392,7 +369,7 @@ namespace KTN
 			m_Registry.view<TransformComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
-				if (Engine::GetSettings().ShowDebugPhysicsCollider)
+				if (Engine::Get().GetSettings().ShowDebugPhysicsCollider)
 					DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
 
 				RenderCommand command = {};
@@ -407,7 +384,7 @@ namespace KTN
 					command.Render2D.Thickness = sprite->Thickness;
 					command.Render2D.Fade = sprite->Fade;
 					command.Render2D.Color = sprite->Color;
-					command.Render2D.Texture = As<Asset, Texture2D>(Project::GetActive()->GetAssetManager()->GetAsset(sprite->Texture));
+					command.Render2D.Texture = As<Asset, Texture2D>(AssetManager::Get()->GetAsset(sprite->Texture));
 					command.Render2D.Size = sprite->Size;
 					command.Render2D.BySize = sprite->BySize;
 					command.Render2D.Offset = sprite->Offset;
@@ -440,7 +417,7 @@ namespace KTN
 					params.LineSpacing = text->LineSpacing;
 					params.Kerning = text->Kerning;
 
-					Renderer::SubmitString(text->String, As<Asset, DFFont>(Project::GetActive()->GetAssetManager()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+					Renderer::SubmitString(text->String, As<Asset, DFFont>(AssetManager::Get()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}

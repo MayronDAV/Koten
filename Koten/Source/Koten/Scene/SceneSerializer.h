@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Scene.h"
+#include "Entity.h"
+
 
 namespace KTN
 {

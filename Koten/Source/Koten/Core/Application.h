@@ -7,10 +7,16 @@
 
 namespace KTN
 {
+	struct ApplicationConfig
+	{
+		std::string Title = "Koten";
+		std::string IconPath = "";
+	};
+
 	class KTN_API Application
 	{
 		public:
-			Application();
+			Application(const ApplicationConfig& p_Config = {});
 			~Application();
 
 			void Run();

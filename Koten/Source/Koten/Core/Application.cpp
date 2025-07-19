@@ -19,13 +19,29 @@ namespace KTN
 {
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application()
+	Application::Application(const ApplicationConfig& p_Config)
 	{
 		KTN_PROFILE_FUNCTION();
 
 		s_Instance = this;
+		Engine::Init();
+		
+		Engine::Get().LoadSettings();
+
+		auto& settings = Engine::Get().GetSettings();
+
+		m_UpdateMinimized = settings.UpdateMinimized;
 
 		WindowSpecification spec = {};
+		spec.Title = p_Config.Title;
+		spec.Width = settings.Width;
+		spec.Height = settings.Height;
+		spec.Mode = settings.Mode;
+		spec.Resizable = settings.Resizable;
+		spec.Maximize = settings.Maximize;
+		spec.Center = settings.Center;
+		spec.Vsync = settings.Vsync;
+		spec.IconPath = p_Config.IconPath;
 		m_Window = Window::Create(spec);
 
 		m_Window->SetEventCallback(
@@ -59,6 +75,7 @@ namespace KTN
 		ScriptEngine::Shutdown();
 		RendererCommand::Release();
 
+		Engine::Shutdown();
 		s_Instance = nullptr;
 	}
 
@@ -77,12 +94,12 @@ namespace KTN
 
 				Time::OnUpdate();
 
-				Engine::ResetStats();
+				Engine::Get().ResetStats();
 
 				if (auto currentTime = Time::GetTime();
 					currentTime - m_LastTime >= 1.0)
 				{
-					Engine::GetStats().FramesPerSecond = uint32_t(m_Counter / (currentTime - m_LastTime));
+					Engine::Get().GetStats().FramesPerSecond = uint32_t(m_Counter / (currentTime - m_LastTime));
 					m_LastTime = currentTime;
 					m_Counter = 0;
 				}

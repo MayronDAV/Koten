@@ -11,6 +11,7 @@ namespace KTN
 	class KTN_API IniFile
 	{
 		public:
+			IniFile() = default;
 			IniFile(const std::string& p_Filepath, const std::string& p_DefaultGroup = "");
 			~IniFile() = default;
 
@@ -38,6 +39,7 @@ namespace KTN
 			void RegisterPair(const std::pair<std::string, std::string>& p_Pair);
 			void RegisterPair(const std::string& p_Group, const std::pair<std::string, std::string>& p_Pair);
 
+			void Load(const std::string& p_Filepath, const std::string& p_DefaultGroup = "");
 			void Load();
 
 			static std::pair<std::string, std::string> ExtractKeyAndValue(const std::string& p_Line);
@@ -48,8 +50,8 @@ namespace KTN
 			const std::unordered_map<std::string, std::unordered_map<std::string, std::string>>& GetData() const { return m_Data; }
 
 		private:
-			std::string m_DefaultGroup;
-			std::string m_FilePath;
+			std::string m_DefaultGroup = "";
+			std::string m_FilePath = "";
 			std::unordered_map<std::string, std::unordered_map<std::string, std::string>> m_Data;
 	};
 

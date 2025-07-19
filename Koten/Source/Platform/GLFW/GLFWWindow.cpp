@@ -107,6 +107,13 @@ namespace KTN
 		m_Data.Context->SetVsync(p_Value);
 	}
 
+	void GLFWWindow::SetTitle(const std::string& p_Title)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+
+		glfwSetWindowTitle(m_Window, p_Title.c_str());
+	}
+
 	void GLFWWindow::Resize(uint32_t p_Width, uint32_t p_Height)
 	{
 		KTN_PROFILE_FUNCTION_LOW();
@@ -120,6 +127,9 @@ namespace KTN
 	void GLFWWindow::ChangeMode(WindowMode p_Mode, bool p_Maximize)
 	{
 		KTN_PROFILE_FUNCTION_LOW();
+
+		if (m_Data.Mode == p_Mode && m_Data.Maximise == p_Maximize)
+			return;
 
 		int posX = 0, posY = 0;
 		glfwGetWindowPos(m_Window, &posX, &posY);
@@ -208,10 +218,9 @@ namespace KTN
 			data.EventCallback(event);		\
 
 		m_Data.Title		= p_Spec.Title;
-		m_Data.Width		= p_Spec.Width;
-		m_Data.Height		= p_Spec.Height;
 		m_Data.Mode			= p_Spec.Mode;
 		m_Data.Resizable	= p_Spec.Resizable;
+		m_Data.Maximise		= p_Spec.Maximize;
 		m_Data.Vsync		= p_Spec.Vsync;
 
 		KTN_GLFW_INFO("Creating window {0} ({1}, {2}) Vsync: {3}", p_Spec.Title, p_Spec.Width, p_Spec.Height, p_Spec.Vsync ? "true" : "false");
@@ -244,7 +253,7 @@ namespace KTN
 
 			glfwWindowHint(GLFW_DECORATED, p_Spec.Mode != WindowMode::Borderless);
 
-			if (p_Spec.Maximize || p_Spec.Mode == WindowMode::Borderless)
+			if (p_Spec.Maximize)
 			{
 				auto mode = glfwGetVideoMode(monitor ? monitor : glfwGetPrimaryMonitor());
 				width = mode->width;
@@ -256,12 +265,15 @@ namespace KTN
 
 			glfwWindowHint(GLFW_RESIZABLE, p_Spec.Resizable);
 
-			m_Window = glfwCreateWindow((int)p_Spec.Width, (int)p_Spec.Height, p_Spec.Title.c_str(), nullptr, nullptr);
+			m_Window = glfwCreateWindow((int)width, (int)height, p_Spec.Title.c_str(), monitor, nullptr);
 			KTN_CORE_ASSERT(m_Window, KTN_GLFWLOG "Failed to create window!");
+
+			m_Data.Width = width;
+			m_Data.Height = height;
 
 			if (p_Spec.Center && p_Spec.Mode == WindowMode::Windowed && !p_Spec.Maximize)
 			{
-				auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+				auto mode = glfwGetVideoMode(monitor ? monitor : glfwGetPrimaryMonitor());
 
 				int posX = (mode->width - p_Spec.Width) / 2;
 				int posY = (mode->height - p_Spec.Height) / 2;

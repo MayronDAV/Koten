@@ -14,8 +14,6 @@ namespace KTN
 	struct AssetManagerConfig
 	{
 		bool LoadAssetsFromPath = true;
-
-		// TODO: GenAssetPack and LoadAssetsFromAssetPack
 	};
 
 	class KTN_API AssetManager
@@ -42,12 +40,18 @@ namespace KTN
 
 			AssetManagerConfig& GetConfig() { return m_Config; }
 
+			void SerializeAssetPack(const std::filesystem::path& p_Folder = "Assets");
+			bool DeserializeAssetPack(const std::filesystem::path& p_Folder = "Assets");
+
 			void SerializeAssetRegistry();
 			bool DeserializeAssetRegistry();
 
 		private:
 			AssetRegistry m_AssetRegistry;
 			AssetMap m_LoadedAssets;
+
+			bool m_IsLoadedAssetPack = false;
+			bool m_NeedsToUpdate = false;
 
 			AssetManagerConfig m_Config = {};
 

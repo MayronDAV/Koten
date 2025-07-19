@@ -3,6 +3,10 @@
 #include "Base.h"
 #include "Definitions.h"
 
+// std
+#include <filesystem>
+
+
 
 namespace KTN
 {
@@ -22,27 +26,46 @@ namespace KTN
 		bool ShowDebugPhysicsCollider = false;
 		float DebugLineWidth = 2.0f;
 		float DebugCircleThickness = 0.03f;
+
+		bool UpdateMinimized = true;
+
+		uint32_t Width = 800;
+		uint32_t Height = 600;
+		WindowMode Mode = WindowMode::Windowed;
+		bool Resizable = true;
+		bool Maximize = false;
+		bool Center = true;
+		bool Vsync = false;
 	};
 
 	class KTN_API Engine
 	{
 		public:
-			static RenderAPI GetAPI() { return s_API; }
-			static void SetAPI(RenderAPI p_API) { s_API = p_API; }
+			RenderAPI GetAPI() const { return m_API; }
+			void SetAPI(RenderAPI p_API) { m_API = p_API; }
 
-			static Statistics& GetStats() { return s_Stats; }
-			static void ResetStats()
+			Statistics& GetStats() { return m_Stats; }
+			void ResetStats()
 			{
-				s_Stats.TrianglesCount  = 0;
-				s_Stats.DrawCalls		= 0;
+				m_Stats.TrianglesCount  = 0;
+				m_Stats.DrawCalls		= 0;
 			}
 
-			static Settings& GetSettings() { return s_Settings; }
+			Settings& GetSettings() { return m_Settings; }
+
+			bool SaveSettings(const std::filesystem::path& p_Folder = "Resources");
+			bool LoadSettings(const std::filesystem::path& p_Folder = "Resources");
+
+			static void Init();
+			static void Shutdown();
+			static Engine& Get() { return *s_Instance; }
 
 		private:
-			static RenderAPI s_API;
-			static Statistics s_Stats;
-			static Settings s_Settings;
+			RenderAPI m_API = RenderAPI::OpenGL;
+			Statistics m_Stats = {};
+			Settings m_Settings = {};
+
+			inline static Engine* s_Instance = nullptr;
 	};
 
 } // namespace KTN

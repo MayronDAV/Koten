@@ -56,7 +56,7 @@ namespace KTN
 			{ -0.5f,  0.5f, 0.0f }
 		};
 
-		auto& settings = Engine::GetSettings();
+		auto& settings = Engine::Get().GetSettings();
 
 		RenderCommand command = {};
 		command.EntityID = p_Entity;
@@ -78,7 +78,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		auto& settings = Engine::GetSettings();
+		auto& settings = Engine::Get().GetSettings();
 
 		RenderCommand command = {};
 		command.EntityID = p_Entity;

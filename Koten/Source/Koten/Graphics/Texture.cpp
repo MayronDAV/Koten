@@ -52,7 +52,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
+		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLTexture2D>(p_Spec);
 
 		KTN_CORE_ERROR("Unsupported API!");
@@ -63,7 +63,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
+		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLTexture2D>(p_Spec, p_Data, p_Size);
 
 		KTN_CORE_ERROR("Unsupported API!");

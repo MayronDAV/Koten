@@ -134,4 +134,26 @@ namespace KTN
 			std::filesystem::create_directories(p_Path);
 	}
 
+	void FileSystem::Copy(const std::string& p_Src, const std::string& p_Dest)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		std::filesystem::copy(p_Src, p_Dest, std::filesystem::copy_options::overwrite_existing | std::filesystem::copy_options::recursive);
+	}
+
+	void FileSystem::Rename(const std::string& p_Path, const std::string& p_Name)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		std::filesystem::path path = p_Path;
+		std::filesystem::rename(path, path.parent_path() / p_Name);
+	}
+
+	void FileSystem::Remove(const std::string& p_Path)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		std::filesystem::remove_all(std::filesystem::absolute(p_Path));
+	}
+
 } // namespace KTN

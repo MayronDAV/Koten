@@ -19,7 +19,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
+		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLFramebuffer>(p_Spec);
 
 		KTN_CORE_ERROR("Unsupported API!");
@@ -31,14 +31,13 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		KTN_CORE_ASSERT(p_Spec.RenderPass);
-		KTN_CORE_ASSERT(p_Spec.Attachments);
-		KTN_CORE_ASSERT(p_Spec.AttachmentCount > 0);
 
 		uint64_t hash = 0;
 		HashCombine(hash, p_Spec.Width, p_Spec.Height, p_Spec.DebugName, p_Spec.MipIndex, p_Spec.Samples, p_Spec.AttachmentCount);
 
 		for (uint32_t i = 0; i < p_Spec.AttachmentCount; i++)
 		{
+			KTN_CORE_ASSERT(p_Spec.Attachments);
 			auto& texture = p_Spec.Attachments[i];
 			if (texture)
 			{

@@ -32,6 +32,7 @@ namespace KTN
 			virtual void SetPosition(int p_X, int p_Y)							= 0;
 			virtual void SetEventCallback(EventCallbackFn p_Callback)			= 0;
 			virtual void SetVsync(bool p_Value)									= 0;
+			virtual void SetTitle(const std::string& p_Title)					= 0;
 
 			virtual void Resize(uint32_t p_Width, uint32_t p_Height)			= 0;
 			virtual void ChangeMode(WindowMode p_Mode, bool p_Maximize = true)	= 0;

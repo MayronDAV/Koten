@@ -8,6 +8,7 @@ namespace KTN
 {
 	class SettingsPanel;
 	class AssetImporterPanel;
+	class ProjectExporterPanel;
 
 	enum class RuntimeState
 	{
@@ -64,12 +65,15 @@ namespace KTN
 			std::vector<Ref<EditorPanel>> m_Panels;
 			Ref<SettingsPanel> m_Settings = nullptr;
 			Ref<AssetImporterPanel> m_AssetImporter = nullptr;
+			Ref<ProjectExporterPanel> m_ProjectExporter = nullptr;
 
 			Entity m_SelectedEntt;
 			RuntimeState m_State = RuntimeState::Edit;
 
 			Ref<EditorCamera> m_Camera = nullptr;
 			bool m_CaptureShortcuts = true;
+
+			std::filesystem::path m_ProjectPath = "";
 	};
 
 } // namespace KTN

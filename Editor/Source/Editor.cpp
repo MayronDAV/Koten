@@ -5,6 +5,7 @@
 #include "Panels/SettingsPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 #include "Panels/AssetImporterPanel.h"
+#include "Panels/ProjectExporterPanel.h"
 #include "Shortcuts.h"
 
 // lib
@@ -96,28 +97,7 @@ namespace KTN
 	
 	void Editor::Init()
 	{
-		auto file = IniFile("Resources/Engine.ini");
-
-		{
-			auto& settings = Engine::GetSettings();
-
-			{
-				file.Add<bool>("Settings", "Auto Recompile Scripts", settings.AutoRecompile);
-				file.Add<bool>("Settings", "Mouse Picking", settings.MousePicking);
-				file.Add<bool>("Settings", "Show Physics Collider", settings.ShowDebugPhysicsCollider);
-				file.Add<float>("Settings", "Debug Line Width", settings.DebugLineWidth);
-				file.Add<float>("Settings", "Debug Circle Thickness", settings.DebugCircleThickness);
-				file.Rewrite();
-			}
-
-			settings.AutoRecompile = file.Get<bool>("Settings", "Auto Recompile Scripts");
-			settings.MousePicking = file.Get<bool>("Settings", "Mouse Picking");
-			settings.ShowDebugPhysicsCollider = file.Get<bool>("Settings", "Show Physics Collider");
-			settings.DebugLineWidth = file.Get<float>("Settings", "Debug Line Width");
-			settings.DebugCircleThickness = file.Get<float>("Settings", "Debug Circle Thickness");
-		}
-
-		Shortcuts::Init(file);
+		Shortcuts::Init();
 	}
 
 	Editor::~Editor()
@@ -159,9 +139,11 @@ namespace KTN
 
 		m_Settings = CreateRef<SettingsPanel>();
 		m_AssetImporter = CreateRef<AssetImporterPanel>();
+		m_ProjectExporter = CreateRef<ProjectExporterPanel>();
 
 		m_Panels.emplace_back(m_AssetImporter);
 		m_Panels.emplace_back(m_Settings);
+		m_Panels.emplace_back(m_ProjectExporter);
 		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
 		m_Panels.emplace_back(CreateRef<InspectorPanel>());
@@ -183,9 +165,110 @@ namespace KTN
 		{
 			static const char* group_name = "General";
 
+			// Window
+			{
+				auto& settings = Engine::Get().GetSettings();
+
+				tab.Name = "Window";
+				tab.Content = [&]()
+				{
+					auto size = ImGui::GetContentRegionAvail();
+					float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+
+					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+					ImGui::BeginChild("##window_child", { size.x, size.y - (lineHeight * 1.5f) }, false);
+					ImGui::PopStyleVar();
+					{
+						ImGui::InputScalar("Width", ImGuiDataType_U32, &settings.Width);
+						ImGui::InputScalar("Height", ImGuiDataType_U32, &settings.Height);
+
+						int currentItem = (int)settings.Mode;
+						static const char* items[] = { "Windowed", "Fullscreen", "Borderless" };
+						static const int itemsCount = IM_ARRAYSIZE(items);
+
+						if (UI::Combo("Type", items[currentItem], items, itemsCount, &currentItem, -1))
+						{
+							settings.Mode = (WindowMode)currentItem;
+						}
+
+						ImGui::Checkbox("Maximize", &settings.Maximize);
+						ImGui::Checkbox("Vsync", &settings.Vsync);
+					}
+					ImGui::EndChild();
+
+					if (ImGui::Button("Save", { 100.0f, lineHeight }))
+					{
+						Engine::Get().SaveSettings();
+						auto& window = Application::Get().GetWindow();
+						window->Resize(settings.Width, settings.Height);
+						window->ChangeMode(settings.Mode, settings.Maximize);
+						window->SetVsync(settings.Vsync);
+					}
+				};
+
+				m_Settings->AddTab(group_name, tab);
+			}
+
+			// Project
+			{
+				auto& config = Project::GetActive()->GetConfig();
+
+				tab.Name = "Project";
+				tab.Content = [&]()
+				{
+					auto size = ImGui::GetContentRegionAvail();
+					float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+
+					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+					ImGui::BeginChild("##window_child", { size.x, size.y - (lineHeight * 1.5f) }, false);
+					ImGui::PopStyleVar();
+					{
+						UI::InputText("Name", config.Name, true, 0, 2.0f, true);
+
+						ImGui::Text("StartScene");
+						ImGui::SameLine();
+						std::string startScene = config.StartScene != 0 ? FileSystem::GetRelative(AssetManager::Get()->GetMetadata(config.StartScene).FilePath, Project::GetAssetDirectory().string()) : "None";
+						if (ImGui::Button(startScene.c_str()))
+						{
+							std::string path = "";
+							if (FileDialog::Open(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
+							{
+								config.StartScene = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
+							}
+						}
+
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+							{
+								const wchar_t* path = (const wchar_t*)payload->Data;
+								auto filepath = std::filesystem::path(path);
+								if (filepath.extension() == ".ktscn")
+								{
+									config.StartScene = AssetManager::Get()->ImportAsset(AssetType::Scene, filepath.string());
+								}
+							}
+							ImGui::EndDragDropTarget();
+						}
+
+						auto assetDir = config.AssetDirectory.string();
+						if (UI::InputText("AssetDirectory", assetDir, true))
+							config.AssetDirectory = assetDir;
+					}
+					ImGui::EndChild();
+
+					if (ImGui::Button("Save", { 100.0f, lineHeight }))
+					{
+						Project::SaveActive(m_ProjectPath);
+					}
+				};
+
+				m_Settings->AddTab(group_name, tab);
+			}
+
 			// Debug
 			{
-				auto& settings = Engine::GetSettings();
+				auto& settings = Engine::Get().GetSettings();
 
 				tab.Name = "Debug";
 				tab.Content = [&]()
@@ -197,9 +280,8 @@ namespace KTN
 					ImGui::BeginChild("##debug_child", { size.x, size.y - (lineHeight * 1.5f) }, false);
 					ImGui::PopStyleVar();
 					{
-					#ifdef KTN_WINDOWS
+						ImGui::Checkbox("Update Minimized", &settings.UpdateMinimized);
 						ImGui::Checkbox("Auto Recompile Scripts", &settings.AutoRecompile);
-					#endif
 						ImGui::Checkbox("Mouse Picking", &settings.MousePicking);
 						ImGui::Checkbox("Show Physics Collider", &settings.ShowDebugPhysicsCollider);
 						ImGui::DragFloat("Debug Line Width", &settings.DebugLineWidth, 0.01f, 0.0f, 0.0f, "%.2f");
@@ -207,16 +289,9 @@ namespace KTN
 					}
 					ImGui::EndChild();
 
-					// TODO: A way to save only changed settings
 					if (ImGui::Button("Save", { 100.0f, lineHeight }))
 					{
-						auto file = IniFile("Resources/Engine.ini");
-						file.Set<bool>("Settings", "Auto Recompile Scripts", settings.AutoRecompile);
-						file.Set<bool>("Settings", "Mouse Picking", settings.MousePicking);
-						file.Set<bool>("Settings", "Show Physics Collider", settings.ShowDebugPhysicsCollider);
-						file.Set<float>("Settings", "Debug Line Width", settings.DebugLineWidth);
-						file.Set<float>("Settings", "Debug Circle Thickness", settings.DebugCircleThickness);
-						file.Rewrite();
+						Engine::Get().SaveSettings();
 					}
 				};
 
@@ -327,8 +402,7 @@ namespace KTN
 
 					if (ImGui::Button("Save", { 100.0f, lineHeight }))
 					{
-						auto file = IniFile("Resources/Engine.ini"); // TODO
-						Shortcuts::UploadShortcuts(file);
+						Shortcuts::UploadShortcuts();
 					}
 
 					if (showCaptureWindow && !editAction.empty())
@@ -480,8 +554,8 @@ namespace KTN
 
 		if (Project::Load(p_Path))
 		{
-			if (std::filesystem::exists(Project::GetAssetFileSystemPath("Scripts.dll")))
-				ScriptEngine::CompileLoadAppAssembly();
+			m_ProjectPath = p_Path;
+			ScriptEngine::CompileLoadAppAssembly();
 
 			auto& config = Project::GetActive()->GetConfig();
 			if (config.StartScene != 0)
@@ -538,6 +612,11 @@ namespace KTN
 
 			if (ImGui::BeginMenu("Tools"))
 			{
+				if (ImGui::MenuItem(ICON_MDI_EXPORT "  Export Project..."))
+				{
+					m_ProjectExporter->Open();
+				}
+
 				auto shortcut = Shortcuts::GetShortcutStr("Open Settings");
 				if (ImGui::MenuItem(ICON_MDI_COGS "  Settings...", shortcut.c_str()))
 				{

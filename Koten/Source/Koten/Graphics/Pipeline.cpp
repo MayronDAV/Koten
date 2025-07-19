@@ -22,7 +22,7 @@ namespace KTN
 
 		if (m_Spec.SwapchainTarget)
 		{
-			if (Engine::GetAPI() == RenderAPI::OpenGL)
+			if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 				return Application::Get().GetWindow()->GetWidth();
 		}
 
@@ -50,7 +50,7 @@ namespace KTN
 
 		if (m_Spec.SwapchainTarget)
 		{
-			if (Engine::GetAPI() == RenderAPI::OpenGL)
+			if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 				return Application::Get().GetWindow()->GetHeight();
 		}
 
@@ -75,7 +75,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
+		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLPipeline>(p_Spec);
 
 		KTN_CORE_ERROR("Unsupported API!");

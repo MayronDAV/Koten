@@ -25,6 +25,7 @@ namespace KTN
 			void SetEventCallback(EventCallbackFn p_Callback) override { m_Data.EventCallback = p_Callback; }
 			void SetPosition(int p_X, int p_Y) override;
 			void SetVsync(bool p_Value) override;
+			void SetTitle(const std::string& p_Title) override;
 
 			void Resize(uint32_t p_Width, uint32_t p_Height) override;
 			void ChangeMode(WindowMode p_Mode, bool p_Maximize = true) override;
@@ -58,6 +59,7 @@ namespace KTN
 				uint32_t Height					= 600;
 				WindowMode Mode					= WindowMode::Windowed;
 				bool Resizable					= true;
+				bool Maximise					= false;
 				bool Vsync						= false;
 				float DPIScale					= 1.0f;
 

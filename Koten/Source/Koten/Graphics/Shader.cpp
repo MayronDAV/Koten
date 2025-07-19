@@ -114,9 +114,9 @@ namespace KTN
 		static std::string ShaderTypeCachedFileExtension(ShaderType p_Type)
 		{
 			std::string prefix = "";
-			if (Engine::GetAPI() == RenderAPI::OpenGL)
+			if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 				prefix = ".opengl";
-			else if (Engine::GetAPI() == RenderAPI::Vulkan)
+			else if (Engine::Get().GetAPI() == RenderAPI::Vulkan)
 				prefix = ".vulkan";
 			else
 			{
@@ -154,12 +154,12 @@ namespace KTN
 				"#extension GL_ARB_shading_language_420pack : enable\n"
 				"#extension GL_EXT_scalar_block_layout : enable\n";
 
-			if (Engine::GetAPI() == RenderAPI::OpenGL)
+			if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 				preamble += "#define IS_OPENGL 1\n";
 			else
 				preamble += "#define IS_OPENGL 0\n";
 
-			if (Engine::GetAPI() == RenderAPI::Vulkan)
+			if (Engine::Get().GetAPI() == RenderAPI::Vulkan)
 				preamble += "#define IS_VULKAN 1\n";
 			else
 				preamble += "#define IS_VULKAN 0\n";
@@ -170,7 +170,7 @@ namespace KTN
 			glslang::EShTargetClientVersion ClientVersion	= glslang::EShTargetVulkan_1_3;
 			glslang::EShTargetLanguageVersion TargetVersion = glslang::EShTargetSpv_1_5;
 			glslang::EShClient Client						= glslang::EShClientVulkan;
-			if (Engine::GetAPI() == RenderAPI::OpenGL)
+			if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			{
 				ClientInputSemanticsVersion					= 450;
 				Client										= glslang::EShClientOpenGL;
@@ -222,7 +222,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
+		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLShader>(CompileOrGetSpirv(p_Path));
 
 		KTN_CORE_ERROR("Unsupported API!");

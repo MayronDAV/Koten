@@ -145,6 +145,7 @@ namespace KTN
 			static bool LoadAssembly(const std::string& p_Path);
 			static bool LoadAppAssembly(const std::string& p_Path);
 			static bool CompileLoadAppAssembly();
+			static bool CompileScripts(const std::filesystem::path& p_SourcePath, const std::filesystem::path& p_OutFolder);
 
 			static void OnRuntimeStart(Scene* p_Scene);
 			static void OnRuntimeUpdate(Scene* p_Scene);

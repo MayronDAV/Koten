@@ -187,4 +187,22 @@ namespace KTN::Utils
 		return result;
 	}
 
+	void WriteString(std::ofstream& p_Out, const std::string& p_Str)
+	{
+		size_t size = p_Str.size();
+		p_Out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+		p_Out.write(p_Str.data(), size);
+	}
+
+	std::string ReadString(std::ifstream& p_In)
+	{
+		size_t size = 0;
+		p_In.read(reinterpret_cast<char*>(&size), sizeof(size));
+
+		std::string str(size, '\0');
+		p_In.read(&str[0], size);
+
+		return str;
+	}
+
 } // namespace KTN::Utils

@@ -14,7 +14,7 @@ namespace KTN::UI
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
+		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			return (ImTextureID)(uint64_t)As<Texture2D, GLTexture2D>(p_Texture)->GetID();
 
 		KTN_CORE_ERROR("Unsupported API!");

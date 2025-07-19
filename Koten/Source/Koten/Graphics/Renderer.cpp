@@ -262,7 +262,7 @@ namespace KTN
 
 		s_Data->MainTexture			= Texture2D::Get(tspec);
 
-		if (Engine::GetSettings().MousePicking)
+		if (Engine::Get().GetSettings().MousePicking)
 		{
 			tspec.Format				= TextureFormat::R32_INT;
 			tspec.Samples				= 1;
@@ -391,7 +391,7 @@ namespace KTN
 
 			s_TextData->Instances.push_back(bgData);
 
-			if (Engine::GetSettings().MousePicking)
+			if (Engine::Get().GetSettings().MousePicking)
 			{
 				s_TextData->EntityBuffer.EntityIDS.push_back(p_EntityID);
 				s_TextData->EntityBuffer.Count++;
@@ -432,7 +432,7 @@ namespace KTN
 			texCoordMin *= glm::vec2(texelWidth, texelHeight);
 			texCoordMax *= glm::vec2(texelWidth, texelHeight);
 			
-			if (Engine::GetSettings().MousePicking)
+			if (Engine::Get().GetSettings().MousePicking)
 			{
 				s_TextData->EntityBuffer.EntityIDS.push_back(p_EntityID);
 				s_TextData->EntityBuffer.Count++;
@@ -491,7 +491,7 @@ namespace KTN
 
 			Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
 
-			if (Engine::GetSettings().MousePicking)
+			if (Engine::Get().GetSettings().MousePicking)
 			{
 				PickingShader = Shader::Create("Assets/Shaders/R2D_Picking.glsl");
 				PickingSet = DescriptorSet::Create({ 0, PickingShader });
@@ -566,12 +566,12 @@ namespace KTN
 				commandBuffer->BindSets(&Set);
 				RendererCommand::DrawIndexedIndirect(DrawType::TRIANGLES, VAO, Buffer);
 
-				Engine::GetStats().DrawCalls += 1;
-				Engine::GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
+				Engine::Get().GetStats().DrawCalls += 1;
+				Engine::Get().GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
 
 				MainPipeline->End(commandBuffer);
 
-				if (Engine::GetSettings().MousePicking)
+				if (Engine::Get().GetSettings().MousePicking)
 				{
 					PipelineSpecification pspec = {};
 					pspec.pShader = PickingShader;
@@ -604,7 +604,7 @@ namespace KTN
 					commandBuffer->BindSets(&PickingSet);
 					RendererCommand::DrawIndexedIndirect(DrawType::TRIANGLES, VAO, Buffer);
 
-					Engine::GetStats().DrawCalls += 1;
+					Engine::Get().GetStats().DrawCalls += 1;
 
 					pipeline->End(commandBuffer);
 				}
@@ -618,7 +618,7 @@ namespace KTN
 			if (Instances.size() >= (size_t)MaxInstances)
 				FlushAndReset();
 
-			if (Engine::GetSettings().MousePicking)
+			if (Engine::Get().GetSettings().MousePicking)
 			{
 				EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
 				EntityBuffer.Count++;
@@ -778,7 +778,7 @@ namespace KTN
 				commandBuffer->BindSets(&set);
 				RendererCommand::DrawIndirect(DrawType::LINES, nullptr, Buffer);
 
-				Engine::GetStats().DrawCalls += 1;
+				Engine::Get().GetStats().DrawCalls += 1;
 
 				pipeline->End(commandBuffer);
 			}
@@ -817,7 +817,7 @@ namespace KTN
 
 			Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
 
-			if (Engine::GetSettings().MousePicking)
+			if (Engine::Get().GetSettings().MousePicking)
 			{
 				PickingShader = Shader::Create("Assets/Shaders/PickingText.glsl");
 				PickingSet = DescriptorSet::Create({ 0, PickingShader });
@@ -893,12 +893,12 @@ namespace KTN
 				commandBuffer->BindSets(&Set);
 				RendererCommand::DrawIndirect(DrawType::TRIANGLE_STRIP, nullptr, Buffer);
 
-				Engine::GetStats().DrawCalls += 1;
-				Engine::GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
+				Engine::Get().GetStats().DrawCalls += 1;
+				Engine::Get().GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
 
 				MainPipeline->End(commandBuffer);
 
-				if (Engine::GetSettings().MousePicking)
+				if (Engine::Get().GetSettings().MousePicking)
 				{
 					PipelineSpecification pspec = {};
 					pspec.pShader = PickingShader;
@@ -931,7 +931,7 @@ namespace KTN
 					commandBuffer->BindSets(&PickingSet);
 					RendererCommand::DrawIndirect(DrawType::TRIANGLE_STRIP, nullptr, Buffer);
 
-					Engine::GetStats().DrawCalls += 1;
+					Engine::Get().GetStats().DrawCalls += 1;
 
 					pipeline->End(commandBuffer);
 				}

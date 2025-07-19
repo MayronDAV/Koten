@@ -1,5 +1,6 @@
 #include "ktnpch.h"
 #include "ProjectSerializer.h"
+#include "Koten/Utils/Utils.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -64,6 +65,62 @@ namespace KTN
 		config.Name = projectNode["Name"].as<std::string>();
 		config.StartScene = projectNode["StartScene"].as<AssetHandle>();
 		config.AssetDirectory = projectNode["AssetDirectory"].as<std::string>();
+		return true;
+	}
+
+	struct ProjectHeader
+	{
+		char Magic[4] = { 'K', 'T', 'D', 'T' };
+		uint32_t Version = 1;
+
+		AssetHandle StartScene = 0;
+	};
+
+	bool ProjectSerializer::SerializeRuntime(const std::filesystem::path& p_Path)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		const auto& config = m_Project->GetConfig();
+
+		std::ofstream out(p_Path, std::ios::binary | std::ios::trunc);
+
+		ProjectHeader header = {};
+		header.StartScene = config.StartScene;
+		out.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+		Utils::WriteString(out, config.Name);
+		Utils::WriteString(out, config.AssetDirectory.string());
+		Utils::WriteString(out, config.IconPath);
+
+		return true;
+	}
+
+	bool ProjectSerializer::DeserializeRuntime(const std::filesystem::path& p_Path)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto& config = m_Project->GetConfig();
+
+		std::ifstream in(p_Path, std::ios::binary);
+		if (!in)
+		{
+			KTN_CORE_ERROR("Failed to open project runtime file: {}", p_Path.string());
+			return false;
+		}
+
+		ProjectHeader header = {};
+		in.read(reinterpret_cast<char*>(&header), sizeof(header));
+		if (memcmp(header.Magic, "KTDT", 4) != 0 || header.Version != 1)
+		{
+			KTN_CORE_ERROR("Invalid project runtime file format: {}", p_Path.string());
+			return false;
+		}
+
+		config.StartScene = header.StartScene;
+		config.Name = Utils::ReadString(in);
+		config.AssetDirectory = Utils::ReadString(in);
+		config.IconPath = Utils::ReadString(in);
+
 		return true;
 	}
 

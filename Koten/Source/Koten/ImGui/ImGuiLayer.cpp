@@ -23,7 +23,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Engine::GetAPI() == RenderAPI::OpenGL)
+		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 			return CreateRef<GLImGuiLayer>();
 
 		KTN_CORE_ERROR("Unsupported API!");
@@ -67,13 +67,13 @@ namespace KTN
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			GLFWwindow* backup_current_context = nullptr;
-			if (Engine::GetAPI() == RenderAPI::OpenGL)
+			if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
 				backup_current_context = glfwGetCurrentContext();
 
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 
-			if (Engine::GetAPI() == RenderAPI::OpenGL && backup_current_context)
+			if (Engine::Get().GetAPI() == RenderAPI::OpenGL && backup_current_context)
 				glfwMakeContextCurrent(backup_current_context);
 		}
 	}

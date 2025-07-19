@@ -14,7 +14,6 @@ namespace KTN
 	IniFile::IniFile(const std::string& p_Filepath, const std::string& p_DefaultGroup)
 		: m_FilePath(p_Filepath), m_DefaultGroup(p_DefaultGroup)
 	{
-		Load();
 	}
 
 	void IniFile::Reload()
@@ -100,18 +99,23 @@ namespace KTN
 		m_Data[p_Group].insert(p_Pair);
 	}
 
-	void IniFile::Load() 
+	void IniFile::Load()
 	{
-		if (m_FilePath.empty())
+		Load(m_FilePath, m_DefaultGroup);
+	}
+
+	void IniFile::Load(const std::string& p_Filepath, const std::string& p_DefaultGroup)
+	{
+		if (p_Filepath.empty())
 			return;
 
-		if (!FileSystem::Exists(m_FilePath))
+		if (!FileSystem::Exists(p_Filepath))
 			return;
 
-		auto fileString = FileSystem::ReadFile(m_FilePath);
+		auto fileString = FileSystem::ReadFile(p_Filepath);
 		auto lines = StringUtils::GetLines(fileString);
 
-		std::string currentGroup = m_DefaultGroup;
+		std::string currentGroup = p_DefaultGroup;
 
 		for (auto& line : lines)
 		{
@@ -124,6 +128,9 @@ namespace KTN
 			else if (IsValidLine(line)) 
 				RegisterPair(currentGroup, ExtractKeyAndValue(line));
 		}
+
+		m_FilePath = p_Filepath;
+		m_DefaultGroup = p_DefaultGroup;
 	}
 
 	std::pair<std::string, std::string> IniFile::ExtractKeyAndValue(const std::string& p_Line)

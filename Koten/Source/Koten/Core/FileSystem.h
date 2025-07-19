@@ -31,6 +31,9 @@ namespace KTN
 			static bool Exists(const std::string& p_Path);
 
 			static void CreateDirectories(const std::string& p_Path);
+			static void Copy(const std::string& p_Src, const std::string& p_Dest);
+			static void Rename(const std::string& p_Path, const std::string& p_Name);
+			static void Remove(const std::string& p_Path);
 	};
 
 } // namespace KTN

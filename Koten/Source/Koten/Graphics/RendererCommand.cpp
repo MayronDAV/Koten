@@ -77,7 +77,7 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		KTN_CORE_ASSERT(s_API);
-		if (Engine::GetSettings().MousePicking)
+		if (Engine::Get().GetSettings().MousePicking)
 			return s_API->ReadPixel(p_Texture, p_X, p_Y);
 
 		return nullptr;

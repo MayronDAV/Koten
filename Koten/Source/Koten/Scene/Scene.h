@@ -44,7 +44,7 @@ namespace KTN
 			void OnRenderRuntime();
 
 			void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
-			void SetViewportSize(uint32_t p_Width, uint32_t p_Height, bool p_Runtime = false);
+			void SetViewportSize(uint32_t p_Width, uint32_t p_Height);
 			void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
 
 			void Step(int p_Frames = 1);

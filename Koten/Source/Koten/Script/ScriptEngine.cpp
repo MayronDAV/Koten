@@ -231,7 +231,10 @@ namespace KTN
 
 		static void OnAppAssemblyFileSystemEvent(const std::string& p_Path, const filewatch::Event p_ChangeType)
 		{
-			if (!Engine::GetSettings().AutoRecompile)
+			if (!Engine::Get().GetSettings().AutoRecompile)
+				return;
+
+			if (p_Path.empty() || !FileSystem::Exists(p_Path))
 				return;
 
 			if (!s_Data->AssemblyReloadPending && (p_ChangeType == filewatch::Event::modified || p_ChangeType == filewatch::Event::added || p_ChangeType == filewatch::Event::removed))
@@ -368,13 +371,16 @@ namespace KTN
 
 		s_Data->AppAssemblyImage = mono_assembly_get_image(s_Data->AppAssembly);
 
-		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>((Project::GetAssetDirectory() / "Scripts").string(), OnAppAssemblyFileSystemEvent);
-		s_Data->AssemblyReloadPending = false;
+		std::string sourcePath = (Project::GetAssetDirectory() / "Scripts").string();
+		if (FileSystem::Exists(sourcePath) && Engine::Get().GetSettings().AutoRecompile)
+		{
+			s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>(sourcePath, OnAppAssemblyFileSystemEvent);
+			s_Data->AssemblyReloadPending = false;
+		}
 
 		LoadAssemblyClasses();
 		ScriptGlue::RegisterComponents();
 		s_Data->AppAssemblyPath = p_Path;
-
 		return true;
 	}
 
@@ -382,8 +388,14 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		auto outputDllPath = (Project::GetAssetDirectory() / "Scripts.dll");
+		auto outputDllPath = Project::GetAssetDirectory() / "Scripts.dll";
 		auto sourcePath = (Project::GetAssetDirectory() / "Scripts").string();
+
+		if (FileSystem::Exists(outputDllPath.string()))
+			return LoadAppAssembly(outputDllPath.string());
+
+		if (!FileSystem::Exists(sourcePath))
+			return false;
 
 		bool existsSourceFiles = false;
 		for (const auto& entry : std::filesystem::directory_iterator(sourcePath))
@@ -404,12 +416,42 @@ namespace KTN
 
 		s_Data->AppAssemblyImage = mono_assembly_get_image(s_Data->AppAssembly);
 
-		s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>(sourcePath, OnAppAssemblyFileSystemEvent);
-		s_Data->AssemblyReloadPending = false;
+		if (Engine::Get().GetSettings().AutoRecompile)
+		{
+			s_Data->AppAssemblyFileWatcher = CreateUnique<filewatch::FileWatch<std::string>>(sourcePath, OnAppAssemblyFileSystemEvent);
+			s_Data->AssemblyReloadPending = false;
+		}
 
 		LoadAssemblyClasses();
 		ScriptGlue::RegisterComponents();
 		s_Data->AppAssemblyPath = outputDllPath.string();
+		return true;
+	}
+
+	bool ScriptEngine::CompileScripts(const std::filesystem::path& p_SourcePath, const std::filesystem::path& p_OutFolder)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto outputDllPath = p_OutFolder / "Scripts.dll";
+		auto sourcePath = p_SourcePath.string();
+
+		if (!FileSystem::Exists(sourcePath))
+			return false;
+
+		bool existsSourceFiles = false;
+		for (const auto& entry : std::filesystem::directory_iterator(sourcePath))
+		{
+			if (entry.path().extension() == ".cs")
+			{
+				existsSourceFiles = true;
+				break;
+			}
+		}
+		if (!existsSourceFiles)
+			return false;
+
+		std::filesystem::create_directories(outputDllPath.parent_path());
+		CompileMonoScripts(sourcePath, outputDllPath.string(), "Resources/Scripts/Koten-ScriptCore.dll");
 		return true;
 	}
 

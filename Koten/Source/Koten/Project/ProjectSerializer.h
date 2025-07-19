@@ -12,6 +12,9 @@ namespace KTN
 			bool Serialize(const std::filesystem::path& p_Path);
 			bool Deserialize(const std::filesystem::path& p_Path);
 
+			bool SerializeRuntime(const std::filesystem::path& p_Path);
+			bool DeserializeRuntime(const std::filesystem::path& p_Path);
+
 		private:
 			Ref<Project> m_Project;
 	};

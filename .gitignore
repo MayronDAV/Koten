@@ -14,3 +14,5 @@ Koten/cpp.hint
 Makefile
 *.make
 *.ktfc
+*.ktbin
+*.ktap
