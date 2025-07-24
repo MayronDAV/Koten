@@ -154,6 +154,8 @@ namespace KTN
 
 	AssetHandle AssetManager::ImportAsset(const AssetMetadata& p_Metadata, bool p_Force)
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (auto handle = GetHandleByPath(p_Metadata.FilePath);
 			IsAssetHandleValid(handle) && !p_Force)
 		{
@@ -176,6 +178,31 @@ namespace KTN
 
 		KTN_CORE_ERROR("Failed to import asset: {}, {}", GetAssetTypeName(p_Metadata.Type), p_Metadata.FilePath);
 		return 0;
+	}
+
+	bool AssetManager::ImportAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Ref<Asset>& p_Asset)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		Ref<Asset> asset = p_Asset;
+		AssetHandle handle = p_Handle != 0 ? p_Handle : AssetHandle();
+		if (!asset)
+			asset = AssetImporter::ImportAsset(handle, p_Metadata);
+
+		if (asset)
+		{
+			asset->Handle = handle;
+			m_LoadedAssets[handle] = asset;
+			m_AssetRegistry[handle] = p_Metadata;
+			if (!m_IsLoadedAssetPack)
+				SerializeAssetRegistry();
+			else
+				m_NeedsToUpdate = true;
+			return true;
+		}
+
+		KTN_CORE_ERROR("Failed to import asset: {}, {}", GetAssetTypeName(p_Metadata.Type), p_Metadata.FilePath);
+		return false;
 	}
 
 	bool AssetManager::IsAssetHandleValid(AssetHandle p_Handle) const

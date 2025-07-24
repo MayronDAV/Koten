@@ -28,11 +28,19 @@ namespace KTN
 
 			AssetHandle ImportAsset(AssetType p_Type, const std::string& p_FilePath, bool p_Force = false);
 			AssetHandle ImportAsset(const AssetMetadata& p_Metadata, bool p_Force = false);
+			bool ImportAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Ref<Asset>& p_Asset = nullptr);
 
 			bool IsAssetHandleValid(AssetHandle p_Handle) const;
 			bool IsAssetLoaded(AssetHandle p_Handle) const;
 
 			Ref<Asset> GetAsset(AssetHandle p_Handle);
+			
+			template<typename T>
+			Ref<T> GetAsset(AssetHandle p_Handle)
+			{
+				return As<Asset, T>(GetAsset(p_Handle));
+			}
+
 			AssetHandle GetHandleByPath(const std::string& p_FilePath) const;
 			AssetType GetAssetType(AssetHandle p_Handle) const;
 			const AssetMetadata& GetMetadata(AssetHandle p_Handle) const;

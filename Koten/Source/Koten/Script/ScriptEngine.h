@@ -168,9 +168,6 @@ namespace KTN
 			static MonoImage* GetCoreAssemblyImage();
 
 			static MonoObject* GetManagedInstance(UUID p_UUID);
-
-			// TEMPORARY: REMOVE WHEN WE HAVE A SCENE MANAGER
-			static Scene* GetSceneContext();
 	};
 
 } // namespace KTN

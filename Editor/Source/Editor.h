@@ -27,8 +27,6 @@ namespace KTN
 			void SetSelectedEntt(Entity p_Entt) { m_SelectedEntt = p_Entt; }
 			void UnSelectEntt() { m_SelectedEntt = {}; }
 
-			void OpenScene(AssetHandle p_Handle);
-
 			void OnAttach() override;
 			void OnDetach() override;
 			void OnUpdate() override;
@@ -60,8 +58,6 @@ namespace KTN
 			void SaveSceneAs();
 
 		private:
-			Ref<Scene> m_ActiveScene = nullptr;
-
 			std::vector<Ref<EditorPanel>> m_Panels;
 			Ref<SettingsPanel> m_Settings = nullptr;
 			Ref<AssetImporterPanel> m_AssetImporter = nullptr;

@@ -18,28 +18,46 @@ namespace KTN
 
 		ImGui::Begin(m_Name.c_str(), &m_Active);
 
-		if (m_Context)
+		const auto& scenes = SceneManager::GetActiveScenes();
+		for (auto& scene : scenes)
 		{
-			m_Context->GetRegistry().view<TagComponent>().each(
-			[&](auto p_Entt, const TagComponent& p_Tag)
+			std::string name = FileSystem::GetStem(AssetManager::Get()->GetMetadata(scene->Handle).FilePath);
+			auto selectedScene = m_Editor->GetSelected().GetScene();
+			ImGui::PushID((void*)(uint64_t)scene->Handle);
+
+			ImGuiTreeNodeFlags flags = (selectedScene != nullptr && scene->Handle == selectedScene->Handle ? ImGuiTreeNodeFlags_Selected : 0)
+				| ImGuiTreeNodeFlags_OpenOnArrow;
+			flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding;
+
+			bool opened = ImGui::TreeNodeEx((void*)(uint64_t)scene->Handle, flags, name.c_str());
+
+			if (opened)
 			{
-				Entity entt{ p_Entt , m_Context.get() };
-				auto hierarchyComponent = entt.TryGetComponent<HierarchyComponent>();
-				bool draw = hierarchyComponent ? hierarchyComponent->Parent == entt::null : true;
-				if (draw)
-					DrawEnttNode(entt);
-			});
+				scene->GetRegistry().view<TagComponent>().each(
+				[&](auto p_Entt, const TagComponent& p_Tag)
+				{
+					Entity entt{ p_Entt , scene.get() };
+					auto hierarchyComponent = entt.TryGetComponent<HierarchyComponent>();
+					bool draw = hierarchyComponent ? hierarchyComponent->Parent == entt::null : true;
+					if (draw)
+						DrawEnttNode(entt);
+				});
 
-			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-				m_Editor->UnSelectEntt();
+				if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+					m_Editor->UnSelectEntt();
 
-			if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems | 1))
-			{
-				if (ImGui::MenuItem("Create Empty Entity"))
-					m_Context->CreateEntity("Empty Entity");
+				if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems | 1))
+				{
+					if (ImGui::MenuItem("Create Empty Entity"))
+						scene->CreateEntity("Empty Entity");
 
-				ImGui::EndPopup();
+					ImGui::EndPopup();
+				}
+
+				ImGui::TreePop();
 			}
+
+			ImGui::PopID();
 		}
 
 		ImGui::End();

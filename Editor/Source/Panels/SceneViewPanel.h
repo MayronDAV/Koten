@@ -1,5 +1,6 @@
 #pragma once
 #include "EditorPanel.h"
+#include "Koten/Graphics/Texture.h"
 
 // lib
 #include <imgui.h>
@@ -24,17 +25,10 @@ namespace KTN
 			void ToolWidget();
 			void UIWidget();
 
-			void TogglePause();
-			void Play();
-			void Simulate();
-			void Stop();
-
 		private:
 			Ref<Texture2D> m_MainTexture	= nullptr;
 			uint32_t m_Width				= 800;
 			uint32_t m_Height				= 600;
-
-			Ref<Scene> m_ActiveScene		= nullptr;
 
 			ImVec2 m_ViewportMinRegion;
 			ImVec2 m_ViewportMaxRegion;

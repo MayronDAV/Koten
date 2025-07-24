@@ -97,31 +97,15 @@ namespace KTN
 	
 	void Editor::Init()
 	{
+		SceneManagerConfig config{};
+		config.CopyScenesOnPlay = true;
+		SceneManager::Init(config);
+
 		Shortcuts::Init();
 	}
 
 	Editor::~Editor()
 	{
-	}
-	
-	void Editor::OpenScene(AssetHandle p_Handle)
-	{
-		KTN_PROFILE_FUNCTION();
-
-		auto asset = Project::GetActive()->GetAssetManager()->GetAsset(p_Handle);
-		if (!asset || asset->GetType() != AssetType::Scene)
-		{
-			KTN_CORE_ERROR("Invalid scene asset handle: {}", (uint64_t)p_Handle);
-			return;
-		}
-
-		UnSelectEntt();
-		m_ActiveScene = As<Asset, Scene>(asset);
-
-		for (auto& panel : m_Panels)
-		{
-			panel->SetContext(m_ActiveScene);
-		}
 	}
 
 	void Editor::OnAttach()
@@ -133,9 +117,6 @@ namespace KTN
 		m_Camera = CreateRef<EditorCamera>();
 
 		ImGuizmo::Init();
-
-		if (!m_ActiveScene)
-			m_ActiveScene = CreateRef<Scene>();
 
 		m_Settings = CreateRef<SettingsPanel>();
 		m_AssetImporter = CreateRef<AssetImporterPanel>();
@@ -153,7 +134,6 @@ namespace KTN
 
 		for (auto& panel : m_Panels)
 		{
-			panel->SetContext(m_ActiveScene);
 			panel->SetEditor(this);
 		}
 		
@@ -560,7 +540,8 @@ namespace KTN
 			auto& config = Project::GetActive()->GetConfig();
 			if (config.StartScene != 0)
 			{
-				OpenScene(config.StartScene);
+				UnSelectEntt();
+				SceneManager::Load(config.StartScene, LoadMode::Single);
 			}
 		}
 	}
@@ -648,22 +629,27 @@ namespace KTN
 			m_Settings->SetActive(true); // Maybe change this to toggle in the future
 	}
 
+
 	void Editor::OpenScene()
 	{
 		std::string path = "";
 		if (FileDialog::Open(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
 		{
 			AssetHandle handle = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
-			OpenScene(handle);
+			UnSelectEntt();
+			SceneManager::Load(handle, LoadMode::Single);
 		}
 	}
 
 	void Editor::SaveSceneAs()
 	{
+		if (SceneManager::GetConfig().Mode != LoadMode::Single)
+			return;
+
 		std::string path = "";
 		if (FileDialog::Save(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
 		{
-			SceneImporter::SaveScene(m_ActiveScene, path);
+			SceneManager::SaveAs(SceneManager::GetLoadedScenes().front()->Handle, path);
 		}
 	}
 

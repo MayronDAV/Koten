@@ -6,6 +6,7 @@
 #include "Koten/OS/Input.h"
 #include "Koten/OS/GamepadCodes.h"
 #include "Koten/Project/Project.h"
+#include "Koten/Scene/SceneManager.h"
 
 // lib
 #include <mono/metadata/object.h>
@@ -49,23 +50,23 @@ namespace KTN
 		#pragma region Entity
 		static bool Entity_HasComponent(UUID p_EntityID, MonoReflectionType* p_ComponentType)
 		{
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
 
 			MonoType* managedType = mono_reflection_type_get_type(p_ComponentType);
-			KTN_CORE_ASSERT(s_EntityHasComponentFuncs.find(managedType) != s_EntityHasComponentFuncs.end());
+			KTN_CORE_VERIFY(s_EntityHasComponentFuncs.find(managedType) != s_EntityHasComponentFuncs.end());
 			return s_EntityHasComponentFuncs.at(managedType)(entity);
 		}
 
 		static uint64_t Entity_GetEntityByTag(MonoString* p_Tag)
 		{
-			char* tagCStr = mono_string_to_utf8(p_Tag);
+			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByTag(tagCStr);
+			char* tagCStr = mono_string_to_utf8(p_Tag);
+			Entity entity = SceneManager::GetEntityByTag(tagCStr);
+			KTN_CORE_VERIFY(entity);
 			mono_free(tagCStr);
 			if (!entity)
 				return 0;
@@ -79,10 +80,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TransformComponent>());
 
 			*p_Result = entity.GetComponent<TransformComponent>().GetLocalTranslation();
 		}
@@ -91,10 +91,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TransformComponent>());
 
 			entity.GetComponent<TransformComponent>().SetLocalTranslation(*p_Value);
 		}
@@ -105,11 +104,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			return ScriptEngine::CreateString(tc.String.c_str());
@@ -119,11 +116,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			tc.String = MonoStringToString(p_String);
@@ -133,11 +128,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			std::string fontPath = MonoStringToString(p_Path);
@@ -146,7 +139,7 @@ namespace KTN
 			else
 			{
 				tc.Font = AssetManager::Get()->GetHandleByPath(fontPath);
-				KTN_CORE_ASSERT(tc.Font != 0, "Failed to load font from path: " + fontPath + ", Try importing the font first!");
+				KTN_CORE_VERIFY(tc.Font != 0, "Failed to load font from path: " + fontPath + ", Try importing the font first!");
 			}
 		}
 
@@ -154,11 +147,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			return ScriptEngine::CreateString(AssetManager::Get()->GetMetadata(tc.Font).FilePath.c_str());
@@ -168,11 +159,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			return ScriptEngine::CreateString(FileSystem::GetStem(AssetManager::Get()->GetMetadata(tc.Font).FilePath).c_str());
@@ -182,11 +171,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			*p_Color = tc.Color;
@@ -196,11 +183,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			tc.Color = *p_Color;
@@ -210,11 +195,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			*p_Color = tc.BgColor;
@@ -224,11 +207,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			tc.BgColor = *p_Color;
@@ -238,11 +219,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			*p_Color = tc.CharBgColor;
@@ -252,11 +231,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			tc.CharBgColor = *p_Color;
@@ -266,11 +243,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			return tc.DrawBg;
@@ -280,11 +255,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			tc.DrawBg = p_Enable;
@@ -294,11 +267,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			return tc.Kerning;
@@ -308,11 +279,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			tc.Kerning = p_Kerning;
@@ -322,11 +291,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			return tc.LineSpacing;
@@ -336,11 +303,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Scene* scene = ScriptEngine::GetSceneContext();
-			KTN_CORE_ASSERT(scene);
-			Entity entity = scene->GetEntityByUUID(p_EntityID);
-			KTN_CORE_ASSERT(entity);
-			KTN_CORE_ASSERT(entity.HasComponent<TextRendererComponent>());
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
 			auto& tc = entity.GetComponent<TextRendererComponent>();
 
 			tc.LineSpacing = p_LineSpacing;

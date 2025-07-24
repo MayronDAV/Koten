@@ -4,6 +4,7 @@
 #include "ScriptGlue.h"
 #include "Koten/Core/Application.h"
 #include "Koten/Project/Project.h"
+#include "Koten/Scene/SceneManager.h"
 
 // lib
 #include <mono/jit/jit.h>
@@ -63,8 +64,6 @@ namespace KTN
 			Unique<filewatch::FileWatch<std::string>> AppAssemblyFileWatcher;
 			bool AssemblyReloadPending = false;
 			bool IsRunning = false;
-
-			Scene* SceneContext = nullptr;
 
 			ScriptClass EntityClass;
 		};
@@ -246,10 +245,12 @@ namespace KTN
 					s_Data->AppAssemblyFileWatcher.reset();
 					ScriptEngine::RecompileAppAssembly();
 
-					if (s_Data->IsRunning && s_Data->SceneContext)
+					if (s_Data->IsRunning)
 					{
 						s_Data->EntityInstances.clear();
-						ScriptEngine::OnRuntimeStart(s_Data->SceneContext);
+						const auto& scenes = SceneManager::GetActiveScenes();
+						for (auto& scene : scenes)
+							ScriptEngine::OnRuntimeStart(scene.get());
 					}
 				});
 			}
@@ -460,7 +461,6 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		s_Data->IsRunning = true;
-		s_Data->SceneContext = p_Scene;
 
 		p_Scene->GetRegistry().view<TagComponent, ScriptComponent>().each(
 		[&](auto p_Entt, TagComponent& p_Tag, ScriptComponent& p_Sc)
@@ -487,8 +487,6 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		s_Data->IsRunning = false;
-		s_Data->SceneContext = nullptr;
-
 		s_Data->EntityInstances.clear();
 	}
 
@@ -658,11 +656,6 @@ namespace KTN
 		}
 
 		return s_Data->EntityInstances.at(p_UUID)->GetManagedObject();
-	}
-
-	Scene* ScriptEngine::GetSceneContext()
-	{
-		return s_Data->SceneContext;
 	}
 
 	#pragma endregion

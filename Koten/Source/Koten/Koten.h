@@ -94,6 +94,7 @@
 #include "Koten/Scene/SceneSerializer.h"
 #include "Koten/Scene/System.h"
 #include "Koten/Scene/SystemManager.h"
+#include "Koten/Scene/SceneManager.h"
 
 // UTILS
 

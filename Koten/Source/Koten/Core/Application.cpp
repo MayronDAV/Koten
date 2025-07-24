@@ -11,6 +11,7 @@
 #include "Koten/Graphics/Pipeline.h"
 #include "Koten/Graphics/Renderer.h"
 #include "Koten/Script/ScriptEngine.h"
+#include "Koten/Scene/SceneManager.h"
 
 
 
@@ -62,6 +63,8 @@ namespace KTN
 	Application::~Application()
 	{
 		KTN_PROFILE_FUNCTION();
+
+		SceneManager::Shutdown();
 
 		Renderer::Shutdown();
 

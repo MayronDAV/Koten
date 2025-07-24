@@ -1,6 +1,11 @@
 #pragma once
 #include "EditorPanel.h"
 
+// std
+#include <string>
+#include <functional>
+#include <unordered_map>
+#include <vector>
 
 
 namespace KTN

@@ -49,14 +49,13 @@ namespace KTN
 			{
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 				{
-					if (state == RuntimeState::Play)
-						Stop();
+					SceneManager::Stop();
 
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					auto filepath = std::filesystem::path(path);
 					if (filepath.extension() == ".ktscn")
 					{
-						m_Editor->OpenScene(AssetManager::Get()->ImportAsset(AssetType::Scene, filepath.string()));
+						SceneManager::Load(AssetManager::Get()->ImportAsset(AssetType::Scene, filepath.string()), LoadMode::Single);
 					}
 				}
 				ImGui::EndDragDropTarget();
@@ -90,10 +89,10 @@ namespace KTN
 						{
 							auto texture = Renderer::GetPickingTexture();
 							int id = static_cast<int>((intptr_t)RendererCommand::ReadPixel(texture, mouse.x, mouse.y));
-							if (id >= 0)
+							/*if (id >= 0)
 								m_Editor->SetSelectedEntt({ (entt::entity)id, m_Context.get() });
 							else
-								m_Editor->UnSelectEntt();
+								m_Editor->UnSelectEntt();*/
 						}
 					}
 				}
@@ -154,32 +153,17 @@ namespace KTN
 		m_MainTexture = Texture2D::Get(tspec);
 
 		auto state = m_Editor->GetState();
-
-		m_Context->SetRenderTarget(m_MainTexture);
-		if (state == RuntimeState::Edit)
+		if (state != RuntimeState::Play)
 		{
 			auto& camera = m_Editor->GetCamera();
 			camera->SetViewportSize(m_Width, m_Height);
 			Application::Get().GetImGui()->BlockEvents(m_HandleCameraEvents);
 			camera->SetHandleEvents(m_HandleCameraEvents);
-			m_Context->SetViewportSize(m_Width, m_Height);
-			m_Context->OnUpdate();
-		}
-		else if (state == RuntimeState::Play)
-		{
-			m_ActiveScene->SetViewportSize(m_Width, m_Height);
-			m_ActiveScene->OnUpdateRuntime();
-		}
-		else if (state == RuntimeState::Simulate)
-		{
-			auto& camera = m_Editor->GetCamera();
-			camera->SetViewportSize(m_Width, m_Height);
-			Application::Get().GetImGui()->BlockEvents(m_HandleCameraEvents);
-			camera->SetHandleEvents(m_HandleCameraEvents);
-			m_ActiveScene->SetViewportSize(m_Width, m_Height);
-			m_ActiveScene->OnUpdateSimulation();
 		}
 
+		SceneManager::SetRenderTarget(m_MainTexture);
+		SceneManager::SetViewportSize(m_Width, m_Height);
+		SceneManager::OnUpdate();
 
 		if (state == RuntimeState::Edit && !Input::IsMouseButtonPressed(Mouse::Button_Right))
 		{
@@ -200,7 +184,8 @@ namespace KTN
 
 			if (Shortcuts::IsActionPressed("Play"))
 			{
-				Play();
+				SceneManager::Play();
+				m_Editor->SetState(RuntimeState::Play);
 			}
 		}
 
@@ -208,7 +193,8 @@ namespace KTN
 		{
 			if (Shortcuts::IsActionPressed("Stop"))
 			{
-				Stop();
+				SceneManager::Stop();
+				m_Editor->SetState(RuntimeState::Edit);
 			}
 		}
 	}
@@ -217,23 +203,8 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		Renderer::Clear();
-
-		auto state = m_Editor->GetState();
-		if (state == RuntimeState::Edit)
-		{
-			auto& camera = m_Editor->GetCamera();
-			m_Context->OnRender(camera->GetProjection(), camera->GetView());
-		}
-		else if (state == RuntimeState::Simulate)
-		{
-			auto& camera = m_Editor->GetCamera();
-			m_ActiveScene->OnRender(camera->GetProjection(), camera->GetView());
-		}
-		else if (state == RuntimeState::Play)
-		{
-			m_ActiveScene->OnRenderRuntime();
-		}
+		auto& camera = m_Editor->GetCamera();
+		SceneManager::OnRender(camera->GetProjection(), camera->GetView());
 	}
 
 	void SceneViewPanel::ToolWidget()
@@ -371,7 +342,7 @@ namespace KTN
 		ImGuiContext& g = *GImGui;
 		const ImGuiStyle& style = g.Style;
 
-		bool isPaused = m_ActiveScene && m_ActiveScene->IsPaused();
+		bool isPaused = SceneManager::IsPaused();
 
 		auto widgetSize = ImVec2((isPaused ? 100.0f : 70.0f ) + (style.WindowPadding.x / 2.0f), 35.0f + (style.WindowPadding.y / 2.0f));
 
@@ -405,10 +376,11 @@ namespace KTN
 
 				if (ImGui::Button(icon.c_str()))
 				{
-					if (state == RuntimeState::Play)
-						Stop();
-					else if (state == RuntimeState::Edit)
-						Play();
+					if (state != RuntimeState::Play)
+						SceneManager::Play();
+					else
+						SceneManager::Stop();
+					m_Editor->SetState(state != RuntimeState::Play ? RuntimeState::Play : RuntimeState::Edit);
 				}
 
 				UI::Tooltip(state != RuntimeState::Play  ? "Play" : "Stop");
@@ -424,10 +396,11 @@ namespace KTN
 
 				if (ImGui::Button(icon.c_str()))
 				{
-					if (state == RuntimeState::Simulate)
-						Stop();
-					else if (state == RuntimeState::Edit)
-						Simulate();
+					if (state != RuntimeState::Simulate)
+						SceneManager::Simulate();
+					else
+						SceneManager::Stop();
+					m_Editor->SetState(state != RuntimeState::Simulate ? RuntimeState::Simulate : RuntimeState::Edit);
 				}
 
 				UI::Tooltip(state != RuntimeState::Simulate ? "Simulate" : "Stop");
@@ -440,7 +413,7 @@ namespace KTN
 				std::string icon = ICON_MDI_PAUSE;
 				if (ImGui::Button(icon.c_str()))
 				{
-					TogglePause();
+					SceneManager::Pause(!isPaused);
 				}
 
 				UI::Tooltip("Pause");
@@ -453,7 +426,7 @@ namespace KTN
 				std::string icon = ICON_MDI_STEP_FORWARD;
 				if (ImGui::Button(icon.c_str()))
 				{
-					m_ActiveScene->Step();
+					SceneManager::Step();
 				}
 
 				UI::Tooltip("Step");
@@ -462,54 +435,6 @@ namespace KTN
 			ImGui::PopStyleColor();
 		}
 		ImGui::End();
-	}
-
-	void SceneViewPanel::TogglePause()
-	{
-		KTN_PROFILE_FUNCTION();
-
-		bool paused = !m_ActiveScene->IsPaused();
-		m_ActiveScene->SetIsPaused(paused);
-	}
-
-	void SceneViewPanel::Play()
-	{
-		KTN_PROFILE_FUNCTION();
-
-		if (m_Editor->GetState() == RuntimeState::Play) return;
-
-		m_ActiveScene = Scene::Copy(m_Context);
-		m_ActiveScene->OnRuntimeStart();
-
-		m_Editor->SetState(RuntimeState::Play);
-	}
-
-	void SceneViewPanel::Simulate()
-	{
-		KTN_PROFILE_FUNCTION();
-
-		if (m_Editor->GetState() == RuntimeState::Simulate) return;
-
-		m_ActiveScene = Scene::Copy(m_Context);
-		m_ActiveScene->OnSimulationStart();
-
-		m_Editor->SetState(RuntimeState::Simulate);
-	}
-
-	void SceneViewPanel::Stop()
-	{
-		KTN_PROFILE_FUNCTION();
-
-		auto state = m_Editor->GetState();
-		if (state == RuntimeState::Edit) return;
-
-		if (state == RuntimeState::Play)
-			m_ActiveScene->OnRuntimeStop();
-		if (state == RuntimeState::Simulate)
-			m_ActiveScene->OnSimulationStop();
-		m_ActiveScene = nullptr;
-
-		m_Editor->SetState(RuntimeState::Edit);
 	}
 
 } // namespace KTN

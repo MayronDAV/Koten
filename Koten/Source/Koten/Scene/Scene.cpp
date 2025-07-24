@@ -69,6 +69,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		p_Dest->Handle = p_Src->Handle;
 		p_Dest->m_Width = p_Src->m_Width;
 		p_Dest->m_Height = p_Src->m_Height;
 		p_Dest->m_RenderTarget = p_Src->m_RenderTarget;

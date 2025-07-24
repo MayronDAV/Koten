@@ -14,7 +14,6 @@ namespace KTN
 	class RuntimeLayer : public Layer
 	{
 		private:
-			Ref<Scene> m_ActiveScene = nullptr;
 			Ref<AssetManager> m_AssetManager = nullptr;
 			Ref<Project> m_Project = nullptr;
 
@@ -23,6 +22,7 @@ namespace KTN
 			{
 				m_Project = Project::GetActive();
 				m_AssetManager = AssetManager::Create();
+				SceneManager::Init();
 			}
 
 			~RuntimeLayer() = default;
@@ -37,21 +37,17 @@ namespace KTN
 				KTN_VERIFY(success, "Failed to load asset pack!");
 
 				if (m_Project->GetConfig().StartScene != 0)
-					m_ActiveScene = As<Asset, Scene>(m_AssetManager->GetAsset(m_Project->GetConfig().StartScene));
-				else
-					m_ActiveScene = CreateRef<Scene>();
+					SceneManager::Load(m_Project->GetConfig().StartScene);
 
-				KTN_VERIFY(m_ActiveScene, "Failed to load active scene!");
-
-				m_ActiveScene->SetRenderTarget(nullptr);
-				m_ActiveScene->OnRuntimeStart();
+				SceneManager::SetRenderTarget(nullptr);
+				SceneManager::Play();
 			}
 
 			void OnDetach() override
 			{
 				KTN_PROFILE_FUNCTION();
 
-				m_ActiveScene->OnRuntimeStop();
+				SceneManager::Stop();
 			}
 
 			void OnUpdate() override
@@ -59,16 +55,15 @@ namespace KTN
 				KTN_PROFILE_FUNCTION();
 
 				auto& window = Application::Get().GetWindow();
-				m_ActiveScene->SetViewportSize(window->GetWidth(), window->GetHeight());
-				m_ActiveScene->OnUpdateRuntime();
+				SceneManager::SetViewportSize(window->GetWidth(), window->GetHeight());
+				SceneManager::OnUpdate();
 			}
 
 			void OnRender() override
 			{
 				KTN_PROFILE_FUNCTION();
 
-				Renderer::Clear();
-				m_ActiveScene->OnRenderRuntime();
+				SceneManager::OnRender();
 			}
 	};
 

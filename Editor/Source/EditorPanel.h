@@ -1,5 +1,4 @@
 #pragma once
-#include "Koten/Scene/Scene.h"
 
 // std
 #include <string>
@@ -18,7 +17,6 @@ namespace KTN
 
 			void SetEditor(Editor* p_Editor) { m_Editor = p_Editor; }
 			void SetActive(bool p_Active) { m_Active = p_Active; }
-			void SetContext(const Ref<Scene>& p_Context) { m_Context = p_Context; }
 
 			virtual void OnImgui() {}
 			virtual void OnUpdate() {}
@@ -31,7 +29,6 @@ namespace KTN
 		protected:
 			bool m_Active = true;
 			std::string m_Name;
-			Ref<Scene> m_Context = nullptr;
 
 			Editor* m_Editor = nullptr;
 	};

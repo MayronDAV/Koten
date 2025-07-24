@@ -529,16 +529,10 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (!m_Context)
-			return;
-
 		Entity selectedEntt = m_Editor->GetSelected();
-
 
 		ImGui::Begin(m_Name.c_str(), &m_Active);
 
-		// TODO: Change this to lock the imgui items instead of just not showing them
-		auto state = m_Editor->GetState();
 		if (selectedEntt)
 		{
 			auto& registry = selectedEntt.GetScene()->GetRegistry();
@@ -556,9 +550,10 @@ namespace KTN
 				if (UI::InputText("##InspectorNameChange", name))
 					selectedEntt.GetComponent<TagComponent>().Tag = name;
 
-				// for debugging, maybe create a variable to toggle this.
-				//auto id = (uint64_t)selectedEntt.GetUUID();
-				//UI::Tooltip(std::to_string(id).c_str());
+			#ifdef KTN_DEBUG
+				auto id = (uint64_t)selectedEntt.GetUUID();
+				UI::Tooltip(std::to_string(id).c_str());
+			#endif
 			}
 
 			ImGui::BeginChild("Components", ImVec2(0.0f, 0.0f), false, ImGuiWindowFlags_None);
