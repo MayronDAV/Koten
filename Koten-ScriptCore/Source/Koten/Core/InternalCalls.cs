@@ -14,6 +14,9 @@ namespace KTN
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static ulong Entity_GetEntityByTag(string p_Tag);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool Entity_IsValid(ulong p_UUID);
         #endregion
 
         #region TransformComponent

@@ -99,10 +99,7 @@ namespace KTN
 						if (m_First || m_ChangedTab)
 							m_Config = config;
 
-						if (UI::InputText("Name", config.Name, true, 0, 2.0f, true))
-						{
-							m_Config.Name = config.Name;
-						}
+						UI::InputText("Name", m_Config.Name, true, 0, 2.0f, true);
 
 						ImGui::Text("StartScene");
 						ImGui::SameLine();
@@ -242,9 +239,6 @@ namespace KTN
 		if (FileSystem::Exists((folder).string()))
 			FileSystem::Remove(folder.string());
 
-		FileSystem::CreateDirectories((folder / "Resources").string());
-		FileSystem::CreateDirectories((folder / m_Config.AssetDirectory).string());
-
 	#ifdef KTN_WINDOWS
 		FileSystem::Copy(FileSystem::GetAbsolute("Resources/Runtime/Runtime.exe"), folder.string());
 		FileSystem::Copy(FileSystem::GetAbsolute("Resources/Runtime/Koten.dll"), folder.string());
@@ -274,12 +268,8 @@ namespace KTN
 			if (m_Settings.AutoRecompile)
 				FileSystem::Copy(FileSystem::GetAbsolute("Mono"), (folder / "Mono").string());
 			else
-			{
-				FileSystem::CreateDirectories((folder / "Mono/lib").string());
 				FileSystem::Copy(FileSystem::GetAbsolute("Mono/lib"), (folder / "Mono/lib").string());
-			}
 
-			FileSystem::CreateDirectories((folder / "Resources/Scripts").string());
 			FileSystem::Copy(FileSystem::GetAbsolute("Resources/Scripts/Koten-ScriptCore.dll"), (folder / "Resources/Scripts").string());
 		}
 

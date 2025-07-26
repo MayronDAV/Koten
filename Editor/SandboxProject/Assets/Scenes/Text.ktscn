@@ -1,4 +1,4 @@
-Scene: 17710850997136546045
+Scene: 16295214029103593474
 Entities:
   - Entity: 17106511639760153886
     TagComponent:
@@ -10,7 +10,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [0, 1, 0.8744185, 1]
-      Texture: 17057033722069057403
+      Texture: 2566776566270304147
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]
@@ -231,7 +231,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [1, 1, 1, 1]
-      Texture: 13705870832924272369
+      Texture: 16725911295934914230
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]
@@ -418,7 +418,7 @@ Entities:
     SpriteComponent:
       Type: 0
       Color: [1, 1, 0, 1]
-      Texture: 5602120082929960371
+      Texture: 14741027536934809899
       Thickness: 1
       Fade: 0.005
       Size: [64, 64]
@@ -469,7 +469,7 @@ Entities:
       Scale: [1, 1, 1]
     TextRendererComponent:
       String: ""
-      Font: 601977210191106002
+      Font: 12271434598275799779
       Color: [1, 1, 1, 1]
       BgColor: [1, 0, 0, 1]
       CharBgColor: [0, 0, 0, 0]

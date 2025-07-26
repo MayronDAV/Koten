@@ -138,6 +138,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		std::filesystem::create_directories(p_Dest);
 		std::filesystem::copy(p_Src, p_Dest, std::filesystem::copy_options::overwrite_existing | std::filesystem::copy_options::recursive);
 	}
 

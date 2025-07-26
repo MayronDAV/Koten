@@ -50,8 +50,6 @@ namespace KTN
 		AddDependency<TextRendererComponent, TransformComponent>(m_Registry);
 		AddDependency<CameraComponent, TransformComponent>(m_Registry);
 		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
-		AddDependency<BoxCollider2DComponent, Rigidbody2DComponent>(m_Registry);
-		AddDependency<CircleCollider2DComponent, Rigidbody2DComponent>(m_Registry);
 
 		m_SystemManager = CreateUnique<SystemManager>();
 		// TODO: A way to add/remove this and other systems at runtime with script or an option

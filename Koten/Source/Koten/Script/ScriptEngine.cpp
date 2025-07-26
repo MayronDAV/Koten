@@ -233,14 +233,11 @@ namespace KTN
 			if (!Engine::Get().GetSettings().AutoRecompile)
 				return;
 
-			if (p_Path.empty() || !FileSystem::Exists(p_Path))
-				return;
-
 			if (!s_Data->AssemblyReloadPending && (p_ChangeType == filewatch::Event::modified || p_ChangeType == filewatch::Event::added || p_ChangeType == filewatch::Event::removed))
 			{
 				s_Data->AssemblyReloadPending = true;
 
-				Application::Get().SubmitToMainThread([]()
+				Application::Get().SubmitToMainThread([&]()
 				{
 					s_Data->AppAssemblyFileWatcher.reset();
 					ScriptEngine::RecompileAppAssembly();
@@ -248,8 +245,7 @@ namespace KTN
 					if (s_Data->IsRunning)
 					{
 						s_Data->EntityInstances.clear();
-						const auto& scenes = SceneManager::GetActiveScenes();
-						for (auto& scene : scenes)
+						for (auto& scene : SceneManager::GetActiveScenes())
 							ScriptEngine::OnRuntimeStart(scene.get());
 					}
 				});
@@ -385,14 +381,14 @@ namespace KTN
 		return true;
 	}
 
-	bool ScriptEngine::CompileLoadAppAssembly()
+	bool ScriptEngine::CompileLoadAppAssembly(bool p_ForceCompile)
 	{
 		KTN_PROFILE_FUNCTION();
 
 		auto outputDllPath = Project::GetAssetDirectory() / "Scripts.dll";
 		auto sourcePath = (Project::GetAssetDirectory() / "Scripts").string();
 
-		if (FileSystem::Exists(outputDllPath.string()))
+		if (!p_ForceCompile && FileSystem::Exists(outputDllPath.string()))
 			return LoadAppAssembly(outputDllPath.string());
 
 		if (!FileSystem::Exists(sourcePath))
@@ -537,7 +533,7 @@ namespace KTN
 			return;
 		}
 
-		status = CompileLoadAppAssembly();
+		status = CompileLoadAppAssembly(true);
 		if (!status)
 		{
 			KTN_CORE_ERROR("[ScriptEngine] Could not compile scripts!");
@@ -725,6 +721,30 @@ namespace KTN
 
 		if (m_OnUpdateMethod)
 			m_ScriptClass->InvokeMethod(m_Instance, m_OnUpdateMethod);
+	}
+
+	void ScriptInstance::TryInvokeMethod(const std::string& p_MethodName, int p_Count, void** p_Params)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto method = m_ScriptClass->GetMethod(p_MethodName, p_Count);
+		if (method)
+			m_ScriptClass->InvokeMethod(m_Instance, method, p_Params);
+	}
+
+	void ScriptInstance::TryInvokeParentMethod(const std::string& p_MethodName, int p_Count, void** p_Params)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		MonoClass* currentClass = mono_object_get_class(m_Instance);
+		MonoClass* parentClass = mono_class_get_parent(currentClass);
+
+		if (parentClass) 
+		{
+			MonoMethod* method = mono_class_get_method_from_name(parentClass, p_MethodName.c_str(), p_Count);
+			if (method)
+				m_ScriptClass->InvokeMethod(m_Instance, method, p_Params);
+		}
 	}
 
 	bool ScriptInstance::GetFieldValueInternal(const std::string& p_Name, void* p_Buffer)

@@ -211,10 +211,21 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (Project::GetActive()->IsRuntime())
-			return AssetManager::Get()->ImportAsset(AssetType::Font, Project::GetAssetFileSystemPath("Fonts/Arial/Arial Regular.ttf").string());
-		else
-			return AssetManager::Get()->ImportAsset(AssetType::Font, FileSystem::GetAbsolute("Assets/Fonts/Arial/Arial Regular.ttf"));
+		auto path = Project::GetAssetFileSystemPath("Fonts/Arial/Arial Regular.ttf").string();
+		if (!AssetManager::Get()->HasAsset(AssetType::Font, path))
+		{
+			FileSystem::Copy(FileSystem::GetAbsolute("Assets/Fonts/Arial"), Project::GetAssetFileSystemPath("Fonts/Arial").string());
+
+			auto font = AssetManager::Get()->ImportAsset(AssetType::Font, path);
+			if (!font)
+			{
+				KTN_CORE_ERROR(KTN_FONTLOG "Failed to import default font: {}", path);
+				return AssetHandle();
+			}
+			return font;
+		}
+
+		return AssetManager::Get()->GetHandleByPath(path);
 	}
 
 	Ref<DFFont> DFFont::LoadFont(AssetHandle p_Handle, const std::string& p_Font, const DFFontConfig& p_Config)
@@ -224,7 +235,7 @@ namespace KTN
 		font->LoadFontImpl(p_Font, p_Config);
 		if (!font->GetAtlasTexture())
 		{
-			KTN_CORE_ERROR("Failed to load font from path: {}", p_Font);
+			KTN_CORE_ERROR(KTN_FONTLOG "Failed to load font from path: {}", p_Font);
 			return nullptr;
 		}
 

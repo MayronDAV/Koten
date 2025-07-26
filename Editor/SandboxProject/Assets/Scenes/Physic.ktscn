@@ -24,6 +24,7 @@ Entities:
       Type: 1
       FixedRotation: false
     BoxCollider2DComponent:
+      IsTrigger: false
       Offset: [0, 0]
       Size: [0.5, 0.5]
       Density: 1
@@ -54,6 +55,7 @@ Entities:
       Type: 0
       FixedRotation: false
     BoxCollider2DComponent:
+      IsTrigger: false
       Offset: [0, 0]
       Size: [0.5, 0.5]
       Density: 1

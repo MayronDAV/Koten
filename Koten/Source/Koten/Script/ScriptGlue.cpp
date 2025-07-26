@@ -73,6 +73,15 @@ namespace KTN
 
 			return entity.GetUUID();
 		}
+
+		static bool Entity_IsValid(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			return entity ? true : false;
+		}
+
 		#pragma	endregion
 
 		#pragma region TransformComponent
@@ -473,6 +482,7 @@ namespace KTN
 
 		KTN_ADD_INTERNAL_CALL(Entity_HasComponent);
 		KTN_ADD_INTERNAL_CALL(Entity_GetEntityByTag);
+		KTN_ADD_INTERNAL_CALL(Entity_IsValid);
 
 		KTN_ADD_INTERNAL_CALL(TransformComponent_GetLocalTranslation);
 		KTN_ADD_INTERNAL_CALL(TransformComponent_SetLocalTranslation);

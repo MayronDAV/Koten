@@ -91,6 +91,8 @@ namespace KTN
 
 			void InvokeOnCreate();
 			void InvokeOnUpdate();
+			void TryInvokeMethod(const std::string& p_MethodName, int p_Count = 0, void** p_Params = nullptr);
+			void TryInvokeParentMethod(const std::string& p_MethodName, int p_Count = 0, void** p_Params = nullptr);
 
 			Ref<ScriptClass> GetScriptClass() { return m_ScriptClass; }
 
@@ -144,7 +146,7 @@ namespace KTN
 
 			static bool LoadAssembly(const std::string& p_Path);
 			static bool LoadAppAssembly(const std::string& p_Path);
-			static bool CompileLoadAppAssembly();
+			static bool CompileLoadAppAssembly(bool p_ForceCompile = false);
 			static bool CompileScripts(const std::filesystem::path& p_SourcePath, const std::filesystem::path& p_OutFolder);
 
 			static void OnRuntimeStart(Scene* p_Scene);

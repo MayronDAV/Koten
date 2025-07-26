@@ -1,34 +1,25 @@
 AssetRegistry:
-  - Handle: 601977210191106002
-    FilePath: ..\..\Assets\Fonts\Arial\Arial Regular.ttf
-    Type: Font
-  - Handle: 5602120082929960371
-    FilePath: Textures\RPGpack_sheet.png
+  - Handle: 2566776566270304147
+    FilePath: Textures\checkerboard.png
     Type: Texture2D
-  - Handle: 6569518837515245836
-    FilePath: Scenes\Example1.ktscn
-    Type: Scene
-  - Handle: 8027383907209067263
-    FilePath: Scenes\Hierarchy.ktscn
-    Type: Scene
-  - Handle: 8465558746731536257
-    FilePath: Scenes\Physic.ktscn
-    Type: Scene
-  - Handle: 8609949650844146580
+  - Handle: 12271434598275799779
+    FilePath: Fonts\Arial\Arial Regular.ttf
+    Type: Font
+  - Handle: 13328075287831622885
     FilePath: Scenes\Example.ktscn
     Type: Scene
-  - Handle: 13705870832924272369
-    FilePath: Textures\wall.jpg
+  - Handle: 14741027536934809899
+    FilePath: Textures\RPGpack_sheet.png
     Type: Texture2D
-  - Handle: 14576886594084260491
-    FilePath: Scenes\Script.ktscn
+  - Handle: 14825518371462149883
+    FilePath: Scenes\Hierarchy.ktscn
     Type: Scene
-  - Handle: 16051340907548087114
+  - Handle: 15556688609004031601
+    FilePath: Scenes\Example2.ktscn
+    Type: Scene
+  - Handle: 16295214029103593474
     FilePath: Scenes\Text.ktscn
     Type: Scene
-  - Handle: 16554009943220979286
-    FilePath: Textures\RPGpack_sheet_2X.png
-    Type: Texture2D
-  - Handle: 17057033722069057403
-    FilePath: Textures\checkerboard.png
+  - Handle: 16725911295934914230
+    FilePath: Textures\wall.jpg
     Type: Texture2D

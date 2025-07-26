@@ -51,7 +51,15 @@ namespace KTN
 			return new Entity(entityID);
 		}
 
-		public T As<T>() where T : Entity, new()
+		public Entity GetEntityByUUID(ulong p_UUID)
+		{
+			if (InternalCalls.Entity_IsValid(p_UUID))
+				return new Entity(p_UUID);
+
+			return null;
+        }
+
+        public T As<T>() where T : Entity, new()
 		{
 			object instance = InternalCalls.GetScriptInstance(ID);
 			return instance as T;

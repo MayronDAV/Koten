@@ -409,7 +409,6 @@ namespace KTN
 				return entt;
 		}
 
-		KTN_CORE_ERROR("This UUID doesn't exist!");
 		return Entity();
 	}
 

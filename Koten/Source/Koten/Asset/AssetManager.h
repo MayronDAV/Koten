@@ -32,6 +32,7 @@ namespace KTN
 
 			bool IsAssetHandleValid(AssetHandle p_Handle) const;
 			bool IsAssetLoaded(AssetHandle p_Handle) const;
+			bool HasAsset(AssetType p_Type, const std::string& p_FilePath) const;
 
 			Ref<Asset> GetAsset(AssetHandle p_Handle);
 			

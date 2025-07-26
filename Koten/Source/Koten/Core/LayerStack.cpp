@@ -16,6 +16,17 @@ namespace KTN
 		m_Layers.clear();
 	}
 
+	void LayerStack::Clear()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		for (const Ref<Layer>& layer : m_Layers)
+			layer->OnDetach();
+
+		m_Layers.clear();
+		m_LayerInsertIndex = 0;
+	}
+
 	void LayerStack::PushLayer(const Ref<Layer>& p_Layer)
 	{
 		KTN_PROFILE_FUNCTION();

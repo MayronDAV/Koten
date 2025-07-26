@@ -343,6 +343,7 @@ namespace KTN
 			p_Out << YAML::BeginMap;
 
 			auto& comp = p_Entity.GetComponent<BoxCollider2DComponent>();
+			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
 			ADD_KEY_VALUE("Offset", comp.Offset);
 			ADD_KEY_VALUE("Size", comp.Size);
 			ADD_KEY_VALUE("Density", comp.Density);
@@ -365,6 +366,7 @@ namespace KTN
 
 			auto& comp = p_Entity.GetComponent<CircleCollider2DComponent>();
 
+			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
 			ADD_KEY_VALUE("Offset", comp.Offset);
 			ADD_KEY_VALUE("Radius", comp.Radius);
 			ADD_KEY_VALUE("Density", comp.Density);
@@ -624,6 +626,7 @@ namespace KTN
 
 			auto& comp = p_Entity.AddOrReplaceComponent<BoxCollider2DComponent>();
 
+			comp.IsTrigger = boxComp["IsTrigger"].as<bool>();
 			comp.Offset = boxComp["Offset"].as<glm::vec2>();
 			comp.Size = boxComp["Size"].as<glm::vec2>();
 			comp.Density = boxComp["Density"].as<float>();
@@ -642,6 +645,7 @@ namespace KTN
 
 			auto& comp = p_Entity.AddOrReplaceComponent<CircleCollider2DComponent>();
 
+			comp.IsTrigger = circleComp["IsTrigger"].as<bool>();
 			comp.Offset = circleComp["Offset"].as<glm::vec2>();
 			comp.Radius = circleComp["Radius"].as<float>();
 			comp.Density = circleComp["Density"].as<float>();

@@ -365,6 +365,8 @@ namespace KTN
 			DrawComponent<BoxCollider2DComponent>("BoxCollider2D", p_Entity,
 			[](BoxCollider2DComponent& p_Box)
 			{
+				ImGui::Checkbox("Is Trigger", &p_Box.IsTrigger);
+
 				UI::InputFloat2("Offset", p_Box.Offset);
 				UI::InputFloat2("Size", p_Box.Size, 0.5f);
 
@@ -381,6 +383,8 @@ namespace KTN
 			DrawComponent<CircleCollider2DComponent>("CircleCollider2D", p_Entity,
 			[](CircleCollider2DComponent& p_Circle)
 			{
+				ImGui::Checkbox("Is Trigger", &p_Circle.IsTrigger);
+
 				UI::InputFloat2("Offset", p_Circle.Offset);
 				ImGui::InputFloat("Radius", &p_Circle.Radius);
 

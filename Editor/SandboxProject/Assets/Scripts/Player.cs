@@ -19,6 +19,33 @@ namespace Sandbox
 			m_Transform = GetComponent<Transform>();
 		}
 
+		void OnTriggerEnter(ulong p_Sensor)
+		{
+			Console.WriteLine($"Player.OnTriggerBegin: {p_Sensor}");
+		}
+
+		void OnTriggerStay(ulong p_Sensor)
+		{
+			Entity sensorEntity = GetEntityByUUID(p_Sensor);
+			if (sensorEntity == null)
+			{
+				Console.WriteLine($"Player.OnTriggerStay: Sensor entity not found for UUID {p_Sensor}");
+				return;
+			}
+
+			Console.WriteLine($"Player.OnTriggerStay: {sensorEntity.ID}");
+			if (sensorEntity.HasComponent<Transform>())
+			{
+				Vector3 sensorTranslation = sensorEntity.GetComponent<Transform>().LocalTranslation;
+				Console.WriteLine($"Sensor.LocalTranslation: vec3({sensorTranslation.X}, {sensorTranslation.Y}, {sensorTranslation.Z})");
+			}
+		}
+
+		void OnCollisionEnter(ulong p_Collider)
+		{
+			Console.WriteLine($"Player.OnCollisionEnter: {p_Collider}");
+		}
+
 		void OnUpdate()
 		{
 			// Console.WriteLine($"Player.OnUpdate: {ts}");

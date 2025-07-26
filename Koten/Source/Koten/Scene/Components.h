@@ -141,6 +141,8 @@ namespace KTN
 
 	struct BoxCollider2DComponent
 	{
+		bool IsTrigger = false;
+
 		glm::vec2 Offset = { 0.0f, 0.0f };
 		glm::vec2 Size = { 0.5f, 0.5f };
 
@@ -155,6 +157,8 @@ namespace KTN
 
 	struct CircleCollider2DComponent
 	{
+		bool IsTrigger = false;
+
 		glm::vec2 Offset = { 0.0f, 0.0f };
 		float Radius = 0.5f;
 

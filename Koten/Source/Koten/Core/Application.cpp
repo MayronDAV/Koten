@@ -64,6 +64,8 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		m_LayerStack.Clear();
+
 		SceneManager::Shutdown();
 
 		Renderer::Shutdown();

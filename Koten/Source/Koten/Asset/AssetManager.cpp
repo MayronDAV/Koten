@@ -102,11 +102,10 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		auto it = std::find_if(m_AssetRegistry.begin(), m_AssetRegistry.end(),
-			[&p_FilePath](const auto& p_Pair)
-			{
-				return p_Pair.second.FilePath == p_FilePath;
-			}
-		);
+		[&p_FilePath](const auto& p_Pair)
+		{
+			return p_Pair.second.FilePath == p_FilePath;
+		});
 
 		return (it != m_AssetRegistry.end()) ? it->first : (AssetHandle)0;
 	}
@@ -217,6 +216,17 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		return p_Handle != 0 && m_LoadedAssets.find(p_Handle) != m_LoadedAssets.end();
+	}
+
+	bool AssetManager::HasAsset(AssetType p_Type, const std::string& p_FilePath) const
+	{
+		auto it = std::find_if(m_AssetRegistry.begin(), m_AssetRegistry.end(),
+		[&p_Type, &p_FilePath](const auto& p_Pair)
+		{
+			return p_Pair.second.Type == p_Type && p_Pair.second.FilePath == p_FilePath;
+		});
+
+		return it != m_AssetRegistry.end();
 	}
 
 	const AssetMetadata& AssetManager::GetMetadata(AssetHandle p_Handle) const
@@ -910,6 +920,7 @@ namespace KTN
 
 			auto& comp = p_Entity.GetComponent<BoxCollider2DComponent>();
 
+			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Offset), sizeof(comp.Offset));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Size), sizeof(comp.Size));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Density), sizeof(comp.Density));
@@ -929,6 +940,7 @@ namespace KTN
 
 			auto& comp = p_Entity.GetComponent<CircleCollider2DComponent>();
 
+			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Offset), sizeof(comp.Offset));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Radius), sizeof(comp.Radius));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Density), sizeof(comp.Density));
@@ -1201,6 +1213,7 @@ namespace KTN
 
 			auto& comp = p_Entity.AddOrReplaceComponent<BoxCollider2DComponent>();
 
+			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
 			p_In.read(reinterpret_cast<char*>(&comp.Size), sizeof(comp.Size));
 			p_In.read(reinterpret_cast<char*>(&comp.Density), sizeof(comp.Density));
@@ -1219,6 +1232,7 @@ namespace KTN
 
 			auto& comp = p_Entity.AddOrReplaceComponent<CircleCollider2DComponent>();
 
+			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
 			p_In.read(reinterpret_cast<char*>(&comp.Radius), sizeof(comp.Radius));
 			p_In.read(reinterpret_cast<char*>(&comp.Density), sizeof(comp.Density));
