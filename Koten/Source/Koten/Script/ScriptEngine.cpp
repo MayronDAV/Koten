@@ -643,6 +643,11 @@ namespace KTN
 		return s_Data->CoreAssemblyImage;
 	}
 
+	MonoDomain* ScriptEngine::GetAppDomain()
+	{
+		return s_Data->AppDomain;
+	}
+
 	MonoObject* ScriptEngine::GetManagedInstance(UUID p_UUID)
 	{
 		if (s_Data->EntityInstances.find(p_UUID) == s_Data->EntityInstances.end())

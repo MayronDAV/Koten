@@ -11,6 +11,8 @@
 // lib
 #include <mono/metadata/object.h>
 #include <mono/metadata/reflection.h>
+#include <mono/jit/jit.h>
+#include <mono/metadata/assembly.h>
 
 
 
@@ -22,11 +24,14 @@ namespace KTN
 
 		std::string MonoStringToString(MonoString* p_String)
 		{
+			KTN_PROFILE_FUNCTION_LOW();
+
 			char* cStr = mono_string_to_utf8(p_String);
 			std::string str(cStr);
 			mono_free(cStr);
 			return str;
 		}
+
 
 		#define KTN_ADD_INTERNAL_CALL(Name) mono_add_internal_call("KTN.InternalCalls::" #Name, Name)
 
@@ -83,6 +88,136 @@ namespace KTN
 		}
 
 		#pragma	endregion
+
+		#pragma region SceneManager
+
+		static int SceneManager_GetConfigLoadMode()
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			return (int)SceneManager::GetConfig().Mode;
+		}
+
+		static void SceneManager_SetConfigLoadMode(int p_LoadMode)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			SceneManager::GetConfig().Mode = (LoadMode)p_LoadMode;
+		}
+
+		static bool SceneManager_LoadSceneByPath(MonoString* p_ScenePath, int p_Mode)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto str = MonoStringToString(p_ScenePath);
+			auto path = Project::GetAssetFileSystemPath(str).string();
+
+			auto handle = AssetManager::Get()->GetHandleByPath(path);
+
+			return SceneManager::Load(handle, (LoadMode)p_Mode, true);
+		}
+
+		static bool SceneManager_LoadScene(AssetHandle p_SceneHandle, int p_Mode)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			return SceneManager::Load(p_SceneHandle, (LoadMode)p_Mode, true);
+		}
+
+		static void SceneManager_LoadSceneAsyncByPath(MonoString* p_ScenePath, int p_Mode)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto str = MonoStringToString(p_ScenePath);
+			auto path = Project::GetAssetFileSystemPath(str).string();
+			auto handle = AssetManager::Get()->GetHandleByPath(path);
+
+			SceneManager::LoadAsync(handle, (LoadMode)p_Mode);
+		}
+
+		static void SceneManager_LoadSceneAsync(AssetHandle p_SceneHandle, int p_Mode)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			SceneManager::LoadAsync(p_SceneHandle, (LoadMode)p_Mode);
+		}
+
+		static void SceneManager_UnloadSceneByPath(MonoString* p_ScenePath)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto str = MonoStringToString(p_ScenePath);
+			auto path = Project::GetAssetFileSystemPath(str).string();
+
+			auto handle = AssetManager::Get()->GetHandleByPath(path);
+			SceneManager::Unload(handle, true);
+		}
+
+		static void SceneManager_UnloadScene(AssetHandle p_SceneHandle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			SceneManager::Unload(p_SceneHandle, true);
+		}
+
+		static void SceneManager_Pause(bool p_Value)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			SceneManager::Pause(p_Value);
+		}
+
+		static bool SceneManager_IsPaused()
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			return SceneManager::IsPaused();
+		}
+
+		#pragma endregion
+
+		#pragma region Scene
+
+		static void Scene_Pause(AssetHandle p_Handle, bool p_Value)
+		{
+			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
+			KTN_CORE_VERIFY(scene, "Scene is nullptr!");
+
+			scene->SetIsPaused(p_Value);
+		}
+
+		static bool Scene_IsPaused(AssetHandle p_Handle)
+		{
+			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
+			KTN_CORE_VERIFY(scene, "Scene is nullptr!");
+
+			return scene->IsPaused();
+		}
+
+		static bool Scene_IsEntityValid(AssetHandle p_Handle, UUID p_EntityID)
+		{
+			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
+			KTN_CORE_VERIFY(scene, "Scene is nullptr!");
+
+			if (p_EntityID == 0) return false;
+
+			auto entt = scene->GetEntityByUUID(p_EntityID);
+
+			return entt ? true : false;
+		}
+
+		static UUID Scene_GetEntityByTag(AssetHandle p_Handle, MonoString* p_Tag)
+		{
+			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
+			KTN_CORE_VERIFY(scene, "Scene is nullptr!");
+
+			auto str = MonoStringToString(p_Tag);
+			auto entt = scene->GetEntityByTag(str);
+
+			return entt ? entt.GetUUID() : UUID(0);
+		}
+
+		#pragma endregion
 
 		#pragma region TransformComponent
 		static void TransformComponent_GetLocalTranslation(UUID p_EntityID, glm::vec3* p_Result)
@@ -483,6 +618,23 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(Entity_HasComponent);
 		KTN_ADD_INTERNAL_CALL(Entity_GetEntityByTag);
 		KTN_ADD_INTERNAL_CALL(Entity_IsValid);
+
+		KTN_ADD_INTERNAL_CALL(SceneManager_GetConfigLoadMode);
+		KTN_ADD_INTERNAL_CALL(SceneManager_SetConfigLoadMode);
+		KTN_ADD_INTERNAL_CALL(SceneManager_LoadSceneByPath);
+		KTN_ADD_INTERNAL_CALL(SceneManager_LoadScene);
+		KTN_ADD_INTERNAL_CALL(SceneManager_LoadSceneAsyncByPath);
+		KTN_ADD_INTERNAL_CALL(SceneManager_LoadSceneAsync);
+		KTN_ADD_INTERNAL_CALL(SceneManager_UnloadSceneByPath);
+		KTN_ADD_INTERNAL_CALL(SceneManager_UnloadScene);
+		KTN_ADD_INTERNAL_CALL(SceneManager_Pause);
+		KTN_ADD_INTERNAL_CALL(SceneManager_IsPaused);
+
+		KTN_ADD_INTERNAL_CALL(Scene_Pause);
+		KTN_ADD_INTERNAL_CALL(Scene_IsPaused);
+		KTN_ADD_INTERNAL_CALL(Scene_IsEntityValid);
+		KTN_ADD_INTERNAL_CALL(Scene_GetEntityByTag);
+		KTN_ADD_INTERNAL_CALL(Scene_GetEntityByTag);
 
 		KTN_ADD_INTERNAL_CALL(TransformComponent_GetLocalTranslation);
 		KTN_ADD_INTERNAL_CALL(TransformComponent_SetLocalTranslation);

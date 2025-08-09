@@ -2,6 +2,7 @@
 #include "Scene.h"
 
 
+
 namespace KTN
 {
 	enum class LoadMode
@@ -34,9 +35,11 @@ namespace KTN
 			static void OnUpdate();
 			static void OnRender(const glm::mat4& p_Projection = glm::mat4(1.0f), const glm::mat4& p_View = glm::mat4(1.0f), const glm::vec4& p_ClearColor = {0.0f, 0.0f, 0.0f, 1.0f});
 
-			static bool Load(AssetHandle p_Handle) { return Load(p_Handle, GetConfig().Mode); }
-			static bool Load(AssetHandle p_Handle, LoadMode p_Mode);
-			static void Unload(AssetHandle p_Handle);
+			static bool Load(AssetHandle p_Handle, bool p_ThreadSafe = false) { return Load(p_Handle, GetConfig().Mode, p_ThreadSafe); }
+			static bool Load(AssetHandle p_Handle, LoadMode p_Mode, bool p_ThreadSafe = false);
+			static void LoadAsync(AssetHandle p_Handle) { LoadAsync(p_Handle, GetConfig().Mode); }
+			static void LoadAsync(AssetHandle p_Handle, LoadMode p_Mode);
+			static void Unload(AssetHandle p_Handle, bool p_ThreadSafe = false);
 
 			static AssetHandle New();
 			static bool Save(AssetHandle p_Handle);
@@ -48,6 +51,13 @@ namespace KTN
 			static Entity GetEntityByUUID(UUID p_UUID);
 			static Entity GetEntityByTag(const std::string& p_Tag);
 			static SceneManagerConfig& GetConfig();
+
+		private:
+			static bool ExecuteLoadOperation(AssetHandle p_Handle, LoadMode p_Mode);
+
+			static void UpdateQueue();
+
+			friend class Application;
 	};
 
 

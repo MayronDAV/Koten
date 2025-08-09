@@ -13,6 +13,7 @@ extern "C" {
 	typedef struct _MonoImage MonoImage;
 	typedef struct _MonoClassField MonoClassField;
 	typedef struct _MonoString MonoString;
+	typedef struct _MonoDomain MonoDomain;
 }
 
 namespace KTN
@@ -168,6 +169,7 @@ namespace KTN
 			static const std::unordered_map<std::string, Ref<ScriptClass>>& GetEntityClasses();
 			static const std::unordered_map<UUID, Ref<ScriptInstance>>& GetEntityInstances();
 			static MonoImage* GetCoreAssemblyImage();
+			static MonoDomain* GetAppDomain();
 
 			static MonoObject* GetManagedInstance(UUID p_UUID);
 	};

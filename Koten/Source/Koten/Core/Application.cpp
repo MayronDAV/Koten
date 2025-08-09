@@ -25,6 +25,7 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		s_Instance = this;
+
 		Engine::Init();
 		
 		Engine::Get().LoadSettings();
@@ -81,6 +82,7 @@ namespace KTN
 		RendererCommand::Release();
 
 		Engine::Shutdown();
+
 		s_Instance = nullptr;
 	}
 
