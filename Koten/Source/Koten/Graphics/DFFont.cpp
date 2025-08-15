@@ -214,13 +214,16 @@ namespace KTN
 		auto path = Project::GetAssetFileSystemPath("Fonts/Arial/Arial Regular.ttf").string();
 		if (!AssetManager::Get()->HasAsset(AssetType::Font, path))
 		{
-			FileSystem::Copy(FileSystem::GetAbsolute("Assets/Fonts/Arial"), Project::GetAssetFileSystemPath("Fonts/Arial").string());
+			if (!FileSystem::Exists(path) && FileSystem::Exists(FileSystem::GetAbsolute("Assets/Fonts/Arial")))
+			{
+				FileSystem::Copy(FileSystem::GetAbsolute("Assets/Fonts/Arial"), Project::GetAssetFileSystemPath("Fonts/Arial").string());
+			}
 
 			auto font = AssetManager::Get()->ImportAsset(AssetType::Font, path);
 			if (!font)
 			{
 				KTN_CORE_ERROR(KTN_FONTLOG "Failed to import default font: {}", path);
-				return AssetHandle();
+				return (AssetHandle)0;
 			}
 			return font;
 		}

@@ -130,6 +130,8 @@ namespace KTN
 
 	AssetManager::~AssetManager()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		for (auto& [handle, metadata] : m_AssetRegistry)
 		{
 			if (metadata.AssetData != nullptr)
@@ -220,6 +222,8 @@ namespace KTN
 
 	bool AssetManager::HasAsset(AssetType p_Type, const std::string& p_FilePath) const
 	{
+		KTN_PROFILE_FUNCTION();
+
 		auto it = std::find_if(m_AssetRegistry.begin(), m_AssetRegistry.end(),
 		[&p_Type, &p_FilePath](const auto& p_Pair)
 		{
@@ -227,6 +231,29 @@ namespace KTN
 		});
 
 		return it != m_AssetRegistry.end();
+	}
+
+	bool AssetManager::RemoveAsset(AssetHandle p_Handle)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto it = m_AssetRegistry.find(p_Handle);
+		if (it != m_AssetRegistry.end())
+		{
+			if (m_LoadedAssets.find(p_Handle) != m_LoadedAssets.end())
+				m_LoadedAssets.erase(p_Handle);
+
+			m_AssetRegistry.erase(p_Handle);
+
+			if (!m_IsLoadedAssetPack)
+				SerializeAssetRegistry();
+			else
+				SerializeAssetPack();
+			return true;
+		}
+
+		KTN_CORE_ERROR("This asset not exists");
+		return false;
 	}
 
 	const AssetMetadata& AssetManager::GetMetadata(AssetHandle p_Handle) const
@@ -308,7 +335,7 @@ namespace KTN
 		{
 			stream.write(reinterpret_cast<const char*>(&handle), sizeof(handle));
 			stream.write(reinterpret_cast<const char*>(&metadata.Type), sizeof(metadata.Type));
-			Utils::WriteString(stream, metadata.FilePath);
+			Utils::WriteString(stream, FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string()));
 
 			bool hasAssetData = (metadata.AssetData != nullptr);
 			stream.write(reinterpret_cast<const char*>(&hasAssetData), sizeof(hasAssetData));
@@ -428,7 +455,7 @@ namespace KTN
 
 			file.read(reinterpret_cast<char*>(&handle), sizeof(handle));
 			file.read(reinterpret_cast<char*>(&metadata.Type), sizeof(metadata.Type));
-			metadata.FilePath = Utils::ReadString(file);
+			metadata.FilePath = (Project::GetAssetDirectory() / Utils::ReadString(file)).string();
 
 			bool hasAssetData = false;
 			file.read(reinterpret_cast<char*>(&hasAssetData), sizeof(hasAssetData));

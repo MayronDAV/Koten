@@ -42,6 +42,8 @@ namespace KTN
 				return As<Asset, T>(GetAsset(p_Handle));
 			}
 
+			bool RemoveAsset(AssetHandle p_Handle);
+
 			AssetHandle GetHandleByPath(const std::string& p_FilePath) const;
 			AssetType GetAssetType(AssetHandle p_Handle) const;
 			const AssetMetadata& GetMetadata(AssetHandle p_Handle) const;

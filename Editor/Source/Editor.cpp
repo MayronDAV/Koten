@@ -6,6 +6,7 @@
 #include "Panels/ContentBrowserPanel.h"
 #include "Panels/AssetImporterPanel.h"
 #include "Panels/ProjectExporterPanel.h"
+#include "Panels/AssetRegistryPanel.h"
 #include "Shortcuts.h"
 
 // lib
@@ -128,6 +129,7 @@ namespace KTN
 		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
 		m_Panels.emplace_back(CreateRef<InspectorPanel>());
+		m_Panels.emplace_back(CreateRef<AssetRegistryPanel>());
 
 		auto contentBrowser = CreateRef<ContentBrowserPanel>(Project::GetAssetDirectory().string());
 		m_Panels.emplace_back(contentBrowser);

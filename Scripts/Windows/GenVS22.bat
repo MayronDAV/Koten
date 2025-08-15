@@ -1,1 +1,0 @@
-Common\GenVSProject.bat vs2022

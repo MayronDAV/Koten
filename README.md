@@ -35,9 +35,12 @@ to clone the necessary submodules
 
 ### 🔧 Dependencies
 
-- Windows: 
-  - Run the [GenVS22.bat](https://github.com/MayronDAV/Koten/blob/main/Scripts/Windows/GenVS22.bat) file found in `Scripts\Windows` folder.
-    
+- Windows:
+  - Run the [GenVS22.bat](https://github.com/MayronDAV/Koten/blob/main/GenVS22.bat) file found in the root dir.
+  - Or run the [GenVSProject.bat](https://github.com/MayronDAV/Koten/blob/main/Scripts/Windows/GenVSProject.bat) with Visual Studio version. Ex:
+    ```shell
+    Scripts\Windows\GenVSProject.bat vs2022
+    ```
 - Linux:
   - Install dependencies:
     ```bash
