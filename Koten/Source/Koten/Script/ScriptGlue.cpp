@@ -13,6 +13,7 @@
 #include <mono/metadata/reflection.h>
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
+#include <box2d/box2d.h>
 
 
 
@@ -239,7 +240,41 @@ namespace KTN
 			KTN_CORE_VERIFY(entity);
 			KTN_CORE_VERIFY(entity.HasComponent<TransformComponent>());
 
-			entity.GetComponent<TransformComponent>().SetLocalTranslation(*p_Value);
+			auto& tc = entity.GetComponent<TransformComponent>();
+			tc.SetLocalTranslation(*p_Value);
+
+			if (entity.GetScene()->GetConfig().UseB2Physics && !entity.HasComponent<Rigidbody2DComponent>())
+			{
+				b2BodyId body{};
+				bool hasBody = false;
+				if (entity.HasComponent<BoxCollider2DComponent>())
+				{
+					auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+					body = b2BodyId{
+						.index1 = bc2d.Body.Index,
+						.world0 = bc2d.Body.World,
+						.generation = bc2d.Body.Generation
+					};
+					hasBody = true;
+				}
+				else if (entity.HasComponent<BoxCollider2DComponent>())
+				{
+					auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+					body = b2BodyId{
+						.index1 = bc2d.Body.Index,
+						.world0 = bc2d.Body.World,
+						.generation = bc2d.Body.Generation
+					};
+					hasBody = true;
+				}
+
+				if (!hasBody || !b2Body_IsValid(body))
+					return;
+
+				glm::vec3 pos = tc.GetWorldTranslation();
+				glm::vec3 rot = tc.GetWorldRotation();
+				b2Body_SetTransform(body, { pos.x, pos.y }, b2MakeRot(rot.z));
+			}
 		}
 		#pragma endregion
 

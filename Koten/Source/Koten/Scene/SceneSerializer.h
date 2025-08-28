@@ -14,6 +14,9 @@ namespace KTN
 			void Serialize(const std::string& p_Filepath);
 			bool Deserialize(const std::string& p_Filepath);
 
+			void SerializeBin(std::ofstream& p_Out);
+			bool DeserializeBin(std::ifstream& p_In);
+
 		private:
 			Ref<Scene> m_Scene;
 	};

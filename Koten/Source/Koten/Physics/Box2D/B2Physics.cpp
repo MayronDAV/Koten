@@ -41,7 +41,6 @@ namespace KTN
 	{
 		struct ShapeUserData
 		{
-			void* Component;
 			Entity Entt;
 			bool IsTrigger;
 		};
@@ -234,6 +233,128 @@ namespace KTN
 			}
 		}
 
+		static void CreateBoxShape(Scene* p_Scene, Entity p_Entt, b2BodyId p_Body, BoxCollider2DComponent& p_Bc2d, const glm::vec3& p_Scale)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			b2Polygon box = b2MakeOffsetBox(p_Bc2d.Size.x * p_Scale.x, p_Bc2d.Size.y * p_Scale.y, b2Vec2(p_Bc2d.Offset.x, p_Bc2d.Offset.y), b2MakeRot(0.0f));
+
+			auto* userData = new ShapeUserData{
+				.Entt = p_Entt,
+				.IsTrigger = p_Bc2d.IsTrigger
+			};
+			s_ToDelete[p_Scene->Handle].push_back(userData);
+
+			b2ShapeDef shapeDef = b2DefaultShapeDef();
+			shapeDef.density = p_Bc2d.Density;
+			shapeDef.material.friction = p_Bc2d.Friction;
+			shapeDef.material.restitution = p_Bc2d.Restitution;
+			shapeDef.material.rollingResistance = p_Bc2d.RestitutionThreshold;
+			shapeDef.userData = userData;
+			shapeDef.enableSensorEvents = true;
+			shapeDef.enableContactEvents = true;
+
+			if (p_Bc2d.IsTrigger)
+			{
+				shapeDef.isSensor = true;
+				shapeDef.density = 0.0f;
+			}
+
+			b2CreatePolygonShape(p_Body, &shapeDef, &box);
+		}
+
+		static void CreateCircleShape(Scene* p_Scene, Entity p_Entt, b2BodyId p_Body, CircleCollider2DComponent& p_Cc2d, const glm::vec3& p_Scale)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto* userData = new ShapeUserData{
+				.Entt = p_Entt,
+				.IsTrigger = p_Cc2d.IsTrigger
+			};
+			s_ToDelete[p_Scene->Handle].push_back(userData);
+
+			b2ShapeDef shapeDef = b2DefaultShapeDef();
+			shapeDef.density = p_Cc2d.Density;
+			shapeDef.material.friction = p_Cc2d.Friction;
+			shapeDef.material.restitution = p_Cc2d.Restitution;
+			shapeDef.material.rollingResistance = p_Cc2d.RestitutionThreshold;
+			shapeDef.userData = userData;
+			shapeDef.enableSensorEvents = true;
+			shapeDef.enableContactEvents = true;
+
+			if (p_Cc2d.IsTrigger)
+			{
+				shapeDef.isSensor = true;
+				shapeDef.density = 0.0f;
+			}
+
+			b2Circle circle = { { p_Cc2d.Offset.x, p_Cc2d.Offset.y }, p_Cc2d.Radius * p_Scale.x };
+
+			b2CreateCircleShape(p_Body, &shapeDef, &circle);
+		}
+
+		static void CreatePhysicsBody(Scene* p_Scene, Entity p_Entt, TransformComponent& p_Transform, const B2WorldID& p_World, Rigidbody2DComponent* p_RC)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			b2BodyDef bodyDef = b2DefaultBodyDef();
+
+			if (p_RC == nullptr)
+			{
+				bodyDef.type = b2_dynamicBody;
+				bodyDef.gravityScale = 0.0f;
+				bodyDef.fixedRotation = true;
+			}
+			else
+			{
+				switch (p_RC->Type)
+				{
+					case Rigidbody2DComponent::BodyType::Static:
+						bodyDef.type = b2_staticBody;
+						break;
+					case Rigidbody2DComponent::BodyType::Dynamic:
+						bodyDef.type = b2_dynamicBody;
+						break;
+					case Rigidbody2DComponent::BodyType::Kinematic:
+						bodyDef.type = b2_kinematicBody;
+						break;
+				}
+				bodyDef.linearDamping = 1.0f;
+				bodyDef.gravityScale = p_RC->GravityScale;
+				bodyDef.fixedRotation = p_RC->FixedRotation;
+			}
+
+			glm::vec3 pos = p_Transform.GetWorldTranslation();
+			glm::vec3 scale = p_Transform.GetWorldScale();
+			glm::vec3 rot = p_Transform.GetWorldRotation();
+
+			bodyDef.position = { pos.x, pos.y };
+			bodyDef.rotation = b2MakeRot(rot.z);
+
+			b2WorldId world = { .index1 = p_World.Index, .generation = p_World.Generation };
+			b2BodyId body = b2CreateBody(world, &bodyDef);
+
+			if (p_RC)
+			{
+				p_RC->Body.Index = body.index1;
+				p_RC->Body.World = body.world0;
+				p_RC->Body.Generation = body.generation;
+			}
+
+			if (p_Entt.HasComponent<BoxCollider2DComponent>())
+			{
+				auto& bc2d = p_Entt.GetComponent<BoxCollider2DComponent>();
+				CreateBoxShape(p_Scene, p_Entt, body, bc2d, scale);
+				bc2d.Body = { body.index1, body.world0, body.generation };
+			}
+			else if (p_Entt.HasComponent<CircleCollider2DComponent>())
+			{
+				auto& cc2d = p_Entt.GetComponent<CircleCollider2DComponent>();
+				CreateCircleShape(p_Scene, p_Entt, body, cc2d, scale);
+				cc2d.Body = { body.index1, body.world0, body.generation };
+			}
+		}
+
 	} // namespace
 
 	B2Physics::B2Physics()
@@ -281,101 +402,22 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		auto sceneHandle = p_Scene->Handle;
-
 		auto& registry = p_Scene->GetRegistry();
+
 		registry.view<TransformComponent, Rigidbody2DComponent>().each(
 		[&](auto p_Entt, TransformComponent& p_Transform, Rigidbody2DComponent& p_RC)
 		{
 			Entity entt{ p_Entt, p_Scene };
+			CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, &p_RC);
+		});
 
-			b2BodyDef bodyDef = b2DefaultBodyDef();
-			switch (p_RC.Type)
+		registry.view<TransformComponent>(entt::exclude<Rigidbody2DComponent>).each(
+		[&](auto p_Entt, TransformComponent& p_Transform)
+		{
+			Entity entt{ p_Entt, p_Scene };
+			if (entt.HasComponent<BoxCollider2DComponent>() || entt.HasComponent<CircleCollider2DComponent>())
 			{
-				case Rigidbody2DComponent::BodyType::Static:
-					bodyDef.type = b2_staticBody;
-					break;
-				case Rigidbody2DComponent::BodyType::Dynamic:
-					bodyDef.type = b2_dynamicBody;
-					break;
-				case Rigidbody2DComponent::BodyType::Kinematic:
-					bodyDef.type = b2_kinematicBody;
-					break;
-			}
-
-			glm::vec3 pos = p_Transform.GetWorldTranslation();
-			glm::vec3 scale = p_Transform.GetWorldScale();
-			glm::vec3 rot = p_Transform.GetWorldRotation();
-
-			bodyDef.linearDamping = 1.0f;
-			bodyDef.position = { pos.x, pos.y };
-			bodyDef.fixedRotation = p_RC.FixedRotation;
-			bodyDef.rotation = b2MakeRot(rot.z);
-
-			b2WorldId world = { .index1 = m_World.Index, .generation = m_World.Generation };
-			b2BodyId body = b2CreateBody(world, &bodyDef);
-			p_RC.Body.Index = body.index1;
-			p_RC.Body.World = body.world0;
-			p_RC.Body.Generation = body.generation;
-
-			if (entt.HasComponent<BoxCollider2DComponent>())
-			{
-				auto& bc2d = entt.GetComponent<BoxCollider2DComponent>();
-
-				b2Polygon box = b2MakeOffsetBox(bc2d.Size.x * scale.x, bc2d.Size.y * scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y),  b2MakeRot(0.0f));
-
-				auto* userData = new ShapeUserData{
-					.Component = &bc2d,
-					.Entt = entt,
-					.IsTrigger = bc2d.IsTrigger
-				};
-				s_ToDelete[sceneHandle].push_back(userData);
-
-				b2ShapeDef shapeDef = b2DefaultShapeDef();
-				shapeDef.density = bc2d.Density;
-				shapeDef.material.friction = bc2d.Friction;
-				shapeDef.material.restitution = bc2d.Restitution;
-				shapeDef.material.rollingResistance = bc2d.RestitutionThreshold;
-				shapeDef.userData = userData;
-				shapeDef.enableSensorEvents = true;
-				shapeDef.enableContactEvents = true;
-				if (bc2d.IsTrigger)
-				{
-					shapeDef.isSensor = true;
-					shapeDef.density = 0.0f;
-				}
-
-				b2CreatePolygonShape(body, &shapeDef, &box);
-			}
-
-			if (entt.HasComponent<CircleCollider2DComponent>())
-			{
-				auto& cc2d = entt.GetComponent<CircleCollider2DComponent>();
-
-				auto* userData = new ShapeUserData{
-					.Component = &cc2d,
-					.Entt = entt,
-					.IsTrigger = cc2d.IsTrigger
-				};
-				s_ToDelete[sceneHandle].push_back(userData);
-
-				b2ShapeDef shapeDef = b2DefaultShapeDef();
-				shapeDef.density = cc2d.Density;
-				shapeDef.material.friction = cc2d.Friction;
-				shapeDef.material.restitution = cc2d.Restitution;
-				shapeDef.material.rollingResistance = cc2d.RestitutionThreshold;
-				shapeDef.userData = userData;
-				shapeDef.enableSensorEvents = true;
-				shapeDef.enableContactEvents = true;
-				if (cc2d.IsTrigger)
-				{
-					shapeDef.isSensor = true;
-					shapeDef.density = 0.0f;
-				}
-
-				b2Circle circle = { { cc2d.Offset.x, cc2d.Offset.y }, cc2d.Radius * scale.x };
-
-				b2CreateCircleShape(body, &shapeDef, &circle);
+				CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, nullptr);
 			}
 		});
 
@@ -464,6 +506,8 @@ namespace KTN
 		registry.view<TransformComponent, Rigidbody2DComponent>().each(
 		[&](auto p_Entt, TransformComponent& p_Transform, Rigidbody2DComponent& p_RC)
 		{
+			if (p_RC.Body == B2BodyID{}) return;
+
 			Entity entt = { p_Entt, p_Scene };
 			b2BodyId body = {
 				.index1 = p_RC.Body.Index,
@@ -472,7 +516,6 @@ namespace KTN
 			};
 
 			auto pos = b2Body_GetPosition(body);
-
 			p_Transform.SetLocalTranslation({ pos.x, pos.y, p_Transform.GetLocalTranslation().z });
 			p_Transform.SetLocalRotation({ p_Transform.GetLocalRotation().x, p_Transform.GetLocalRotation().y, b2Rot_GetAngle(b2Body_GetRotation(body)) });
 			p_Transform.SetWorldMatrix(glm::mat4(1.0f));

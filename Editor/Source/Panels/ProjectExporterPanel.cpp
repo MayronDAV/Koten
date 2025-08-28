@@ -107,7 +107,7 @@ namespace KTN
 						if (ImGui::Button(startScenePath.c_str()))
 						{
 							std::string path = "";
-							if (FileDialog::Open(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
+							if (FileDialog::Open(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
 							{
 								m_Config.StartScene = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
 							}

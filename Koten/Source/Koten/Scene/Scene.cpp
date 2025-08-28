@@ -52,8 +52,8 @@ namespace KTN
 		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
 
 		m_SystemManager = CreateUnique<SystemManager>();
-		// TODO: A way to add/remove this and other systems at runtime with script or an option
-		m_SystemManager->RegisterSystem<B2Physics>();
+		if (m_Config.UseB2Physics)
+			m_SystemManager->RegisterSystem<B2Physics>();
 
 		m_SceneGraph = CreateUnique<SceneGraph>();
 		m_SceneGraph->Init(m_Registry);
@@ -244,11 +244,13 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		RemoveSystems();
+
 		if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
 		{
 			m_SystemManager->OnUpdate(this);
 
-			m_SceneGraph->Update(m_Registry);
+			OnUpdate();
 		}
 	}
 
@@ -312,15 +314,25 @@ namespace KTN
 		return entt;
 	}
 
+	void Scene::RemoveSystems()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!m_Config.UseB2Physics && m_SystemManager->HasSystem<B2Physics>())
+			m_SystemManager->RemoveSystem<B2Physics>();
+	}
+
 	void Scene::OnUpdateRuntime()
 	{
 		KTN_PROFILE_FUNCTION();
+
+		RemoveSystems();
 
 		if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
 		{
 			m_SystemManager->OnUpdate(this);
 
-			m_SceneGraph->Update(m_Registry);
+			OnUpdate();
 			
 			ScriptEngine::OnRuntimeUpdate(this);
 		}

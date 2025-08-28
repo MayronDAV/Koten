@@ -27,7 +27,7 @@ namespace KTN
 
 			ImGuiTreeNodeFlags flags = (selectedScene != nullptr && scene->Handle == selectedScene->Handle ? ImGuiTreeNodeFlags_Selected : 0)
 				| ImGuiTreeNodeFlags_OpenOnArrow;
-			flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding;
+			flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_DefaultOpen;
 
 			bool opened = ImGui::TreeNodeEx((void*)(uint64_t)scene->Handle, flags, name.c_str());
 

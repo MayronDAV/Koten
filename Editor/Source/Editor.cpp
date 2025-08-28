@@ -213,7 +213,7 @@ namespace KTN
 						if (ImGui::Button(startScene.c_str()))
 						{
 							std::string path = "";
-							if (FileDialog::Open(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
+							if (FileDialog::Open(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
 							{
 								config.StartScene = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
 							}
@@ -635,7 +635,7 @@ namespace KTN
 	void Editor::OpenScene()
 	{
 		std::string path = "";
-		if (FileDialog::Open(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
+		if (FileDialog::Open(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
 		{
 			AssetHandle handle = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
 			UnSelectEntt();
@@ -649,7 +649,7 @@ namespace KTN
 			return;
 
 		std::string path = "";
-		if (FileDialog::Save(".ktscn", "Assets", path) == FileDialogResult::SUCCESS)
+		if (FileDialog::Save(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
 		{
 			SceneManager::SaveAs(SceneManager::GetLoadedScenes().front()->Handle, path);
 		}

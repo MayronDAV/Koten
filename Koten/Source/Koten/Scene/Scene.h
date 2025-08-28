@@ -17,6 +17,11 @@ namespace KTN
 {
 	class KTN_API Entity;
 
+	struct SceneConfig
+	{
+		bool UseB2Physics = true;
+	};
+
 	class KTN_API Scene : public Asset
 	{
 		public:
@@ -53,10 +58,14 @@ namespace KTN
 			Entity GetEntityByUUID(UUID p_UUID);
 			Entity GetEntityByTag(const std::string& p_Tag);
 			Unique<SystemManager>& GetSystemManager() { return m_SystemManager; }
-
+			const std::unordered_map<UUID, entt::entity>& GetEntityMap() const { return m_EntityMap; }
 			entt::registry& GetRegistry() { return m_Registry; }
+			SceneConfig& GetConfig() { return m_Config; }
 
 			ASSET_CLASS_METHODS(Scene)
+
+		private:
+			void RemoveSystems();
 
 		private:
 			entt::registry m_Registry;
@@ -73,6 +82,8 @@ namespace KTN
 			std::unordered_map<UUID, entt::entity> m_EntityMap;
 
 			Unique<SceneGraph> m_SceneGraph = nullptr;
+
+			SceneConfig m_Config = {};
 
 			friend class Entity;
 	};

@@ -132,6 +132,7 @@ namespace KTN
 		};
 		BodyType Type = BodyType::Static;
 		bool FixedRotation = false;
+		float GravityScale = 1.0f;
 
 		B2BodyID Body = {}; // Physics body id
 
@@ -151,6 +152,8 @@ namespace KTN
 		float Restitution = 0.0f;
 		float RestitutionThreshold = 0.5f;
 
+		B2BodyID Body = {}; // Physics body id
+
 		BoxCollider2DComponent() = default;
 		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
@@ -166,6 +169,8 @@ namespace KTN
 		float Friction = 0.1f;
 		float Restitution = 0.0f;
 		float RestitutionThreshold = 0.5f;
+
+		B2BodyID Body = {}; // Physics body id
 
 		CircleCollider2DComponent() = default;
 		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;

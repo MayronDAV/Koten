@@ -217,7 +217,7 @@ namespace KTN
 					if (ImGui::Button(text.c_str()))
 					{
 						std::string path = "";
-						if (FileDialog::Open("", "Assets", path) == FileDialogResult::SUCCESS)
+						if (FileDialog::Open("", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
 						{
 							// TODO: Create a placeholder for assets and use the AssetImporterPanel to import if needed!
 							p_Sprite.Texture = p_Sprite.Texture = AssetManager::Get()->ImportAsset(AssetType::Texture2D, path);
@@ -303,7 +303,7 @@ namespace KTN
 				if (ImGui::Button(filePath.c_str()))
 				{
 					std::string path = "";
-					if (FileDialog::Open(".ttf", "Fonts", path) == FileDialogResult::SUCCESS)
+					if (FileDialog::Open(".ttf", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
 					{
 						p_Text.Font = AssetManager::Get()->ImportAsset(AssetType::Font, path);
 					}
@@ -356,6 +356,8 @@ namespace KTN
 				}
 
 				ImGui::Checkbox("Fixed Rotation", &p_RC.FixedRotation);
+
+				ImGui::InputFloat("Gravity Scale", &p_RC.GravityScale);
 			});
 		}
 
