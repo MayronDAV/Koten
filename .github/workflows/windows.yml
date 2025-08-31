@@ -21,7 +21,6 @@ jobs:
     - name: Generate Project
       shell: cmd
       run: | 
-        cd Scripts/Windows
         GenVS22.bat
 
     - name: Build ${{ matrix.platform }} ${{ matrix.config }}
