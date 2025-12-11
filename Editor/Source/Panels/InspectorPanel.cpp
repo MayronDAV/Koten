@@ -1,6 +1,7 @@
 #include "InspectorPanel.h"
 #include "Editor.h"
 #include "AssetImporterPanel.h"
+#include "MaterialPanel.h"
 
 // lib
 #include <imgui.h>
@@ -365,17 +366,45 @@ namespace KTN
 		void ComponentDrawView<BoxCollider2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<BoxCollider2DComponent>("BoxCollider2D", p_Entity,
-			[](BoxCollider2DComponent& p_Box)
+			[&](BoxCollider2DComponent& p_Box)
 			{
 				ImGui::Checkbox("Is Trigger", &p_Box.IsTrigger);
 
 				UI::InputFloat2("Offset", p_Box.Offset);
 				UI::InputFloat2("Size", p_Box.Size, 0.5f);
 
-				ImGui::InputFloat("Density", &p_Box.Density);
-				ImGui::InputFloat("Friction", &p_Box.Friction);
-				ImGui::InputFloat("Restitution", &p_Box.Restitution);
-				ImGui::InputFloat("RestitutionThreshold", &p_Box.RestitutionThreshold);
+				ImGui::BeginGroup();
+				{
+					static const uint32_t whiteTextureData = 0xffffffff;
+					static auto whiteTexture = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
+					ImVec2 imageSize = { 100.0f, 100.0f };
+
+					UI::ImageCircleMask(whiteTexture, imageSize);
+					ImGui::SameLine();
+					std::string path = AssetManager::Get()->GetMetadata(p_Box.PhysicsMaterial2D).FilePath;
+					ImGui::Text(path.c_str());
+
+					if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
+					{
+						p_This->GetEditor()->GetMaterialPanel()->Open(p_Box.PhysicsMaterial2D);
+					}
+				}
+				ImGui::EndGroup();
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						auto filepath = std::filesystem::path(path);
+						if (filepath.extension() == ".ktasset")
+						{
+							p_Box.PhysicsMaterial2D = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, filepath.string());
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+
 			});
 		}
 
@@ -383,17 +412,44 @@ namespace KTN
 		void ComponentDrawView<CircleCollider2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
 			DrawComponent<CircleCollider2DComponent>("CircleCollider2D", p_Entity,
-			[](CircleCollider2DComponent& p_Circle)
+			[&](CircleCollider2DComponent& p_Circle)
 			{
 				ImGui::Checkbox("Is Trigger", &p_Circle.IsTrigger);
 
 				UI::InputFloat2("Offset", p_Circle.Offset);
 				ImGui::InputFloat("Radius", &p_Circle.Radius);
 
-				ImGui::InputFloat("Density", &p_Circle.Density);
-				ImGui::InputFloat("Friction", &p_Circle.Friction);
-				ImGui::InputFloat("Restitution", &p_Circle.Restitution);
-				ImGui::InputFloat("RestitutionThreshold", &p_Circle.RestitutionThreshold);
+				ImGui::BeginGroup();
+				{
+					static const uint32_t whiteTextureData = 0xffffffff;
+					static auto whiteTexture = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
+					ImVec2 imageSize = { 100.0f, 100.0f };
+
+					UI::ImageCircleMask(whiteTexture, imageSize);
+					ImGui::SameLine();
+					std::string path = AssetManager::Get()->GetMetadata(p_Circle.PhysicsMaterial2D).FilePath;
+					ImGui::Text(path.c_str());
+
+					if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
+					{
+						p_This->GetEditor()->GetMaterialPanel()->Open(p_Circle.PhysicsMaterial2D);
+					}
+				}
+				ImGui::EndGroup();
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						auto filepath = std::filesystem::path(path);
+						if (filepath.extension() == ".ktasset")
+						{
+							p_Circle.PhysicsMaterial2D = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, filepath.string());
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
 			});
 		}
 

@@ -15,7 +15,8 @@ namespace KTN
 		None = 0,
 		Scene,
 		Font,
-		Texture2D
+		Texture2D,
+		PhysicsMaterial2D
 	};
 
 	KTN_API const char* GetAssetTypeName(AssetType p_Type);

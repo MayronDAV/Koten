@@ -7,6 +7,7 @@
 #include "Panels/AssetImporterPanel.h"
 #include "Panels/ProjectExporterPanel.h"
 #include "Panels/AssetRegistryPanel.h"
+#include "Panels/MaterialPanel.h"
 #include "Shortcuts.h"
 
 // lib
@@ -122,10 +123,12 @@ namespace KTN
 		m_Settings = CreateRef<SettingsPanel>();
 		m_AssetImporter = CreateRef<AssetImporterPanel>();
 		m_ProjectExporter = CreateRef<ProjectExporterPanel>();
+		m_MaterialPanel = CreateRef<MaterialPanel>();
 
 		m_Panels.emplace_back(m_AssetImporter);
 		m_Panels.emplace_back(m_Settings);
 		m_Panels.emplace_back(m_ProjectExporter);
+		m_Panels.emplace_back(m_MaterialPanel);
 		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
 		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
 		m_Panels.emplace_back(CreateRef<InspectorPanel>());

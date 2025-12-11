@@ -47,6 +47,7 @@ namespace KTN
 			AssetHandle GetHandleByPath(const std::string& p_FilePath) const;
 			AssetType GetAssetType(AssetHandle p_Handle) const;
 			const AssetMetadata& GetMetadata(AssetHandle p_Handle) const;
+			AssetMetadata& GetMetadata(AssetHandle p_Handle);
 			const AssetRegistry& GetAssetRegistry() const { return m_AssetRegistry; }
 
 			AssetManagerConfig& GetConfig() { return m_Config; }

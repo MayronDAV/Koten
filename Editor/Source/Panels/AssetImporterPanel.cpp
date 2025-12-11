@@ -38,7 +38,7 @@ namespace KTN
 
 			{
 				int currentItem = (int)m_Type;
-				static const char* items[] = { "None", "Scene", "Font", "Texture2D" };
+				static const char* items[] = { "None", "Scene", "Font", "Texture2D", "PhysicsMaterial2D"};
 				static const int itemsCount = IM_ARRAYSIZE(items);
 
 				if (UI::Combo("Asset Type", items[currentItem], items, itemsCount, &currentItem))

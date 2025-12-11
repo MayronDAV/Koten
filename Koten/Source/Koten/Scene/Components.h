@@ -6,6 +6,7 @@
 #include "Koten/Core/UUID.h"
 #include "Koten/Graphics/DFFont.h"
 #include "Koten/Asset/Asset.h"
+#include "Koten/Physics/PhysicsMaterial2D.h"
 
 // std
 #include <string>
@@ -147,10 +148,7 @@ namespace KTN
 		glm::vec2 Offset = { 0.0f, 0.0f };
 		glm::vec2 Size = { 0.5f, 0.5f };
 
-		float Density = 1;
-		float Friction = 0.5f;
-		float Restitution = 0.0f;
-		float RestitutionThreshold = 0.5f;
+		AssetHandle PhysicsMaterial2D = PhysicsMaterial2D::GetDefault();
 
 		B2BodyID Body = {}; // Physics body id
 
@@ -165,10 +163,7 @@ namespace KTN
 		glm::vec2 Offset = { 0.0f, 0.0f };
 		float Radius = 0.5f;
 
-		float Density = 1;
-		float Friction = 0.1f;
-		float Restitution = 0.0f;
-		float RestitutionThreshold = 0.5f;
+		AssetHandle PhysicsMaterial2D = PhysicsMaterial2D::GetDefault();
 
 		B2BodyID Body = {}; // Physics body id
 

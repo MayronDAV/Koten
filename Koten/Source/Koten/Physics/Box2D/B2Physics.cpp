@@ -4,6 +4,7 @@
 #include "Koten/Scene/SystemManager.h"
 #include "Koten/Scene/Entity.h"
 #include "Koten/Script/ScriptEngine.h"
+#include "Koten/Asset/AssetManager.h"
 
 // lib
 #include <box2d/box2d.h>
@@ -246,10 +247,11 @@ namespace KTN
 			s_ToDelete[p_Scene->Handle].push_back(userData);
 
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			shapeDef.density = p_Bc2d.Density;
-			shapeDef.material.friction = p_Bc2d.Friction;
-			shapeDef.material.restitution = p_Bc2d.Restitution;
-			shapeDef.material.rollingResistance = p_Bc2d.RestitutionThreshold;
+			auto material = As<Asset, PhysicsMaterial2D>(AssetManager::Get()->GetAsset(p_Bc2d.PhysicsMaterial2D));
+			shapeDef.density = material->Density;
+			shapeDef.material.friction = material->Friction;
+			shapeDef.material.restitution = material->Restitution;
+			shapeDef.material.rollingResistance = material->RestitutionThreshold;
 			shapeDef.userData = userData;
 			shapeDef.enableSensorEvents = true;
 			shapeDef.enableContactEvents = true;
@@ -274,10 +276,11 @@ namespace KTN
 			s_ToDelete[p_Scene->Handle].push_back(userData);
 
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			shapeDef.density = p_Cc2d.Density;
-			shapeDef.material.friction = p_Cc2d.Friction;
-			shapeDef.material.restitution = p_Cc2d.Restitution;
-			shapeDef.material.rollingResistance = p_Cc2d.RestitutionThreshold;
+			auto material = As<Asset, PhysicsMaterial2D>(AssetManager::Get()->GetAsset(p_Cc2d.PhysicsMaterial2D));
+			shapeDef.density = material->Density;
+			shapeDef.material.friction = material->Friction;
+			shapeDef.material.restitution = material->Restitution;
+			shapeDef.material.rollingResistance = material->RestitutionThreshold;
 			shapeDef.userData = userData;
 			shapeDef.enableSensorEvents = true;
 			shapeDef.enableContactEvents = true;

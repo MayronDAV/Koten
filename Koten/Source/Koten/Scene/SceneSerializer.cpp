@@ -3,6 +3,7 @@
 #include "Koten/Asset/TextureImporter.h"
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Project/Project.h"
+#include "Koten/Physics/PhysicsMaterial2D.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -460,10 +461,7 @@ namespace KTN
 			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
 			ADD_KEY_VALUE("Offset", comp.Offset);
 			ADD_KEY_VALUE("Size", comp.Size);
-			ADD_KEY_VALUE("Density", comp.Density);
-			ADD_KEY_VALUE("Friction", comp.Friction);
-			ADD_KEY_VALUE("Restitution", comp.Restitution);
-			ADD_KEY_VALUE("RestitutionThreshold", comp.RestitutionThreshold);
+			ADD_KEY_VALUE("PhysicsMaterial2D", comp.PhysicsMaterial2D);
 
 			p_Out << YAML::EndMap;
 		}
@@ -483,10 +481,7 @@ namespace KTN
 			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
 			ADD_KEY_VALUE("Offset", comp.Offset);
 			ADD_KEY_VALUE("Radius", comp.Radius);
-			ADD_KEY_VALUE("Density", comp.Density);
-			ADD_KEY_VALUE("Friction", comp.Friction);
-			ADD_KEY_VALUE("Restitution", comp.Restitution);
-			ADD_KEY_VALUE("RestitutionThreshold", comp.RestitutionThreshold);
+			ADD_KEY_VALUE("PhysicsMaterial2D", comp.PhysicsMaterial2D);
 
 			p_Out << YAML::EndMap;
 		}
@@ -783,10 +778,7 @@ namespace KTN
 			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Offset), sizeof(comp.Offset));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Size), sizeof(comp.Size));
-			p_Out.write(reinterpret_cast<const char*>(&comp.Density), sizeof(comp.Density));
-			p_Out.write(reinterpret_cast<const char*>(&comp.Friction), sizeof(comp.Friction));
-			p_Out.write(reinterpret_cast<const char*>(&comp.Restitution), sizeof(comp.Restitution));
-			p_Out.write(reinterpret_cast<const char*>(&comp.RestitutionThreshold), sizeof(comp.RestitutionThreshold));
+			p_Out.write(reinterpret_cast<const char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
 		}
 
 		template<>
@@ -803,10 +795,7 @@ namespace KTN
 			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Offset), sizeof(comp.Offset));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Radius), sizeof(comp.Radius));
-			p_Out.write(reinterpret_cast<const char*>(&comp.Density), sizeof(comp.Density));
-			p_Out.write(reinterpret_cast<const char*>(&comp.Friction), sizeof(comp.Friction));
-			p_Out.write(reinterpret_cast<const char*>(&comp.Restitution), sizeof(comp.Restitution));
-			p_Out.write(reinterpret_cast<const char*>(&comp.RestitutionThreshold), sizeof(comp.RestitutionThreshold));
+			p_Out.write(reinterpret_cast<const char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
 		}
 
 		template<>
@@ -1070,10 +1059,7 @@ namespace KTN
 			comp.IsTrigger = boxComp["IsTrigger"].as<bool>();
 			comp.Offset = boxComp["Offset"].as<glm::vec2>();
 			comp.Size = boxComp["Size"].as<glm::vec2>();
-			comp.Density = boxComp["Density"].as<float>();
-			comp.Friction = boxComp["Friction"].as<float>();
-			comp.Restitution = boxComp["Restitution"].as<float>();
-			comp.RestitutionThreshold = boxComp["RestitutionThreshold"].as<float>();
+			comp.PhysicsMaterial2D = boxComp["PhysicsMaterial2D"] ? boxComp["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
 		}
 
 		template<>
@@ -1089,10 +1075,7 @@ namespace KTN
 			comp.IsTrigger = circleComp["IsTrigger"].as<bool>();
 			comp.Offset = circleComp["Offset"].as<glm::vec2>();
 			comp.Radius = circleComp["Radius"].as<float>();
-			comp.Density = circleComp["Density"].as<float>();
-			comp.Friction = circleComp["Friction"].as<float>();
-			comp.Restitution = circleComp["Restitution"].as<float>();
-			comp.RestitutionThreshold = circleComp["RestitutionThreshold"].as<float>();
+			comp.PhysicsMaterial2D = circleComp["PhysicsMaterial2D"] ? circleComp["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
 		}
 
 		template<>
@@ -1349,10 +1332,7 @@ namespace KTN
 			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
 			p_In.read(reinterpret_cast<char*>(&comp.Size), sizeof(comp.Size));
-			p_In.read(reinterpret_cast<char*>(&comp.Density), sizeof(comp.Density));
-			p_In.read(reinterpret_cast<char*>(&comp.Friction), sizeof(comp.Friction));
-			p_In.read(reinterpret_cast<char*>(&comp.Restitution), sizeof(comp.Restitution));
-			p_In.read(reinterpret_cast<char*>(&comp.RestitutionThreshold), sizeof(comp.RestitutionThreshold));
+			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
 		}
 
 		template<>
@@ -1368,10 +1348,7 @@ namespace KTN
 			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
 			p_In.read(reinterpret_cast<char*>(&comp.Radius), sizeof(comp.Radius));
-			p_In.read(reinterpret_cast<char*>(&comp.Density), sizeof(comp.Density));
-			p_In.read(reinterpret_cast<char*>(&comp.Friction), sizeof(comp.Friction));
-			p_In.read(reinterpret_cast<char*>(&comp.Restitution), sizeof(comp.Restitution));
-			p_In.read(reinterpret_cast<char*>(&comp.RestitutionThreshold), sizeof(comp.RestitutionThreshold));
+			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
 		}
 
 		template<>

@@ -42,13 +42,63 @@ namespace KTN::UI
 		ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, {0, 1}, {1, 0});
 	}
 
-	void ImageButton(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec2& p_UV0, const ImVec2& p_UV1)
+	KTN_API void ImageButton(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec2& p_UV0, const ImVec2& p_UV1)
 	{
 		KTN_PROFILE_FUNCTION();
 
 		std::string id = "##" + p_Texture->GetSpecification().DebugName;
 		ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, p_UV0, p_UV1);
 	}
+
+	KTN_API void ImageCircleMask(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec4& p_BgColor, bool p_Border, const ImVec4& p_BorderColor, float p_BorderThickness)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		ImageCircleMask(p_Texture, p_Size, { 0, 1 }, { 1, 0 }, p_BgColor, p_Border, p_BorderColor);
+	}
+
+	KTN_API void ImageCircleMask(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec2& p_UV0, const ImVec2& p_UV1, const ImVec4& p_BgColor, bool p_Border, const ImVec4& p_BorderColor, float p_BorderThickness)
+	{
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+		ImDrawList* draw = ImGui::GetWindowDrawList();
+
+		float w = p_Size.x;
+		float h = p_Size.y;
+
+		float radius = std::min(w, h) * 0.5f;
+		ImVec2 center = ImVec2(pos.x + w * 0.5f, pos.y + h * 0.5f);
+
+		ImTextureID texture = AddImage(p_Texture);
+
+		ImU32 bgU32 = ImGui::ColorConvertFloat4ToU32(p_BgColor);
+		ImU32 borderU32 = ImGui::ColorConvertFloat4ToU32(p_BorderColor);
+
+		draw->AddRectFilled(pos, ImVec2(pos.x + w, pos.y + h), bgU32);
+
+		ImVec2 squareMin(center.x - radius, center.y - radius);
+		ImVec2 squareMax(center.x + radius, center.y + radius);
+
+		draw->AddImageRounded(
+			texture,
+			squareMin,
+			squareMax,
+			p_UV0,
+			p_UV1,
+			IM_COL32_WHITE,
+			radius,
+			ImDrawFlags_RoundCornersAll
+		);
+
+		if (p_Border)
+		{
+			float r = radius - p_BorderThickness * 0.5f;
+			draw->AddCircle(center, r, borderU32, 64, p_BorderThickness);
+		}
+
+		ImGui::Dummy(p_Size);
+	}
+
+
 
 	KTN_API bool InputText(const std::string& p_Label, std::string& p_Text, bool p_DrawLabel, ImGuiInputTextFlags p_Flags, float p_OutlineRouding, bool p_DrawOutlineWhenInactive, ImColor p_OutlineColor)
 	{

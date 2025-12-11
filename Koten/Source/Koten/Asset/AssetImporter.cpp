@@ -4,6 +4,7 @@
 #include "SceneImporter.h"
 #include "DFFontImporter.h"
 #include "TextureImporter.h"
+#include "PhysicsMaterial2DImporter.h"
 
 
 
@@ -13,7 +14,8 @@ namespace KTN
 	static std::map<AssetType, AssetImportFunction> s_AssetImportFunctions = {
 		{ AssetType::Scene, SceneImporter::ImportScene },
 		{ AssetType::Font, DFFontImporter::ImportFont },
-		{ AssetType::Texture2D, TextureImporter::ImportTexture2D }
+		{ AssetType::Texture2D, TextureImporter::ImportTexture2D },
+		{ AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::ImportMaterial }
 	};
 
 	Ref<Asset> AssetImporter::ImportAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata)

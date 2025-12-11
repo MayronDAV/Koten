@@ -22,6 +22,7 @@
 #include "Koten/Asset/AssetManager.h"
 #include "Koten/Asset/TextureImporter.h"
 #include "Koten/Asset/SceneImporter.h"
+#include "Koten/Asset/PhysicsMaterial2DImporter.h"
 
 // EVENTS
 
@@ -74,6 +75,7 @@
 // PHYSICS
 
 #include "Koten/Physics/Box2D/B2Physics.h"
+#include "Koten/Physics/PhysicsMaterial2D.h"
 
 // PROJECT
 

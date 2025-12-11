@@ -7,6 +7,7 @@
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Utils/Utils.h"
 #include "Koten/Scene/SceneSerializer.h"
+#include "Koten/Physics/PhysicsMaterial2D.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -217,6 +218,17 @@ namespace KTN
 		return m_AssetRegistry.at(p_Handle);
 	}
 
+	AssetMetadata& AssetManager::GetMetadata(AssetHandle p_Handle)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		static AssetMetadata s_EmptyMetadata;
+		if (!IsAssetHandleValid(p_Handle))
+			return s_EmptyMetadata;
+
+		return m_AssetRegistry.at(p_Handle);
+	}
+
 	struct AssetPackHeader
 	{
 		char Magic[4] = { 'K', 'T', 'A', 'P' };
@@ -294,44 +306,44 @@ namespace KTN
 			{
 				switch (metadata.Type)
 				{
-				case AssetType::Font:
-				{
-					auto config = static_cast<const DFFontConfig*>(metadata.AssetData);
-
-					out.write(reinterpret_cast<const char*>(&config->ImageType), sizeof(config->ImageType));
-					out.write(reinterpret_cast<const char*>(&config->GlyphIdentifier), sizeof(config->GlyphIdentifier));
-					out.write(reinterpret_cast<const char*>(&config->ImageFormat), sizeof(config->ImageFormat));
-					out.write(reinterpret_cast<const char*>(&config->EmSize), sizeof(config->EmSize));
-					out.write(reinterpret_cast<const char*>(&config->PxRange), sizeof(config->PxRange));
-					out.write(reinterpret_cast<const char*>(&config->MiterLimit), sizeof(config->MiterLimit));
-					out.write(reinterpret_cast<const char*>(&config->AngleThreshold), sizeof(config->AngleThreshold));
-					out.write(reinterpret_cast<const char*>(&config->FontScale), sizeof(config->FontScale));
-					out.write(reinterpret_cast<const char*>(&config->ThreadCount), sizeof(config->ThreadCount));
-					out.write(reinterpret_cast<const char*>(&config->ExpensiveColoring), sizeof(config->ExpensiveColoring));
-					out.write(reinterpret_cast<const char*>(&config->FixedScale), sizeof(config->FixedScale));
-					out.write(reinterpret_cast<const char*>(&config->OverlapSupport), sizeof(config->OverlapSupport));
-					out.write(reinterpret_cast<const char*>(&config->ScanlinePass), sizeof(config->ScanlinePass));
-					out.write(reinterpret_cast<const char*>(&config->UseDefaultCharset), sizeof(config->UseDefaultCharset));
-
-					if (!config->UseDefaultCharset)
+					case AssetType::Font:
 					{
-						size_t numRanges = config->CharsetRanges.size();
-						out.write(reinterpret_cast<const char*>(&numRanges), sizeof(numRanges));
+						auto config = static_cast<const DFFontConfig*>(metadata.AssetData);
 
-						for (const auto& range : config->CharsetRanges)
+						out.write(reinterpret_cast<const char*>(&config->ImageType), sizeof(config->ImageType));
+						out.write(reinterpret_cast<const char*>(&config->GlyphIdentifier), sizeof(config->GlyphIdentifier));
+						out.write(reinterpret_cast<const char*>(&config->ImageFormat), sizeof(config->ImageFormat));
+						out.write(reinterpret_cast<const char*>(&config->EmSize), sizeof(config->EmSize));
+						out.write(reinterpret_cast<const char*>(&config->PxRange), sizeof(config->PxRange));
+						out.write(reinterpret_cast<const char*>(&config->MiterLimit), sizeof(config->MiterLimit));
+						out.write(reinterpret_cast<const char*>(&config->AngleThreshold), sizeof(config->AngleThreshold));
+						out.write(reinterpret_cast<const char*>(&config->FontScale), sizeof(config->FontScale));
+						out.write(reinterpret_cast<const char*>(&config->ThreadCount), sizeof(config->ThreadCount));
+						out.write(reinterpret_cast<const char*>(&config->ExpensiveColoring), sizeof(config->ExpensiveColoring));
+						out.write(reinterpret_cast<const char*>(&config->FixedScale), sizeof(config->FixedScale));
+						out.write(reinterpret_cast<const char*>(&config->OverlapSupport), sizeof(config->OverlapSupport));
+						out.write(reinterpret_cast<const char*>(&config->ScanlinePass), sizeof(config->ScanlinePass));
+						out.write(reinterpret_cast<const char*>(&config->UseDefaultCharset), sizeof(config->UseDefaultCharset));
+
+						if (!config->UseDefaultCharset)
 						{
-							out.write(reinterpret_cast<const char*>(&range.first), sizeof(uint32_t));
-							out.write(reinterpret_cast<const char*>(&range.second), sizeof(uint32_t));
+							size_t numRanges = config->CharsetRanges.size();
+							out.write(reinterpret_cast<const char*>(&numRanges), sizeof(numRanges));
+
+							for (const auto& range : config->CharsetRanges)
+							{
+								out.write(reinterpret_cast<const char*>(&range.first), sizeof(uint32_t));
+								out.write(reinterpret_cast<const char*>(&range.second), sizeof(uint32_t));
+							}
 						}
+						break;
 					}
-					break;
-				}
-				case AssetType::Texture2D:
-				{
-					auto spec = static_cast<const TextureSpecification*>(metadata.AssetData);
-					WriteTextureSpecification(out, *spec);
-					break;
-				}
+					case AssetType::Texture2D:
+					{
+						auto spec = static_cast<const TextureSpecification*>(metadata.AssetData);
+						WriteTextureSpecification(out, *spec);
+						break;
+					}
 				}
 			}
 
@@ -358,6 +370,14 @@ namespace KTN
 
 				SceneSerializer serializer(scene);
 				serializer.SerializeBin(out);
+			}
+
+			if (metadata.Type == AssetType::PhysicsMaterial2D)
+			{
+				auto material = As<Asset, PhysicsMaterial2D>(GetAsset(handle));
+				KTN_CORE_ASSERT(material, "PhysicsMaterial2D is nullptr!");
+
+				material->SerializeBin(out);
 			}
 		}
 	}
@@ -472,6 +492,16 @@ namespace KTN
 				serializer.DeserializeBin(in);
 
 				m_LoadedAssets[handle] = scene;
+			}
+
+			if (metadata.Type == AssetType::PhysicsMaterial2D)
+			{
+				auto material = CreateRef<PhysicsMaterial2D>();
+				material->Handle = handle;
+
+				material->DeserializeBin(in);
+
+				m_LoadedAssets[handle] = material;
 			}
 
 			m_AssetRegistry[handle] = metadata;
