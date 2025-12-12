@@ -18,30 +18,32 @@ namespace KTN
 		glm::vec3 tscale = tc.GetWorldScale();
 		glm::vec3 trot = tc.GetWorldRotation();
 
-		if (p_Entity.HasComponent<BoxCollider2DComponent>())
+		if (p_Entity.HasComponent<Collider2DComponent>())
 		{
-			auto& bc2d = p_Entity.GetComponent<BoxCollider2DComponent>();
-			glm::vec3 translation = tpos + glm::vec3(bc2d.Offset, 0.0f);
-			glm::vec3 scale = tscale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
+			auto& collider = p_Entity.GetComponent<Collider2DComponent>();
+			if (collider.Shape == Collider2DShape::Box)
+			{
+				glm::vec3 translation = tpos + glm::vec3(collider.Offset, 0.0f);
+				glm::vec3 scale = tscale * glm::vec3(collider.Size * 2.0f, 1.0f);
 
-			glm::mat4 transform = glm::translate(glm::mat4(1.0f), tpos)
-				* glm::rotate(glm::mat4(1.0f), trot.z, glm::vec3(0.0f, 0.0f, 1.0f))
-				* glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.Offset, 0.001f))
-				* glm::scale(glm::mat4(1.0f), scale);
+				glm::mat4 transform = glm::translate(glm::mat4(1.0f), tpos)
+					* glm::rotate(glm::mat4(1.0f), trot.z, glm::vec3(0.0f, 0.0f, 1.0f))
+					* glm::translate(glm::mat4(1.0f), glm::vec3(collider.Offset, 0.001f))
+					* glm::scale(glm::mat4(1.0f), scale);
 
-			DebugRenderer::DrawSquare(transform, p_Color);
-		}
+				DebugRenderer::DrawSquare(transform, p_Color);
+			}
 
-		if (p_Entity.HasComponent<CircleCollider2DComponent>())
-		{
-			auto& cc2d = p_Entity.GetComponent<CircleCollider2DComponent>();
-			glm::vec3 translation = tpos + glm::vec3(cc2d.Offset, 0.001f);
-			glm::vec3 scale = tscale * glm::vec3(cc2d.Radius * 2.0f);
+			if (collider.Shape == Collider2DShape::Circle)
+			{
+				glm::vec3 translation = tpos + glm::vec3(collider.Offset, 0.001f);
+				glm::vec3 scale = tscale * glm::vec3(collider.Size.x * 2.0f);
 
-			glm::mat4 transform = glm::translate(glm::mat4(1.0f), translation)
-				* glm::scale(glm::mat4(1.0f), scale);
+				glm::mat4 transform = glm::translate(glm::mat4(1.0f), translation)
+					* glm::scale(glm::mat4(1.0f), scale);
 
-			DebugRenderer::DrawCircle(transform, p_Color, (int)p_Entity.GetHandle());
+				DebugRenderer::DrawCircle(transform, p_Color, (int)p_Entity.GetHandle());
+			}
 		}
 	}
 

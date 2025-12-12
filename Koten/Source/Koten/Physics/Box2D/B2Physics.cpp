@@ -234,20 +234,20 @@ namespace KTN
 			}
 		}
 
-		static void CreateBoxShape(Scene* p_Scene, Entity p_Entt, b2BodyId p_Body, BoxCollider2DComponent& p_Bc2d, const glm::vec3& p_Scale)
+		static void CreateBoxShape(Scene* p_Scene, Entity p_Entt, b2BodyId p_Body, Collider2DComponent& p_Collider, const glm::vec3& p_Scale)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			b2Polygon box = b2MakeOffsetBox(p_Bc2d.Size.x * p_Scale.x, p_Bc2d.Size.y * p_Scale.y, b2Vec2(p_Bc2d.Offset.x, p_Bc2d.Offset.y), b2MakeRot(0.0f));
+			b2Polygon box = b2MakeOffsetBox(p_Collider.Size.x * p_Scale.x, p_Collider.Size.y * p_Scale.y, b2Vec2(p_Collider.Offset.x, p_Collider.Offset.y), b2MakeRot(0.0f));
 
 			auto* userData = new ShapeUserData{
 				.Entt = p_Entt,
-				.IsTrigger = p_Bc2d.IsTrigger
+				.IsTrigger = p_Collider.IsTrigger
 			};
 			s_ToDelete[p_Scene->Handle].push_back(userData);
 
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			auto material = As<Asset, PhysicsMaterial2D>(AssetManager::Get()->GetAsset(p_Bc2d.PhysicsMaterial2D));
+			auto material = As<Asset, PhysicsMaterial2D>(AssetManager::Get()->GetAsset(p_Collider.PhysicsMaterial2D));
 			shapeDef.density = material->Density;
 			shapeDef.material.friction = material->Friction;
 			shapeDef.material.restitution = material->Restitution;
@@ -256,7 +256,7 @@ namespace KTN
 			shapeDef.enableSensorEvents = true;
 			shapeDef.enableContactEvents = true;
 
-			if (p_Bc2d.IsTrigger)
+			if (p_Collider.IsTrigger)
 			{
 				shapeDef.isSensor = true;
 				shapeDef.density = 0.0f;
@@ -265,18 +265,18 @@ namespace KTN
 			b2CreatePolygonShape(p_Body, &shapeDef, &box);
 		}
 
-		static void CreateCircleShape(Scene* p_Scene, Entity p_Entt, b2BodyId p_Body, CircleCollider2DComponent& p_Cc2d, const glm::vec3& p_Scale)
+		static void CreateCircleShape(Scene* p_Scene, Entity p_Entt, b2BodyId p_Body, Collider2DComponent& p_Collider, const glm::vec3& p_Scale)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			auto* userData = new ShapeUserData{
 				.Entt = p_Entt,
-				.IsTrigger = p_Cc2d.IsTrigger
+				.IsTrigger = p_Collider.IsTrigger
 			};
 			s_ToDelete[p_Scene->Handle].push_back(userData);
 
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			auto material = As<Asset, PhysicsMaterial2D>(AssetManager::Get()->GetAsset(p_Cc2d.PhysicsMaterial2D));
+			auto material = As<Asset, PhysicsMaterial2D>(AssetManager::Get()->GetAsset(p_Collider.PhysicsMaterial2D));
 			shapeDef.density = material->Density;
 			shapeDef.material.friction = material->Friction;
 			shapeDef.material.restitution = material->Restitution;
@@ -285,13 +285,13 @@ namespace KTN
 			shapeDef.enableSensorEvents = true;
 			shapeDef.enableContactEvents = true;
 
-			if (p_Cc2d.IsTrigger)
+			if (p_Collider.IsTrigger)
 			{
 				shapeDef.isSensor = true;
 				shapeDef.density = 0.0f;
 			}
 
-			b2Circle circle = { { p_Cc2d.Offset.x, p_Cc2d.Offset.y }, p_Cc2d.Radius * p_Scale.x };
+			b2Circle circle = { { p_Collider.Offset.x, p_Collider.Offset.y }, p_Collider.Size.x * p_Scale.x };
 
 			b2CreateCircleShape(p_Body, &shapeDef, &circle);
 		}
@@ -344,17 +344,19 @@ namespace KTN
 				p_RC->Body.Generation = body.generation;
 			}
 
-			if (p_Entt.HasComponent<BoxCollider2DComponent>())
+			if (p_Entt.HasComponent<Collider2DComponent>())
 			{
-				auto& bc2d = p_Entt.GetComponent<BoxCollider2DComponent>();
-				CreateBoxShape(p_Scene, p_Entt, body, bc2d, scale);
-				bc2d.Body = { body.index1, body.world0, body.generation };
-			}
-			else if (p_Entt.HasComponent<CircleCollider2DComponent>())
-			{
-				auto& cc2d = p_Entt.GetComponent<CircleCollider2DComponent>();
-				CreateCircleShape(p_Scene, p_Entt, body, cc2d, scale);
-				cc2d.Body = { body.index1, body.world0, body.generation };
+				auto& collider = p_Entt.GetComponent<Collider2DComponent>();
+				if (collider.Shape == Collider2DShape::Box)
+				{
+					CreateBoxShape(p_Scene, p_Entt, body, collider, scale);
+					collider.Body = { body.index1, body.world0, body.generation };
+				}
+				else if (collider.Shape == Collider2DShape::Box)
+				{
+					CreateCircleShape(p_Scene, p_Entt, body, collider, scale);
+					collider.Body = { body.index1, body.world0, body.generation };
+				}
 			}
 		}
 
@@ -418,7 +420,7 @@ namespace KTN
 		[&](auto p_Entt, TransformComponent& p_Transform)
 		{
 			Entity entt{ p_Entt, p_Scene };
-			if (entt.HasComponent<BoxCollider2DComponent>() || entt.HasComponent<CircleCollider2DComponent>())
+			if (entt.HasComponent<Collider2DComponent>())
 			{
 				CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, nullptr);
 			}

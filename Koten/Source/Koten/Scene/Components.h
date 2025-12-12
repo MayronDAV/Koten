@@ -141,34 +141,27 @@ namespace KTN
 		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
 	};
 
-	struct BoxCollider2DComponent
+	enum class Collider2DShape
 	{
-		bool IsTrigger = false;
-
-		glm::vec2 Offset = { 0.0f, 0.0f };
-		glm::vec2 Size = { 0.5f, 0.5f };
-
-		AssetHandle PhysicsMaterial2D = PhysicsMaterial2D::GetDefault();
-
-		B2BodyID Body = {}; // Physics body id
-
-		BoxCollider2DComponent() = default;
-		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
+		Box = 0,
+		Circle
 	};
 
-	struct CircleCollider2DComponent
+	struct Collider2DComponent
 	{
-		bool IsTrigger = false;
+		Collider2DShape Shape = Collider2DShape::Box;
 
 		glm::vec2 Offset = { 0.0f, 0.0f };
-		float Radius = 0.5f;
+		glm::vec2 Size = { 0.5f, 0.5f }; // Size.x -> radius
+
+		bool IsTrigger = false;
 
 		AssetHandle PhysicsMaterial2D = PhysicsMaterial2D::GetDefault();
 
 		B2BodyID Body = {}; // Physics body id
 
-		CircleCollider2DComponent() = default;
-		CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
+		Collider2DComponent() = default;
+		Collider2DComponent(const Collider2DComponent&) = default;
 	};
 
 	struct ScriptComponent
@@ -179,6 +172,6 @@ namespace KTN
 		ScriptComponent(const ScriptComponent&) = default;
 	};
 
-	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
+	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, Collider2DComponent, ScriptComponent
 
 } // namespace KTN

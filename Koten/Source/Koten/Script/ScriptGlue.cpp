@@ -247,23 +247,13 @@ namespace KTN
 			{
 				b2BodyId body{};
 				bool hasBody = false;
-				if (entity.HasComponent<BoxCollider2DComponent>())
+				if (entity.HasComponent<Collider2DComponent>())
 				{
-					auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+					auto& collider = entity.GetComponent<Collider2DComponent>();
 					body = b2BodyId{
-						.index1 = bc2d.Body.Index,
-						.world0 = bc2d.Body.World,
-						.generation = bc2d.Body.Generation
-					};
-					hasBody = true;
-				}
-				else if (entity.HasComponent<BoxCollider2DComponent>())
-				{
-					auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-					body = b2BodyId{
-						.index1 = bc2d.Body.Index,
-						.world0 = bc2d.Body.World,
-						.generation = bc2d.Body.Generation
+						.index1 = collider.Body.Index,
+						.world0 = collider.Body.World,
+						.generation = collider.Body.Generation
 					};
 					hasBody = true;
 				}

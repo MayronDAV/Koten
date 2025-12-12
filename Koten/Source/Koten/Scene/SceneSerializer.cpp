@@ -446,41 +446,22 @@ namespace KTN
 		}
 
 		template<>
-		void ComponentSerializeIfExist<BoxCollider2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentSerializeIfExist<Collider2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			if (!p_Entity.HasComponent<BoxCollider2DComponent>())
+			if (!p_Entity.HasComponent<Collider2DComponent>())
 				return;
 
-			p_Out << YAML::Key << "BoxCollider2DComponent";
+			p_Out << YAML::Key << "Collider2DComponent";
 			p_Out << YAML::BeginMap;
 
-			auto& comp = p_Entity.GetComponent<BoxCollider2DComponent>();
+			auto& comp = p_Entity.GetComponent<Collider2DComponent>();
 
+			ADD_KEY_VALUE("Shape", (int)comp.Shape);
 			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
 			ADD_KEY_VALUE("Offset", comp.Offset);
 			ADD_KEY_VALUE("Size", comp.Size);
-			ADD_KEY_VALUE("PhysicsMaterial2D", comp.PhysicsMaterial2D);
-
-			p_Out << YAML::EndMap;
-		}
-
-		template<>
-		void ComponentSerializeIfExist<CircleCollider2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
-		{
-			KTN_PROFILE_FUNCTION();
-			if (!p_Entity.HasComponent<CircleCollider2DComponent>())
-				return;
-
-			p_Out << YAML::Key << "CircleCollider2DComponent";
-			p_Out << YAML::BeginMap;
-
-			auto& comp = p_Entity.GetComponent<CircleCollider2DComponent>();
-
-			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
-			ADD_KEY_VALUE("Offset", comp.Offset);
-			ADD_KEY_VALUE("Radius", comp.Radius);
 			ADD_KEY_VALUE("PhysicsMaterial2D", comp.PhysicsMaterial2D);
 
 			p_Out << YAML::EndMap;
@@ -764,37 +745,21 @@ namespace KTN
 		}
 
 		template<>
-		void ComponentSerializeBinIfExist<BoxCollider2DComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentSerializeBinIfExist<Collider2DComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			if (!p_Entity.HasComponent<BoxCollider2DComponent>())
+			if (!p_Entity.HasComponent<Collider2DComponent>())
 				return;
 
-			Utils::WriteString(p_Out, "BoxCollider2DComponent");
+			Utils::WriteString(p_Out, "Collider2DComponent");
 
-			auto& comp = p_Entity.GetComponent<BoxCollider2DComponent>();
+			auto& comp = p_Entity.GetComponent<Collider2DComponent>();
 
+			p_Out.write(reinterpret_cast<const char*>(&comp.Shape), sizeof(comp.Shape));
 			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Offset), sizeof(comp.Offset));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Size), sizeof(comp.Size));
-			p_Out.write(reinterpret_cast<const char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
-		}
-
-		template<>
-		void ComponentSerializeBinIfExist<CircleCollider2DComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
-		{
-			KTN_PROFILE_FUNCTION();
-			if (!p_Entity.HasComponent<CircleCollider2DComponent>())
-				return;
-
-			Utils::WriteString(p_Out, "CircleCollider2DComponent");
-
-			auto& comp = p_Entity.GetComponent<CircleCollider2DComponent>();
-
-			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
-			p_Out.write(reinterpret_cast<const char*>(&comp.Offset), sizeof(comp.Offset));
-			p_Out.write(reinterpret_cast<const char*>(&comp.Radius), sizeof(comp.Radius));
 			p_Out.write(reinterpret_cast<const char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
 		}
 
@@ -1047,35 +1012,20 @@ namespace KTN
 		}
 
 		template<>
-		void ComponentDeserializeIfExist<BoxCollider2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeIfExist<Collider2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			auto boxComp = p_Data["BoxCollider2DComponent"];
-			if (!boxComp) return;
+			auto colComp = p_Data["Collider2DComponent"];
+			if (!colComp) return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<BoxCollider2DComponent>();
+			auto& comp = p_Entity.AddOrReplaceComponent<Collider2DComponent>();
 
-			comp.IsTrigger = boxComp["IsTrigger"].as<bool>();
-			comp.Offset = boxComp["Offset"].as<glm::vec2>();
-			comp.Size = boxComp["Size"].as<glm::vec2>();
-			comp.PhysicsMaterial2D = boxComp["PhysicsMaterial2D"] ? boxComp["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
-		}
-
-		template<>
-		void ComponentDeserializeIfExist<CircleCollider2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
-		{
-			KTN_PROFILE_FUNCTION();
-
-			auto circleComp = p_Data["CircleCollider2DComponent"];
-			if (!circleComp) return;
-
-			auto& comp = p_Entity.AddOrReplaceComponent<CircleCollider2DComponent>();
-
-			comp.IsTrigger = circleComp["IsTrigger"].as<bool>();
-			comp.Offset = circleComp["Offset"].as<glm::vec2>();
-			comp.Radius = circleComp["Radius"].as<float>();
-			comp.PhysicsMaterial2D = circleComp["PhysicsMaterial2D"] ? circleComp["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
+			comp.Shape = (Collider2DShape)colComp["Shape"].as<int>();
+			comp.IsTrigger = colComp["IsTrigger"].as<bool>();
+			comp.Offset = colComp["Offset"].as<glm::vec2>();
+			comp.Size = colComp["Size"].as<glm::vec2>();
+			comp.PhysicsMaterial2D = colComp["PhysicsMaterial2D"] ? colComp["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
 		}
 
 		template<>
@@ -1320,34 +1270,19 @@ namespace KTN
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<BoxCollider2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<Collider2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			if (p_Current != "BoxCollider2DComponent")
+			if (p_Current != "Collider2DComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<BoxCollider2DComponent>();
+			auto& comp = p_Entity.AddOrReplaceComponent<Collider2DComponent>();
 
+			p_In.read(reinterpret_cast<char*>(&comp.Shape), sizeof(comp.Shape));
 			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
 			p_In.read(reinterpret_cast<char*>(&comp.Size), sizeof(comp.Size));
-			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
-		}
-
-		template<>
-		void ComponentDeserializeBinIfExist<CircleCollider2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
-		{
-			KTN_PROFILE_FUNCTION();
-
-			if (p_Current != "CircleCollider2DComponent")
-				return;
-
-			auto& comp = p_Entity.AddOrReplaceComponent<CircleCollider2DComponent>();
-
-			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
-			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
-			p_In.read(reinterpret_cast<char*>(&comp.Radius), sizeof(comp.Radius));
 			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
 		}
 

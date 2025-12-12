@@ -8,13 +8,16 @@
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
+// std
+#include <functional>
+
 
 
 namespace KTN
 {
 	namespace
 	{
-		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, ScriptComponent
+		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, Rigidbody2DComponent, Collider2DComponent, ScriptComponent
 
 		template <typename Component>
 		void ComponentDrawView(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity) {}
@@ -38,7 +41,7 @@ namespace KTN
 		}
 
 		template<typename Component>
-		void DisplayComponentEntry(const std::string& p_Name, Entity p_Entt) 
+		void DisplayComponentEntry(const std::string& p_Name, Entity p_Entt, const std::function<void(Component&)>& p_Func = nullptr)
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -46,7 +49,8 @@ namespace KTN
 			{
 				if (ImGui::MenuItem(p_Name.c_str()))
 				{
-					p_Entt.AddComponent<Component>();
+					auto& comp = p_Entt.AddComponent<Component>();
+					p_Func(comp);
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -363,15 +367,26 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<BoxCollider2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<Collider2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
-			DrawComponent<BoxCollider2DComponent>("BoxCollider2D", p_Entity,
-			[&](BoxCollider2DComponent& p_Box)
-			{
-				ImGui::Checkbox("Is Trigger", &p_Box.IsTrigger);
+			if (!p_Entity.HasComponent<Collider2DComponent>())
+				return;
 
-				UI::InputFloat2("Offset", p_Box.Offset);
-				UI::InputFloat2("Size", p_Box.Size, 0.5f);
+			auto& collider = p_Entity.GetComponent<Collider2DComponent>();
+			std::string name = "BoxCollider2D";
+			if (collider.Shape == Collider2DShape::Circle)
+				name = "CircleCollider2D";
+
+			DrawComponent<Collider2DComponent>(name, p_Entity,
+			[&](Collider2DComponent& p_Comp)
+			{
+				ImGui::Checkbox("Is Trigger", &p_Comp.IsTrigger);
+
+				UI::InputFloat2("Offset", p_Comp.Offset);
+				if (p_Comp.Shape == Collider2DShape::Box)
+					UI::InputFloat2("Size", p_Comp.Size, 0.5f);
+				else if (p_Comp.Shape == Collider2DShape::Circle)
+					ImGui::InputFloat("Radius", &p_Comp.Size.x);
 
 				ImGui::BeginGroup();
 				{
@@ -381,12 +396,12 @@ namespace KTN
 
 					UI::ImageCircleMask(whiteTexture, imageSize);
 					ImGui::SameLine();
-					std::string path = AssetManager::Get()->GetMetadata(p_Box.PhysicsMaterial2D).FilePath;
+					std::string path = AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D).FilePath;
 					ImGui::Text(path.c_str());
 
 					if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
 					{
-						p_This->GetEditor()->GetMaterialPanel()->Open(p_Box.PhysicsMaterial2D);
+						p_This->GetEditor()->GetMaterialPanel()->Open(p_Comp.PhysicsMaterial2D);
 					}
 				}
 				ImGui::EndGroup();
@@ -399,57 +414,12 @@ namespace KTN
 						auto filepath = std::filesystem::path(path);
 						if (filepath.extension() == ".ktasset")
 						{
-							p_Box.PhysicsMaterial2D = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, filepath.string());
+							p_Comp.PhysicsMaterial2D = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, filepath.string());
 						}
 					}
 					ImGui::EndDragDropTarget();
 				}
 
-			});
-		}
-
-		template <>
-		void ComponentDrawView<CircleCollider2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
-		{
-			DrawComponent<CircleCollider2DComponent>("CircleCollider2D", p_Entity,
-			[&](CircleCollider2DComponent& p_Circle)
-			{
-				ImGui::Checkbox("Is Trigger", &p_Circle.IsTrigger);
-
-				UI::InputFloat2("Offset", p_Circle.Offset);
-				ImGui::InputFloat("Radius", &p_Circle.Radius);
-
-				ImGui::BeginGroup();
-				{
-					static const uint32_t whiteTextureData = 0xffffffff;
-					static auto whiteTexture = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
-					ImVec2 imageSize = { 100.0f, 100.0f };
-
-					UI::ImageCircleMask(whiteTexture, imageSize);
-					ImGui::SameLine();
-					std::string path = AssetManager::Get()->GetMetadata(p_Circle.PhysicsMaterial2D).FilePath;
-					ImGui::Text(path.c_str());
-
-					if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
-					{
-						p_This->GetEditor()->GetMaterialPanel()->Open(p_Circle.PhysicsMaterial2D);
-					}
-				}
-				ImGui::EndGroup();
-
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-					{
-						const wchar_t* path = (const wchar_t*)payload->Data;
-						auto filepath = std::filesystem::path(path);
-						if (filepath.extension() == ".ktasset")
-						{
-							p_Circle.PhysicsMaterial2D = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, filepath.string());
-						}
-					}
-					ImGui::EndDragDropTarget();
-				}
 			});
 		}
 
@@ -643,8 +613,10 @@ namespace KTN
 					DisplayComponentEntry<LineRendererComponent>("LineRenderer", selectedEntt);
 					DisplayComponentEntry<TextRendererComponent>("TextRenderer", selectedEntt);
 					DisplayComponentEntry<Rigidbody2DComponent>("Rigidbody2D", selectedEntt);
-					DisplayComponentEntry<BoxCollider2DComponent>("BoxCollider2D", selectedEntt);
-					DisplayComponentEntry<CircleCollider2DComponent>("CircleCollider2D", selectedEntt);
+					DisplayComponentEntry<Collider2DComponent>("BoxCollider2D", selectedEntt,
+						[](Collider2DComponent& p_Comp) { p_Comp.Shape = Collider2DShape::Box; });
+					DisplayComponentEntry<Collider2DComponent>("CircleCollider2D", selectedEntt,
+						[](Collider2DComponent& p_Comp) { p_Comp.Shape = Collider2DShape::Circle; });
 					DisplayComponentEntry<ScriptComponent>("ScriptComponent", selectedEntt);
 
 					ImGui::EndPopup();
