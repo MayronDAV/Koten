@@ -159,6 +159,7 @@ namespace KTN
 		AssetHandle PhysicsMaterial2D = PhysicsMaterial2D::GetDefault();
 
 		B2BodyID Body = {}; // Physics body id
+		int32_t NodeIndex = -1;
 
 		Collider2DComponent() = default;
 		Collider2DComponent(const Collider2DComponent&) = default;

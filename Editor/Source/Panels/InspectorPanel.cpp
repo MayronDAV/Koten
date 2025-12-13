@@ -50,7 +50,8 @@ namespace KTN
 				if (ImGui::MenuItem(p_Name.c_str()))
 				{
 					auto& comp = p_Entt.AddComponent<Component>();
-					p_Func(comp);
+					if (p_Func)
+						p_Func(comp);
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -384,7 +385,11 @@ namespace KTN
 
 				UI::InputFloat2("Offset", p_Comp.Offset);
 				if (p_Comp.Shape == Collider2DShape::Box)
-					UI::InputFloat2("Size", p_Comp.Size, 0.5f);
+				{
+					auto size = p_Comp.Size * 2.0f;
+					if (UI::InputFloat2("Size", size, 1.0f))
+						p_Comp.Size = size * 0.5f;
+				}
 				else if (p_Comp.Shape == Collider2DShape::Circle)
 					ImGui::InputFloat("Radius", &p_Comp.Size.x);
 

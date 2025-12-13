@@ -269,6 +269,8 @@ namespace KTN
 						ImGui::Checkbox("Auto Recompile Scripts", &settings.AutoRecompile);
 						ImGui::Checkbox("Mouse Picking", &settings.MousePicking);
 						ImGui::Checkbox("Show Physics Collider", &settings.ShowDebugPhysicsCollider);
+						ImGui::Checkbox("Show BVH", &settings.ShowDebugBVH);
+						ImGui::Checkbox("Show AABB", &settings.ShowDebugAABB);
 						ImGui::DragFloat("Debug Line Width", &settings.DebugLineWidth, 0.01f, 0.0f, 0.0f, "%.2f");
 						ImGui::DragFloat("Debug Circle Thickness", &settings.DebugCircleThickness, 0.01f, 0.0f, 0.0f, "%.2f");
 					}

@@ -2,7 +2,8 @@
 #include "Scene.h"
 #include "Koten/Graphics/Renderer.h"
 #include "Entity.h"
-#include "Koten/Physics/Box2D/B2Physics.h"
+#include "Koten/Systems/B2Physics.h"
+#include "Koten/Systems/Collider2DSystem.h"
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Graphics/DFFont.h"
@@ -50,10 +51,14 @@ namespace KTN
 		AddDependency<TextRendererComponent, TransformComponent>(m_Registry);
 		AddDependency<CameraComponent, TransformComponent>(m_Registry);
 		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
+		AddDependency<Rigidbody2DComponent, Collider2DSystem>(m_Registry);
+		AddDependency<Collider2DSystem, TransformComponent>(m_Registry);
 
 		m_SystemManager = CreateUnique<SystemManager>();
 		if (m_Config.UseB2Physics)
 			m_SystemManager->RegisterSystem<B2Physics>();
+		if (m_Config.UseB2Physics || m_Config.UseCollider2D)
+			m_SystemManager->RegisterSystem<Collider2DSystem>();
 
 		m_SceneGraph = CreateUnique<SceneGraph>();
 		m_SceneGraph->Init(m_Registry);
@@ -150,6 +155,8 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		m_SystemManager->OnUpdate(this);
+
 		m_SceneGraph->Update(m_Registry);
 	}
 
@@ -171,8 +178,21 @@ namespace KTN
 			m_Registry.view<TransformComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
-				if (Engine::Get().GetSettings().ShowDebugPhysicsCollider)
+				auto& settings = Engine::Get().GetSettings();
+				if (settings.ShowDebugPhysicsCollider)
 					DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
+
+				if ((settings.ShowDebugAABB || settings.ShowDebugBVH) && m_SystemManager->HasSystem<Collider2DSystem>())
+				{
+					auto& broadPhase = m_SystemManager->GetSystem<Collider2DSystem>()->GetBroadPhase();
+					broadPhase->Traverse([&](const AABBTree::Node* n) -> void
+					{
+						if (!settings.ShowDebugBVH && !n->IsLeaf()) return;
+						if (!settings.ShowDebugAABB && n->IsLeaf()) return;
+
+						DebugRenderer::DrawAABB({ p_Entity, this }, n->Aabb.Min, n->Aabb.Max, { 0.3f, 0.3f, 0.3f, 1.0f });
+					});
+				}
 
 				RenderCommand command = {};
 				command.EntityID = (int)p_Entity;
@@ -248,9 +268,10 @@ namespace KTN
 
 		if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
 		{
-			m_SystemManager->OnUpdate(this);
-
 			OnUpdate();
+
+			if (m_SystemManager->HasSystem<Collider2DSystem>())
+				m_SystemManager->GetSystem<Collider2DSystem>()->SyncBroadPhase(this, (float)Time::GetDeltaTime());
 		}
 	}
 
@@ -320,6 +341,9 @@ namespace KTN
 
 		if (!m_Config.UseB2Physics && m_SystemManager->HasSystem<B2Physics>())
 			m_SystemManager->RemoveSystem<B2Physics>();
+
+		if (!m_Config.UseCollider2D && !m_Config.UseB2Physics && m_SystemManager->HasSystem<Collider2DSystem>())
+			m_SystemManager->RemoveSystem<Collider2DSystem>();
 	}
 
 	void Scene::OnUpdateRuntime()
@@ -330,11 +354,12 @@ namespace KTN
 
 		if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
 		{
-			m_SystemManager->OnUpdate(this);
-
 			OnUpdate();
 			
 			ScriptEngine::OnRuntimeUpdate(this);
+
+			if (m_SystemManager->HasSystem<Collider2DSystem>())
+				m_SystemManager->GetSystem<Collider2DSystem>()->SyncBroadPhase(this, (float)Time::GetDeltaTime());
 		}
 
 		bool first = true;
@@ -380,8 +405,21 @@ namespace KTN
 			m_Registry.view<TransformComponent>().each(
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
-				if (Engine::Get().GetSettings().ShowDebugPhysicsCollider)
+				auto& settings = Engine::Get().GetSettings();
+				if (settings.ShowDebugPhysicsCollider)
 					DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
+
+				if ((settings.ShowDebugAABB || settings.ShowDebugBVH) && m_SystemManager->HasSystem<Collider2DSystem>())
+				{
+					auto& broadPhase = m_SystemManager->GetSystem<Collider2DSystem>()->GetBroadPhase();
+					broadPhase->Traverse([&](const AABBTree::Node* n) -> void
+					{
+						if (!settings.ShowDebugBVH && !n->IsLeaf()) return;
+						if (!settings.ShowDebugAABB && n->IsLeaf()) return;
+
+						DebugRenderer::DrawAABB({ p_Entity, this }, n->Aabb.Min, n->Aabb.Max, { 0.3f, 0.3f, 0.3f, 1.0f });
+					});
+				}
 
 				RenderCommand command = {};
 				command.EntityID = (int)p_Entity;

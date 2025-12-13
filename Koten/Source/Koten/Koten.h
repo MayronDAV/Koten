@@ -74,7 +74,6 @@
 
 // PHYSICS
 
-#include "Koten/Physics/Box2D/B2Physics.h"
 #include "Koten/Physics/PhysicsMaterial2D.h"
 
 // PROJECT
@@ -86,6 +85,10 @@
 
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Script/ScriptGlue.h"
+
+// SYSTEMS
+
+#include "Koten/Systems/B2Physics.h"
 
 // SCENE
 

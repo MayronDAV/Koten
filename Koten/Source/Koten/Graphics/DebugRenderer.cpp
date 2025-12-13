@@ -21,6 +21,7 @@ namespace KTN
 		if (p_Entity.HasComponent<Collider2DComponent>())
 		{
 			auto& collider = p_Entity.GetComponent<Collider2DComponent>();
+
 			if (collider.Shape == Collider2DShape::Box)
 			{
 				glm::vec3 translation = tpos + glm::vec3(collider.Offset, 0.0f);
@@ -44,7 +45,22 @@ namespace KTN
 
 				DebugRenderer::DrawCircle(transform, p_Color, (int)p_Entity.GetHandle());
 			}
+		
 		}
+	}
+
+	void DebugRenderer::DrawAABB(Entity p_Entity, const glm::vec2& p_Min, const glm::vec2& p_Max, const glm::vec4& p_Color)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		glm::vec2 center = (p_Min + p_Max) * 0.5f;
+		glm::vec2 size = (p_Max - p_Min);
+
+		glm::mat4 transform =
+			glm::translate(glm::mat4(1.0f), glm::vec3(center, 0.001f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(size, 1.0f));
+
+		DebugRenderer::DrawSquare(transform, p_Color, (int)p_Entity.GetHandle());
 	}
 
 	void DebugRenderer::DrawSquare(const glm::mat4& p_Transform, const glm::vec4& p_Color, int p_Entity)

@@ -135,7 +135,7 @@ namespace KTN
 			Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
 			scene->SetIsPaused(p_Value);
 		}
-		s_Data->IsPaused = true;
+		s_Data->IsPaused = p_Value;
 	}
 
 	void SceneManager::Stop()

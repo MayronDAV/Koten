@@ -19,7 +19,8 @@ namespace KTN
 
 	struct SceneConfig
 	{
-		bool UseB2Physics = true;
+		bool UseB2Physics = true; // set UseCollider2D to true
+		bool UseCollider2D = true;
 	};
 
 	class KTN_API Scene : public Asset

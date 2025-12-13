@@ -24,6 +24,8 @@ namespace KTN
 		bool MousePicking = true;
 
 		bool ShowDebugPhysicsCollider = false;
+		bool ShowDebugAABB = false;
+		bool ShowDebugBVH = false;
 		float DebugLineWidth = 2.0f;
 		float DebugCircleThickness = 0.03f;
 

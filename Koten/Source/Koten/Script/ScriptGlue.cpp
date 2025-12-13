@@ -242,29 +242,6 @@ namespace KTN
 
 			auto& tc = entity.GetComponent<TransformComponent>();
 			tc.SetLocalTranslation(*p_Value);
-
-			if (entity.GetScene()->GetConfig().UseB2Physics && !entity.HasComponent<Rigidbody2DComponent>())
-			{
-				b2BodyId body{};
-				bool hasBody = false;
-				if (entity.HasComponent<Collider2DComponent>())
-				{
-					auto& collider = entity.GetComponent<Collider2DComponent>();
-					body = b2BodyId{
-						.index1 = collider.Body.Index,
-						.world0 = collider.Body.World,
-						.generation = collider.Body.Generation
-					};
-					hasBody = true;
-				}
-
-				if (!hasBody || !b2Body_IsValid(body))
-					return;
-
-				glm::vec3 pos = tc.GetWorldTranslation();
-				glm::vec3 rot = tc.GetWorldRotation();
-				b2Body_SetTransform(body, { pos.x, pos.y }, b2MakeRot(rot.z));
-			}
 		}
 		#pragma endregion
 
