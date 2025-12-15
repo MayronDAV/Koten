@@ -29,7 +29,7 @@ namespace KTN
 			float Width() const { return Max.x - Min.x; }
 			float Height() const { return Max.y - Min.y; }
 
-			bool Point(const glm::vec2& p_Point) const;
+			bool Overlaps(const glm::vec2& p_Point) const;
 			bool Contains(const AABB& p_Other) const;
 			bool Overlaps(const AABB& p_Other) const;
 			void Expand(float p_Margin);

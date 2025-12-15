@@ -203,7 +203,7 @@ namespace KTN
 			NodeIndex current = stack.back();
 			stack.pop_back();
 
-			if (!m_Nodes[current].Aabb.Point(p_Point))
+			if (!m_Nodes[current].Aabb.Overlaps(p_Point))
 				continue;
 
 			if (m_Nodes[current].IsLeaf())

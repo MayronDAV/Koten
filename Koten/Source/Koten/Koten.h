@@ -24,6 +24,12 @@
 #include "Koten/Asset/SceneImporter.h"
 #include "Koten/Asset/PhysicsMaterial2DImporter.h"
 
+// COLLISION
+
+#include "Koten/Collision/AABB.h"
+#include "Koten/Collision/AABBTree.h"
+#include "Koten/Collision/Intersect2D.h"
+
 // EVENTS
 
 #include "Koten/Events/Event.h"
@@ -89,6 +95,7 @@
 // SYSTEMS
 
 #include "Koten/Systems/B2Physics.h"
+#include "Koten/Systems/Collider2DSystem.h"
 
 // SCENE
 

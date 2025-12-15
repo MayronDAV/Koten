@@ -155,6 +155,7 @@ namespace KTN
 		}
 		s_Data->ScenesCopy.clear();
 		s_Data->State = RuntimeState::None;
+		s_Data->IsPaused = false;
 	}
 
 	void SceneManager::Step(int p_Frames)

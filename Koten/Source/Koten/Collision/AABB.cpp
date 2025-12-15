@@ -56,7 +56,7 @@ namespace KTN
 		return 2.0f * (d.x + d.y);
 	}
 
-	bool AABB::Point(const glm::vec2& p_Point) const
+	bool AABB::Overlaps(const glm::vec2& p_Point) const
 	{
 		KTN_PROFILE_FUNCTION();
 
