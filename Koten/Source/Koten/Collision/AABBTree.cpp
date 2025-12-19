@@ -7,11 +7,6 @@ namespace KTN
 	static constexpr float s_Margin = 0.03f;
 	static constexpr float s_Multiplier = 3.0f;
 
-	static uint64_t MakePairNatural(uint64_t p_A, uint64_t p_B)
-	{
-		return (p_A + p_B) * (p_A + p_B + 1ul) / 2ul + p_B;
-	}
-
 	AABBTree::AABBTree()
 		: m_Root{ NullNode }
 		, m_NodeCapacity{ 32 }
@@ -294,32 +289,50 @@ namespace KTN
 		std::vector<std::pair<UUID, UUID>> pairs;
 		pairs.reserve(128);
 
-		for (NodeIndex i = 0; i < m_NodeCount; ++i)
+		std::vector<NodeIndex> leaves;
+		leaves.reserve(m_NodeCount);
+
+		for (NodeIndex i = 0; i < m_NodeCapacity; ++i)
 		{
-			Node& nodeA = m_Nodes[i];
-			if (nodeA.Parent == i) continue;
-			if (!nodeA.IsLeaf()) continue;
-			if (!nodeA.Moved) continue;
+			Node& node = m_Nodes[i];
+			if (node.Parent == i) continue;
+			if (!node.IsLeaf()) continue;
 
-			const AABB& fatAABB = nodeA.Aabb;
+			leaves.push_back(i);
+		}
+
+		for (size_t i = 0; i < leaves.size(); ++i)
+		{
+			NodeIndex leafA = leaves[i];
+			const Node& nodeA = m_Nodes[leafA];
 			const UUID& idA = nodeA.EnttUUID;
+			const AABB& aabbA = nodeA.Aabb;
 
-			Query(fatAABB, [&](NodeIndex p_Other, UUID p_IdB)
+			for (size_t j = i + 1; j < leaves.size(); ++j)
 			{
-				if (i == p_Other)
-					return true;
+				NodeIndex leafB = leaves[j];
+				const Node& nodeB = m_Nodes[leafB];
+
+				if (!aabbA.Overlaps(nodeB.Aabb))
+					continue;
+
+				const UUID& idB = nodeB.EnttUUID;
 
 				UUID a = idA;
-				UUID b = p_IdB;
+				UUID b = idB;
 				if (a > b)
 					std::swap(a, b);
 
 				pairs.emplace_back(a, b);
+			}
+		}
 
-				return true;
-			});
-
-			nodeA.Moved = false;
+		for (NodeIndex i = 0; i < m_NodeCapacity; ++i)
+		{
+			if (m_Nodes[i].Parent != i)
+			{
+				m_Nodes[i].Moved = false;
+			}
 		}
 
 		return pairs;

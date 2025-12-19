@@ -16,17 +16,18 @@ namespace KTN
 		UUID IdB = 0;
 	};
 
-	enum ContactFlags : uint8_t
+	enum class ContactFlags : uint8_t
 	{
-		ContactFlagsStartedTouching = BIT(0),
-		ContactFlagsStoppedTouching = BIT(1),
-		ContactFlagsTouching = BIT(2)
+		None = 0,
+		StartedTouching = 1,
+		StoppedTouching = 2,
+		Touching = 3
 	};
 
 	struct Contact
 	{
 		int Index = -1;
-		uint32_t Flags = 0;
+		ContactFlags Flags = ContactFlags::None;
 
 		ContactEvent Event = {};
 	};
@@ -65,6 +66,8 @@ namespace KTN
 			std::vector<ContactEvent> m_StayContacts;
 			std::vector<ContactEvent> m_BeginContacts;
 			std::vector<ContactEvent> m_EndContacts;
+
+			std::unordered_map<UUID, glm::vec4> m_Dirs;
 	};
 
 } // namespace KTN

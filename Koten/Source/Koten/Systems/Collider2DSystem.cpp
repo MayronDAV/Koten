@@ -60,10 +60,8 @@ namespace KTN
 
 			BoxShape box{};
 			glm::vec2 scale = p_Transform.GetWorldScale();
-			glm::vec2 half = (p_Collider.Size * 0.5f) * scale;
-
 			box.Center = glm::vec2(p_Transform.GetWorldTranslation()) + p_Collider.Offset * scale;
-			box.HalfExtents = half;
+			box.HalfExtents = p_Collider.Size * scale;
 			box.Rotation = p_Transform.GetWorldRotation().z;
 
 			return box;
@@ -88,7 +86,7 @@ namespace KTN
 
 			return c;
 		}
-	
+
 	} // namespace
 
 	Collider2DSystem::Collider2DSystem()
@@ -124,6 +122,7 @@ namespace KTN
 		m_StayContacts.clear();
 		m_BeginContacts.clear();
 		m_EndContacts.clear();
+		m_Dirs.clear();
 
 		return true;
 	}
@@ -138,9 +137,9 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 		
 		auto pairs = m_BroadPhase->ComputePairs();
-
 		m_ContactsInfo.reserve(pairs.size());
 		m_CachedShape.reserve(pairs.size() * 2);
+		m_Dirs.reserve(pairs.size() * 2);
 
 		m_BeginContacts.clear();
 		m_EndContacts.clear();
@@ -160,6 +159,24 @@ namespace KTN
 
 			auto& trA = A.GetComponent<TransformComponent>();
 			auto& trB = B.GetComponent<TransformComponent>();
+
+			if (m_Dirs.find(idA) == m_Dirs.end())
+				m_Dirs[idA] = { glm::vec2(trA.GetWorldTranslation()), glm::vec2(0.0f) };
+			else
+			{
+				glm::vec2 prevPos{ m_Dirs[idA].x, m_Dirs[idA].y };
+				auto curPos = glm::vec2(trA.GetWorldTranslation());
+				m_Dirs[idA] = { curPos, curPos != prevPos ? glm::normalize(curPos - prevPos) : glm::vec2(m_Dirs[idA].z, m_Dirs[idA].w) };
+			}
+
+			if (m_Dirs.find(idB) == m_Dirs.end())
+				m_Dirs[idB] = { glm::vec2(trB.GetWorldTranslation()), glm::vec2(0.0f) };
+			else
+			{
+				glm::vec2 prevPos{ m_Dirs[idB].x, m_Dirs[idB].y };
+				auto curPos = glm::vec2(trB.GetWorldTranslation());
+				m_Dirs[idB] = { curPos, curPos != prevPos ? glm::normalize(curPos - prevPos) : glm::vec2(m_Dirs[idB].z, m_Dirs[idB].w) };
+			}
 
 			size_t seed = 0;
 			{
@@ -184,11 +201,10 @@ namespace KTN
 					shape.Type = Collider2DShape::Box;
 					shape.Box = {};
 				}
-
 				shape.Position = trA.GetWorldTranslation();
 			}
 
-			if ( m_CachedShape.find(idB) == m_CachedShape.end() ||
+			if (m_CachedShape.find(idB) == m_CachedShape.end() ||
 				(m_CachedShape.find(idB) != m_CachedShape.end() && m_CachedShape[idB].Position != trB.GetWorldTranslation()))
 			{
 				auto& shape = m_CachedShape[idB];
@@ -204,7 +220,6 @@ namespace KTN
 					shape.Type = Collider2DShape::Box;
 					shape.Box = {};
 				}
-
 				shape.Position = trB.GetWorldTranslation();
 			}
 
@@ -221,6 +236,7 @@ namespace KTN
 					colA.Shape == Collider2DShape::Box    ? m_CachedShape[idA].Box : m_CachedShape[idB].Box);
 			}
 
+
 			auto it = m_ContactsInfo.find(seed);
 			bool exists = it != m_ContactsInfo.end();
 			if (overlap)
@@ -229,23 +245,19 @@ namespace KTN
 				{
 					auto& info = m_ContactsInfo[seed];
 
-					if (info.Flags & ContactFlagsStoppedTouching)
-						info.Flags &= ~ContactFlagsStoppedTouching;
-
-					if (info.Flags & ContactFlagsStartedTouching)
+					if (info.Flags != ContactFlags::Touching)
 					{
-						info.Flags &= ~ContactFlagsStartedTouching;
-						info.Flags |= ContactFlagsTouching;
 						m_StayContacts.push_back(info.Event);
 						info.Index = (int)m_StayContacts.size() - 1;
 					}
+					info.Flags = ContactFlags::Touching;
 				}
 				else
 				{
 					Contact contact{};
 					contact.Event.IdA = idA;
 					contact.Event.IdB = idB;
-					contact.Flags |= ContactFlagsStartedTouching;
+					contact.Flags = ContactFlags::StartedTouching;
 					m_BeginContacts.push_back(contact.Event);
 					contact.Index = (int)m_BeginContacts.size() - 1;
 					m_ContactsInfo[seed] = contact;
@@ -255,31 +267,41 @@ namespace KTN
 			{
 				auto& info = m_ContactsInfo[seed];
 
-				if (info.Flags & ContactFlagsStartedTouching)
+				if (info.Flags == ContactFlags::StartedTouching)
 				{
-					info.Flags &= ~ContactFlagsStartedTouching;
-
+					info.Flags = ContactFlags::None;
 					if (info.Index != -1)
 					{
-						m_BeginContacts.erase(m_BeginContacts.begin() + (size_t)info.Index);
+						m_BeginContacts.erase(m_BeginContacts.begin() + info.Index);
+						for (auto& [seed, cInfo] : m_ContactsInfo)
+						{
+							if (cInfo.Flags != ContactFlags::StartedTouching)
+								continue;
+
+							cInfo.Index = cInfo.Index > info.Index ? cInfo.Index - 1 : cInfo.Index;
+						}
 						info.Index = -1;
 					}
 				}
 
-				if (info.Flags & ContactFlagsTouching)
+				if (info.Flags == ContactFlags::Touching)
 				{
-					info.Flags &= ~ContactFlagsTouching;
-
+					info.Flags = ContactFlags::None;
 					if (info.Index != -1)
 					{
-						m_StayContacts.erase(m_StayContacts.begin() + (size_t)info.Index);
+						m_StayContacts.erase(m_StayContacts.begin() + info.Index);
+						for (auto& [seed, cInfo] : m_ContactsInfo)
+						{
+							if (cInfo.Flags != ContactFlags::Touching)
+								continue;
+
+							cInfo.Index = cInfo.Index > info.Index ? cInfo.Index - 1 : cInfo.Index;
+						}
 						info.Index = -1;
 					}
 				}
 
-				if (!(info.Flags & ContactFlagsStoppedTouching))
-					info.Flags |= ContactFlagsStoppedTouching;
-
+				info.Flags = ContactFlags::StoppedTouching;
 				m_EndContacts.push_back(info.Event);
 				m_ContactsInfo.erase(seed);
 			}
@@ -295,8 +317,11 @@ namespace KTN
 			auto posA = trA.GetWorldTranslation();
 			auto posB = trB.GetWorldTranslation();
 
-			KTN_CORE_INFO("OnCollisionEnter {} {}", (uint64_t)event.IdA, (uint64_t)event.IdB);
-			KTN_CORE_INFO("    A: ({}, {}), B: ({}, {})", posA.x, posA.y, posB.x, posB.y);
+			KTN_CORE_WARN("OnCollisionEnter {} {}", (uint64_t)event.IdA, (uint64_t)event.IdB);
+			KTN_CORE_WARN("    A: ({}, {}), B: ({}, {})", posA.x, posA.y, posB.x, posB.y);
+			glm::vec2 dirA{ m_Dirs[event.IdA].z, m_Dirs[event.IdA].w };
+			glm::vec2 dirB{ m_Dirs[event.IdB].z, m_Dirs[event.IdB].w };
+			KTN_CORE_WARN("Dir A: ({}, {}), B: ({}, {})", dirA.x, dirA.y, dirB.x, dirB.y);
 		}
 
 		for (const auto& event : m_StayContacts)
@@ -311,6 +336,9 @@ namespace KTN
 
 			KTN_CORE_INFO("OnCollisionStay {} {}", (uint64_t)event.IdA, (uint64_t)event.IdB);
 			KTN_CORE_INFO("    A: ({}, {}), B: ({}, {})", posA.x, posA.y, posB.x, posB.y);
+			glm::vec2 dirA{ m_Dirs[event.IdA].z, m_Dirs[event.IdA].w };
+			glm::vec2 dirB{ m_Dirs[event.IdB].z, m_Dirs[event.IdB].w };
+			KTN_CORE_INFO("Dir A: ({}, {}), B: ({}, {})", dirA.x, dirA.y, dirB.x, dirB.y);
 		}
 
 		for (const auto& event : m_EndContacts)
@@ -323,8 +351,11 @@ namespace KTN
 			auto posA = trA.GetWorldTranslation();
 			auto posB = trB.GetWorldTranslation();
 
-			KTN_CORE_INFO("OnCollisionEnd {} {}", (uint64_t)event.IdA, (uint64_t)event.IdB);
-			KTN_CORE_INFO("    A: ({}, {}), B: ({}, {})", posA.x, posA.y, posB.x, posB.y);
+			KTN_CORE_WARN("OnCollisionEnd {} {}", (uint64_t)event.IdA, (uint64_t)event.IdB);
+			KTN_CORE_WARN("    A: ({}, {}), B: ({}, {})", posA.x, posA.y, posB.x, posB.y);
+			glm::vec2 dirA{ m_Dirs[event.IdA].z, m_Dirs[event.IdA].w };
+			glm::vec2 dirB{ m_Dirs[event.IdB].z, m_Dirs[event.IdB].w };
+			KTN_CORE_WARN("Dir A: ({}, {}), B: ({}, {})", dirA.x, dirA.y, dirB.x, dirB.y);
 		}
 	}
 
