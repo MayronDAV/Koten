@@ -3,7 +3,6 @@
 #include "Koten/Graphics/Renderer.h"
 #include "Entity.h"
 #include "Koten/Systems/B2Physics.h"
-#include "Koten/Systems/Collider2DSystem.h"
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Graphics/DFFont.h"
@@ -51,14 +50,15 @@ namespace KTN
 		AddDependency<TextRendererComponent, TransformComponent>(m_Registry);
 		AddDependency<CameraComponent, TransformComponent>(m_Registry);
 		AddDependency<Rigidbody2DComponent, TransformComponent>(m_Registry);
-		AddDependency<Rigidbody2DComponent, Collider2DSystem>(m_Registry);
-		AddDependency<Collider2DSystem, TransformComponent>(m_Registry);
+		AddDependency<Rigidbody2DComponent, BodyShape2DComponent>(m_Registry);
+		AddDependency<CharacterBody2DComponent, TransformComponent>(m_Registry);
+		AddDependency<CharacterBody2DComponent, BodyShape2DComponent>(m_Registry);
+		AddDependency<StaticBody2DComponent, TransformComponent>(m_Registry);
+		AddDependency<StaticBody2DComponent, BodyShape2DComponent>(m_Registry);
 
 		m_SystemManager = CreateUnique<SystemManager>();
-		if (m_Config.UseB2Physics)
+		if (m_Config.UsePhysics2D)
 			m_SystemManager->RegisterSystem<B2Physics>();
-		if (m_Config.UseB2Physics || m_Config.UseCollider2D)
-			m_SystemManager->RegisterSystem<Collider2DSystem>();
 
 		m_SceneGraph = CreateUnique<SceneGraph>();
 		m_SceneGraph->Init(m_Registry);
@@ -155,8 +155,6 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		m_SystemManager->OnUpdate(this);
-
 		m_SceneGraph->Update(m_Registry);
 	}
 
@@ -179,20 +177,9 @@ namespace KTN
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
 				auto& settings = Engine::Get().GetSettings();
-				if (settings.ShowDebugPhysicsCollider)
+				auto shape2d = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
+				if (shape2d && settings.ShowDebugPhysicsCollider)
 					DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
-
-				if ((settings.ShowDebugAABB || settings.ShowDebugBVH) && m_SystemManager->HasSystem<Collider2DSystem>())
-				{
-					auto& broadPhase = m_SystemManager->GetSystem<Collider2DSystem>()->GetBroadPhase();
-					broadPhase->Traverse([&](const AABBTree::Node* n) -> void
-					{
-						if (!settings.ShowDebugBVH && !n->IsLeaf()) return;
-						if (!settings.ShowDebugAABB && n->IsLeaf()) return;
-
-						DebugRenderer::DrawAABB({ p_Entity, this }, n->Aabb.Min, n->Aabb.Max, { 0.3f, 0.3f, 0.3f, 1.0f });
-					});
-				}
 
 				RenderCommand command = {};
 				command.EntityID = (int)p_Entity;
@@ -268,10 +255,9 @@ namespace KTN
 
 		if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
 		{
-			OnUpdate();
+			m_SystemManager->OnUpdate(this);
 
-			if (m_SystemManager->HasSystem<Collider2DSystem>())
-				m_SystemManager->GetSystem<Collider2DSystem>()->SyncBroadPhase(this, (float)Time::GetDeltaTime());
+			m_SceneGraph->Update(m_Registry);
 		}
 	}
 
@@ -339,11 +325,11 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (!m_Config.UseB2Physics && m_SystemManager->HasSystem<B2Physics>())
+		if (!m_Config.UsePhysics2D && m_SystemManager->HasSystem<B2Physics>())
+		{
+			m_SystemManager->GetSystem<B2Physics>()->OnStop(this);
 			m_SystemManager->RemoveSystem<B2Physics>();
-
-		if (!m_Config.UseCollider2D && !m_Config.UseB2Physics && m_SystemManager->HasSystem<Collider2DSystem>())
-			m_SystemManager->RemoveSystem<Collider2DSystem>();
+		}
 	}
 
 	void Scene::OnUpdateRuntime()
@@ -354,12 +340,11 @@ namespace KTN
 
 		if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
 		{
-			OnUpdate();
+			m_SystemManager->OnUpdate(this);
 			
 			ScriptEngine::OnRuntimeUpdate(this);
 
-			if (m_SystemManager->HasSystem<Collider2DSystem>())
-				m_SystemManager->GetSystem<Collider2DSystem>()->SyncBroadPhase(this, (float)Time::GetDeltaTime());
+			m_SceneGraph->Update(m_Registry);
 		}
 
 		bool first = true;
@@ -406,20 +391,9 @@ namespace KTN
 			[&](auto p_Entity, const TransformComponent& p_Transform)
 			{
 				auto& settings = Engine::Get().GetSettings();
-				if (settings.ShowDebugPhysicsCollider)
+				auto shape2d = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
+				if (shape2d && settings.ShowDebugPhysicsCollider)
 					DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
-
-				if ((settings.ShowDebugAABB || settings.ShowDebugBVH) && m_SystemManager->HasSystem<Collider2DSystem>())
-				{
-					auto& broadPhase = m_SystemManager->GetSystem<Collider2DSystem>()->GetBroadPhase();
-					broadPhase->Traverse([&](const AABBTree::Node* n) -> void
-					{
-						if (!settings.ShowDebugBVH && !n->IsLeaf()) return;
-						if (!settings.ShowDebugAABB && n->IsLeaf()) return;
-
-						DebugRenderer::DrawAABB({ p_Entity, this }, n->Aabb.Min, n->Aabb.Max, { 0.3f, 0.3f, 0.3f, 1.0f });
-					});
-				}
 
 				RenderCommand command = {};
 				command.EntityID = (int)p_Entity;

@@ -164,6 +164,34 @@ namespace KTN
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static float Time_GetDeltaTime();
-		#endregion
-	}
+        #endregion
+
+        #region Box2D
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_GetLinearVelocity(ulong p_EntityID, out Vector2 p_OutVelocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_SetLinearVelocity(ulong p_EntityID, ref Vector2 p_Velocity);
+
+        #endregion
+
+        #region CharacterBody2DComponent
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void CharacterBody2DComponent_MoveAndSlide(ulong p_EntityID);
+
+		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static void CharacterBody2DComponent_MoveAndCollide(ulong p_EntityID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool CharacterBody2DComponent_IsOnFloor(ulong p_EntityID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool CharacterBody2DComponent_IsOnWall(ulong p_EntityID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool CharacterBody2DComponent_IsOnCeiling(ulong p_EntityID);
+
+        #endregion
+
+    }
 } // namespace KTN

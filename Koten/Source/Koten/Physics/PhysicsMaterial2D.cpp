@@ -16,7 +16,6 @@ namespace KTN
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "PhysicsMaterial2D" << YAML::Value << Handle;
-		out << YAML::Key << "Density" << YAML::Value << Density;
 		out << YAML::Key << "Friction" << YAML::Value << Friction;
 		out << YAML::Key << "Restitution" << YAML::Value << Restitution;
 		out << YAML::Key << "RestitutionThreshold" << YAML::Value << RestitutionThreshold;
@@ -32,7 +31,6 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		p_Out.write(reinterpret_cast<const char*>(&Density), sizeof(Density));
 		p_Out.write(reinterpret_cast<const char*>(&Friction), sizeof(Friction));
 		p_Out.write(reinterpret_cast<const char*>(&Restitution), sizeof(Restitution));
 		p_Out.write(reinterpret_cast<const char*>(&RestitutionThreshold), sizeof(RestitutionThreshold));
@@ -42,7 +40,6 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		p_In.read(reinterpret_cast<char*>(&Density), sizeof(Density));
 		p_In.read(reinterpret_cast<char*>(&Friction), sizeof(Friction));
 		p_In.read(reinterpret_cast<char*>(&Restitution), sizeof(Restitution));
 		p_In.read(reinterpret_cast<char*>(&RestitutionThreshold), sizeof(RestitutionThreshold));

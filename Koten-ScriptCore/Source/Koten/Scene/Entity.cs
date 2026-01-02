@@ -27,7 +27,54 @@ namespace KTN
 			}
 		}
 
-		public bool HasComponent<T>() where T : Component, new()
+		public Vector2 Velocity
+		{
+			get
+			{
+				InternalCalls.B2_GetLinearVelocity(ID, out Vector2 result);
+				return result;
+			}
+			set
+			{
+				InternalCalls.B2_SetLinearVelocity(ID, ref value);
+            }
+        }
+
+		public bool OnFloor
+		{
+			get
+			{
+				return InternalCalls.CharacterBody2DComponent_IsOnFloor(ID);
+			}
+        }
+
+        public bool OnWall
+        {
+            get
+            {
+                return InternalCalls.CharacterBody2DComponent_IsOnWall(ID);
+            }
+        }
+
+        public bool OnCeiling
+        {
+            get
+            {
+                return InternalCalls.CharacterBody2DComponent_IsOnCeiling(ID);
+            }
+        }
+
+        public void MoveAndSlide()
+		{
+			InternalCalls.CharacterBody2DComponent_MoveAndSlide(ID);
+		}
+
+        public void MoveAndCollide()
+        {
+            InternalCalls.CharacterBody2DComponent_MoveAndCollide(ID);
+        }
+
+        public bool HasComponent<T>() where T : Component, new()
 		{
 			Type componentType = typeof(T);
 			return InternalCalls.Entity_HasComponent(ID, componentType);
@@ -64,6 +111,5 @@ namespace KTN
 			object instance = InternalCalls.GetScriptInstance(ID);
 			return instance as T;
 		}
-
 	}
 } // namespace KTN

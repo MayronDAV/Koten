@@ -59,6 +59,20 @@ namespace KTN
             }
         }
 
+        public float Length()
+        {
+            return (float)System.Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
+        }
+
+        public Vector4 Normalized()
+        {
+            float length = Length();
+            if (length == 0.0f)
+                return Zero;
+
+            return new Vector4(X / length, Y / length, Z / length, W / length);
+        }
+
         public static Vector4 operator +(Vector4 p_A, Vector4 p_B)
         {
             return new Vector4(p_A.X + p_B.X, p_A.Y + p_B.Y, p_A.Z + p_B.Z, p_A.W + p_B.W);

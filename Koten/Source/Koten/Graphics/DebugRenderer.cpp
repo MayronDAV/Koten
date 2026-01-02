@@ -9,6 +9,22 @@
 
 namespace KTN
 {
+	void DebugRenderer::DrawHairLine(const glm::vec3& p_Start, const glm::vec3& p_End, const glm::vec4& p_Color, int p_Entity)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		RenderCommand command = {};
+		command.Type = RenderType::Line;
+		command.EntityID = p_Entity;
+		command.Line.Primitive = true;
+		command.Line.Color = p_Color;
+		command.Line.Width = 2.0f;
+		command.Line.Start = p_Start;
+		command.Line.End = p_End;
+
+		Renderer::Submit(command);
+	}
+
 	void DebugRenderer::DrawCollider2D(Entity p_Entity, const glm::vec4& p_Color)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -18,11 +34,11 @@ namespace KTN
 		glm::vec3 tscale = tc.GetWorldScale();
 		glm::vec3 trot = tc.GetWorldRotation();
 
-		if (p_Entity.HasComponent<Collider2DComponent>())
+		if (p_Entity.HasComponent<BodyShape2DComponent>())
 		{
-			auto& collider = p_Entity.GetComponent<Collider2DComponent>();
+			auto& collider = p_Entity.GetComponent<BodyShape2DComponent>();
 
-			if (collider.Shape == Collider2DShape::Box)
+			if (collider.Shape == Shape2D::Rect)
 			{
 				glm::vec3 translation = tpos + glm::vec3(collider.Offset, 0.0f);
 				glm::vec3 scale = tscale * glm::vec3(collider.Size * 2.0f, 1.0f);
@@ -35,7 +51,7 @@ namespace KTN
 				DebugRenderer::DrawSquare(transform, p_Color);
 			}
 
-			if (collider.Shape == Collider2DShape::Circle)
+			if (collider.Shape == Shape2D::Circle)
 			{
 				glm::vec3 translation = tpos + glm::vec3(collider.Offset, 0.001f);
 				glm::vec3 scale = tscale * glm::vec3(collider.Size.x * 2.0f);

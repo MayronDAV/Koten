@@ -88,7 +88,6 @@ namespace KTN
 			{
 				auto material = As<Asset, PhysicsMaterial2D>(m_Material);
 
-				ImGui::InputFloat("Density", &material->Density);
 				ImGui::InputFloat("Friction", &material->Friction);
 				ImGui::InputFloat("Restitution", &material->Restitution);
 				ImGui::InputFloat("RestitutionThreshold", &material->RestitutionThreshold);

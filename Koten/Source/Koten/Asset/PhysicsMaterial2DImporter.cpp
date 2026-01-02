@@ -59,7 +59,6 @@ namespace KTN
 		if (handle != 0)
 			material->Handle = handle;
 
-		if (data["Density"]) material->Density = data["Density"].as<float>();
 		if (data["Friction"]) material->Friction = data["Friction"].as<float>();
 		if (data["Restitution"]) material->Restitution = data["Restitution"].as<float>();
 		if (data["RestitutionThreshold"]) material->RestitutionThreshold = data["RestitutionThreshold"].as<float>();

@@ -7,6 +7,7 @@
 #include "Koten/OS/GamepadCodes.h"
 #include "Koten/Project/Project.h"
 #include "Koten/Scene/SceneManager.h"
+#include "Koten/Systems/B2Physics.h"
 
 // lib
 #include <mono/metadata/object.h>
@@ -31,6 +32,20 @@ namespace KTN
 			std::string str(cStr);
 			mono_free(cStr);
 			return str;
+		}
+
+		B2BodyID GetPhysicsBody2D(Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			if (p_Entity.HasComponent<Rigidbody2DComponent>())
+				return p_Entity.GetComponent<Rigidbody2DComponent>().Body;
+			else if (p_Entity.HasComponent<CharacterBody2DComponent>())
+				return p_Entity.GetComponent<CharacterBody2DComponent>().Body;
+			else if (p_Entity.HasComponent<StaticBody2DComponent>())
+				return p_Entity.GetComponent<StaticBody2DComponent>().Body;
+
+			return {};
 		}
 
 
@@ -540,6 +555,105 @@ namespace KTN
 		}
 		#pragma endregion
 
+		#pragma region Box2D
+		static void B2_GetLinearVelocity(UUID p_EntityID, glm::vec2* p_OutVelocity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			B2BodyID body = GetPhysicsBody2D(entity);
+			KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+
+			b2BodyId bodyId = { body.Index, body.World, body.Generation };
+			auto velocity = b2Body_GetLinearVelocity(bodyId);
+			p_OutVelocity->x = velocity.x;
+			p_OutVelocity->y = velocity.y;
+		}
+
+		static void B2_SetLinearVelocity(UUID p_EntityID, glm::vec2* p_Velocity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+			
+			B2BodyID body = GetPhysicsBody2D(entity);
+			KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+
+			b2BodyId bodyId = { body.Index, body.World, body.Generation };
+			b2Body_SetLinearVelocity(bodyId, { p_Velocity->x, p_Velocity->y });
+		}
+		#pragma endregion
+
+		#pragma region CharacterBody2DComponent
+
+		static void CharacterBody2DComponent_MoveAndSlide(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			auto* scene = entity.GetScene();
+			if (scene->GetSystemManager()->HasSystem<B2Physics>())
+				scene->GetSystemManager()->GetSystem<B2Physics>()->MoveAndSlide(entity);
+		}
+
+		static void CharacterBody2DComponent_MoveAndCollide(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			auto* scene = entity.GetScene();
+			if (scene->GetSystemManager()->HasSystem<B2Physics>())
+				scene->GetSystemManager()->GetSystem<B2Physics>()->MoveAndCollide(entity);
+		}
+
+		static bool CharacterBody2DComponent_IsOnFloor(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			if (!entity.HasComponent<CharacterBody2DComponent>())
+				return false;
+
+			return entity.GetComponent<CharacterBody2DComponent>().OnFloor;
+		}
+
+		static bool CharacterBody2DComponent_IsOnWall(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			if (!entity.HasComponent<CharacterBody2DComponent>())
+				return false;
+
+			return entity.GetComponent<CharacterBody2DComponent>().OnWall;
+		}
+
+		static bool CharacterBody2DComponent_IsOnCeiling(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			if (!entity.HasComponent<CharacterBody2DComponent>())
+				return false;
+
+			return entity.GetComponent<CharacterBody2DComponent>().OnCeiling;
+		}
+
+		#pragma endregion
+
 		std::string DemangleToKTNClassName(const std::string& p_MangledName) 
 		{
 			KTN_PROFILE_FUNCTION_LOW();
@@ -672,6 +786,15 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(Input_GetControllerName);
 		KTN_ADD_INTERNAL_CALL(Input_GetMouseX);
 		KTN_ADD_INTERNAL_CALL(Input_GetMouseY);
+
+		KTN_ADD_INTERNAL_CALL(B2_GetLinearVelocity);
+		KTN_ADD_INTERNAL_CALL(B2_SetLinearVelocity);
+
+		KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_MoveAndSlide);
+		KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_MoveAndCollide);
+		KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_IsOnFloor);
+		KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_IsOnWall);
+		KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_IsOnCeiling);
 	}
 
 } // namespace KTN

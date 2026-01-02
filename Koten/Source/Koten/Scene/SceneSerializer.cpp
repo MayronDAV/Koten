@@ -109,7 +109,7 @@ namespace KTN
 		{
 			out << YAML::BeginMap;
 			auto& config = m_Scene->GetConfig();
-			out << YAML::Key << "UseB2Physics" << YAML::Value << config.UseB2Physics;
+			out << YAML::Key << "UsePhysics2D" << YAML::Value << config.UsePhysics2D;
 			out << YAML::EndMap;
 		}
 		out << YAML::EndSeq;
@@ -168,7 +168,7 @@ namespace KTN
 			auto& config = m_Scene->GetConfig();
 			for (auto value : configs)
 			{
-				config.UseB2Physics = value["UseB2Physics"].as<bool>();
+				config.UsePhysics2D = value["UsePhysics2D"].as<bool>();
 			}
 		}
 
@@ -427,6 +427,31 @@ namespace KTN
 		}
 
 		template<>
+		void ComponentSerializeIfExist<CharacterBody2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<CharacterBody2DComponent>())
+				return;
+
+			p_Out << YAML::Key << "CharacterBody2DComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<CharacterBody2DComponent>();
+			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
+			ADD_KEY_VALUE("Mass", comp.Mass);
+			ADD_KEY_VALUE("PhysicsMaterial2D", comp.PhysicsMaterial2D);
+			ADD_KEY_VALUE("SlideOnCeiling", comp.SlideOnCeiling);
+			ADD_KEY_VALUE("FloorMaxAngle", comp.FloorMaxAngle);
+			ADD_KEY_VALUE("FloorSnapLength", comp.FloorSnapLength);
+			ADD_KEY_VALUE("WallMinSlideAngle", comp.WallMinSlideAngle);
+			ADD_KEY_VALUE("UpDirection", comp.UpDirection);
+			ADD_KEY_VALUE("FloorNormal", comp.FloorNormal);
+
+			p_Out << YAML::EndMap;
+		}
+
+		template<>
 		void ComponentSerializeIfExist<Rigidbody2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
@@ -438,31 +463,54 @@ namespace KTN
 			p_Out << YAML::BeginMap;
 
 			auto& comp = p_Entity.GetComponent<Rigidbody2DComponent>();
-			ADD_KEY_VALUE("Type", (int)comp.Type);
-			ADD_KEY_VALUE("FixedRotation", comp.FixedRotation);
+			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
+			ADD_KEY_VALUE("Mass", comp.Mass);
+			ADD_KEY_VALUE("PhysicsMaterial2D", comp.PhysicsMaterial2D);
+			ADD_KEY_VALUE("LinearDamping", comp.LinearDamping);
+			ADD_KEY_VALUE("AngularDamping", comp.AngularDamping);
 			ADD_KEY_VALUE("GravityScale", comp.GravityScale);
+			ADD_KEY_VALUE("FixedRotation", comp.FixedRotation);
+			ADD_KEY_VALUE("Sleeping", comp.Sleeping);
+			ADD_KEY_VALUE("CanSleep", comp.CanSleep);
 
 			p_Out << YAML::EndMap;
 		}
 
 		template<>
-		void ComponentSerializeIfExist<Collider2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentSerializeIfExist<StaticBody2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			if (!p_Entity.HasComponent<Collider2DComponent>())
+			if (!p_Entity.HasComponent<StaticBody2DComponent>())
 				return;
 
-			p_Out << YAML::Key << "Collider2DComponent";
+			p_Out << YAML::Key << "StaticBody2DComponent";
 			p_Out << YAML::BeginMap;
 
-			auto& comp = p_Entity.GetComponent<Collider2DComponent>();
+			auto& comp = p_Entity.GetComponent<StaticBody2DComponent>();
+			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
+			ADD_KEY_VALUE("Mass", comp.Mass);
+			ADD_KEY_VALUE("PhysicsMaterial2D", comp.PhysicsMaterial2D);
+
+			p_Out << YAML::EndMap;
+		}
+
+		template<>
+		void ComponentSerializeIfExist<BodyShape2DComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<BodyShape2DComponent>())
+				return;
+
+			p_Out << YAML::Key << "BodyShape2DComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<BodyShape2DComponent>();
 
 			ADD_KEY_VALUE("Shape", (int)comp.Shape);
-			ADD_KEY_VALUE("IsTrigger", comp.IsTrigger);
 			ADD_KEY_VALUE("Offset", comp.Offset);
 			ADD_KEY_VALUE("Size", comp.Size);
-			ADD_KEY_VALUE("PhysicsMaterial2D", comp.PhysicsMaterial2D);
 
 			p_Out << YAML::EndMap;
 		}
@@ -728,6 +776,29 @@ namespace KTN
 		}
 
 		template<>
+		void ComponentSerializeBinIfExist<CharacterBody2DComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<CharacterBody2DComponent>())
+				return;
+
+			Utils::WriteString(p_Out, "CharacterBody2DComponent");
+
+			auto& comp = p_Entity.GetComponent<CharacterBody2DComponent>();
+
+			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
+			p_Out.write(reinterpret_cast<const char*>(&comp.Mass), sizeof(comp.Mass));
+			p_Out.write(reinterpret_cast<const char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
+			p_Out.write(reinterpret_cast<const char*>(&comp.SlideOnCeiling), sizeof(comp.SlideOnCeiling));
+			p_Out.write(reinterpret_cast<const char*>(&comp.FloorMaxAngle), sizeof(comp.FloorMaxAngle));
+			p_Out.write(reinterpret_cast<const char*>(&comp.FloorSnapLength), sizeof(comp.FloorSnapLength));
+			p_Out.write(reinterpret_cast<const char*>(&comp.WallMinSlideAngle), sizeof(comp.WallMinSlideAngle));
+			p_Out.write(reinterpret_cast<const char*>(&comp.UpDirection), sizeof(comp.UpDirection));
+			p_Out.write(reinterpret_cast<const char*>(&comp.FloorNormal), sizeof(comp.FloorNormal));
+		}
+
+		template<>
 		void ComponentSerializeBinIfExist<Rigidbody2DComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
@@ -739,28 +810,49 @@ namespace KTN
 
 			auto& comp = p_Entity.GetComponent<Rigidbody2DComponent>();
 
-			p_Out.write(reinterpret_cast<const char*>(&comp.Type), sizeof(comp.Type));
-			p_Out.write(reinterpret_cast<const char*>(&comp.FixedRotation), sizeof(comp.FixedRotation));
+			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
+			p_Out.write(reinterpret_cast<const char*>(&comp.Mass), sizeof(comp.Mass));
+			p_Out.write(reinterpret_cast<const char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
+			p_Out.write(reinterpret_cast<const char*>(&comp.LinearDamping), sizeof(comp.LinearDamping));
+			p_Out.write(reinterpret_cast<const char*>(&comp.AngularDamping), sizeof(comp.AngularDamping));
 			p_Out.write(reinterpret_cast<const char*>(&comp.GravityScale), sizeof(comp.GravityScale));
+			p_Out.write(reinterpret_cast<const char*>(&comp.FixedRotation), sizeof(comp.FixedRotation));
+			p_Out.write(reinterpret_cast<const char*>(&comp.Sleeping), sizeof(comp.Sleeping));
+			p_Out.write(reinterpret_cast<const char*>(&comp.CanSleep), sizeof(comp.CanSleep));
 		}
 
 		template<>
-		void ComponentSerializeBinIfExist<Collider2DComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentSerializeBinIfExist<StaticBody2DComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			if (!p_Entity.HasComponent<Collider2DComponent>())
+			if (!p_Entity.HasComponent<StaticBody2DComponent>())
 				return;
 
-			Utils::WriteString(p_Out, "Collider2DComponent");
+			Utils::WriteString(p_Out, "StaticBody2DComponent");
 
-			auto& comp = p_Entity.GetComponent<Collider2DComponent>();
+			auto& comp = p_Entity.GetComponent<StaticBody2DComponent>();
+
+			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
+			p_Out.write(reinterpret_cast<const char*>(&comp.Mass), sizeof(comp.Mass));
+			p_Out.write(reinterpret_cast<const char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
+		}
+
+		template<>
+		void ComponentSerializeBinIfExist<BodyShape2DComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<BodyShape2DComponent>())
+				return;
+
+			Utils::WriteString(p_Out, "BodyShape2DComponent");
+
+			auto& comp = p_Entity.GetComponent<BodyShape2DComponent>();
 
 			p_Out.write(reinterpret_cast<const char*>(&comp.Shape), sizeof(comp.Shape));
-			p_Out.write(reinterpret_cast<const char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Offset), sizeof(comp.Offset));
 			p_Out.write(reinterpret_cast<const char*>(&comp.Size), sizeof(comp.Size));
-			p_Out.write(reinterpret_cast<const char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
 		}
 
 		template<>
@@ -997,35 +1089,75 @@ namespace KTN
 		}
 
 		template<>
+		void ComponentDeserializeIfExist<CharacterBody2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto data = p_Data["CharacterBody2DComponent"];
+			if (!data) return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<CharacterBody2DComponent>();
+
+			comp.IsTrigger = data["IsTrigger"].as<bool>();
+			comp.Mass = data["Mass"].as<float>();
+			comp.PhysicsMaterial2D = data["PhysicsMaterial2D"] ? data["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
+			comp.SlideOnCeiling = data["SlideOnCeiling"].as<bool>();
+			comp.FloorMaxAngle = data["FloorMaxAngle"].as<float>();
+			comp.FloorSnapLength = data["FloorSnapLength"].as<float>();
+			comp.WallMinSlideAngle = data["WallMinSlideAngle"].as<float>();
+			comp.UpDirection = data["UpDirection"].as<glm::vec2>();
+			comp.FloorNormal = data["FloorNormal"].as<glm::vec2>();
+		}
+
+		template<>
 		void ComponentDeserializeIfExist<Rigidbody2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			auto rigidComp = p_Data["Rigidbody2DComponent"];
-			if (!rigidComp) return;
+			auto data = p_Data["Rigidbody2DComponent"];
+			if (!data) return;
 
 			auto& comp = p_Entity.AddOrReplaceComponent<Rigidbody2DComponent>();
 
-			comp.Type = (Rigidbody2DComponent::BodyType)rigidComp["Type"].as<int>();
-			comp.FixedRotation = rigidComp["FixedRotation"].as<bool>();
-			comp.GravityScale = rigidComp["GravityScale"].as<float>();
+			comp.IsTrigger = data["IsTrigger"].as<bool>();
+			comp.Mass = data["Mass"].as<float>();
+			comp.PhysicsMaterial2D = data["PhysicsMaterial2D"] ? data["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
+			comp.LinearDamping = data["LinearDamping"].as<float>();
+			comp.AngularDamping = data["AngularDamping"].as<float>();
+			comp.GravityScale = data["GravityScale"].as<float>();
+			comp.FixedRotation = data["FixedRotation"].as<bool>();
+			comp.Sleeping = data["Sleeping"].as<bool>();
+			comp.CanSleep = data["CanSleep"].as<bool>();
 		}
 
 		template<>
-		void ComponentDeserializeIfExist<Collider2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeIfExist<StaticBody2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			auto colComp = p_Data["Collider2DComponent"];
-			if (!colComp) return;
+			auto data = p_Data["StaticBody2DComponent"];
+			if (!data) return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<Collider2DComponent>();
+			auto& comp = p_Entity.AddOrReplaceComponent<StaticBody2DComponent>();
 
-			comp.Shape = (Collider2DShape)colComp["Shape"].as<int>();
-			comp.IsTrigger = colComp["IsTrigger"].as<bool>();
-			comp.Offset = colComp["Offset"].as<glm::vec2>();
-			comp.Size = colComp["Size"].as<glm::vec2>();
-			comp.PhysicsMaterial2D = colComp["PhysicsMaterial2D"] ? colComp["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
+			comp.IsTrigger = data["IsTrigger"].as<bool>();
+			comp.Mass = data["Mass"].as<float>();
+			comp.PhysicsMaterial2D = data["PhysicsMaterial2D"] ? data["PhysicsMaterial2D"].as<AssetHandle>() : PhysicsMaterial2D::GetDefault();
+		}
+
+		template<>
+		void ComponentDeserializeIfExist<BodyShape2DComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto data = p_Data["BodyShape2DComponent"];
+			if (!data) return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<BodyShape2DComponent>();
+
+			comp.Shape = (Shape2D)data["Shape"].as<int>();
+			comp.Offset = data["Offset"].as<glm::vec2>();
+			comp.Size = data["Size"].as<glm::vec2>();
 		}
 
 		template<>
@@ -1255,6 +1387,27 @@ namespace KTN
 		}
 
 		template<>
+		void ComponentDeserializeBinIfExist<CharacterBody2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (p_Current != "CharacterBody2DComponent")
+				return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<CharacterBody2DComponent>();
+
+			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
+			p_In.read(reinterpret_cast<char*>(&comp.Mass), sizeof(comp.Mass));
+			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
+			p_In.read(reinterpret_cast<char*>(&comp.SlideOnCeiling), sizeof(comp.SlideOnCeiling));
+			p_In.read(reinterpret_cast<char*>(&comp.FloorMaxAngle), sizeof(comp.FloorMaxAngle));
+			p_In.read(reinterpret_cast<char*>(&comp.FloorSnapLength), sizeof(comp.FloorSnapLength));
+			p_In.read(reinterpret_cast<char*>(&comp.WallMinSlideAngle), sizeof(comp.WallMinSlideAngle));
+			p_In.read(reinterpret_cast<char*>(&comp.UpDirection), sizeof(comp.UpDirection));
+			p_In.read(reinterpret_cast<char*>(&comp.FloorNormal), sizeof(comp.FloorNormal));
+		}
+
+		template<>
 		void ComponentDeserializeBinIfExist<Rigidbody2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
@@ -1264,26 +1417,45 @@ namespace KTN
 
 			auto& comp = p_Entity.AddOrReplaceComponent<Rigidbody2DComponent>();
 
-			p_In.read(reinterpret_cast<char*>(&comp.Type), sizeof(comp.Type));
-			p_In.read(reinterpret_cast<char*>(&comp.FixedRotation), sizeof(comp.FixedRotation));
+			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
+			p_In.read(reinterpret_cast<char*>(&comp.Mass), sizeof(comp.Mass));
+			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
+			p_In.read(reinterpret_cast<char*>(&comp.LinearDamping), sizeof(comp.LinearDamping));
+			p_In.read(reinterpret_cast<char*>(&comp.AngularDamping), sizeof(comp.AngularDamping));
 			p_In.read(reinterpret_cast<char*>(&comp.GravityScale), sizeof(comp.GravityScale));
+			p_In.read(reinterpret_cast<char*>(&comp.FixedRotation), sizeof(comp.FixedRotation));
+			p_In.read(reinterpret_cast<char*>(&comp.Sleeping), sizeof(comp.Sleeping));
+			p_In.read(reinterpret_cast<char*>(&comp.CanSleep), sizeof(comp.CanSleep));
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<Collider2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<StaticBody2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
-			if (p_Current != "Collider2DComponent")
+			if (p_Current != "StaticBody2DComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<Collider2DComponent>();
+			auto& comp = p_Entity.AddOrReplaceComponent<StaticBody2DComponent>();
+
+			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
+			p_In.read(reinterpret_cast<char*>(&comp.Mass), sizeof(comp.Mass));
+			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
+		}
+
+		template<>
+		void ComponentDeserializeBinIfExist<BodyShape2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (p_Current != "BodyShape2DComponent")
+				return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<BodyShape2DComponent>();
 
 			p_In.read(reinterpret_cast<char*>(&comp.Shape), sizeof(comp.Shape));
-			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
 			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
 			p_In.read(reinterpret_cast<char*>(&comp.Size), sizeof(comp.Size));
-			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
 		}
 
 		template<>

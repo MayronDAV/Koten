@@ -30,7 +30,7 @@ namespace KTN
 
 		struct B2BodyID
 		{
-			int32_t Index;
+			int32_t Index = -1;
 			uint16_t World;
 			uint16_t Generation;
 

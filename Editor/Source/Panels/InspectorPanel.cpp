@@ -17,7 +17,7 @@ namespace KTN
 {
 	namespace
 	{
-		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, Rigidbody2DComponent, Collider2DComponent, ScriptComponent
+		#define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CharacterBody2DComponent, Rigidbody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent
 
 		template <typename Component>
 		void ComponentDrawView(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity) {}
@@ -347,51 +347,12 @@ namespace KTN
 		}
 
 		template <>
-		void ComponentDrawView<Rigidbody2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDrawView<CharacterBody2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
 		{
-			DrawComponent<Rigidbody2DComponent>("Rigidbody2D", p_Entity,
-			[](Rigidbody2DComponent& p_RC)
-			{
-				int currentItem = (int)p_RC.Type;
-				static const char* items[] = { "Static", "Dynamic", "Kinematic" };
-				static const int itemsCount = IM_ARRAYSIZE(items);
-
-				if (UI::Combo("Type", items[currentItem], items, itemsCount, &currentItem, 50.0f))
-				{
-					p_RC.Type = (Rigidbody2DComponent::BodyType)currentItem;
-				}
-
-				ImGui::Checkbox("Fixed Rotation", &p_RC.FixedRotation);
-
-				ImGui::InputFloat("Gravity Scale", &p_RC.GravityScale);
-			});
-		}
-
-		template <>
-		void ComponentDrawView<Collider2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
-		{
-			if (!p_Entity.HasComponent<Collider2DComponent>())
-				return;
-
-			auto& collider = p_Entity.GetComponent<Collider2DComponent>();
-			std::string name = "BoxCollider2D";
-			if (collider.Shape == Collider2DShape::Circle)
-				name = "CircleCollider2D";
-
-			DrawComponent<Collider2DComponent>(name, p_Entity,
-			[&](Collider2DComponent& p_Comp)
+			DrawComponent<CharacterBody2DComponent>("CharacterBody2D", p_Entity,
+			[&](CharacterBody2DComponent& p_Comp)
 			{
 				ImGui::Checkbox("Is Trigger", &p_Comp.IsTrigger);
-
-				UI::InputFloat2("Offset", p_Comp.Offset);
-				if (p_Comp.Shape == Collider2DShape::Box)
-				{
-					auto size = p_Comp.Size * 2.0f;
-					if (UI::InputFloat2("Size", size, 1.0f))
-						p_Comp.Size = size * 0.5f;
-				}
-				else if (p_Comp.Shape == Collider2DShape::Circle)
-					ImGui::InputFloat("Radius", &p_Comp.Size.x);
 
 				ImGui::BeginGroup();
 				{
@@ -425,6 +386,140 @@ namespace KTN
 					ImGui::EndDragDropTarget();
 				}
 
+				ImGui::Checkbox("Slide on ceiling", &p_Comp.SlideOnCeiling);
+				ImGui::InputFloat("Floor snap length", &p_Comp.FloorSnapLength);
+
+				float floorAngle = glm::degrees(p_Comp.FloorMaxAngle);
+				if (ImGui::InputFloat("Floor max angle", &floorAngle))
+					p_Comp.FloorMaxAngle = glm::radians(floorAngle);
+
+				float wallAngle = glm::degrees(p_Comp.WallMinSlideAngle);
+				if (ImGui::InputFloat("Wall min slide angle", &wallAngle))
+					p_Comp.WallMinSlideAngle = glm::radians(wallAngle);
+
+				UI::InputFloat2("Up direction", p_Comp.UpDirection);
+				UI::InputFloat2("Floor normal", p_Comp.FloorNormal);
+			});
+		}
+
+		template <>
+		void ComponentDrawView<Rigidbody2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+		{
+			DrawComponent<Rigidbody2DComponent>("Rigidbody2D", p_Entity,
+			[&](Rigidbody2DComponent& p_Comp)
+			{
+				ImGui::Checkbox("Is Trigger", &p_Comp.IsTrigger);
+
+				ImGui::InputFloat("Mass", &p_Comp.Mass);
+
+				ImGui::BeginGroup();
+				{
+					static const uint32_t whiteTextureData = 0xffffffff;
+					static auto whiteTexture = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
+					ImVec2 imageSize = { 100.0f, 100.0f };
+
+					UI::ImageCircleMask(whiteTexture, imageSize);
+					ImGui::SameLine();
+					std::string path = AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D).FilePath;
+					ImGui::Text(path.c_str());
+
+					if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
+					{
+						p_This->GetEditor()->GetMaterialPanel()->Open(p_Comp.PhysicsMaterial2D);
+					}
+				}
+				ImGui::EndGroup();
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						auto filepath = std::filesystem::path(path);
+						if (filepath.extension() == ".ktasset")
+						{
+							p_Comp.PhysicsMaterial2D = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, filepath.string());
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				ImGui::InputFloat("Linear Damping", &p_Comp.LinearDamping);
+				ImGui::InputFloat("Angular Damping", &p_Comp.AngularDamping);
+				ImGui::InputFloat("Gravity Scale", &p_Comp.GravityScale);
+				ImGui::Checkbox("Fixed Rotation", &p_Comp.FixedRotation);
+				ImGui::Checkbox("Sleeping", &p_Comp.Sleeping);
+				ImGui::Checkbox("Can Sleep", &p_Comp.CanSleep);
+
+			});
+		}
+
+		template <>
+		void ComponentDrawView<StaticBody2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+		{
+			DrawComponent<StaticBody2DComponent>("StaticBody2D", p_Entity,
+			[&](StaticBody2DComponent& p_Comp)
+			{
+				ImGui::Checkbox("Is Trigger", &p_Comp.IsTrigger);
+
+				ImGui::BeginGroup();
+				{
+					static const uint32_t whiteTextureData = 0xffffffff;
+					static auto whiteTexture = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
+					ImVec2 imageSize = { 100.0f, 100.0f };
+
+					UI::ImageCircleMask(whiteTexture, imageSize);
+					ImGui::SameLine();
+					std::string path = AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D).FilePath;
+					ImGui::Text(path.c_str());
+
+					if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
+					{
+						p_This->GetEditor()->GetMaterialPanel()->Open(p_Comp.PhysicsMaterial2D);
+					}
+				}
+				ImGui::EndGroup();
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+					{
+						const wchar_t* path = (const wchar_t*)payload->Data;
+						auto filepath = std::filesystem::path(path);
+						if (filepath.extension() == ".ktasset")
+						{
+							p_Comp.PhysicsMaterial2D = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, filepath.string());
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+			});
+		}
+
+		template <>
+		void ComponentDrawView<BodyShape2DComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+		{
+			if (!p_Entity.HasComponent<BodyShape2DComponent>())
+				return;
+
+			auto& collider = p_Entity.GetComponent<BodyShape2DComponent>();
+			std::string name = "RectShape2D";
+			if (collider.Shape == Shape2D::Circle)
+				name = "CircleShape2D";
+
+			DrawComponent<BodyShape2DComponent>(name, p_Entity,
+			[&](BodyShape2DComponent& p_Comp)
+			{
+				
+				UI::InputFloat2("Offset", p_Comp.Offset);
+				if (p_Comp.Shape == Shape2D::Rect)
+				{
+					auto size = p_Comp.Size * 2.0f;
+					if (UI::InputFloat2("Size", size, 1.0f))
+						p_Comp.Size = size * 0.5f;
+				}
+				else if (p_Comp.Shape == Shape2D::Circle)
+					ImGui::InputFloat("Radius", &p_Comp.Size.x);
 			});
 		}
 
@@ -617,11 +712,13 @@ namespace KTN
 					DisplayComponentEntry<SpriteComponent>("Sprite", selectedEntt);
 					DisplayComponentEntry<LineRendererComponent>("LineRenderer", selectedEntt);
 					DisplayComponentEntry<TextRendererComponent>("TextRenderer", selectedEntt);
+					DisplayComponentEntry<CharacterBody2DComponent>("CharacterBody2D", selectedEntt);
 					DisplayComponentEntry<Rigidbody2DComponent>("Rigidbody2D", selectedEntt);
-					DisplayComponentEntry<Collider2DComponent>("BoxCollider2D", selectedEntt,
-						[](Collider2DComponent& p_Comp) { p_Comp.Shape = Collider2DShape::Box; });
-					DisplayComponentEntry<Collider2DComponent>("CircleCollider2D", selectedEntt,
-						[](Collider2DComponent& p_Comp) { p_Comp.Shape = Collider2DShape::Circle; });
+					DisplayComponentEntry<StaticBody2DComponent>("StaticBody2D", selectedEntt);
+					DisplayComponentEntry<BodyShape2DComponent>("RectShape2D", selectedEntt,
+						[](BodyShape2DComponent& p_Comp) { p_Comp.Shape = Shape2D::Rect; });
+					DisplayComponentEntry<BodyShape2DComponent>("CircleShape2D", selectedEntt,
+						[](BodyShape2DComponent& p_Comp) { p_Comp.Shape = Shape2D::Circle; });
 					DisplayComponentEntry<ScriptComponent>("ScriptComponent", selectedEntt);
 
 					ImGui::EndPopup();

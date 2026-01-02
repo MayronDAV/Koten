@@ -1,5 +1,9 @@
 #pragma once
 #include "Koten/Scene/System.h"
+#include "Koten/Scene/Entity.h"
+
+// lib
+#include <glm/glm.hpp>
 
 
 
@@ -22,6 +26,9 @@ namespace KTN
 			void SetGravity(const glm::vec2& p_Gravity);
 
 			void SyncTransforms(Scene* p_Scene);
+
+			void MoveAndCollide(Entity p_Entity);
+			void MoveAndSlide(Entity p_Entity);
 
 		private:
 			glm::vec2 m_Gravity = { 0.0f, -9.81f };

@@ -451,9 +451,7 @@ namespace KTN
 			static const char* group_name = "Panels";
 
 			m_Settings->AddTab(group_name, contentBrowser->GetSettingsTab());
-
 		}
-
 
 		#pragma endregion
 	}
@@ -635,7 +633,6 @@ namespace KTN
 		if (Shortcuts::IsActionPressed("Open Settings"))
 			m_Settings->SetActive(true); // Maybe change this to toggle in the future
 	}
-
 
 	void Editor::OpenScene()
 	{

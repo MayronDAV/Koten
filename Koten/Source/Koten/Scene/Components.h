@@ -123,46 +123,83 @@ namespace KTN
 		HierarchyComponent(entt::entity p_Parent) : Parent(p_Parent) {}
 	};
 
-	struct Rigidbody2DComponent
+
+
+	struct PhysicsBody2D
 	{
-		enum class BodyType
-		{
-			Static = 0,
-			Dynamic,
-			Kinematic
-		};
-		BodyType Type = BodyType::Static;
-		bool FixedRotation = false;
-		float GravityScale = 1.0f;
+		enum class Type { None = 0, Rigidbody, Character, Static };
+		virtual Type GetType() const { return Type::None; }
+
+		AssetHandle PhysicsMaterial2D = PhysicsMaterial2D::GetDefault();
+
+		float Mass = 1.0f;
+		bool IsTrigger = false;
 
 		B2BodyID Body = {}; // Physics body id
+	};
+
+	#define PHYSICS_BODY_TYPE(type_enum) \
+		static constexpr Type GetStaticType() { return Type::type_enum; } \
+		Type GetType() const override { return GetStaticType(); }
+
+	struct Rigidbody2DComponent : public PhysicsBody2D
+	{
+		PHYSICS_BODY_TYPE(Rigidbody)
+
+		float LinearDamping = 1.0f;
+		float AngularDamping = 1.0f;
+		float GravityScale = 1.0f;
+		bool FixedRotation = false;
+		bool Sleeping = false;
+		bool CanSleep = true;
 
 		Rigidbody2DComponent() = default;
 		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
 	};
 
-	enum class Collider2DShape
+	struct CharacterBody2DComponent : public PhysicsBody2D
 	{
-		Box = 0,
+		PHYSICS_BODY_TYPE(Character)
+
+		bool SlideOnCeiling = true;
+		float FloorMaxAngle = glm::radians(45.0f);
+		float FloorSnapLength = 1;
+		float WallMinSlideAngle = glm::radians(15.0f);
+
+		bool OnFloor = false;
+		bool OnWall = false;
+		bool OnCeiling = false;
+
+		glm::vec2 UpDirection{ 0.0f, 1.0f };
+		glm::vec2 FloorNormal{ 0.0f, 1.0f };
+
+		CharacterBody2DComponent() { Mass = 0.0f; }
+		CharacterBody2DComponent(const CharacterBody2DComponent&) = default;
+	};
+
+	struct StaticBody2DComponent : public PhysicsBody2D
+	{
+		PHYSICS_BODY_TYPE(Static)
+
+		StaticBody2DComponent() { Mass = 0.0f; }
+		StaticBody2DComponent(const StaticBody2DComponent&) = default;
+	};
+
+	enum class Shape2D
+	{
+		Rect = 0,
 		Circle
 	};
 
-	struct Collider2DComponent
+	struct BodyShape2DComponent
 	{
-		Collider2DShape Shape = Collider2DShape::Box;
+		Shape2D Shape = Shape2D::Rect;
 
 		glm::vec2 Offset = { 0.0f, 0.0f };
 		glm::vec2 Size = { 0.5f, 0.5f }; // Size.x -> radius
 
-		bool IsTrigger = false;
-
-		AssetHandle PhysicsMaterial2D = PhysicsMaterial2D::GetDefault();
-
-		B2BodyID Body = {}; // Physics body id
-		int32_t NodeIndex = -1;
-
-		Collider2DComponent() = default;
-		Collider2DComponent(const Collider2DComponent&) = default;
+		BodyShape2DComponent() = default;
+		BodyShape2DComponent(const BodyShape2DComponent&) = default;
 	};
 
 	struct ScriptComponent
@@ -173,6 +210,7 @@ namespace KTN
 		ScriptComponent(const ScriptComponent&) = default;
 	};
 
-	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, Collider2DComponent, ScriptComponent
+	using PhysicsBody2DTypes = entt::type_list<Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent>;
+	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent
 
 } // namespace KTN

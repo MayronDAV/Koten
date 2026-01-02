@@ -37,7 +37,21 @@ namespace KTN
 			}
 		}
 
-		public static Vector3 operator +(Vector3 p_A, Vector3 p_B)
+        public float Length()
+        {
+            return (float)System.Math.Sqrt(X * X + Y * Y + Z * Z);
+        }
+
+        public Vector3 Normalized()
+        {
+            float length = Length();
+            if (length == 0.0f)
+                return Zero;
+
+            return new Vector3(X / length, Y / length, Z / length);
+        }
+
+        public static Vector3 operator +(Vector3 p_A, Vector3 p_B)
 		{
 			return new Vector3(p_A.X + p_B.X, p_A.Y + p_B.Y, p_A.Z + p_B.Z);
 		}

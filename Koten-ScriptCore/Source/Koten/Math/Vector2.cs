@@ -18,7 +18,21 @@ namespace KTN
 			Y = y;
 		}
 
-		public static Vector2 operator +(Vector2 a, Vector2 b)
+		public float Length()
+		{
+			return (float)System.Math.Sqrt(X * X + Y * Y);
+        }
+
+        public Vector2 Normalized()
+		{
+			float length = Length();
+			if (length == 0.0f)
+				return Zero;
+
+			return new Vector2(X / length, Y / length);
+        }
+
+        public static Vector2 operator +(Vector2 a, Vector2 b)
 		{
 			return new Vector2(a.X + b.X, a.Y + b.Y);
 		}
