@@ -666,6 +666,18 @@ namespace KTN
 		ContactEvents(world, p_Scene);
 	}
 
+	glm::vec2 B2Physics::GetGravity(Entity p_Entity) const
+	{
+		auto gravity = m_Gravity;
+		auto rigid = p_Entity.TryGetComponent<Rigidbody2DComponent>();
+		if (rigid)
+		{
+			gravity *= rigid->GravityScale;
+		}
+
+		return gravity;
+	}
+
 	void B2Physics::SetGravity(const glm::vec2& p_Gravity)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -747,16 +759,15 @@ namespace KTN
 			character.Body.Generation
 		};
 
+
 		b2Vec2 velocity = b2Body_GetLinearVelocity(body);
-		if (b2Length(velocity) == 0.0f)
+		if (b2Length(velocity) == 0.0f && (!character.OnFloor && !character.OnCeiling && !character.OnWall))
 			return;
 
 		b2ShapeId shape;
 		b2Body_GetShapes(body, &shape, 1);
 
 		b2Transform start = b2Body_GetTransform(body);
-
-		character.OnFloor = character.OnWall = character.OnCeiling = false;
 
 		Context context(p_Entity, true);
 		context.CharacterShape = shape;
@@ -769,6 +780,8 @@ namespace KTN
 
 		auto aabb = b2Body_ComputeAABB(body);
 		b2World_OverlapAABB({ m_World.Index, m_World.Generation }, aabb, filter, OverlapCallback, &context);
+
+		character.OnFloor = character.OnWall = character.OnCeiling = false;
 
 		for (auto& collision : context.Collisions)
 		{
@@ -833,8 +846,9 @@ namespace KTN
 			character.Body.Generation
 		};
 
+
 		b2Vec2 velocity = b2Body_GetLinearVelocity(body);
-		if (b2Length(velocity) == 0.0f)
+		if (b2Length(velocity) == 0.0f && (!character.OnFloor && !character.OnCeiling && !character.OnWall))
 			return;
 
 		b2ShapeId shape;

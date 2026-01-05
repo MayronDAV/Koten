@@ -42,5 +42,10 @@ namespace KTN
 			return new Vector2(p_Vector.X * p_Scalar, p_Vector.Y * p_Scalar);
 		}
 
-	}
+        public static Vector2 operator *(Vector2 p_A, Vector2 p_B)
+        {
+            return new Vector2(p_A.X * p_B.X, p_A.Y * p_B.Y);
+        }
+
+    }
 } // namespace KTN

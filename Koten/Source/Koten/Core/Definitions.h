@@ -302,6 +302,14 @@ namespace KTN
 		BINARY_FLOAT_BE
 	};
 
+	enum class KeyState : uint8_t
+	{
+		NONE = 0,
+		PRESSED,
+		RELEASED,
+		HELD
+	};
+
 	#pragma endregion
 
 	#pragma region Structs

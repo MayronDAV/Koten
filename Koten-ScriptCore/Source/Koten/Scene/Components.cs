@@ -20,8 +20,100 @@ namespace KTN
 			{
 				InternalCalls.TransformComponent_SetLocalTranslation(Entity.ID, ref value);
 			}
-		}
-	}
+        }
+    }
+
+    public class PhysicsBody : Component
+    {
+        public Vector2 Gravity
+        {
+            get
+            {
+                InternalCalls.B2_GetGravity(Entity.ID, out Vector2 gravity);
+                return gravity;
+            }
+        }
+
+        public Vector2 RealGravity
+        {
+            get
+            {
+                InternalCalls.B2_GetRealGravity(Entity.ID, out Vector2 gravity);
+                return gravity;
+            }
+        }
+
+        public Vector2 GetLinearVelocity()
+        {
+           InternalCalls.B2_GetLinearVelocity(Entity.ID, out Vector2 result);
+           return result;
+        }
+
+        public void SetLinearVelocity(Vector2 p_Velocity)
+        {
+            InternalCalls.B2_SetLinearVelocity(Entity.ID, ref p_Velocity);
+        }
+
+        public float GetAngularVelocity()
+        {        
+            return InternalCalls.B2_GetAngularVelocity(Entity.ID);
+        }
+
+        public void SetAngularVelocity(float p_Velocity)
+        {
+            InternalCalls.B2_SetAngularVelocity(Entity.ID, p_Velocity);
+        }
+
+        public void ApplyForce(Vector2 p_Force)
+        {
+            InternalCalls.B2_ApplyForce(Entity.ID, ref p_Force);
+        }
+
+        public void ApplyLinearImpulse(Vector2 p_Impulse)
+        {
+            InternalCalls.B2_ApplyLinearImpulse(Entity.ID, ref p_Impulse);
+        }
+
+        public void ApplyAngularImpulse(float p_Impulse)
+        {
+            InternalCalls.B2_ApplyAngularImpulse(Entity.ID, p_Impulse);
+        }
+
+        public void ApplyTorque(float p_Torque)
+        {
+            InternalCalls.B2_ApplyTorque(Entity.ID, p_Torque);
+        }
+    }
+
+    public class Rigidbody2DComponent : PhysicsBody
+    {     
+	};
+
+    public class CharacterBody2DComponent : PhysicsBody
+    {
+        public bool OnFloor
+        {
+            get => InternalCalls.CharacterBody2DComponent_IsOnFloor(Entity.ID);
+        }
+        public bool OnWall
+        {
+            get => InternalCalls.CharacterBody2DComponent_IsOnWall(Entity.ID);
+        }
+        public bool OnCeiling
+        {
+            get => InternalCalls.CharacterBody2DComponent_IsOnCeiling(Entity.ID);
+        }
+
+        public void MoveAndSlide()
+        {
+            InternalCalls.CharacterBody2DComponent_MoveAndSlide(Entity.ID);
+        }
+
+        public void MoveAndCollide()
+        {
+            InternalCalls.CharacterBody2DComponent_MoveAndCollide(Entity.ID);
+        }
+    }
 
     public class TextRendererComponent : Component
     {

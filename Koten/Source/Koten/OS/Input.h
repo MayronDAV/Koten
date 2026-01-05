@@ -44,7 +44,10 @@ namespace KTN
 			static void SetCursorMode(CursorMode p_Mode);
 
 			static bool IsKeyPressed(int p_Key);
-			static bool IsKeyReleased(int p_Key);
+
+			static bool IsKeyJustPressed(int p_Key);
+			static bool IsKeyJustReleased(int p_Key);
+			static bool IsKeyJustHeld(int p_Key);
 
 			static bool IsMouseButtonPressed(int p_Button);
 			static bool IsMouseButtonReleased(int p_Button);

@@ -14,64 +14,17 @@ namespace KTN
 
 		public readonly ulong ID;
 
-		public Vector3 LocalTranslation
-		{
-			get
-			{
-				InternalCalls.TransformComponent_GetLocalTranslation(ID, out Vector3 result);
-				return result;
-			}
-			set
-			{
-				InternalCalls.TransformComponent_SetLocalTranslation(ID, ref value);
-			}
-		}
-
-		public Vector2 Velocity
-		{
-			get
-			{
-				InternalCalls.B2_GetLinearVelocity(ID, out Vector2 result);
-				return result;
-			}
-			set
-			{
-				InternalCalls.B2_SetLinearVelocity(ID, ref value);
-            }
-        }
-
-		public bool OnFloor
-		{
-			get
-			{
-				return InternalCalls.CharacterBody2DComponent_IsOnFloor(ID);
-			}
-        }
-
-        public bool OnWall
+        public Vector3 LocalTranslation
         {
             get
             {
-                return InternalCalls.CharacterBody2DComponent_IsOnWall(ID);
+                InternalCalls.TransformComponent_GetLocalTranslation(ID, out Vector3 translation);
+                return translation;
             }
-        }
-
-        public bool OnCeiling
-        {
-            get
+            set
             {
-                return InternalCalls.CharacterBody2DComponent_IsOnCeiling(ID);
+                InternalCalls.TransformComponent_SetLocalTranslation(ID, ref value);
             }
-        }
-
-        public void MoveAndSlide()
-		{
-			InternalCalls.CharacterBody2DComponent_MoveAndSlide(ID);
-		}
-
-        public void MoveAndCollide()
-        {
-            InternalCalls.CharacterBody2DComponent_MoveAndCollide(ID);
         }
 
         public bool HasComponent<T>() where T : Component, new()

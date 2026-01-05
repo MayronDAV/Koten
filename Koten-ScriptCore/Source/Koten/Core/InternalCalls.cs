@@ -119,9 +119,16 @@ namespace KTN
 		internal extern static bool Input_IsKeyPressed(KeyCode p_Keycode);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Input_IsKeyReleased(KeyCode p_Keycode);
+		internal extern static bool Input_IsKeyJustReleased(KeyCode p_Keycode);
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool Input_IsKeyJustPressed(KeyCode p_Keycode);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool Input_IsKeyJustHeld(KeyCode p_Keycode);
+
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static bool Input_IsMouseButtonPressed(MouseCode p_MouseCode);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -173,10 +180,34 @@ namespace KTN
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void B2_SetLinearVelocity(ulong p_EntityID, ref Vector2 p_Velocity);
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static float B2_GetAngularVelocity(ulong p_EntityID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_SetAngularVelocity(ulong p_EntityID, float p_AngVelocity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_ApplyForce(ulong p_EntityID, ref Vector2 p_Force);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_ApplyLinearImpulse(ulong p_EntityID, ref Vector2 p_Impulse);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_ApplyAngularImpulse(ulong p_EntityID, float p_Impulse);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_ApplyTorque(ulong p_EntityID, float p_Torque);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_GetGravity(ulong p_EntityID, out Vector2 p_OutGravity);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void B2_GetRealGravity(ulong p_EntityID, out Vector2 p_OutGravity);
+
         #endregion
 
         #region CharacterBody2DComponent
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void CharacterBody2DComponent_MoveAndSlide(ulong p_EntityID);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]

@@ -7,12 +7,22 @@ namespace KTN
 			return InternalCalls.Input_IsKeyPressed(p_Keycode);
 		}
 
-		public static bool IsKeyReleased(KeyCode p_Keycode)
+		public static bool IsKeyJustReleased(KeyCode p_Keycode)
 		{
-			return InternalCalls.Input_IsKeyReleased(p_Keycode);
+			return InternalCalls.Input_IsKeyJustReleased(p_Keycode);
 		}
 
-		public static bool IsMouseButtonPressed(MouseCode p_MouseButton)
+        public static bool IsKeyJustPressed(KeyCode p_Keycode)
+        {
+            return InternalCalls.Input_IsKeyJustPressed(p_Keycode);
+        }
+
+        public static bool IsKeyJustHeld(KeyCode p_Keycode)
+        {
+            return InternalCalls.Input_IsKeyJustHeld(p_Keycode);
+        }
+
+        public static bool IsMouseButtonPressed(MouseCode p_MouseButton)
 		{
 			return InternalCalls.Input_IsMouseButtonPressed(p_MouseButton);
 		}

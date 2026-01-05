@@ -60,5 +60,10 @@ namespace KTN
 		{
 			return new Vector3(p_Vector.X * p_Scalar, p_Vector.Y * p_Scalar, p_Vector.Z * p_Scalar);
 		}
-	}
+
+        public static Vector3 operator *(Vector3 p_A, Vector3 p_B)
+        {
+            return new Vector3(p_A.X * p_B.X, p_A.Y * p_B.Y, p_A.Z * p_B.Z);
+        }
+    }
 } // namespace KTN

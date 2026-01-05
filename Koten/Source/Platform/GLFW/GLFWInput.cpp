@@ -44,12 +44,28 @@ namespace KTN
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
 
-	bool Input::IsKeyReleased(int p_Key)
+	bool Input::IsKeyJustReleased(int p_Key)
 	{
 		KTN_PROFILE_FUNCTION_LOW();
-		auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
-		auto state = glfwGetKey(window, p_Key);
-		return state == GLFW_RELEASE;
+		auto& window = Application::Get().GetWindow();
+		auto state = window->GetKeyState(p_Key);
+		return state == KeyState::RELEASED;
+	}
+
+	bool Input::IsKeyJustPressed(int p_Key)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+		auto& window = Application::Get().GetWindow();
+		auto state = window->GetKeyState(p_Key);
+		return state == KeyState::PRESSED;
+	}
+
+	bool Input::IsKeyJustHeld(int p_Key)
+	{
+		KTN_PROFILE_FUNCTION_LOW();
+		auto& window = Application::Get().GetWindow();
+		auto state = window->GetKeyState(p_Key);
+		return state == KeyState::HELD;
 	}
 
 	bool Input::IsMouseButtonPressed(int p_Button)

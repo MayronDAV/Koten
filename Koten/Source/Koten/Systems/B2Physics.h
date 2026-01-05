@@ -22,6 +22,9 @@ namespace KTN
 
 			bool OnInit() override;
 			void OnUpdate(Scene* p_Scene) override;
+			
+			const glm::vec2& GetRealGravity() const { return m_Gravity; }
+			glm::vec2 GetGravity(Entity p_Entity) const;
 
 			void SetGravity(const glm::vec2& p_Gravity);
 

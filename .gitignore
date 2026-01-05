@@ -16,4 +16,5 @@ Makefile
 *.ktfc
 *.ktbin
 *.ktap
+*.pdb
 /.vscode

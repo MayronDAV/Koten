@@ -59,6 +59,16 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION_LOW();
 
+		for (const auto& key : m_Data.KeysReleased)
+		{
+			auto& data = m_Data.Keys[key];
+			data.Key = key;
+			data.PrevState = data.State;
+			data.State = KeyState::NONE;
+		}
+
+		m_Data.KeysReleased.clear();
+
 		glfwPollEvents();
 		UpdateControllers();
 	}
@@ -208,7 +218,6 @@ namespace KTN
 		return resolutions;
 	}
 
-
 	void GLFWWindow::Init(const WindowSpecification& p_Spec)
 	{
 		KTN_PROFILE_FUNCTION_LOW();
@@ -334,22 +343,39 @@ namespace KTN
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(p_Window);
 
+			KeyStateData& keyData = data.Keys[p_Key];
+			keyData.Key = p_Key;
+			keyData.PrevState = keyData.State;
+			keyData.State = KeyState::NONE;
+
 			switch (p_Action)
 			{
 				case GLFW_PRESS:
 				{
+					if (keyData.PrevState == KeyState::RELEASED || keyData.PrevState == KeyState::NONE)
+						keyData.State = KeyState::PRESSED;
+
 					KeyPressedEvent event(p_Key, 0);
 					SET_EVENT(event);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
+					if (keyData.PrevState == KeyState::PRESSED || keyData.PrevState == KeyState::HELD)
+					{
+						keyData.State = KeyState::RELEASED;
+						data.KeysReleased.push_back(p_Key);
+					}
+
 					KeyReleasedEvent event(p_Key);
 					SET_EVENT(event);
 					break;
 				}
 				case GLFW_REPEAT:
 				{
+					if (keyData.PrevState == KeyState::PRESSED || keyData.PrevState == KeyState::HELD)
+						keyData.State = KeyState::HELD;
+
 					KeyPressedEvent event(p_Key, true);
 					SET_EVENT(event);
 					break;

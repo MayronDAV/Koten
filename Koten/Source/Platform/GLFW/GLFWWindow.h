@@ -2,10 +2,20 @@
 #include "Koten/OS/Window.h"
 #include "GLFWBase.h"
 
+// std
+#include <array>
+
 
 
 namespace KTN
 {
+	struct KeyStateData
+	{
+		int Key;
+		KeyState PrevState = KeyState::NONE;
+		KeyState State     = KeyState::NONE;
+	};
+
 	class GLFWWindow : public Window
 	{
 		public:
@@ -29,6 +39,8 @@ namespace KTN
 
 			void Resize(uint32_t p_Width, uint32_t p_Height) override;
 			void ChangeMode(WindowMode p_Mode, bool p_Maximize = true) override;
+
+			KeyState GetKeyState(int p_Key) override { return m_Data.Keys[p_Key].State; }
 
 			bool IsMaximized() const override;
 			bool IsMinimized() const override;
@@ -62,6 +74,8 @@ namespace KTN
 				bool Maximise					= false;
 				bool Vsync						= false;
 				float DPIScale					= 1.0f;
+				std::array<KeyStateData, GLFW_KEY_LAST> Keys;
+				std::vector<int> KeysReleased;
 
 				EventCallbackFn EventCallback	= nullptr;
 				Unique<GraphicsContext> Context = nullptr;

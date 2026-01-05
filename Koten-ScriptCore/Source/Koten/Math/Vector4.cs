@@ -83,5 +83,9 @@ namespace KTN
             return new Vector4(p_Vector.X * p_Scalar, p_Vector.Y * p_Scalar, p_Vector.Z * p_Scalar, p_Vector.W * p_Scalar);
         }
 
+        public static Vector4 operator *(Vector4 p_A, Vector4 p_B)
+        {
+            return new Vector4(p_A.X * p_B.X, p_A.Y * p_B.Y, p_A.Z * p_B.Z, p_A.W * p_B.W);
+        }
     }
 } // namespace KTN

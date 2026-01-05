@@ -479,9 +479,19 @@ namespace KTN
 			return Input::IsKeyPressed(p_Keycode);
 		}
 
-		static bool Input_IsKeyReleased(KeyCode p_Keycode)
+		static bool Input_IsKeyJustReleased(KeyCode p_Keycode)
 		{
-			return Input::IsKeyReleased(p_Keycode);
+			return Input::IsKeyJustReleased(p_Keycode);
+		}
+
+		static bool Input_IsKeyJustPressed(KeyCode p_Keycode)
+		{
+			return Input::IsKeyJustPressed(p_Keycode);
+		}
+
+		static bool Input_IsKeyJustHeld(KeyCode p_Keycode)
+		{
+			return Input::IsKeyJustHeld(p_Keycode);
 		}
 
 		static bool Input_IsMouseButtonPressed(MouseCode p_MouseCode)
@@ -556,6 +566,7 @@ namespace KTN
 		#pragma endregion
 
 		#pragma region Box2D
+
 		static void B2_GetLinearVelocity(UUID p_EntityID, glm::vec2* p_OutVelocity)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
@@ -585,6 +596,129 @@ namespace KTN
 			b2BodyId bodyId = { body.Index, body.World, body.Generation };
 			b2Body_SetLinearVelocity(bodyId, { p_Velocity->x, p_Velocity->y });
 		}
+
+		static float B2_GetAngularVelocity(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			B2BodyID body = GetPhysicsBody2D(entity);
+			KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+
+			b2BodyId bodyId = { body.Index, body.World, body.Generation };
+			return b2Body_GetAngularVelocity(bodyId);
+		}
+
+		static void B2_SetAngularVelocity(UUID p_EntityID, float p_AngVelocity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			B2BodyID body = GetPhysicsBody2D(entity);
+			KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+
+			b2BodyId bodyId = { body.Index, body.World, body.Generation };
+			b2Body_SetAngularVelocity(bodyId, p_AngVelocity);
+		}
+
+		static void B2_ApplyForce(UUID p_EntityID, glm::vec2* p_Force)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			B2BodyID body = GetPhysicsBody2D(entity);
+			KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+
+			b2BodyId bodyId = { body.Index, body.World, body.Generation };
+			b2Body_ApplyForceToCenter(bodyId, { p_Force->x, p_Force->y }, true);
+		}
+
+		static void B2_ApplyLinearImpulse(UUID p_EntityID, glm::vec2* p_Impulse)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			B2BodyID body = GetPhysicsBody2D(entity);
+			KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+
+			b2BodyId bodyId = { body.Index, body.World, body.Generation };
+			b2Body_ApplyLinearImpulseToCenter(bodyId, { p_Impulse->x, p_Impulse->y }, true);
+		}
+
+		static void B2_ApplyAngularImpulse(UUID p_EntityID, float p_Impulse)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			B2BodyID body = GetPhysicsBody2D(entity);
+			KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+
+			b2BodyId bodyId = { body.Index, body.World, body.Generation };
+			b2Body_ApplyAngularImpulse(bodyId, p_Impulse, true);
+		}
+
+		static void B2_ApplyTorque(UUID p_EntityID, float p_Torque)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			B2BodyID body = GetPhysicsBody2D(entity);
+			KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+
+			b2BodyId bodyId = { body.Index, body.World, body.Generation };
+			b2Body_ApplyTorque(bodyId, p_Torque, true);
+		}
+
+		static void B2_GetGravity(UUID p_EntityID, glm::vec2* p_OutGravity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			auto scene = entity.GetScene();
+			if (!scene->GetSystemManager()->HasSystem<B2Physics>())
+			{
+				KTN_CORE_ERROR("The scene does not have the B2Physics system.");
+				p_OutGravity->x = p_OutGravity->y = 0.0f;
+			}
+
+			auto gravity = scene->GetSystemManager()->GetSystem<B2Physics>()->GetGravity(entity);
+			p_OutGravity->x = gravity.x;
+			p_OutGravity->y = gravity.y;
+		}
+
+		static void B2_GetRealGravity(UUID p_EntityID, glm::vec2* p_OutGravity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			KTN_CORE_VERIFY(entity);
+
+			auto scene = entity.GetScene();
+			if (!scene->GetSystemManager()->HasSystem<B2Physics>())
+			{
+				KTN_CORE_ERROR("The scene does not have the B2Physics system.");
+				p_OutGravity->x = p_OutGravity->y = 0.0f;
+			}
+
+			auto gravity = scene->GetSystemManager()->GetSystem<B2Physics>()->GetRealGravity();
+			p_OutGravity->x = gravity.x;
+			p_OutGravity->y = gravity.y;
+		}
+
 		#pragma endregion
 
 		#pragma region CharacterBody2DComponent
@@ -774,7 +908,9 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetLineSpacing);
 
 		KTN_ADD_INTERNAL_CALL(Input_IsKeyPressed);
-		KTN_ADD_INTERNAL_CALL(Input_IsKeyReleased);
+		KTN_ADD_INTERNAL_CALL(Input_IsKeyJustReleased);
+		KTN_ADD_INTERNAL_CALL(Input_IsKeyJustPressed);
+		KTN_ADD_INTERNAL_CALL(Input_IsKeyJustHeld);
 		KTN_ADD_INTERNAL_CALL(Input_IsMouseButtonPressed);
 		KTN_ADD_INTERNAL_CALL(Input_IsMouseButtonReleased);
 		KTN_ADD_INTERNAL_CALL(Input_IsControllerConnected);
@@ -789,6 +925,14 @@ namespace KTN
 
 		KTN_ADD_INTERNAL_CALL(B2_GetLinearVelocity);
 		KTN_ADD_INTERNAL_CALL(B2_SetLinearVelocity);
+		KTN_ADD_INTERNAL_CALL(B2_GetAngularVelocity);
+		KTN_ADD_INTERNAL_CALL(B2_SetAngularVelocity);
+		KTN_ADD_INTERNAL_CALL(B2_ApplyForce);
+		KTN_ADD_INTERNAL_CALL(B2_ApplyLinearImpulse);
+		KTN_ADD_INTERNAL_CALL(B2_ApplyAngularImpulse);
+		KTN_ADD_INTERNAL_CALL(B2_ApplyTorque);
+		KTN_ADD_INTERNAL_CALL(B2_GetGravity);
+		KTN_ADD_INTERNAL_CALL(B2_GetRealGravity);
 
 		KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_MoveAndSlide);
 		KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_MoveAndCollide);

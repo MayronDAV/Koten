@@ -146,8 +146,8 @@ namespace KTN
 	{
 		PHYSICS_BODY_TYPE(Rigidbody)
 
-		float LinearDamping = 1.0f;
-		float AngularDamping = 1.0f;
+		float LinearDamping = 0.0f;
+		float AngularDamping = 0.1f;
 		float GravityScale = 1.0f;
 		bool FixedRotation = false;
 		bool Sleeping = false;
