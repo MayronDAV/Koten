@@ -2,6 +2,8 @@
 #include "Editor.h"
 #include "SettingsPanel.h"
 #include "AssetImporterPanel.h"
+#include "Koten/Scene/SceneManager.h"
+#include "Koten/Asset/PrefabImporter.h"
 
 // lib
 #include <imgui_internal.h>
@@ -55,13 +57,43 @@ namespace KTN
 			ImGui::SameLine();
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() - padding);
 			ImGui::BeginChild("##Browser", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders);
-			{
+			{			
 				if (m_SearchResults.empty())
 					DrawContentBrowser();
 				else
 					DrawContentSearchResult();
 			}
 			ImGui::EndChild();
+
+			if (m_SearchResults.empty() && ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY_ITEM"))
+				{
+					UUID enttID = *(UUID*)payload->Data;
+					if (enttID != 0)
+					{
+						auto entt = SceneManager::GetEntityByUUID(enttID);
+						auto path = (std::filesystem::absolute(m_CurrentDir) / (entt.GetTag() + ".ktprefab")).string();
+
+						auto& comp = entt.AddOrReplaceComponent<PrefabComponent>();
+						comp.Path = path;
+
+						AssetMetadata metadata = {};
+						metadata.AssetData = new PrefabContext{ (uint32_t)entt.GetHandle(), entt.GetScene()->Handle };
+						metadata.FilePath = path;
+						metadata.Type = AssetType::Prefab;
+						auto handle = AssetManager::Get()->ImportAsset(metadata);
+
+						auto prefab = CreateRef<Prefab>();
+						prefab->Handle = handle;
+						prefab->Entt = entt;
+						prefab->Path = path;
+
+						PrefabImporter::SavePrefab(prefab);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
 
 			PopupCreateFileDir();
 
@@ -407,7 +439,7 @@ namespace KTN
 						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
 						UI::ImageButton(isDirectory ? m_DirectoryIcon : m_FileIcon, { m_ThumbnailSize, m_ThumbnailSize });
 
-						if (!std::filesystem::is_directory(entry.path()) && ImGui::BeginDragDropSource())
+						if (!isDirectory && ImGui::BeginDragDropSource())
 						{
 							std::filesystem::path relativePath = m_BaseDir / std::filesystem::relative(entry.path(), m_BaseDir);
 							std::wstring wstr = relativePath.wstring();
@@ -415,6 +447,36 @@ namespace KTN
 							ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
 
 							ImGui::EndDragDropSource();
+						}
+
+						if (isDirectory && ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY_ITEM"))
+							{
+								UUID enttID = *(UUID*)payload->Data;
+								if (enttID != 0)
+								{
+									auto entt = SceneManager::GetEntityByUUID(enttID);
+									auto path = (std::filesystem::absolute(entry.path()) / (entt.GetTag() + ".ktprefab")).string();
+
+									auto& comp = entt.AddOrReplaceComponent<PrefabComponent>();
+									comp.Path = path;
+
+									AssetMetadata metadata = {};
+									metadata.AssetData = new PrefabContext{ enttID, entt.GetScene()->Handle };
+									metadata.FilePath = path;
+									metadata.Type = AssetType::Prefab;
+									auto handle = AssetManager::Get()->ImportAsset(metadata);
+
+									auto prefab = CreateRef<Prefab>();
+									prefab->Handle = handle;
+									prefab->Entt = entt;
+									prefab->Path = path;
+
+									PrefabImporter::SavePrefab(prefab);
+								}
+							}
+							ImGui::EndDragDropTarget();
 						}
 
 						ImGui::PopStyleColor();

@@ -102,6 +102,7 @@ namespace KTN
 		CameraComponent(const CameraComponent&) = default;
 	};
 
+	// TODO: Correct this to use UUID instead of entt::entity, for better deserialization
 	struct KTN_API HierarchyComponent
 	{
 		entt::entity Parent = entt::null;
@@ -122,8 +123,6 @@ namespace KTN
 		HierarchyComponent(const HierarchyComponent&) = default;
 		HierarchyComponent(entt::entity p_Parent) : Parent(p_Parent) {}
 	};
-
-
 
 	struct PhysicsBody2D
 	{
@@ -210,7 +209,15 @@ namespace KTN
 		ScriptComponent(const ScriptComponent&) = default;
 	};
 
+	struct PrefabComponent
+	{
+		std::string Path = "";
+
+		PrefabComponent() = default;
+		PrefabComponent(const PrefabComponent&) = default;
+	};
+
 	using PhysicsBody2DTypes = entt::type_list<Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent>;
-	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent
+	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent
 
 } // namespace KTN

@@ -8,6 +8,8 @@
 #include "Koten/Utils/Utils.h"
 #include "Koten/Scene/SceneSerializer.h"
 #include "Koten/Physics/PhysicsMaterial2D.h"
+#include "Koten/Asset/PrefabImporter.h"
+#include "Koten/Scene/SceneManager.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -194,6 +196,13 @@ namespace KTN
 			if (m_LoadedAssets.find(p_Handle) != m_LoadedAssets.end())
 				m_LoadedAssets.erase(p_Handle);
 
+			auto& metadata = it->second;
+			if (metadata.AssetData != nullptr)
+			{
+				delete metadata.AssetData;
+				metadata.AssetData = nullptr;
+			}
+
 			m_AssetRegistry.erase(p_Handle);
 
 			if (!m_IsLoadedAssetPack)
@@ -293,8 +302,16 @@ namespace KTN
 
 		out.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
+		AssetRegistry prefabs;
+
 		for (const auto& [handle, metadata] : m_AssetRegistry)
 		{
+			if (metadata.Type == AssetType::Prefab)
+			{
+				prefabs[handle] = metadata;
+				continue;
+			}
+
 			out.write(reinterpret_cast<const char*>(&handle), sizeof(handle));
 			out.write(reinterpret_cast<const char*>(&metadata.Type), sizeof(metadata.Type));
 			Utils::WriteString(out, FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string()));
@@ -378,6 +395,31 @@ namespace KTN
 				KTN_CORE_ASSERT(material, "PhysicsMaterial2D is nullptr!");
 
 				material->SerializeBin(out);
+			}
+		}
+
+		if (!prefabs.empty())
+		{
+			for (const auto& [handle, metadata] : prefabs)
+			{
+				out.write(reinterpret_cast<const char*>(&handle), sizeof(handle));
+				out.write(reinterpret_cast<const char*>(&metadata.Type), sizeof(metadata.Type));
+				Utils::WriteString(out, FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string()));
+
+				bool hasAssetData = (metadata.AssetData != nullptr);
+				out.write(reinterpret_cast<const char*>(&hasAssetData), sizeof(hasAssetData));
+
+				if (hasAssetData)
+				{
+					auto ctx = static_cast<PrefabContext*>(metadata.AssetData);
+					out.write(reinterpret_cast<const char*>(&ctx->Scene), sizeof(AssetHandle));
+					out.write(reinterpret_cast<const char*>(&ctx->EnttUUID), sizeof(UUID));
+				}
+
+				auto prefab = As<Asset, Prefab>(GetAsset(handle));
+				KTN_CORE_ASSERT(prefab, "Prefab is nullptr!");
+
+				PrefabImporter::SavePrefabBin(out, prefab);
 			}
 		}
 	}
@@ -464,6 +506,17 @@ namespace KTN
 						metadata.AssetData = spec;
 						break;
 					}
+					case AssetType::Prefab:
+					{
+						AssetHandle sceneHandle;
+						in.read(reinterpret_cast<char*>(&sceneHandle), sizeof(AssetHandle));
+
+						UUID uuid;
+						in.read(reinterpret_cast<char*>(&uuid), sizeof(UUID));
+
+						metadata.AssetData = new PrefabContext{ uuid, sceneHandle };
+						break;
+					}
 				}
 			}
 
@@ -502,6 +555,14 @@ namespace KTN
 				material->DeserializeBin(in);
 
 				m_LoadedAssets[handle] = material;
+			}
+
+			if (metadata.Type == AssetType::Prefab)
+			{
+				Ref<Prefab> prefab = PrefabImporter::LoadPrefabBin(in);
+				prefab->Handle = handle;
+
+				m_LoadedAssets[handle] = prefab;
 			}
 
 			m_AssetRegistry[handle] = metadata;
@@ -584,6 +645,13 @@ namespace KTN
 						out << YAML::Key << "GenerateMipmaps" << YAML::Value << spec->GenerateMips;
 						out << YAML::Key << "BorderColor" << YAML::Value << spec->BorderColor;
 						out << YAML::Key << "DebugName" << YAML::Value << spec->DebugName;
+					}
+
+					if (metadata.Type == AssetType::Prefab)
+					{
+						auto ctx = static_cast<PrefabContext*>(assetData);
+						out << YAML::Key << "Scene" << YAML::Value << ctx->Scene;
+						out << YAML::Key << "EnttUUID" << YAML::Value << ctx->EnttUUID;
 					}
 
 					out << YAML::EndMap;
@@ -676,6 +744,14 @@ namespace KTN
 					spec->BorderColor = assetDataNode["BorderColor"].as<glm::vec4>();
 					spec->DebugName = assetDataNode["DebugName"].as<std::string>();
 					metadata.AssetData = spec;
+				}
+
+				if (metadata.Type == AssetType::Prefab)
+				{
+					auto ctx = new PrefabContext();
+					ctx->Scene = assetDataNode["Scene"].as<AssetHandle>();
+					ctx->EnttUUID = assetDataNode["EnttUUID"].as<UUID>();
+					metadata.AssetData = ctx;
 				}
 			}
 		}

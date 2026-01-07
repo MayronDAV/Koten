@@ -5,6 +5,7 @@
 #include "DFFontImporter.h"
 #include "TextureImporter.h"
 #include "PhysicsMaterial2DImporter.h"
+#include "PrefabImporter.h"
 
 
 
@@ -15,7 +16,8 @@ namespace KTN
 		{ AssetType::Scene, SceneImporter::ImportScene },
 		{ AssetType::Font, DFFontImporter::ImportFont },
 		{ AssetType::Texture2D, TextureImporter::ImportTexture2D },
-		{ AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::ImportMaterial }
+		{ AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::ImportMaterial },
+		{ AssetType::Prefab, PrefabImporter::ImportPrefab }
 	};
 
 	Ref<Asset> AssetImporter::ImportAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata)

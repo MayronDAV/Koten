@@ -23,6 +23,7 @@
 #include "Koten/Asset/TextureImporter.h"
 #include "Koten/Asset/SceneImporter.h"
 #include "Koten/Asset/PhysicsMaterial2DImporter.h"
+#include "Koten/Asset/PrefabImporter.h"
 
 // EVENTS
 
@@ -100,6 +101,7 @@
 #include "Koten/Scene/System.h"
 #include "Koten/Scene/SystemManager.h"
 #include "Koten/Scene/SceneManager.h"
+#include "Koten/Scene/EntitySerializer.h"
 
 // UTILS
 

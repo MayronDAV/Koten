@@ -80,7 +80,22 @@ namespace KTN
 		if (noChildren)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)p_Entt, flags, tag.c_str());
+		bool isPrefab = p_Entt.HasComponent<PrefabComponent>();
+		if (isPrefab)
+			ImGui::PushStyleColor(ImGuiCol_Text, { 0.0f, 1.0f, 1.0f, 1.0f });
+
+		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)p_Entt, flags, ((isPrefab ? ICON_MDI_CUBE " " : ICON_MDI_CUBE_OUTLINE " ") + tag).c_str());
+
+		if (ImGui::BeginDragDropSource())
+		{
+			auto uuid = p_Entt.GetUUID();
+			ImGui::SetDragDropPayload("HIERARCHY_ENTITY_ITEM", &uuid, sizeof(UUID));
+			ImGui::EndDragDropSource();
+		}
+
+		if (isPrefab)
+			ImGui::PopStyleColor();
+
 		if (ImGui::IsItemClicked())
 		{
 			m_Editor->SetSelectedEntt(p_Entt);

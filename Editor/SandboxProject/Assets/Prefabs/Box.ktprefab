@@ -1,0 +1,35 @@
+Scene: 3434738318904853432
+AssetHandle: 5283197491430848415
+Entity: 16100711353101642654
+TagComponent:
+  Tag: Box
+TransformComponent:
+  Translation: [0.6, -1.7, 0]
+  Rotation: [0, 0, 0]
+  Scale: [1, 1, 1]
+SpriteComponent:
+  Type: 0
+  Color: [1, 1, 1, 1]
+  Texture: 0
+  Thickness: 1
+  Fade: 0.005
+  Size: [0, 0]
+  BySize: true
+  Offset: [0, 0]
+  Scale: [1, 1]
+Rigidbody2DComponent:
+  IsTrigger: false
+  Mass: 20
+  PhysicsMaterial2D: 16476766747718580719
+  LinearDamping: 1
+  AngularDamping: 1
+  GravityScale: 0
+  FixedRotation: false
+  Sleeping: false
+  CanSleep: true
+BodyShape2DComponent:
+  Shape: 0
+  Offset: [0, 0]
+  Size: [0.5, 0.5]
+PrefabComponent:
+  Path: Prefabs\Box.ktprefab

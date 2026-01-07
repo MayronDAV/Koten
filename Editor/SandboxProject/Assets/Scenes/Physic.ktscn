@@ -151,3 +151,5 @@ Entities:
       Shape: 0
       Offset: [0, 0]
       Size: [0.5, 0.5]
+    PrefabComponent:
+      Path: Prefabs\Box.ktprefab
