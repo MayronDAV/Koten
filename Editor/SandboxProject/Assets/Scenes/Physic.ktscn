@@ -1,5 +1,32 @@
-Scene: 8465558746731536257
+Scene: 3434738318904853432
+Configs:
+  - UsePhysics2D: true
 Entities:
+  - Entity: 7995646022849912298
+    TagComponent:
+      Tag: Circle
+    TransformComponent:
+      Translation: [0, -3.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Type: 1
+      Color: [1, 1, 1, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    StaticBody2DComponent:
+      IsTrigger: false
+      Mass: 0
+      PhysicsMaterial2D: 16476766747718580719
+    BodyShape2DComponent:
+      Shape: 1
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
   - Entity: 10580865177713273455
     TagComponent:
       Tag: Player
@@ -17,25 +44,37 @@ Entities:
       BySize: true
       Offset: [0, 0]
       Scale: [1, 1]
-    Rigidbody2DComponent:
-      Index: 0
-      World: 0
-      Generation: 0
-      Type: 1
-      FixedRotation: false
-    BoxCollider2DComponent:
+    CharacterBody2DComponent:
       IsTrigger: false
+      Mass: 0
+      PhysicsMaterial2D: 16476766747718580719
+      SlideOnCeiling: true
+      FloorMaxAngle: 0.7853982
+      FloorSnapLength: 1
+      WallMinSlideAngle: 0.2617994
+      UpDirection: [0, 1]
+      FloorNormal: [0, 1]
+    BodyShape2DComponent:
+      Shape: 0
       Offset: [0, 0]
       Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
+    ScriptComponent:
+      FullClassName: Sandbox.Player
+      ScriptFields:
+        - Name: Speed
+          Type: Float
+          Data: 5
+        - Name: Timestep
+          Type: Float
+          Data: 0
+        - Name: m_DeltaTime
+          Type: Float
+          Data: 0
   - Entity: 9134091759235243697
     TagComponent:
       Tag: Ground
     TransformComponent:
-      Translation: [0, -4.9, 0]
+      Translation: [0, -6, 0]
       Rotation: [0, 0, 0]
       Scale: [13.7, 1, 1]
     SpriteComponent:
@@ -48,20 +87,14 @@ Entities:
       BySize: true
       Offset: [0, 0]
       Scale: [1, 1]
-    Rigidbody2DComponent:
-      Index: 0
-      World: 0
-      Generation: 0
-      Type: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
+    StaticBody2DComponent:
       IsTrigger: false
+      Mass: 0
+      PhysicsMaterial2D: 16476766747718580719
+    BodyShape2DComponent:
+      Shape: 0
       Offset: [0, 0]
       Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
   - Entity: 18241545563351049444
     TagComponent:
       Tag: Camera
@@ -81,3 +114,40 @@ Entities:
       Near: 0.001
       Scale: 10
       Zoom: 1
+    ScriptComponent:
+      FullClassName: Sandbox.Camera
+      ScriptFields:
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 10
+  - Entity: 16100711353101642654
+    TagComponent:
+      Tag: Box
+    TransformComponent:
+      Translation: [0.6, -1.7, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    Rigidbody2DComponent:
+      IsTrigger: false
+      Mass: 20
+      PhysicsMaterial2D: 16476766747718580719
+      LinearDamping: 1
+      AngularDamping: 1
+      GravityScale: 0
+      FixedRotation: false
+      Sleeping: false
+      CanSleep: true
+    BodyShape2DComponent:
+      Shape: 0
+      Offset: [0, 0]
+      Size: [0.5, 0.5]

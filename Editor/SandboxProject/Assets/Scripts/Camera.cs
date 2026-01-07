@@ -21,12 +21,12 @@ namespace Sandbox
 		{
 			if (Input.IsControllerConnected(0))
 			{
-				if (Input.IsControllerButtonPressed(0, GamepadCode.ButtonSouth))
+				if (Input.IsControllerButtonReleased(0, GamepadCode.ButtonSouth))
 					m_FollowPlayer = !m_FollowPlayer;
 			}
 			else
 			{
-				if (Input.IsKeyPressed(KeyCode.P))
+				if (Input.IsKeyJustReleased(KeyCode.P)) 
 					m_FollowPlayer = !m_FollowPlayer;
 			}
 
@@ -63,6 +63,7 @@ namespace Sandbox
 
 			Vector3 translation = LocalTranslation;
 			translation += velocity * Time.DeltaTime;
+			translation.Z = DistanceFromPlayer;
 			LocalTranslation = translation;
 		}
 

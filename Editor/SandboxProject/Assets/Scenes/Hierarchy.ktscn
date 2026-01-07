@@ -1,115 +1,7 @@
-Scene: 8027383907209067263
+Scene: 14825518371462149883
+Configs:
+  - UsePhysics2D: true
 Entities:
-  - Entity: 11860992351824207667
-    TagComponent:
-      Tag: Child
-    TransformComponent:
-      Translation: [0, 0.8, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 1, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-    HierarchyComponent:
-      Parent: 10580865177713273455
-      First: 5933122907559680657
-      Prev: 0
-      Next: 0
-      ChildCount: 1
-  - Entity: 10580865177713273455
-    TagComponent:
-      Tag: Player
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 1, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-    HierarchyComponent:
-      Parent: 0
-      First: 11860992351824207667
-      Prev: 0
-      Next: 0
-      ChildCount: 1
-    Rigidbody2DComponent:
-      Index: 0
-      World: 0
-      Generation: 0
-      Type: 1
-      FixedRotation: false
-    BoxCollider2DComponent:
-      IsTrigger: false
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 9134091759235243697
-    TagComponent:
-      Tag: Ground
-    TransformComponent:
-      Translation: [0, -4.9, 0]
-      Rotation: [0, 0, 0]
-      Scale: [13.7, 1, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 0, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-    Rigidbody2DComponent:
-      Index: 0
-      World: 0
-      Generation: 0
-      Type: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
-      IsTrigger: false
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 18241545563351049444
-    TagComponent:
-      Tag: Camera
-    TransformComponent:
-      Translation: [0, 0, 10]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Primary: true
-      ClearColor: [0, 0, 0, 1]
-      Width: 0
-      Height: 0
-      IsOrthographic: false
-      IsAspectRatioFixed: false
-      FOV: 90
-      Far: 1000
-      Near: 0.001
-      Scale: 10
-      Zoom: 1
   - Entity: 5933122907559680657
     TagComponent:
       Tag: Child 2
@@ -133,3 +25,85 @@ Entities:
       Prev: 0
       Next: 0
       ChildCount: 0
+  - Entity: 18241545563351049444
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      ClearColor: [0, 0, 0, 1]
+      Width: 0
+      Height: 0
+      IsOrthographic: false
+      IsAspectRatioFixed: false
+      FOV: 90
+      Far: 1000
+      Near: 0.001
+      Scale: 10
+      Zoom: 1
+  - Entity: 9134091759235243697
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, -4.9, 0]
+      Rotation: [0, 0, 0]
+      Scale: [13.7, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 0, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+  - Entity: 10580865177713273455
+    TagComponent:
+      Tag: Player
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    HierarchyComponent:
+      Parent: 0
+      First: 11860992351824207667
+      Prev: 0
+      Next: 0
+      ChildCount: 1
+  - Entity: 11860992351824207667
+    TagComponent:
+      Tag: Child
+    TransformComponent:
+      Translation: [0, 0.8, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    HierarchyComponent:
+      Parent: 10580865177713273455
+      First: 5933122907559680657
+      Prev: 0
+      Next: 0
+      ChildCount: 1
