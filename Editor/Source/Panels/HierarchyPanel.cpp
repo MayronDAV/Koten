@@ -84,6 +84,22 @@ namespace KTN
 		if (isPrefab)
 			ImGui::PushStyleColor(ImGuiCol_Text, { 0.0f, 1.0f, 1.0f, 1.0f });
 
+		{
+			ImGui::PushID((uint32_t)p_Entt);
+			ImGui::PushStyleColor(ImGuiCol_Button, { 0.0f, 0.0f, 0.0f, 0.0f });
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.0f, 0.0f, 0.0f, 0.0f });
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.0f, 0.0f, 0.0f, 0.0f });
+
+			auto& rc = p_Entt.GetComponent<RuntimeComponent>();
+			if (ImGui::Button(rc.Active ? ICON_MDI_EYE : ICON_MDI_EYE_OFF))
+				rc.Active = !rc.Active;
+
+			ImGui::PopStyleColor(3);
+			ImGui::PopID();
+		}
+
+		ImGui::SameLine();
+
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)p_Entt, flags, ((isPrefab ? ICON_MDI_CUBE " " : ICON_MDI_CUBE_OUTLINE " ") + tag).c_str());
 
 		if (ImGui::BeginDragDropSource())

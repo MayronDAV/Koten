@@ -147,6 +147,7 @@ namespace KTN
 		auto entt = Entity(m_Registry.create(), this);
 		entt.AddComponent<IDComponent>(p_UUID);
 		entt.AddComponent<TagComponent>(p_Tag.empty() ? "Entity" : p_Tag);
+		entt.AddComponent<RuntimeComponent>();
 		m_EntityMap[p_UUID] = (entt::entity)entt;
 		return entt;
 	}
@@ -173,9 +174,11 @@ namespace KTN
 
 		Renderer::Begin(info);
 		{
-			m_Registry.view<TransformComponent>().each(
-			[&](auto p_Entity, const TransformComponent& p_Transform)
+			m_Registry.view<RuntimeComponent, TransformComponent>().each(
+			[&](auto p_Entity, const RuntimeComponent& p_Runtime, const TransformComponent& p_Transform)
 			{
+				if (!p_Runtime.Active) return;
+
 				auto& settings = Engine::Get().GetSettings();
 				auto shape2d = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
 				if (shape2d && settings.ShowDebugPhysicsCollider)
@@ -387,9 +390,11 @@ namespace KTN
 		
 		Renderer::Begin(info);
 		{
-			m_Registry.view<TransformComponent>().each(
-			[&](auto p_Entity, const TransformComponent& p_Transform)
+			m_Registry.view<RuntimeComponent, TransformComponent>().each(
+			[&](auto p_Entity, const RuntimeComponent& p_Runtime, const TransformComponent& p_Transform)
 			{
+				if (!p_Runtime.Active) return;
+
 				auto& settings = Engine::Get().GetSettings();
 				auto shape2d = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
 				if (shape2d && settings.ShowDebugPhysicsCollider)

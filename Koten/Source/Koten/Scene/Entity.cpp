@@ -61,6 +61,16 @@ namespace KTN
 		}
 	}
 
+	bool Entity::IsEnabled() const
+	{
+		return m_Scene->m_Registry.get<RuntimeComponent>(m_Handle).Enabled;
+	}
+
+	bool Entity::IsActive() const
+	{
+		return m_Scene->m_Registry.get<RuntimeComponent>(m_Handle).Active;
+	}
+
 	Entity Entity::GetParent()
 	{
 		auto hierarchyComp = TryGetComponent<HierarchyComponent>();

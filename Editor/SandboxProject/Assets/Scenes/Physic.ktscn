@@ -2,16 +2,80 @@ Scene: 3434738318904853432
 Configs:
   - UsePhysics2D: true
 Entities:
-  - Entity: 7995646022849912298
+  - Entity: 16100711353101642654
     TagComponent:
-      Tag: Circle
+      Tag: Box
     TransformComponent:
-      Translation: [0, -3.5, 0]
+      Translation: [0.6, -1.7, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteComponent:
-      Type: 1
+      Type: 0
       Color: [1, 1, 1, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    Rigidbody2DComponent:
+      IsTrigger: false
+      Mass: 20
+      PhysicsMaterial2D: 16476766747718580719
+      LinearDamping: 1
+      AngularDamping: 1
+      GravityScale: 0
+      FixedRotation: false
+      Sleeping: false
+      CanSleep: true
+    BodyShape2DComponent:
+      Shape: 0
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+    PrefabComponent:
+      Path: Prefabs\Box.ktprefab
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 18241545563351049444
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Translation: [0, 0, 10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      ClearColor: [0, 0, 0, 1]
+      Width: 0
+      Height: 0
+      IsOrthographic: false
+      IsAspectRatioFixed: false
+      FOV: 90
+      Far: 1000
+      Near: 0.001
+      Scale: 10
+      Zoom: 1
+    ScriptComponent:
+      FullClassName: Sandbox.Camera
+      ScriptFields:
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 10
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 9134091759235243697
+    TagComponent:
+      Tag: Ground
+    TransformComponent:
+      Translation: [0, -6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [13.7, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 0, 0, 1]
       Texture: 0
       Thickness: 1
       Fade: 0.005
@@ -24,9 +88,12 @@ Entities:
       Mass: 0
       PhysicsMaterial2D: 16476766747718580719
     BodyShape2DComponent:
-      Shape: 1
+      Shape: 0
       Offset: [0, 0]
       Size: [0.5, 0.5]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
   - Entity: 10580865177713273455
     TagComponent:
       Tag: Player
@@ -70,16 +137,19 @@ Entities:
         - Name: m_DeltaTime
           Type: Float
           Data: 0
-  - Entity: 9134091759235243697
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 7995646022849912298
     TagComponent:
-      Tag: Ground
+      Tag: Circle
     TransformComponent:
-      Translation: [0, -6, 0]
+      Translation: [0, -3.5, 0]
       Rotation: [0, 0, 0]
-      Scale: [13.7, 1, 1]
+      Scale: [1, 1, 1]
     SpriteComponent:
-      Type: 0
-      Color: [1, 0, 0, 1]
+      Type: 1
+      Color: [1, 1, 1, 1]
       Texture: 0
       Thickness: 1
       Fade: 0.005
@@ -92,64 +162,9 @@ Entities:
       Mass: 0
       PhysicsMaterial2D: 16476766747718580719
     BodyShape2DComponent:
-      Shape: 0
+      Shape: 1
       Offset: [0, 0]
       Size: [0.5, 0.5]
-  - Entity: 18241545563351049444
-    TagComponent:
-      Tag: Camera
-    TransformComponent:
-      Translation: [0, 0, 10]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Primary: true
-      ClearColor: [0, 0, 0, 1]
-      Width: 0
-      Height: 0
-      IsOrthographic: false
-      IsAspectRatioFixed: false
-      FOV: 90
-      Far: 1000
-      Near: 0.001
-      Scale: 10
-      Zoom: 1
-    ScriptComponent:
-      FullClassName: Sandbox.Camera
-      ScriptFields:
-        - Name: DistanceFromPlayer
-          Type: Float
-          Data: 10
-  - Entity: 16100711353101642654
-    TagComponent:
-      Tag: Box
-    TransformComponent:
-      Translation: [0.6, -1.7, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 1, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-    Rigidbody2DComponent:
-      IsTrigger: false
-      Mass: 20
-      PhysicsMaterial2D: 16476766747718580719
-      LinearDamping: 1
-      AngularDamping: 1
-      GravityScale: 0
-      FixedRotation: false
-      Sleeping: false
-      CanSleep: true
-    BodyShape2DComponent:
-      Shape: 0
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-    PrefabComponent:
-      Path: Prefabs\Box.ktprefab
+    RuntimeComponent:
+      Enabled: true
+      Active: true

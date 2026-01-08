@@ -53,6 +53,7 @@ namespace KTN
 			m_Changed = true;
 			memcpy(m_Buffer, &p_Value, sizeof(T));
 		}
+	
 	private:
 		bool m_Changed = false;
 		uint8_t m_Buffer[16];

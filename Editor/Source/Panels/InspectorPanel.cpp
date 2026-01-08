@@ -677,9 +677,14 @@ namespace KTN
 
 			auto name = selectedEntt.GetTag();
 
+			auto& rc = selectedEntt.GetComponent<RuntimeComponent>();
+			ImGui::Checkbox(("##Enable" + name).c_str(), &rc.Enabled);
+
+			ImGui::SameLine();
+
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
 			{
-				if (UI::InputText("##InspectorNameChange", name))
+				if (UI::InputText("##InspectorNameChange", name, false, 0, 2.0f, true))
 					selectedEntt.GetComponent<TagComponent>().Tag = name;
 
 			#ifdef KTN_DEBUG

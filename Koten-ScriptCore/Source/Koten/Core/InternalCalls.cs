@@ -69,16 +69,39 @@ namespace KTN
 
         #endregion
 
+        #region TagComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string TagComponent_GetTag(ulong p_UUID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void TagComponent_SetTag(ulong p_UUID, string p_Tag);
+        #endregion
+
         #region TransformComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void TransformComponent_GetLocalTranslation(ulong p_EntityID, out Vector3 p_Result);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void TransformComponent_SetLocalTranslation(ulong p_EntityID, ref Vector3 p_Value);
-		#endregion
+        #endregion
 
-		#region TextRendererComponent
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
+        #region RuntimeComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool RuntimeComponent_IsEnabled(ulong p_UUID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool RuntimeComponent_IsActive(ulong p_UUID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RuntimeComponent_SetEnabled(ulong p_UUID, bool p_Value);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RuntimeComponent_SetActive(ulong p_UUID, bool p_Value);
+
+        #endregion
+
+        #region TextRendererComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static string TextRendererComponent_GetString(ulong p_EntityID);
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void TextRendererComponent_SetString(ulong p_EntityID, string p_String);

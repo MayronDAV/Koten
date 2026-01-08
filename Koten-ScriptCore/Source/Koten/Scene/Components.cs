@@ -2,25 +2,134 @@ using System;
 
 namespace KTN
 {
-	public abstract class Component
-	{
-		public Entity Entity { get; internal set; }
-	}
+    public abstract class Component
+    {
+        public Entity Entity { get; internal set; }
+    }
 
-	public class Transform : Component
-	{
-		public Vector3 LocalTranslation
-		{
-			get
-			{
-				InternalCalls.TransformComponent_GetLocalTranslation(Entity.ID, out Vector3 translation);
-				return translation;
-			}
-			set
-			{
-				InternalCalls.TransformComponent_SetLocalTranslation(Entity.ID, ref value);
-			}
+    public class Transform : Component
+    {
+        public Vector3 LocalTranslation
+        {
+            get
+            {
+                InternalCalls.TransformComponent_GetLocalTranslation(Entity.ID, out Vector3 translation);
+                return translation;
+            }
+            set
+            {
+                InternalCalls.TransformComponent_SetLocalTranslation(Entity.ID, ref value);
+            }
         }
+    }
+
+    public class IDComponent : Component
+    {
+        public ulong ID => Entity.ID;
+    }
+
+    public class TagComponent : Component
+    {
+        public string Tag
+        {
+            get => InternalCalls.TagComponent_GetTag(Entity.ID);
+            set => InternalCalls.TagComponent_SetTag(Entity.ID, value);
+        }
+    }
+
+    public class  RuntimeComponent : Component
+    {
+        public bool Enabled
+        {
+            get => InternalCalls.RuntimeComponent_IsEnabled(Entity.ID);
+            set => InternalCalls.RuntimeComponent_SetEnabled(Entity.ID, value);
+        }
+
+        public bool Active
+        {
+            get => InternalCalls.RuntimeComponent_IsActive(Entity.ID);
+            set => InternalCalls.RuntimeComponent_SetActive(Entity.ID, value);
+        }
+    }
+
+    public class SpriteComponent : Component
+    {
+    }
+
+    public class LineRendererComponent : Component
+    {
+    }
+
+    public class TextRendererComponent : Component
+    {
+        public string String
+        {
+            get => InternalCalls.TextRendererComponent_GetString(Entity.ID);
+            set => InternalCalls.TextRendererComponent_SetString(Entity.ID, value);
+        }
+
+        public string Font
+        {
+            get => InternalCalls.TextRendererComponent_GetFontPath(Entity.ID);
+            set => InternalCalls.TextRendererComponent_SetFont(Entity.ID, value);
+        }
+
+        public Vector4 Color
+        {
+            get
+            {
+                InternalCalls.TextRendererComponent_GetColor(Entity.ID, out Vector4 color);
+                return color;
+            }
+            set => InternalCalls.TextRendererComponent_SetColor(Entity.ID, ref value);
+        }
+
+        public Vector4 BgColor
+        {
+            get
+            {
+                InternalCalls.TextRendererComponent_GetBgColor(Entity.ID, out Vector4 color);
+                return color;
+            }
+            set => InternalCalls.TextRendererComponent_SetBgColor(Entity.ID, ref value);
+        }
+
+        public Vector4 CharBgColor
+        {
+            get
+            {
+                InternalCalls.TextRendererComponent_GetCharBgColor(Entity.ID, out Vector4 color);
+                return color;
+            }
+            set => InternalCalls.TextRendererComponent_SetCharBgColor(Entity.ID, ref value);
+        }
+
+        public bool DrawBg
+        {
+            get => InternalCalls.TextRendererComponent_GetDrawBg(Entity.ID);
+            set => InternalCalls.TextRendererComponent_SetDrawBg(Entity.ID, value);
+        }
+
+        public float Kerning
+        {
+            get => InternalCalls.TextRendererComponent_GetKerning(Entity.ID);
+            set => InternalCalls.TextRendererComponent_SetKerning(Entity.ID, value);
+        }
+
+        public float LineSpacing
+        {
+            get => InternalCalls.TextRendererComponent_GetLineSpacing(Entity.ID);
+            set => InternalCalls.TextRendererComponent_SetLineSpacing(Entity.ID, value);
+        }
+
+    }
+
+    public class CameraComponent : Component
+    {
+    }
+
+    public class HierarchyComponent : Component
+    {
     }
 
     public class PhysicsBody : Component
@@ -87,7 +196,7 @@ namespace KTN
 
     public class Rigidbody2DComponent : PhysicsBody
     {     
-	};
+	}
 
     public class CharacterBody2DComponent : PhysicsBody
     {
@@ -115,68 +224,20 @@ namespace KTN
         }
     }
 
-    public class TextRendererComponent : Component
+    public class StaticBody2DComponent : PhysicsBody
     {
-        public string String
-        {
-            get => InternalCalls.TextRendererComponent_GetString(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetString(Entity.ID, value);
-        }
+    }
 
-        public string Font
-        {
-            get => InternalCalls.TextRendererComponent_GetFontPath(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetFont(Entity.ID, value);
-        }
+    public class BodyShape2DComponent : Component
+    {
+    }
 
-        public Vector4 Color
-        {
-            get
-            {
-                InternalCalls.TextRendererComponent_GetColor(Entity.ID, out Vector4 color);
-                return color;
-            }
-            set => InternalCalls.TextRendererComponent_SetColor(Entity.ID, ref value);
-        }
+    public class ScriptComponent : Component
+    {
+    }
 
-        public Vector4 BgColor
-        {
-            get
-            {
-                InternalCalls.TextRendererComponent_GetBgColor(Entity.ID, out Vector4 color);
-                return color;
-            }
-            set => InternalCalls.TextRendererComponent_SetBgColor(Entity.ID, ref value);
-        }
-
-        public Vector4 CharBgColor
-        {
-            get
-            {
-                InternalCalls.TextRendererComponent_GetCharBgColor(Entity.ID, out Vector4 color);
-                return color;
-            }
-            set => InternalCalls.TextRendererComponent_SetCharBgColor(Entity.ID, ref value);
-        }
-
-        public bool DrawBg
-        {
-            get => InternalCalls.TextRendererComponent_GetDrawBg(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetDrawBg(Entity.ID, value);
-        }
-
-        public float Kerning
-        {
-            get => InternalCalls.TextRendererComponent_GetKerning(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetKerning(Entity.ID, value);
-        }
-
-        public float LineSpacing
-        {
-            get => InternalCalls.TextRendererComponent_GetLineSpacing(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetLineSpacing(Entity.ID, value);
-        }
-
+    public class PrefabComponent : Component
+    {
     }
 
 } // namespace KTN

@@ -43,6 +43,15 @@ namespace KTN
 			: Tag(p_Tag) {}
 	};
 
+	struct RuntimeComponent
+	{
+		bool Enabled = true;
+		bool Active = true;
+
+		RuntimeComponent() = default;
+		RuntimeComponent(const RuntimeComponent&) = default;
+	};
+
 	struct SpriteComponent
 	{
 		RenderType2D Type		= RenderType2D::Quad;
@@ -218,6 +227,6 @@ namespace KTN
 	};
 
 	using PhysicsBody2DTypes = entt::type_list<Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent>;
-	#define ALL_COMPONENTS IDComponent, TagComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent
+	#define ALL_COMPONENTS IDComponent, TagComponent, RuntimeComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent
 
 } // namespace KTN

@@ -85,10 +85,8 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			char* tagCStr = mono_string_to_utf8(p_Tag);
-			Entity entity = SceneManager::GetEntityByTag(tagCStr);
-			KTN_CORE_VERIFY(entity);
-			mono_free(tagCStr);
+			auto tag = MonoStringToString(p_Tag);
+			Entity entity = SceneManager::GetEntityByTag(tag);
 			if (!entity)
 				return 0;
 
@@ -235,6 +233,39 @@ namespace KTN
 
 		#pragma endregion
 
+		#pragma region TagComponent
+		static MonoString* TagComponent_GetTag(UUID p_EntityID)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			if (!entity)
+			{
+				KTN_CORE_ERROR("Invalid Entity UUID!");
+				return nullptr;
+			}
+
+			auto& tc = entity.GetComponent<TagComponent>();
+			return ScriptEngine::CreateString(tc.Tag.c_str());
+		}
+
+		static void TagComponent_SetTag(UUID p_EntityID, MonoString* p_Tag)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto tag = MonoStringToString(p_Tag);
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			if (!entity)
+			{
+				KTN_CORE_ERROR("Invalid Entity UUID!");
+				return;
+			}
+
+			auto& tc = entity.GetComponent<TagComponent>();
+			tc.Tag = tag;
+		}
+		#pragma endregion
+
 		#pragma region TransformComponent
 		static void TransformComponent_GetLocalTranslation(UUID p_EntityID, glm::vec3* p_Result)
 		{
@@ -257,6 +288,58 @@ namespace KTN
 
 			auto& tc = entity.GetComponent<TransformComponent>();
 			tc.SetLocalTranslation(*p_Value);
+		}
+		#pragma endregion
+
+		#pragma region RuntimeComponent
+		static bool RuntimeComponent_IsEnabled(UUID p_EntityID)
+		{
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			if (!entity)
+			{
+				KTN_CORE_ERROR("Invalid Entity UUID!");
+				return false;
+			}
+
+			return entity.GetComponent<RuntimeComponent>().Enabled;
+		}
+
+		static bool RuntimeComponent_IsActive(UUID p_EntityID)
+		{
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			if (!entity)
+			{
+				KTN_CORE_ERROR("Invalid Entity UUID!");
+				return false;
+			}
+
+			return entity.GetComponent<RuntimeComponent>().Active;
+		}
+
+		static void RuntimeComponent_SetEnabled(UUID p_EntityID, bool p_Value)
+		{
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			if (!entity)
+			{
+				KTN_CORE_ERROR("Invalid Entity UUID!");
+				return;
+			}
+
+			auto& rc = entity.GetComponent<RuntimeComponent>();
+			rc.Enabled = p_Value;
+		}
+
+		static void RuntimeComponent_SetActive(UUID p_EntityID, bool p_Value)
+		{
+			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			if (!entity)
+			{
+				KTN_CORE_ERROR("Invalid Entity UUID!");
+				return;
+			}
+
+			auto& rc = entity.GetComponent<RuntimeComponent>();
+			rc.Active = p_Value;
 		}
 		#pragma endregion
 
@@ -886,8 +969,16 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(Scene_GetEntityByTag);
 		KTN_ADD_INTERNAL_CALL(Scene_GetEntityByTag);
 
+		KTN_ADD_INTERNAL_CALL(TagComponent_GetTag);
+		KTN_ADD_INTERNAL_CALL(TagComponent_SetTag);
+
 		KTN_ADD_INTERNAL_CALL(TransformComponent_GetLocalTranslation);
 		KTN_ADD_INTERNAL_CALL(TransformComponent_SetLocalTranslation);
+
+		KTN_ADD_INTERNAL_CALL(RuntimeComponent_IsEnabled);
+		KTN_ADD_INTERNAL_CALL(RuntimeComponent_IsActive);
+		KTN_ADD_INTERNAL_CALL(RuntimeComponent_SetEnabled);
+		KTN_ADD_INTERNAL_CALL(RuntimeComponent_SetActive);
 
 		KTN_ADD_INTERNAL_CALL(TextRendererComponent_GetString);
 		KTN_ADD_INTERNAL_CALL(TextRendererComponent_SetString);

@@ -309,7 +309,7 @@ namespace KTN
 			bodyDef.fixedRotation = true;
 			bodyDef.linearDamping = 0.0f;
 			bodyDef.angularDamping = 0.0f;
-			bodyDef.isEnabled = true;
+			bodyDef.isEnabled = p_Entt.IsEnabled();
 
 			switch (p_Body->GetType())
 			{
@@ -583,6 +583,8 @@ namespace KTN
 		[&](auto p_Entt, TransformComponent& p_Transform, CharacterBody2DComponent& p_Body)
 		{
 			Entity entt{ p_Entt, p_Scene };
+			if (!entt.IsActive()) return;
+
 			CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, &p_Body);
 		});
 
@@ -590,6 +592,8 @@ namespace KTN
 		[&](auto p_Entt, TransformComponent& p_Transform, Rigidbody2DComponent& p_Body)
 		{
 			Entity entt{ p_Entt, p_Scene };
+			if (!entt.IsActive()) return;
+
 			CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, &p_Body);
 		});
 
@@ -597,6 +601,8 @@ namespace KTN
 		[&](auto p_Entt, TransformComponent& p_Transform, StaticBody2DComponent& p_Body)
 		{
 			Entity entt{ p_Entt, p_Scene };
+			if (!entt.IsActive()) return;
+
 			CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, &p_Body);
 		});
 

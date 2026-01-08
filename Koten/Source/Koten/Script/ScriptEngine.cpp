@@ -186,7 +186,7 @@ namespace KTN
 				auto& fields = scriptClass->GetFields();
 
 				int fieldCount = mono_class_num_fields(monoClass);
-				KTN_CORE_WARN("{} has {} fields:", className, fieldCount);
+				//KTN_CORE_WARN("{} has {} fields:", className, fieldCount);
 				void* iterator = nullptr;
 				while (MonoClassField* field = mono_class_get_fields(monoClass, &iterator))
 				{
@@ -197,7 +197,7 @@ namespace KTN
 					{
 						MonoType* type = mono_field_get_type(field);
 						ScriptFieldType fieldType = MonoTypeToScriptFieldType(type);
-						KTN_CORE_WARN("  {} ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
+						//KTN_CORE_WARN("  {} ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
 						fields[fieldName] = { fieldType, fieldName, false, false, false, field };
 					}
@@ -211,7 +211,7 @@ namespace KTN
 
 						MonoType* type = mono_field_get_type(field);
 						ScriptFieldType fieldType = MonoTypeToScriptFieldType(type);
-						KTN_CORE_WARN("  {} ({}) [Private]", fieldName, Utils::ScriptFieldTypeToString(fieldType));
+						//KTN_CORE_WARN("  {} ({}) [Private]", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
 						fields[fieldName] = { fieldType, fieldName, true, showInEditor, serialize, field };
 					}
@@ -301,6 +301,7 @@ namespace KTN
 
 			return LoadMonoAssembly(p_OutputDllPath);
 		}
+	
 	} // namespace
 
 	#pragma region ScriptEngine
@@ -458,9 +459,11 @@ namespace KTN
 
 		s_Data->IsRunning = true;
 
-		p_Scene->GetRegistry().view<TagComponent, ScriptComponent>().each(
-		[&](auto p_Entt, TagComponent& p_Tag, ScriptComponent& p_Sc)
+		p_Scene->GetRegistry().view<RuntimeComponent, ScriptComponent>().each(
+		[&](auto p_Entt, RuntimeComponent& p_Runtime, ScriptComponent& p_Sc)
 		{
+			if (!p_Runtime.Enabled) return;
+
 			auto entity = Entity(p_Entt, p_Scene);
 			OnCreateEntity(entity);
 		});
@@ -470,9 +473,11 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		p_Scene->GetRegistry().view<TagComponent, ScriptComponent>().each(
-		[&](auto p_Entt, TagComponent& p_Tag, ScriptComponent& p_Sc)
+		p_Scene->GetRegistry().view<RuntimeComponent, ScriptComponent>().each(
+		[&](auto p_Entt, RuntimeComponent& p_Runtime, ScriptComponent& p_Sc)
 		{
+			if (!p_Runtime.Enabled || !p_Runtime.Active) return;
+
 			auto entity = Entity(p_Entt, p_Scene);
 			OnUpdateEntity(entity);
 		});
@@ -554,8 +559,10 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		auto sc = p_Entity.TryGetComponent<ScriptComponent>();
-		if (!sc)
-			return;
+		if (!sc) return;
+
+		auto& rc = p_Entity.GetComponent<RuntimeComponent>();
+		if (!rc.Active) return;
 
 		if (ScriptEngine::EntityClassExists(sc->FullClassName))
 		{
@@ -582,6 +589,9 @@ namespace KTN
 	void ScriptEngine::OnUpdateEntity(Entity p_Entity)
 	{
 		KTN_PROFILE_FUNCTION();
+
+		auto& rc = p_Entity.GetComponent<RuntimeComponent>();
+		if (!rc.Enabled || !rc.Active) return;
 
 		UUID entityUUID = p_Entity.GetUUID();
 		if (s_Data->EntityInstances.find(entityUUID) == s_Data->EntityInstances.end())

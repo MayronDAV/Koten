@@ -489,6 +489,24 @@ namespace KTN
 			p_Out << YAML::EndMap;
 		}
 
+		template<>
+		void ComponentSerializeIfExist<RuntimeComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<RuntimeComponent>())
+				return;
+
+			p_Out << YAML::Key << "RuntimeComponent";
+			p_Out << YAML::BeginMap;
+
+			auto& comp = p_Entity.GetComponent<RuntimeComponent>();
+			ADD_KEY_VALUE("Enabled", comp.Enabled);
+			ADD_KEY_VALUE("Active", comp.Active);
+
+			p_Out << YAML::EndMap;
+		}
+
 	} // namespace
 
 	// Serialize BIN
@@ -854,6 +872,20 @@ namespace KTN
 			Utils::WriteString(p_Out, rel);
 		}
 
+		template<>
+		void ComponentSerializeBinIfExist<RuntimeComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			if (!p_Entity.HasComponent<RuntimeComponent>())
+				return;
+
+			Utils::WriteString(p_Out, "RuntimeComponent");
+
+			auto& comp = p_Entity.GetComponent<RuntimeComponent>();
+			p_Out.write(reinterpret_cast<const char*>(&comp.Enabled), sizeof(comp.Enabled));
+			p_Out.write(reinterpret_cast<const char*>(&comp.Active), sizeof(comp.Active));
+		}
 
 	} // namespace
 
@@ -1160,6 +1192,19 @@ namespace KTN
 			auto& comp = p_Entity.AddOrReplaceComponent<PrefabComponent>();
 			comp.Path = data["Path"].as<std::string>();
 			comp.Path = Project::GetAssetFileSystemPath(comp.Path).string();
+		}
+
+		template<>
+		void ComponentDeserializeIfExist<RuntimeComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
+
+			auto data = p_Data["RuntimeComponent"];
+			if (!data) return;
+
+			auto& comp = p_Entity.AddOrReplaceComponent<RuntimeComponent>();
+			comp.Enabled = data["Enabled"].as<bool>();
+			comp.Active = data["Active"].as<bool>();
 		}
 
 	} // namespace
@@ -1473,6 +1518,18 @@ namespace KTN
 			comp.Path = Project::GetAssetFileSystemPath(comp.Path).string();
 		}
 
-	} // namespace
+		template<>
+		void ComponentDeserializeBinIfExist<RuntimeComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION();
 
+			if (p_Current != "RuntimeComponent")
+				return;
+
+			auto& comp = p_Entity.GetComponent<RuntimeComponent>();
+			p_In.read(reinterpret_cast<char*>(&comp.Enabled), sizeof(comp.Enabled));
+			p_In.read(reinterpret_cast<char*>(&comp.Active), sizeof(comp.Active));
+		}
+
+	} // namespace
 }

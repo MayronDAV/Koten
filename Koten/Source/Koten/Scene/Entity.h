@@ -65,6 +65,9 @@ namespace KTN
 				m_Scene->m_Registry.remove<T>(m_Handle);
 			}
 
+			bool IsEnabled() const;
+			bool IsActive() const;
+
 			bool IsParent(Entity p_Entity);
 			void SetParent(Entity p_Entity);
 			Entity GetParent();

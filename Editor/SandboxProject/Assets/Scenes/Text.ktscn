@@ -2,47 +2,486 @@ Scene: 16295214029103593474
 Configs:
   - UsePhysics2D: true
 Entities:
-  - Entity: 736550551341134476
+  - Entity: 17106511639760153886
     TagComponent:
-      Tag: Text
+      Tag: Square
     TransformComponent:
-      Translation: [-1.44258, 4.716504, 0]
+      Translation: [4, 4, 0]
+      Rotation: [0, -0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [0, 1, 0.8744185, 1]
+      Texture: 2566776566270304147
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 14736412518601642704
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [4, 3, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TextRendererComponent:
-      String: Example
-      Font: 12271434598275799779
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 12246726734215021146
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [4, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 13619714890328200866
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [4, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 3597844719408492027
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [4, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 18021703890221866297
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [3, 4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 12715578858855261235
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [3, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 15547390782567183298
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [3, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 10667183586200005185
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [3, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 12075007633000967989
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [3, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 16223289179794700981
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [2, 4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 15897534195576792778
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [2, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 16431713904048092266
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [2, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 12574990810542669002
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [2, 1, 0]
+      Rotation: [0, -0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
       Color: [1, 1, 1, 1]
-      BgColor: [1, 0, 0, 1]
-      CharBgColor: [0, 0, 0, 0]
-      DrawBg: true
-      Kerning: 0
-      LineSpacing: 0
-  - Entity: 10710585674580018020
+      Texture: 16725911295934914230
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 15043150270711483075
     TagComponent:
-      Tag: Camera
+      Tag: Square
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [2, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Primary: true
-      ClearColor: [0, 0, 0, 1]
-      Width: 717
-      Height: 677
-      IsOrthographic: true
-      IsAspectRatioFixed: false
-      FOV: 90
-      Far: 1000
-      Near: 0.001
-      Scale: 10
-      Zoom: 1
-    ScriptComponent:
-      FullClassName: Sandbox.Camera
-      ScriptFields:
-        - Name: DistanceFromPlayer
-          Type: Float
-          Data: 5
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 14470944171828874222
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [1, 4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 16562578832230348317
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [1, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 8760118643019860853
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [1, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 15921589041929318763
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [1, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 4726812126280913968
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [1, 0, 0]
+      Rotation: [0, -0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 6231509702609372590
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [0, 4, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 17464339883813707781
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [0, 3, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 14329399193143605203
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [0, 2, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 14718375011947609537
+    TagComponent:
+      Tag: Square
+    TransformComponent:
+      Translation: [0, 1, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.9, 0.9, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    RuntimeComponent:
+      Enabled: true
+      Active: true
   - Entity: 11172584721309679770
     TagComponent:
       Tag: Player
@@ -72,411 +511,53 @@ Entities:
         - Name: m_DeltaTime
           Type: Float
           Data: 0
-  - Entity: 14718375011947609537
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 10710585674580018020
     TagComponent:
-      Tag: Square
+      Tag: Camera
     TransformComponent:
-      Translation: [0, 1, 0]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 14329399193143605203
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      ClearColor: [0, 0, 0, 1]
+      Width: 717
+      Height: 677
+      IsOrthographic: true
+      IsAspectRatioFixed: false
+      FOV: 90
+      Far: 1000
+      Near: 0.001
+      Scale: 10
+      Zoom: 1
+    ScriptComponent:
+      FullClassName: Sandbox.Camera
+      ScriptFields:
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 5
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+  - Entity: 736550551341134476
     TagComponent:
-      Tag: Square
+      Tag: Text
     TransformComponent:
-      Translation: [0, 2, 0]
+      Translation: [-1.44258, 4.716504, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 17464339883813707781
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [0, 3, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 6231509702609372590
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [0, 4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 4726812126280913968
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [1, 0, 0]
-      Rotation: [0, -0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 15921589041929318763
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [1, 1, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 8760118643019860853
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [1, 2, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 16562578832230348317
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [1, 3, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 14470944171828874222
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [1, 4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 15043150270711483075
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [2, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 12574990810542669002
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [2, 1, 0]
-      Rotation: [0, -0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
+      Scale: [1, 1, 1]
+    TextRendererComponent:
+      String: Example
+      Font: 12271434598275799779
       Color: [1, 1, 1, 1]
-      Texture: 16725911295934914230
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 16431713904048092266
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [2, 2, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 15897534195576792778
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [2, 3, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 16223289179794700981
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [2, 4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 12075007633000967989
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [3, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 10667183586200005185
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [3, 1, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 15547390782567183298
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [3, 2, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 12715578858855261235
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [3, 3, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 18021703890221866297
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [3, 4, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 3597844719408492027
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [4, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 13619714890328200866
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [4, 1, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 12246726734215021146
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [4, 2, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 14736412518601642704
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [4, 3, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 1, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
-  - Entity: 17106511639760153886
-    TagComponent:
-      Tag: Square
-    TransformComponent:
-      Translation: [4, 4, 0]
-      Rotation: [0, -0, 0]
-      Scale: [0.9, 0.9, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [0, 1, 0.8744185, 1]
-      Texture: 2566776566270304147
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
+      BgColor: [1, 0, 0, 1]
+      CharBgColor: [0, 0, 0, 0]
+      DrawBg: true
+      Kerning: 0
+      LineSpacing: 0
+    RuntimeComponent:
+      Enabled: true
+      Active: true

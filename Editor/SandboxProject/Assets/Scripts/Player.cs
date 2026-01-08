@@ -42,7 +42,7 @@ namespace Sandbox
 			Timestep += Time.DeltaTime;
 			m_DeltaTime = Time.DeltaTime;
 
-			Console.WriteLine($"Player.OnUpdate: {m_DeltaTime}");
+			//Console.WriteLine($"Player.OnUpdate: {m_DeltaTime}");
 
 			float speed = Speed;
 			Vector2 velocity = Vector2.Zero;
