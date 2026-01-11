@@ -46,6 +46,22 @@ namespace KTN
 			Size = 0;
 		}
 
+		void Write(const void* p_Data, uint64_t p_Size)
+		{
+			uint8_t* newData = (uint8_t*)malloc(Size + p_Size);
+
+			if (Data)
+			{
+				memcpy(newData, Data, Size);
+				free(Data);
+			}
+
+			memcpy(newData + Size, p_Data, p_Size);
+
+			Data = newData;
+			Size = Size + p_Size;
+		}
+
 		template<typename T>
 		T* As()
 		{
@@ -76,7 +92,8 @@ namespace KTN
 		}
 
 		uint8_t* Data() { return m_Buffer.Data; }
-		uint64_t Size() { return m_Buffer.Size; }
+		uint64_t Size() const { return m_Buffer.Size; }
+		const Buffer& GetBuffer() { return m_Buffer; }
 
 		template<typename T>
 		T* As()
@@ -88,4 +105,53 @@ namespace KTN
 	private:
 		Buffer m_Buffer;
 	};
+
+	struct BufferReader
+	{
+		BufferReader(const Buffer& p_Buffer)
+			: m_Buffer(p_Buffer) {}
+
+		template<typename T>
+		T Read()
+		{
+			if (!m_Buffer)
+			{
+				KTN_CORE_ERROR("Buffer is null!");
+				return T();
+			}
+
+			if (End())
+			{
+				KTN_CORE_ERROR("End of buffer reached!");
+				return T();
+			}
+
+			T value;
+			ReadBytes(&value, sizeof(T));
+			return value;
+		}
+
+		void ReadBytes(void* p_Dest, uint64_t p_Size)
+		{
+			if (!m_Buffer)
+			{
+				KTN_CORE_ERROR("Buffer is null!");
+			}
+
+			if (End())
+			{
+				KTN_CORE_ERROR("End of buffer reached!");
+			}
+
+			memcpy(p_Dest, m_Buffer.Data + m_Offset, p_Size);
+			m_Offset += p_Size;
+		}
+
+		bool End() const { return m_Offset >= m_Buffer.Size; }
+
+	private:
+		uint64_t m_Offset = 0;
+		const Buffer& m_Buffer;
+	};
+
 }

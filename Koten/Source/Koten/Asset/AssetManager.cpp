@@ -32,13 +32,26 @@ namespace KTN
 		if (IsAssetLoaded(p_Handle))
 			return m_LoadedAssets.at(p_Handle);
 
-		if (m_Config.LoadAssetsFromPath)
+		const auto& metadata = GetMetadata(p_Handle);
+
+		if (m_Config.LoadAssetsFromPath || metadata.Type == AssetType::Font)
 		{
-			const auto& metadata = GetMetadata(p_Handle);
 			auto asset = AssetImporter::ImportAsset(p_Handle, metadata);
 			if (!asset)
 			{
 				KTN_CORE_ERROR("AssetManager::GetAsset - Asset import failed!");
+				return nullptr;
+			}
+
+			m_LoadedAssets[p_Handle] = asset;
+			return asset;
+		}
+		else if (m_Config.LoadAssetsFromMemory)
+		{
+			auto asset = AssetImporter::ImportAssetFromMemory(p_Handle, metadata, m_AssetCache[p_Handle]->GetBuffer());
+			if (!asset)
+			{
+				KTN_CORE_ERROR("AssetManager::GetAsset - Load Asset from memory failed!");
 				return nullptr;
 			}
 
@@ -118,6 +131,7 @@ namespace KTN
 
 		AssetHandle handle; // generate new handle
 		Ref<Asset> asset = AssetImporter::ImportAsset(handle, p_Metadata);
+
 		if (asset)
 		{
 			asset->Handle = handle;
@@ -127,6 +141,7 @@ namespace KTN
 				SerializeAssetRegistry();
 			else
 				m_NeedsToUpdate = true;
+
 			return handle;
 		}
 
@@ -302,21 +317,13 @@ namespace KTN
 
 		out.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
-		AssetRegistry prefabs;
-
 		for (const auto& [handle, metadata] : m_AssetRegistry)
 		{
-			if (metadata.Type == AssetType::Prefab)
-			{
-				prefabs[handle] = metadata;
-				continue;
-			}
-
 			out.write(reinterpret_cast<const char*>(&handle), sizeof(handle));
 			out.write(reinterpret_cast<const char*>(&metadata.Type), sizeof(metadata.Type));
 			Utils::WriteString(out, FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string()));
 
-			bool hasAssetData = (metadata.AssetData != nullptr);
+			bool hasAssetData = (metadata.AssetData != nullptr) && metadata.SerializeAssetData;
 			out.write(reinterpret_cast<const char*>(&hasAssetData), sizeof(hasAssetData));
 
 			if (hasAssetData)
@@ -366,12 +373,9 @@ namespace KTN
 
 			if (metadata.Type == AssetType::Texture2D)
 			{
-				auto texture = As<Asset, Texture2D>(GetAsset(handle));
+				auto texture = GetAsset<Texture2D>(handle);
 				if (texture)
 				{
-					const auto& spec = texture->GetSpecification();
-					WriteTextureSpecification(out, spec);
-
 					size_t dataSize = texture->GetEstimatedSize();
 					out.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
 
@@ -382,7 +386,7 @@ namespace KTN
 
 			if (metadata.Type == AssetType::Scene)
 			{
-				auto scene = As<Asset, Scene>(GetAsset(handle));
+				auto scene = GetAsset<Scene>(handle);
 				KTN_CORE_ASSERT(scene, "Scene is nullptr!");
 
 				SceneSerializer serializer(scene);
@@ -391,32 +395,15 @@ namespace KTN
 
 			if (metadata.Type == AssetType::PhysicsMaterial2D)
 			{
-				auto material = As<Asset, PhysicsMaterial2D>(GetAsset(handle));
+				auto material = GetAsset<PhysicsMaterial2D>(handle);
 				KTN_CORE_ASSERT(material, "PhysicsMaterial2D is nullptr!");
 
 				material->SerializeBin(out);
 			}
-		}
 
-		if (!prefabs.empty())
-		{
-			for (const auto& [handle, metadata] : prefabs)
+			if (metadata.Type == AssetType::Prefab)
 			{
-				out.write(reinterpret_cast<const char*>(&handle), sizeof(handle));
-				out.write(reinterpret_cast<const char*>(&metadata.Type), sizeof(metadata.Type));
-				Utils::WriteString(out, FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string()));
-
-				bool hasAssetData = (metadata.AssetData != nullptr);
-				out.write(reinterpret_cast<const char*>(&hasAssetData), sizeof(hasAssetData));
-
-				if (hasAssetData)
-				{
-					auto ctx = static_cast<PrefabContext*>(metadata.AssetData);
-					out.write(reinterpret_cast<const char*>(&ctx->Scene), sizeof(AssetHandle));
-					out.write(reinterpret_cast<const char*>(&ctx->EnttUUID), sizeof(UUID));
-				}
-
-				auto prefab = As<Asset, Prefab>(GetAsset(handle));
+				auto prefab = GetAsset<Prefab>(handle);
 				KTN_CORE_ASSERT(prefab, "Prefab is nullptr!");
 
 				PrefabImporter::SavePrefabBin(out, prefab);
@@ -430,6 +417,7 @@ namespace KTN
 
 		const auto cachePath = p_Folder / "AssetPack.ktap";
 		m_IsLoadedAssetPack = true;
+		m_NeedsToUpdate = false;
 
 		std::ifstream in(cachePath, std::ios::binary);
 		if (!in)
@@ -446,6 +434,10 @@ namespace KTN
 			return false;
 		}
 
+		#define	READ_WRITE(dest, size)					  \
+			in.read(reinterpret_cast<char*>(dest), size); \
+			buffer.Write(dest, sizeof(size));
+
 		for (size_t i = 0; i < header.AssetRegistrySize; ++i)
 		{
 			AssetHandle handle;
@@ -453,7 +445,10 @@ namespace KTN
 
 			in.read(reinterpret_cast<char*>(&handle), sizeof(handle));
 			in.read(reinterpret_cast<char*>(&metadata.Type), sizeof(metadata.Type));
-			metadata.FilePath = (Project::GetAssetDirectory() / Utils::ReadString(in)).string();
+			auto path = Utils::ReadString(in);
+			metadata.FilePath = (Project::GetAssetDirectory() / path).string();
+
+			Buffer buffer = {};
 
 			bool hasAssetData = false;
 			in.read(reinterpret_cast<char*>(&hasAssetData), sizeof(hasAssetData));
@@ -506,67 +501,38 @@ namespace KTN
 						metadata.AssetData = spec;
 						break;
 					}
-					case AssetType::Prefab:
-					{
-						AssetHandle sceneHandle;
-						in.read(reinterpret_cast<char*>(&sceneHandle), sizeof(AssetHandle));
-
-						UUID uuid;
-						in.read(reinterpret_cast<char*>(&uuid), sizeof(UUID));
-
-						metadata.AssetData = new PrefabContext{ uuid, sceneHandle };
-						break;
-					}
 				}
 			}
 
 			if (metadata.Type == AssetType::Texture2D)
 			{
-				TextureSpecification spec = {};
-				ReadTextureSpecification(in, spec);
-
 				size_t dataSize = 0;
-				in.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
+				READ_WRITE(&dataSize, sizeof(dataSize));
 
 				std::vector<uint8_t> textureData(dataSize);
-				in.read(reinterpret_cast<char*>(textureData.data()), dataSize);
-
-				auto texture = Texture2D::Create(spec);
-				texture->SetData(textureData.data(), dataSize);
-				m_LoadedAssets[handle] = texture;
+				READ_WRITE(textureData.data(), dataSize);
 			}
 
 			if (metadata.Type == AssetType::Scene)
 			{
-				auto scene = CreateRef<Scene>();
-				scene->Handle = handle;
-
-				SceneSerializer serializer(scene);
-				serializer.DeserializeBin(in);
-
-				m_LoadedAssets[handle] = scene;
+				SceneSerializer::DeserializeBin(in, buffer);
 			}
 
 			if (metadata.Type == AssetType::PhysicsMaterial2D)
 			{
-				auto material = CreateRef<PhysicsMaterial2D>();
-				material->Handle = handle;
-
-				material->DeserializeBin(in);
-
-				m_LoadedAssets[handle] = material;
+				PhysicsMaterial2D::DeserializeBin(in, buffer);
 			}
 
 			if (metadata.Type == AssetType::Prefab)
 			{
-				Ref<Prefab> prefab = PrefabImporter::LoadPrefabBin(in);
-				prefab->Handle = handle;
-
-				m_LoadedAssets[handle] = prefab;
+				PrefabImporter::LoadPrefabBin(in, buffer);
 			}
 
+			m_AssetCache[handle] = CreateRef<ScopedBuffer>(buffer);
 			m_AssetRegistry[handle] = metadata;
 		}
+
+		#undef READ_WRITE
 
 		KTN_CORE_INFO("Deserialized {} assets from pack", m_AssetRegistry.size());
 
@@ -645,13 +611,6 @@ namespace KTN
 						out << YAML::Key << "GenerateMipmaps" << YAML::Value << spec->GenerateMips;
 						out << YAML::Key << "BorderColor" << YAML::Value << spec->BorderColor;
 						out << YAML::Key << "DebugName" << YAML::Value << spec->DebugName;
-					}
-
-					if (metadata.Type == AssetType::Prefab)
-					{
-						auto ctx = static_cast<PrefabContext*>(assetData);
-						out << YAML::Key << "Scene" << YAML::Value << ctx->Scene;
-						out << YAML::Key << "EnttUUID" << YAML::Value << ctx->EnttUUID;
 					}
 
 					out << YAML::EndMap;
@@ -744,14 +703,6 @@ namespace KTN
 					spec->BorderColor = assetDataNode["BorderColor"].as<glm::vec4>();
 					spec->DebugName = assetDataNode["DebugName"].as<std::string>();
 					metadata.AssetData = spec;
-				}
-
-				if (metadata.Type == AssetType::Prefab)
-				{
-					auto ctx = new PrefabContext();
-					ctx->Scene = assetDataNode["Scene"].as<AssetHandle>();
-					ctx->EnttUUID = assetDataNode["EnttUUID"].as<UUID>();
-					metadata.AssetData = ctx;
 				}
 			}
 		}

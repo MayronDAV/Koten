@@ -255,7 +255,7 @@ namespace KTN
 			s_Data->ScenesCopy.clear();
 		}
 
-		auto scene = As<Asset, Scene>(AssetManager::Get()->GetAsset(p_Handle));
+		auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
 		if (!scene)
 		{
 			KTN_CORE_ERROR("Failed to load scene from handle {}", (uint64_t)p_Handle);
@@ -308,7 +308,7 @@ namespace KTN
 
 			auto curState = s_Data->State;
 
-			auto scene = As<Asset, Scene>(AssetManager::Get()->GetAsset(p_Handle));
+			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
 			if (!scene)
 			{
 				KTN_CORE_ERROR("Failed to load scene from handle {}", (uint64_t)p_Handle);

@@ -16,6 +16,9 @@ namespace KTN
 			void Serialize(const std::string& p_Path) const;
 			void SerializeBin(std::ofstream& p_Out) const;
 			void DeserializeBin(std::ifstream& p_In);
+			void DeserializeBin(BufferReader& p_In);
+
+			static void DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer);
 
 			static AssetHandle GetDefault();
 

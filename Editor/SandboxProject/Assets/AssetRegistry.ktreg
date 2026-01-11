@@ -5,12 +5,6 @@ AssetRegistry:
   - Handle: 3434738318904853432
     FilePath: Scenes\Physic.ktscn
     Type: Scene
-  - Handle: 5283197491430848415
-    FilePath: Prefabs\Box.ktprefab
-    Type: Prefab
-    AssetData:
-      Scene: 3434738318904853432
-      EnttUUID: 16100711353101642654
   - Handle: 8980688827075891201
     FilePath: Scenes\Script.ktscn
     Type: Scene

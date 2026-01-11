@@ -16,6 +16,8 @@ namespace KTN
 
 			void SerializeBin(std::ofstream& p_Out);
 			bool DeserializeBin(std::ifstream& p_In);
+			bool DeserializeBin(const Buffer& p_Buffer);
+			static bool DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer);
 
 		private:
 			Ref<Scene> m_Scene;

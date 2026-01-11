@@ -26,6 +26,32 @@ namespace KTN
 		return texture;
 	}
 
+	Ref<Texture2D> TextureImporter::ImportTexture2DFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (p_Metadata.Type != AssetType::Texture2D)
+		{
+			KTN_CORE_ERROR("Invalid asset type for texture2D import: {}", GetAssetTypeName(p_Metadata.Type));
+			return nullptr;
+		}
+
+		BufferReader reader(p_Data);
+
+		size_t dataSize = 0;
+		reader.ReadBytes(&dataSize, sizeof(dataSize));
+
+		std::vector<uint8_t> textureData(dataSize);
+		reader.ReadBytes(textureData.data(), dataSize);
+
+		auto spec = p_Metadata.AssetData ? *static_cast<TextureSpecification*>(p_Metadata.AssetData) : TextureSpecification{};
+
+		auto texture = Texture2D::Create(spec, textureData.data(), textureData.size());
+		texture->Handle = p_Handle;
+
+		return texture;
+	}
+
 	Ref<Texture2D> TextureImporter::LoadTexture2D(const std::string& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();

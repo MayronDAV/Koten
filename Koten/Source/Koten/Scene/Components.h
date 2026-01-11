@@ -87,7 +87,7 @@ namespace KTN
 	struct TextRendererComponent
 	{
 		std::string String;
-		AssetHandle Font = DFFont::GetDefault();
+		AssetHandle Font = 0;
 
 		glm::vec4 Color{ 1.0f };
 		glm::vec4 BgColor{ 0.0f };
@@ -97,7 +97,7 @@ namespace KTN
 		float Kerning = 0.0f;
 		float LineSpacing = 0.0f;
 
-		TextRendererComponent() = default;
+		TextRendererComponent(bool p_GetDefault = true) : Font(p_GetDefault ? DFFont::GetDefault() : (AssetHandle)0) {}
 		TextRendererComponent(const TextRendererComponent&) = default;
 	};
 
@@ -138,12 +138,14 @@ namespace KTN
 		enum class Type { None = 0, Rigidbody, Character, Static };
 		virtual Type GetType() const { return Type::None; }
 
-		AssetHandle PhysicsMaterial2D = PhysicsMaterial2D::GetDefault();
+		AssetHandle PhysicsMaterial2D = 0;
 
 		float Mass = 1.0f;
 		bool IsTrigger = false;
 
 		B2BodyID Body = {}; // Physics body id
+
+		PhysicsBody2D(bool p_GetDefault = true) : PhysicsMaterial2D(p_GetDefault ? PhysicsMaterial2D::GetDefault() : (AssetHandle)0) {}
 	};
 
 	#define PHYSICS_BODY_TYPE(type_enum) \
@@ -161,7 +163,7 @@ namespace KTN
 		bool Sleeping = false;
 		bool CanSleep = true;
 
-		Rigidbody2DComponent() = default;
+		Rigidbody2DComponent(bool p_GetDefault = true) : PhysicsBody2D(p_GetDefault) {}
 		Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
 	};
 
@@ -181,7 +183,7 @@ namespace KTN
 		glm::vec2 UpDirection{ 0.0f, 1.0f };
 		glm::vec2 FloorNormal{ 0.0f, 1.0f };
 
-		CharacterBody2DComponent() { Mass = 0.0f; }
+		CharacterBody2DComponent(bool p_GetDefault = true) : PhysicsBody2D(p_GetDefault) { Mass = 0.0f; }
 		CharacterBody2DComponent(const CharacterBody2DComponent&) = default;
 	};
 
@@ -189,7 +191,7 @@ namespace KTN
 	{
 		PHYSICS_BODY_TYPE(Static)
 
-		StaticBody2DComponent() { Mass = 0.0f; }
+		StaticBody2DComponent(bool p_GetDefault = true) : PhysicsBody2D(p_GetDefault) { Mass = 0.0f; }
 		StaticBody2DComponent(const StaticBody2DComponent&) = default;
 	};
 

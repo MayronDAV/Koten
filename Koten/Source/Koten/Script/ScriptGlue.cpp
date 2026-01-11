@@ -24,7 +24,13 @@ namespace KTN
 	{
 		static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
 
-		std::string MonoStringToString(MonoString* p_String)
+		struct ObjectHandle
+		{
+			uint64_t ID;
+			uint64_t SceneHandle;
+		};
+
+		static std::string MonoStringToString(MonoString* p_String)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
@@ -34,7 +40,7 @@ namespace KTN
 			return str;
 		}
 
-		B2BodyID GetPhysicsBody2D(Entity p_Entity)
+		static B2BodyID GetPhysicsBody2D(Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
@@ -48,6 +54,14 @@ namespace KTN
 			return {};
 		}
 
+		static Entity FindWithUUID(ObjectHandle p_Handle)
+		{
+			if (!p_Handle.SceneHandle)
+				return SceneManager::GetEntityByUUID(p_Handle.ID);
+
+			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle.SceneHandle);
+			return scene->GetEntityByUUID(p_Handle.ID);
+		}
 
 		#define KTN_ADD_INTERNAL_CALL(Name) mono_add_internal_call("KTN.InternalCalls::" #Name, Name)
 
@@ -55,6 +69,30 @@ namespace KTN
 		{
 			return ScriptEngine::GetManagedInstance(p_UUID);
 		}
+
+		#pragma region AssetManager
+		static ObjectHandle AssetManager_FindWithPath(MonoString* p_Path)
+		{
+			auto path = MonoStringToString(p_Path);
+			auto handle = AssetManager::Get()->GetHandleByPath(path);
+			return { handle, 0 };
+		}
+
+		static bool AssetManager_IsAssetHandleValid(AssetHandle p_Handle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			return AssetManager::Get()->IsAssetHandleValid(p_Handle);
+		}
+
+		static bool AssetManager_IsAssetLoaded(AssetHandle p_Handle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			return AssetManager::Get()->IsAssetLoaded(p_Handle);
+		}
+
+		#pragma endregion
 
 		#pragma region Time
 		static float Time_GetTime()
@@ -68,36 +106,51 @@ namespace KTN
 		}
 		#pragma endregion
 
-		#pragma region Entity
-		static bool Entity_HasComponent(UUID p_EntityID, MonoReflectionType* p_ComponentType)
+		#pragma region GameObject
+		static bool GameObject_HasComponent(ObjectHandle p_Handle, MonoReflectionType* p_ComponentType)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
-			KTN_CORE_VERIFY(entity);
+			Entity entity = FindWithUUID(p_Handle);
+			if (!entity)
+			{
+				KTN_CORE_ERROR("Invalid Entity UUID!");
+				return false;
+			}
 
 			MonoType* managedType = mono_reflection_type_get_type(p_ComponentType);
 			KTN_CORE_VERIFY(s_EntityHasComponentFuncs.find(managedType) != s_EntityHasComponentFuncs.end());
 			return s_EntityHasComponentFuncs.at(managedType)(entity);
 		}
 
-		static uint64_t Entity_GetEntityByTag(MonoString* p_Tag)
+		static ObjectHandle GameObject_FindWithTag(MonoString* p_Tag)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
 			auto tag = MonoStringToString(p_Tag);
 			Entity entity = SceneManager::GetEntityByTag(tag);
 			if (!entity)
-				return 0;
+				return { 0, 0 };
 
-			return entity.GetUUID();
+			return { entity.GetUUID(), entity.GetScene()->Handle };
 		}
 
-		static bool Entity_IsValid(UUID p_EntityID)
+		static ObjectHandle GameObject_FindWithUUID(UUID p_ID)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+			Entity entity = SceneManager::GetEntityByUUID(p_ID);
+			if (!entity)
+				return { 0, 0 };
+
+			return { entity.GetUUID(), entity.GetScene()->Handle };
+		}
+
+		static bool GameObject_IsValid(ObjectHandle p_Handle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = FindWithUUID(p_Handle);
 			return entity ? true : false;
 		}
 
@@ -945,12 +998,17 @@ namespace KTN
 
 		KTN_ADD_INTERNAL_CALL(GetScriptInstance);
 
+		KTN_ADD_INTERNAL_CALL(AssetManager_FindWithPath);
+		KTN_ADD_INTERNAL_CALL(AssetManager_IsAssetHandleValid);
+		KTN_ADD_INTERNAL_CALL(AssetManager_IsAssetLoaded);
+
 		KTN_ADD_INTERNAL_CALL(Time_GetTime);
 		KTN_ADD_INTERNAL_CALL(Time_GetDeltaTime);
 
-		KTN_ADD_INTERNAL_CALL(Entity_HasComponent);
-		KTN_ADD_INTERNAL_CALL(Entity_GetEntityByTag);
-		KTN_ADD_INTERNAL_CALL(Entity_IsValid);
+		KTN_ADD_INTERNAL_CALL(GameObject_HasComponent);
+		KTN_ADD_INTERNAL_CALL(GameObject_FindWithTag);
+		KTN_ADD_INTERNAL_CALL(GameObject_FindWithUUID);
+		KTN_ADD_INTERNAL_CALL(GameObject_IsValid);
 
 		KTN_ADD_INTERNAL_CALL(SceneManager_GetConfigLoadMode);
 		KTN_ADD_INTERNAL_CALL(SceneManager_SetConfigLoadMode);
@@ -966,7 +1024,6 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(Scene_Pause);
 		KTN_ADD_INTERNAL_CALL(Scene_IsPaused);
 		KTN_ADD_INTERNAL_CALL(Scene_IsEntityValid);
-		KTN_ADD_INTERNAL_CALL(Scene_GetEntityByTag);
 		KTN_ADD_INTERNAL_CALL(Scene_GetEntityByTag);
 
 		KTN_ADD_INTERNAL_CALL(TagComponent_GetTag);

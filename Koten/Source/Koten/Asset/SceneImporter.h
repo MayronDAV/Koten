@@ -10,6 +10,7 @@ namespace KTN
 	{
 		public:
 			static Ref<Scene> ImportScene(AssetHandle p_Handle, const AssetMetadata& p_Metadata);
+			static Ref<Scene> ImportSceneFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data);
 
 			static Ref<Scene> LoadScene(const std::string& p_Path);
 

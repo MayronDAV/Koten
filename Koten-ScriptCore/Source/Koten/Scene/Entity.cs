@@ -5,14 +5,16 @@ namespace KTN
 {
 	public class Entity
 	{
-		protected Entity() { ID = 0; }
+		protected Entity() { ID = 0; SceneHandle = 0; }
 
-		internal Entity(ulong id)
+		internal Entity(ulong p_ID, ulong p_SceneHandle)
 		{
-			ID = id;
-		}
+			ID = p_ID;
+			SceneHandle = p_SceneHandle;
+        }
 
 		public readonly ulong ID;
+        public readonly ulong SceneHandle;
 
         public Vector3 LocalTranslation
         {
@@ -30,7 +32,7 @@ namespace KTN
         public bool HasComponent<T>() where T : Component, new()
 		{
 			Type componentType = typeof(T);
-			return InternalCalls.Entity_HasComponent(ID, componentType);
+			return InternalCalls.GameObject_HasComponent(new ObjectHandle(ID, SceneHandle), componentType);
 		}
 
 		public T GetComponent<T>() where T : Component, new()
@@ -44,19 +46,20 @@ namespace KTN
 
 		public Entity GetEntityByTag(string p_Tag)
 		{
-			ulong entityID = InternalCalls.Entity_GetEntityByTag(p_Tag);
-			if (entityID == 0)
+			var handle = InternalCalls.GameObject_FindWithTag(p_Tag);
+			if (handle.ID == 0 || handle.SceneHandle == 0)
 				return null;
 
-			return new Entity(entityID);
+			return new Entity(handle.ID, handle.SceneHandle);
 		}
 
 		public Entity GetEntityByUUID(ulong p_UUID)
 		{
-			if (InternalCalls.Entity_IsValid(p_UUID))
-				return new Entity(p_UUID);
+            var handle = InternalCalls.GameObject_FindWithUUID(p_UUID);
+            if (handle.ID == 0 || handle.SceneHandle == 0)
+                return null;
 
-			return null;
+            return new Entity(handle.ID, handle.SceneHandle);
         }
 
         public T As<T>() where T : Entity, new()

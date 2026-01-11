@@ -29,6 +29,28 @@ namespace KTN
 		return material;
     }
 
+	Ref<PhysicsMaterial2D> PhysicsMaterial2DImporter::ImportMaterialFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (p_Metadata.Type != AssetType::PhysicsMaterial2D)
+		{
+			KTN_CORE_ERROR("Invalid asset type for PhysicsMaterial2D import: {}", GetAssetTypeName(p_Metadata.Type));
+			return nullptr;
+		}
+
+		BufferReader reader(p_Data);
+
+		Ref<PhysicsMaterial2D> material = CreateRef<PhysicsMaterial2D>();
+		material->Handle = p_Handle;
+
+		material->Friction = reader.Read<float>();
+		material->Restitution = reader.Read<float>();
+		material->RestitutionThreshold = reader.Read<float>();
+
+		return material;
+	}
+
 	Ref<PhysicsMaterial2D> PhysicsMaterial2DImporter::LoadMaterial(const std::string& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();

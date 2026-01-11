@@ -155,4 +155,53 @@ namespace KTN
 		return true;
 	}
 
+	bool SceneSerializer::DeserializeBin(const Buffer& p_Buffer)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		BufferReader reader(p_Buffer);
+
+		SceneConfig config;
+		reader.ReadBytes(&config, sizeof(config));
+		m_Scene->GetConfig() = config;
+
+		int size = 0;
+		reader.ReadBytes(&size, sizeof(size));
+
+		for (int i = 0; i < size; i++)
+		{
+			UUID uuid;
+			reader.ReadBytes(&uuid, sizeof(uuid));
+
+			Entity entt = m_Scene->CreateEntity(uuid);
+			EntitySerializer::DeserializeBin(reader, entt);
+		}
+
+		return true;
+	}
+
+	bool SceneSerializer::DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		SceneConfig config;
+		p_In.read(reinterpret_cast<char*>(&config), sizeof(config));
+		p_Buffer.Write(&config, sizeof(config));
+
+		int size = 0;
+		p_In.read(reinterpret_cast<char*>(&size), sizeof(size));
+		p_Buffer.Write(&size, sizeof(size));
+
+		for (int i = 0; i < size; i++)
+		{
+			UUID uuid;
+			p_In.read(reinterpret_cast<char*>(&uuid), sizeof(uuid));
+			p_Buffer.Write(&uuid, sizeof(uuid));
+
+			EntitySerializer::DeserializeBin(p_In, p_Buffer);
+		}
+
+		return true;
+	}
+
 } // namespace KTN

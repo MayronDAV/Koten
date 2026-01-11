@@ -2,6 +2,7 @@ project "Runtime"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
+	dependson "Koten"
 
 	targetdir ("%{wks.location}/Editor/Resources/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")

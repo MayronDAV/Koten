@@ -196,7 +196,7 @@ namespace KTN
 					command.Render2D.Thickness = sprite->Thickness;
 					command.Render2D.Fade = sprite->Fade;
 					command.Render2D.Color = sprite->Color;
-					command.Render2D.Texture = As<Asset, Texture2D>(AssetManager::Get()->GetAsset(sprite->Texture));
+					command.Render2D.Texture = AssetManager::Get()->GetAsset<Texture2D>(sprite->Texture);
 					command.Render2D.Size = sprite->Size;
 					command.Render2D.BySize = sprite->BySize;
 					command.Render2D.Offset = sprite->Offset;
@@ -229,7 +229,7 @@ namespace KTN
 					params.LineSpacing = text->LineSpacing;
 					params.Kerning = text->Kerning;
 
-					Renderer::SubmitString(text->String, As<Asset, DFFont>(AssetManager::Get()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+					Renderer::SubmitString(text->String, AssetManager::Get()->GetAsset<DFFont>(text->Font), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}
@@ -412,7 +412,7 @@ namespace KTN
 					command.Render2D.Thickness = sprite->Thickness;
 					command.Render2D.Fade = sprite->Fade;
 					command.Render2D.Color = sprite->Color;
-					command.Render2D.Texture = As<Asset, Texture2D>(AssetManager::Get()->GetAsset(sprite->Texture));
+					command.Render2D.Texture = AssetManager::Get()->GetAsset<Texture2D>(sprite->Texture);
 					command.Render2D.Size = sprite->Size;
 					command.Render2D.BySize = sprite->BySize;
 					command.Render2D.Offset = sprite->Offset;
@@ -445,7 +445,7 @@ namespace KTN
 					params.LineSpacing = text->LineSpacing;
 					params.Kerning = text->Kerning;
 
-					Renderer::SubmitString(text->String, As<Asset, DFFont>(AssetManager::Get()->GetAsset(text->Font)), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+					Renderer::SubmitString(text->String, AssetManager::Get()->GetAsset<DFFont>(text->Font), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
 				}
 			});
 		}

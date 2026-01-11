@@ -1,5 +1,6 @@
 #pragma once
 #include "Asset.h"
+#include "Koten/Core/Buffer.h"
 
 // std
 #include <map>
@@ -10,10 +11,12 @@ namespace KTN
 {
 	using AssetMap = std::map<AssetHandle, Ref<Asset>>;
 	using AssetRegistry = std::map<AssetHandle, AssetMetadata>;
+	using AssetCache = std::map<AssetHandle, Ref<ScopedBuffer>>;
 
 	struct AssetManagerConfig
 	{
 		bool LoadAssetsFromPath = true;
+		bool LoadAssetsFromMemory = false;
 	};
 
 	class KTN_API AssetManager
@@ -34,11 +37,12 @@ namespace KTN
 			bool IsAssetLoaded(AssetHandle p_Handle) const;
 			bool HasAsset(AssetType p_Type, const std::string& p_FilePath) const;
 
-			Ref<Asset> GetAsset(AssetHandle p_Handle);
-			
 			template<typename T>
 			Ref<T> GetAsset(AssetHandle p_Handle)
 			{
+				if constexpr (std::is_same_v<Asset, T>)
+					return GetAsset(p_Handle);
+
 				return As<Asset, T>(GetAsset(p_Handle));
 			}
 
@@ -59,8 +63,12 @@ namespace KTN
 			bool DeserializeAssetRegistry();
 
 		private:
+			Ref<Asset> GetAsset(AssetHandle p_Handle);
+
+		private:
 			AssetRegistry m_AssetRegistry;
 			AssetMap m_LoadedAssets;
+			AssetCache m_AssetCache;
 
 			bool m_IsLoadedAssetPack = false;
 			bool m_NeedsToUpdate = false;

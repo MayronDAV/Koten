@@ -263,7 +263,7 @@ namespace KTN
 			s_ToDelete[p_Scene->Handle].push_back(userData);
 
 			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			auto material = As<Asset, PhysicsMaterial2D>(AssetManager::Get()->GetAsset(p_PhyBody->PhysicsMaterial2D));
+			auto material = AssetManager::Get()->GetAsset<PhysicsMaterial2D>(p_PhyBody->PhysicsMaterial2D);
 			shapeDef.density = p_PhyBody->Mass;
 			shapeDef.material.friction = material->Friction;
 			shapeDef.material.restitution = material->Restitution;

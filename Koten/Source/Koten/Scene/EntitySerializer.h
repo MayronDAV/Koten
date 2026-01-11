@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Koten/Core/Buffer.h"
 #include "Entity.h"
 
 
@@ -19,6 +19,8 @@ namespace KTN
 
 			static void SerializeBin(std::ofstream& p_Out, const Entity& p_Entt);
 			static bool DeserializeBin(std::ifstream& p_In, Entity& p_Entt);
+			static bool DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer);
+			static bool DeserializeBin(BufferReader& p_In, Entity& p_Entt);
 	};
 
 } // namespace KTN

@@ -41,11 +41,52 @@ namespace KTN
 
 		#pragma region BIN
 
+		struct ReadStream
+		{
+			std::ifstream* InStream;
+			BufferReader* Buffer;
+		};
+
+		#define	KTN_STREAM(dest, size)													 \
+			if (p_In.InStream) p_In.InStream->read(reinterpret_cast<char*>(dest), size); \
+			else if (p_In.Buffer) p_In.Buffer->ReadBytes(dest, size);					 \
+			if (p_Buffer) p_Buffer->Write(dest, size);
+		
+		void WriteString(Buffer* p_Buffer, const std::string& p_String)
+		{
+			if (!p_Buffer) return;
+
+			std::string string = p_String;
+
+			size_t size = string.size();
+			p_Buffer->Write(&size, sizeof(size));
+			p_Buffer->Write(string.data(), size);
+		}
+
+		std::string ReadString(const ReadStream& p_Stream)
+		{
+			if (p_Stream.InStream)
+				return Utils::ReadString(*p_Stream.InStream);
+
+			if (p_Stream.Buffer)
+			{
+				size_t size = 0;
+				p_Stream.Buffer->ReadBytes(&size, sizeof(size));
+
+				std::string str(size, '\0');
+				p_Stream.Buffer->ReadBytes(&str[0], size);
+
+				return str;
+			}
+
+			return "";
+		}
+
 		template<typename Component>
 		void ComponentSerializeBinIfExist(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity) {}
 
 		template<typename Component>
-		void ComponentDeserializeBinIfExist(std::ifstream& p_Input, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity) {}
+		void ComponentDeserializeBinIfExist(ReadStream& p_Input, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity) {}
 
 		template<typename... Component>
 		void ComponentSerializeBin(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
@@ -68,22 +109,31 @@ namespace KTN
 		}
 
 		template<typename... Component>
-		void ComponentDeserializeBin(std::ifstream& p_Input, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBin(ReadStream& p_In, Buffer* p_Buffer, Entity p_Entity = {})
 		{
 			KTN_PROFILE_FUNCTION();
 
 			int count = 0;
-			p_Input.read(reinterpret_cast<char*>(&count), sizeof(count));
+			KTN_STREAM(&count, sizeof(count));
 			if (count <= 0)
 			{
-				KTN_CORE_WARN("ComponentDeserializeBin - No components to deserialize! Entity: ( Tag: {}, ID: {} )", p_Entity.GetTag(), (uint64_t)p_Entity.GetUUID());
+				if (p_Entity)
+				{
+					KTN_CORE_WARN("ComponentDeserializeBin - No components to deserialize! Entity: ( Tag: {}, ID: {} )", p_Entity.GetTag(), (uint64_t)p_Entity.GetUUID());
+				}
+				else
+				{
+					KTN_CORE_WARN("ComponentDeserializeBin - No components to deserialize!");
+				}
 				return;
 			}
 
 			for (int i = 0; i < count; i++)
 			{
-				auto current = Utils::ReadString(p_Input);
-				(ComponentDeserializeBinIfExist<Component>(p_Input, current, p_Registry, p_Entity), ...);
+				std::string current = ReadString(p_In);
+				WriteString(p_Buffer, current);
+
+				(ComponentDeserializeBinIfExist<Component>(p_In, current, p_Buffer, p_Entity), ...);
 			}
 		}
 
@@ -118,7 +168,37 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		ComponentDeserializeBin<ALL_COMPONENTS>(p_In, p_Entt.GetScene()->GetRegistry(), p_Entt);
+		ReadStream stream = {};
+		stream.InStream = &p_In;
+		stream.Buffer = nullptr;
+
+		ComponentDeserializeBin<ALL_COMPONENTS>(stream, nullptr, p_Entt);
+
+		return true;
+	}
+
+	bool EntitySerializer::DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		ReadStream stream = {};
+		stream.InStream = &p_In;
+		stream.Buffer = nullptr;
+
+		ComponentDeserializeBin<ALL_COMPONENTS>(stream, &p_Buffer);
+
+		return true;
+	}
+
+	bool EntitySerializer::DeserializeBin(BufferReader& p_In, Entity& p_Entt)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		ReadStream stream = {};
+		stream.InStream = nullptr;
+		stream.Buffer = &p_In;
+
+		ComponentDeserializeBin<ALL_COMPONENTS>(stream, nullptr, p_Entt);
 
 		return true;
 	}
@@ -782,6 +862,9 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION();
 
+			if (!p_Entity.HasComponent<ScriptComponent>())
+				return;
+
 			#define WRITE_SCRIPT_FIELD(FieldType, Type)									\
 				case ScriptFieldType::FieldType:										\
 				{																		\
@@ -789,9 +872,6 @@ namespace KTN
 					p_Out.write(reinterpret_cast<const char*>(&value), sizeof(Type));	\
 				}																		\
 				break
-
-			if (!p_Entity.HasComponent<ScriptComponent>())
-				return;
 
 			Utils::WriteString(p_Out, "ScriptComponent");
 
@@ -1213,19 +1293,25 @@ namespace KTN
 	namespace
 	{
 		template<>
-		void ComponentDeserializeBinIfExist<TagComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<TagComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "TagComponent")
 				return;
 
-			auto& comp = p_Entity.GetComponent<TagComponent>();
-			comp.Tag = Utils::ReadString(p_In);
+			auto tag = ReadString(p_In);
+			WriteString(p_Buffer, tag);
+
+			if (p_Entity)
+			{
+				auto& comp = p_Entity.GetComponent<TagComponent>();
+				comp.Tag = tag;
+			}
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<HierarchyComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<HierarchyComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -1233,210 +1319,241 @@ namespace KTN
 				return;
 
 			UUID parent, first, prev, next;
-			p_In.read(reinterpret_cast<char*>(&parent), sizeof(UUID));
-			p_In.read(reinterpret_cast<char*>(&first), sizeof(UUID));
-			p_In.read(reinterpret_cast<char*>(&prev), sizeof(UUID));
-			p_In.read(reinterpret_cast<char*>(&next), sizeof(UUID));
+			KTN_STREAM(&parent, sizeof(UUID));
+			KTN_STREAM(&first, sizeof(UUID));
+			KTN_STREAM(&prev, sizeof(UUID));
+			KTN_STREAM(&next, sizeof(UUID));
 
-			auto& comp = p_Entity.AddOrReplaceComponent<HierarchyComponent>();
-			auto scene = p_Entity.GetScene();
-			comp.Parent = parent != 0ul ? scene->GetEntityByUUID(parent).GetHandle() : entt::null;
-			comp.First = first != 0ul ? scene->GetEntityByUUID(first).GetHandle() : entt::null;
-			comp.Prev = prev != 0ul ? scene->GetEntityByUUID(prev).GetHandle() : entt::null;
-			comp.Next = next != 0ul ? scene->GetEntityByUUID(next).GetHandle() : entt::null;
+			uint32_t childCount = 0;
+			KTN_STREAM(&childCount, sizeof(childCount));
 
-			p_In.read(reinterpret_cast<char*>(&comp.ChildCount), sizeof(comp.ChildCount));
+			if (p_Entity)
+			{
+				auto& comp = p_Entity.AddOrReplaceComponent<HierarchyComponent>();
+				auto scene = p_Entity.GetScene();
+				comp.Parent = parent != 0ul ? scene->GetEntityByUUID(parent).GetHandle() : entt::null;
+				comp.First = first != 0ul ? scene->GetEntityByUUID(first).GetHandle() : entt::null;
+				comp.Prev = prev != 0ul ? scene->GetEntityByUUID(prev).GetHandle() : entt::null;
+				comp.Next = next != 0ul ? scene->GetEntityByUUID(next).GetHandle() : entt::null;
+				comp.ChildCount = childCount;
+			}
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<TransformComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<TransformComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "TransformComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<TransformComponent>();
 			glm::vec3 translation, rotation, scale;
-			p_In.read(reinterpret_cast<char*>(&translation), sizeof(translation));
-			p_In.read(reinterpret_cast<char*>(&rotation), sizeof(rotation));
-			p_In.read(reinterpret_cast<char*>(&scale), sizeof(scale));
+			KTN_STREAM(&translation, sizeof(translation));
+			KTN_STREAM(&rotation, sizeof(rotation));
+			KTN_STREAM(&scale, sizeof(scale));
 
-			comp.SetLocalTranslation(translation);
-			comp.SetLocalRotation(rotation);
-			comp.SetLocalScale(scale);
+			if (p_Entity)
+			{
+				auto& comp = p_Entity.AddOrReplaceComponent<TransformComponent>();
+				comp.SetLocalTranslation(translation);
+				comp.SetLocalRotation(rotation);
+				comp.SetLocalScale(scale);
+			}
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<CameraComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<CameraComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "CameraComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<CameraComponent>();
-
-			p_In.read(reinterpret_cast<char*>(&comp.Primary), sizeof(comp.Primary));
-			p_In.read(reinterpret_cast<char*>(&comp.ClearColor), sizeof(comp.ClearColor));
+			bool primary;
+			glm::vec4 clearColor;
+			KTN_STREAM(&primary, sizeof(primary));
+			KTN_STREAM(&clearColor, sizeof(clearColor));
 
 			uint32_t width, height;
-			p_In.read(reinterpret_cast<char*>(&width), sizeof(width));
-			p_In.read(reinterpret_cast<char*>(&height), sizeof(height));
+			KTN_STREAM(&width, sizeof(width));
+			KTN_STREAM(&height, sizeof(height));
 
 			bool isOrthographic, isAspectRatioFixed;
-			p_In.read(reinterpret_cast<char*>(&isOrthographic), sizeof(isOrthographic));
-			p_In.read(reinterpret_cast<char*>(&isAspectRatioFixed), sizeof(isAspectRatioFixed));
+			KTN_STREAM(&isOrthographic, sizeof(isOrthographic));
+			KTN_STREAM(&isAspectRatioFixed, sizeof(isAspectRatioFixed));
 
 			float fov, farZ, nearZ, scale, zoom;
-			p_In.read(reinterpret_cast<char*>(&fov), sizeof(fov));
-			p_In.read(reinterpret_cast<char*>(&farZ), sizeof(farZ));
-			p_In.read(reinterpret_cast<char*>(&nearZ), sizeof(nearZ));
-			p_In.read(reinterpret_cast<char*>(&scale), sizeof(scale));
-			p_In.read(reinterpret_cast<char*>(&zoom), sizeof(zoom));
+			KTN_STREAM(&fov, sizeof(fov));
+			KTN_STREAM(&farZ, sizeof(farZ));
+			KTN_STREAM(&nearZ, sizeof(nearZ));
+			KTN_STREAM(&scale, sizeof(scale));
+			KTN_STREAM(&zoom, sizeof(zoom));
 
-			comp.Camera.SetViewportSize(width, height);
-			comp.Camera.SetIsOrthographic(isOrthographic);
-			comp.Camera.SetFixAspectRatio(isAspectRatioFixed);
-			comp.Camera.SetFOV(fov);
-			comp.Camera.SetFar(farZ);
-			comp.Camera.SetNear(nearZ);
-			comp.Camera.SetScale(scale);
-			comp.Camera.SetZoom(zoom);
+			if (p_Entity)
+			{
+				auto& comp = p_Entity.AddOrReplaceComponent<CameraComponent>();
+				comp.Primary = primary;
+				comp.ClearColor = clearColor;
+				comp.Camera.SetViewportSize(width, height);
+				comp.Camera.SetIsOrthographic(isOrthographic);
+				comp.Camera.SetFixAspectRatio(isAspectRatioFixed);
+				comp.Camera.SetFOV(fov);
+				comp.Camera.SetFar(farZ);
+				comp.Camera.SetNear(nearZ);
+				comp.Camera.SetScale(scale);
+				comp.Camera.SetZoom(zoom);
+			}
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<SpriteComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<SpriteComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "SpriteComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<SpriteComponent>();
+			SpriteComponent comp = {};
+			KTN_STREAM(&comp.Type, sizeof(comp.Type));
+			KTN_STREAM(&comp.Color, sizeof(comp.Color));
+			KTN_STREAM(&comp.Texture, sizeof(comp.Texture));
+			KTN_STREAM(&comp.Thickness, sizeof(comp.Thickness));
+			KTN_STREAM(&comp.Fade, sizeof(comp.Fade));
+			KTN_STREAM(&comp.Size, sizeof(comp.Size));
+			KTN_STREAM(&comp.BySize, sizeof(comp.BySize));
+			KTN_STREAM(&comp.Offset, sizeof(comp.Offset));
+			KTN_STREAM(&comp.Scale, sizeof(comp.Scale));
 
-			p_In.read(reinterpret_cast<char*>(&comp.Type), sizeof(comp.Type));
-			p_In.read(reinterpret_cast<char*>(&comp.Color), sizeof(comp.Color));
-			p_In.read(reinterpret_cast<char*>(&comp.Texture), sizeof(comp.Texture));
-			p_In.read(reinterpret_cast<char*>(&comp.Thickness), sizeof(comp.Thickness));
-			p_In.read(reinterpret_cast<char*>(&comp.Fade), sizeof(comp.Fade));
-			p_In.read(reinterpret_cast<char*>(&comp.Size), sizeof(comp.Size));
-			p_In.read(reinterpret_cast<char*>(&comp.BySize), sizeof(comp.BySize));
-			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
-			p_In.read(reinterpret_cast<char*>(&comp.Scale), sizeof(comp.Scale));
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<SpriteComponent>() = comp;
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<LineRendererComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<LineRendererComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "LineRendererComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<LineRendererComponent>();
+			LineRendererComponent comp = {};
+			KTN_STREAM(&comp.Color, sizeof(comp.Color));
+			KTN_STREAM(&comp.Width, sizeof(comp.Width));
+			KTN_STREAM(&comp.Primitive, sizeof(comp.Primitive));
+			KTN_STREAM(&comp.Start, sizeof(comp.Start));
+			KTN_STREAM(&comp.End, sizeof(comp.End));
 
-			p_In.read(reinterpret_cast<char*>(&comp.Color), sizeof(comp.Color));
-			p_In.read(reinterpret_cast<char*>(&comp.Width), sizeof(comp.Width));
-			p_In.read(reinterpret_cast<char*>(&comp.Primitive), sizeof(comp.Primitive));
-			p_In.read(reinterpret_cast<char*>(&comp.Start), sizeof(comp.Start));
-			p_In.read(reinterpret_cast<char*>(&comp.End), sizeof(comp.End));
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<LineRendererComponent>() = comp;
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<TextRendererComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<TextRendererComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "TextRendererComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<TextRendererComponent>();
+			TextRendererComponent comp(false);
+			comp.String = ReadString(p_In);
+			WriteString(p_Buffer, comp.String);
+			KTN_STREAM(&comp.Font, sizeof(comp.Font));
+			KTN_STREAM(&comp.Color, sizeof(comp.Color));
+			KTN_STREAM(&comp.BgColor, sizeof(comp.BgColor));
+			KTN_STREAM(&comp.CharBgColor, sizeof(comp.CharBgColor));
+			KTN_STREAM(&comp.DrawBg, sizeof(comp.DrawBg));
+			KTN_STREAM(&comp.Kerning, sizeof(comp.Kerning));
+			KTN_STREAM(&comp.LineSpacing, sizeof(comp.LineSpacing));
 
-			comp.String = Utils::ReadString(p_In);
-			p_In.read(reinterpret_cast<char*>(&comp.Font), sizeof(comp.Font));
-			p_In.read(reinterpret_cast<char*>(&comp.Color), sizeof(comp.Color));
-			p_In.read(reinterpret_cast<char*>(&comp.BgColor), sizeof(comp.BgColor));
-			p_In.read(reinterpret_cast<char*>(&comp.CharBgColor), sizeof(comp.CharBgColor));
-			p_In.read(reinterpret_cast<char*>(&comp.DrawBg), sizeof(comp.DrawBg));
-			p_In.read(reinterpret_cast<char*>(&comp.Kerning), sizeof(comp.Kerning));
-			p_In.read(reinterpret_cast<char*>(&comp.LineSpacing), sizeof(comp.LineSpacing));
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<TextRendererComponent>() = comp;
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<CharacterBody2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<CharacterBody2DComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "CharacterBody2DComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<CharacterBody2DComponent>();
+			CharacterBody2DComponent comp(false);
+			KTN_STREAM(&comp.IsTrigger, sizeof(comp.IsTrigger));
+			KTN_STREAM(&comp.Mass, sizeof(comp.Mass));
+			KTN_STREAM(&comp.PhysicsMaterial2D, sizeof(comp.PhysicsMaterial2D));
+			KTN_STREAM(&comp.SlideOnCeiling, sizeof(comp.SlideOnCeiling));
+			KTN_STREAM(&comp.FloorMaxAngle, sizeof(comp.FloorMaxAngle));
+			KTN_STREAM(&comp.FloorSnapLength, sizeof(comp.FloorSnapLength));
+			KTN_STREAM(&comp.WallMinSlideAngle, sizeof(comp.WallMinSlideAngle));
+			KTN_STREAM(&comp.UpDirection, sizeof(comp.UpDirection));
+			KTN_STREAM(&comp.FloorNormal, sizeof(comp.FloorNormal));
 
-			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
-			p_In.read(reinterpret_cast<char*>(&comp.Mass), sizeof(comp.Mass));
-			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
-			p_In.read(reinterpret_cast<char*>(&comp.SlideOnCeiling), sizeof(comp.SlideOnCeiling));
-			p_In.read(reinterpret_cast<char*>(&comp.FloorMaxAngle), sizeof(comp.FloorMaxAngle));
-			p_In.read(reinterpret_cast<char*>(&comp.FloorSnapLength), sizeof(comp.FloorSnapLength));
-			p_In.read(reinterpret_cast<char*>(&comp.WallMinSlideAngle), sizeof(comp.WallMinSlideAngle));
-			p_In.read(reinterpret_cast<char*>(&comp.UpDirection), sizeof(comp.UpDirection));
-			p_In.read(reinterpret_cast<char*>(&comp.FloorNormal), sizeof(comp.FloorNormal));
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<CharacterBody2DComponent>() = comp;
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<Rigidbody2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<Rigidbody2DComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "Rigidbody2DComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<Rigidbody2DComponent>();
+			Rigidbody2DComponent comp(false);
+			KTN_STREAM(&comp.IsTrigger, sizeof(comp.IsTrigger));
+			KTN_STREAM(&comp.Mass, sizeof(comp.Mass));
+			KTN_STREAM(&comp.PhysicsMaterial2D, sizeof(comp.PhysicsMaterial2D));
+			KTN_STREAM(&comp.LinearDamping, sizeof(comp.LinearDamping));
+			KTN_STREAM(&comp.AngularDamping, sizeof(comp.AngularDamping));
+			KTN_STREAM(&comp.GravityScale, sizeof(comp.GravityScale));
+			KTN_STREAM(&comp.FixedRotation, sizeof(comp.FixedRotation));
+			KTN_STREAM(&comp.Sleeping, sizeof(comp.Sleeping));
+			KTN_STREAM(&comp.CanSleep, sizeof(comp.CanSleep));
 
-			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
-			p_In.read(reinterpret_cast<char*>(&comp.Mass), sizeof(comp.Mass));
-			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
-			p_In.read(reinterpret_cast<char*>(&comp.LinearDamping), sizeof(comp.LinearDamping));
-			p_In.read(reinterpret_cast<char*>(&comp.AngularDamping), sizeof(comp.AngularDamping));
-			p_In.read(reinterpret_cast<char*>(&comp.GravityScale), sizeof(comp.GravityScale));
-			p_In.read(reinterpret_cast<char*>(&comp.FixedRotation), sizeof(comp.FixedRotation));
-			p_In.read(reinterpret_cast<char*>(&comp.Sleeping), sizeof(comp.Sleeping));
-			p_In.read(reinterpret_cast<char*>(&comp.CanSleep), sizeof(comp.CanSleep));
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<Rigidbody2DComponent>() = comp;
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<StaticBody2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<StaticBody2DComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "StaticBody2DComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<StaticBody2DComponent>();
+			StaticBody2DComponent comp(false);
 
-			p_In.read(reinterpret_cast<char*>(&comp.IsTrigger), sizeof(comp.IsTrigger));
-			p_In.read(reinterpret_cast<char*>(&comp.Mass), sizeof(comp.Mass));
-			p_In.read(reinterpret_cast<char*>(&comp.PhysicsMaterial2D), sizeof(comp.PhysicsMaterial2D));
+			KTN_STREAM(&comp.IsTrigger, sizeof(comp.IsTrigger));
+			KTN_STREAM(&comp.Mass, sizeof(comp.Mass));
+			KTN_STREAM(&comp.PhysicsMaterial2D, sizeof(comp.PhysicsMaterial2D));
+
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<StaticBody2DComponent>() = comp;
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<BodyShape2DComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<BodyShape2DComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "BodyShape2DComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<BodyShape2DComponent>();
+			BodyShape2DComponent comp = {};
 
-			p_In.read(reinterpret_cast<char*>(&comp.Shape), sizeof(comp.Shape));
-			p_In.read(reinterpret_cast<char*>(&comp.Offset), sizeof(comp.Offset));
-			p_In.read(reinterpret_cast<char*>(&comp.Size), sizeof(comp.Size));
+			KTN_STREAM(&comp.Shape, sizeof(comp.Shape));
+			KTN_STREAM(&comp.Offset, sizeof(comp.Offset));
+			KTN_STREAM(&comp.Size, sizeof(comp.Size));
+
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<BodyShape2DComponent>() = comp;
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<ScriptComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<ScriptComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
@@ -1444,41 +1561,46 @@ namespace KTN
 				case ScriptFieldType::FieldType:                             \
 				{                                                            \
 					Type data;                                               \
-					p_In.read(reinterpret_cast<char*>(&data), sizeof(Type)); \
-					fieldInstance.SetValue(data);                            \
+					KTN_STREAM(&data, sizeof(Type));						 \
+					if (p_Entity) fieldInstance.SetValue(data);              \
 					break;                                                   \
 				}
 
 			if (p_Current != "ScriptComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<ScriptComponent>();
-			comp.FullClassName = Utils::ReadString(p_In);
+			ScriptComponent comp = {};
+			comp.FullClassName = ReadString(p_In);
+			WriteString(p_Buffer, comp.FullClassName);
 
 			auto entityClass = ScriptEngine::GetEntityClass(comp.FullClassName);
 			const auto& fields = entityClass->GetFields();
 
 			if (fields.size() > 0)
 			{
-				auto& entityFields = ScriptEngine::GetScriptFieldMap(p_Entity);
-
 				int size = 0;
-				p_In.read(reinterpret_cast<char*>(&size), sizeof(size));
+				KTN_STREAM(&size, sizeof(size));
+
+				auto entityFields = p_Entity ? ScriptEngine::GetScriptFieldMap(p_Entity) : ScriptFieldMap{};
 
 				for (int i = 0; i < size; i++)
 				{
-					std::string name = Utils::ReadString(p_In);
+					std::string name = ReadString(p_In);
+					WriteString(p_Buffer, name);
 
 					ScriptFieldType type;
-					p_In.read(reinterpret_cast<char*>(&type), sizeof(type));
+					KTN_STREAM(&type, sizeof(type));
 
-					ScriptFieldInstance& fieldInstance = entityFields[name];
-					if (fields.find(name) == fields.end())
+					auto fieldInstance = p_Entity ? entityFields[name] : ScriptFieldInstance{};
+					if (p_Entity)
 					{
-						KTN_CORE_WARN("Script field '{}' not found in class '{}'. Skipping...", name, comp.FullClassName);
-						continue;
+						if (fields.find(name) == fields.end())
+						{
+							KTN_CORE_WARN("Script field '{}' not found in class '{}'. Skipping...", name, comp.FullClassName);
+							continue;
+						}
+						fieldInstance.Field = fields.at(name);
 					}
-					fieldInstance.Field = fields.at(name);
 
 					switch (type)
 					{
@@ -1499,36 +1621,52 @@ namespace KTN
 						READ_SCRIPT_FIELD(Vector4, glm::vec4);
 						READ_SCRIPT_FIELD(Entity, UUID);
 					}
+
+					if (p_Entity)
+						entityFields[name] = fieldInstance;
 				}
+
+				if (p_Entity)
+					ScriptEngine::GetScriptFieldMap(p_Entity) = entityFields;
 			}
+
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<ScriptComponent>() = comp;
 			
 			#undef READ_SCRIPT_FIELD
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<PrefabComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<PrefabComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "PrefabComponent")
 				return;
 
-			auto& comp = p_Entity.AddOrReplaceComponent<PrefabComponent>();
-			comp.Path = Utils::ReadString(p_In);
+			PrefabComponent comp = {};
+			comp.Path = ReadString(p_In);
+			WriteString(p_Buffer, comp.Path);
 			comp.Path = Project::GetAssetFileSystemPath(comp.Path).string();
+
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<PrefabComponent>() = comp;
 		}
 
 		template<>
-		void ComponentDeserializeBinIfExist<RuntimeComponent>(std::ifstream& p_In, const std::string& p_Current, entt::registry& p_Registry, Entity p_Entity)
+		void ComponentDeserializeBinIfExist<RuntimeComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (p_Current != "RuntimeComponent")
 				return;
 
-			auto& comp = p_Entity.GetComponent<RuntimeComponent>();
-			p_In.read(reinterpret_cast<char*>(&comp.Enabled), sizeof(comp.Enabled));
-			p_In.read(reinterpret_cast<char*>(&comp.Active), sizeof(comp.Active));
+			RuntimeComponent comp = {};
+			KTN_STREAM(&comp.Enabled, sizeof(comp.Enabled));
+			KTN_STREAM(&comp.Active, sizeof(comp.Active));
+
+			if (p_Entity)
+				p_Entity.AddOrReplaceComponent<RuntimeComponent>() = comp;
 		}
 
 	} // namespace

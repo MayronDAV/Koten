@@ -20,7 +20,7 @@ namespace KTN
 		m_Active = true;
 		m_Changed = true;
 		m_MaterialHandle = p_Material;
-		m_Material = p_Material ? AssetManager::Get()->GetAsset(m_MaterialHandle) : nullptr;
+		m_Material = p_Material ? AssetManager::Get()->GetAsset<Asset>(m_MaterialHandle) : nullptr;
 	}
 
 	void MaterialPanel::OnImgui()
@@ -33,7 +33,7 @@ namespace KTN
 
 		if (m_Changed)
 		{
-			m_Material = m_MaterialHandle ? AssetManager::Get()->GetAsset(m_MaterialHandle) : nullptr;
+			m_Material = m_MaterialHandle ? AssetManager::Get()->GetAsset<Asset>(m_MaterialHandle) : nullptr;
 			m_Metadata = AssetManager::Get()->GetMetadata(m_MaterialHandle);
 			m_Changed = false;
 		}

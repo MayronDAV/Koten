@@ -21,7 +21,7 @@ namespace KTN
 			RuntimeLayer() : Layer("RuntimeLayer")
 			{
 				m_Project = Project::GetActive();
-				m_AssetManager = AssetManager::Create();
+				m_AssetManager = AssetManager::Get();
 				SceneManager::Init();
 			}
 
@@ -37,7 +37,9 @@ namespace KTN
 				KTN_VERIFY(success, "Failed to load asset pack!");
 
 				if (m_Project->GetConfig().StartScene != 0)
+				{
 					SceneManager::Load(m_Project->GetConfig().StartScene);
+				}
 
 				SceneManager::SetRenderTarget(nullptr);
 				SceneManager::Play();

@@ -423,6 +423,7 @@ namespace KTN
 		LoadAssemblyClasses();
 		ScriptGlue::RegisterComponents();
 		s_Data->AppAssemblyPath = outputDllPath.string();
+		KTN_CORE_INFO("[ScriptEngine] C# Script compiled successfully!");
 		return true;
 	}
 
@@ -710,15 +711,16 @@ namespace KTN
 
 		m_Instance = p_ScriptClass->Instantiate();
 
-		m_Constructor = s_Data->EntityClass.GetMethod(".ctor", 1);
+		m_Constructor = s_Data->EntityClass.GetMethod(".ctor", 2);
 		m_OnCreateMethod = p_ScriptClass->GetMethod("OnCreate", 0);
 		m_OnUpdateMethod = p_ScriptClass->GetMethod("OnUpdate", 0);
 
 		// Call Entity constructor
 		{
 			UUID entityID = p_Entity.GetUUID();
-			void* param = &entityID;
-			m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, &param);
+			AssetHandle sceneHandle = p_Entity.GetScene()->Handle;
+			void* param[] = { &entityID, &sceneHandle };
+			m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, param);
 		}
 	}
 

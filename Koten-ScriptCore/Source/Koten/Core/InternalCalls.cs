@@ -1,22 +1,51 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace KTN
 {
-	public static class InternalCalls
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ObjectHandle
+    {
+        public ulong ID;
+        public ulong SceneHandle;
+
+        public ObjectHandle(ulong p_ID, ulong p_SceneHandle)
+        {
+            ID = p_ID;
+            SceneHandle = p_SceneHandle;
+        }
+    }
+
+    public static class InternalCalls
 	{
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static object GetScriptInstance(ulong p_UUID);
 
-		#region Entity
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Entity_HasComponent(ulong p_EntityID, Type p_ComponentType);
+        #region AssetManager
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static ObjectHandle AssetManager_FindWithPath(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool AssetManager_IsAssetHandleValid(ulong p_AssetHandle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool AssetManager_IsAssetLoaded(ulong p_AssetHandle);
+
+        #endregion
+
+        #region GameObject
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool GameObject_HasComponent(ObjectHandle p_Handle, Type p_ComponentType);
 
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static ulong Entity_GetEntityByTag(string p_Tag);
+		internal extern static ObjectHandle GameObject_FindWithTag(string p_Tag);
 
-		[MethodImplAttribute(MethodImplOptions.InternalCall)]
-		internal extern static bool Entity_IsValid(ulong p_UUID);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static ObjectHandle GameObject_FindWithUUID(ulong p_EntityID);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+		internal extern static bool GameObject_IsValid(ObjectHandle p_Handle);
         #endregion
 
         #region SceneManager

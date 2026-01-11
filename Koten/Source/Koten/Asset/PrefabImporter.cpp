@@ -21,25 +21,44 @@ namespace KTN
 			return nullptr;
 		}
 
+		auto ctx = static_cast<PrefabContext*>(p_Metadata.AssetData);
+
 		Ref<Prefab> prefab = nullptr;
 		if (FileSystem::Exists(p_Metadata.FilePath))
-			prefab = LoadPrefab(p_Metadata.FilePath);
+			prefab = LoadPrefab(ctx->Scene, p_Metadata.FilePath);
 		else
 			prefab = CreateRef<Prefab>();
 
-		if (prefab)
+		if (!prefab)
 		{
-			auto ctx = static_cast<PrefabContext*>(p_Metadata.AssetData);
-			Ref<Scene> scene = As<Asset, Scene>(AssetManager::Get()->GetAsset(ctx->Scene));
+			Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(ctx->Scene);
 			prefab->Entt = scene->GetEntityByUUID(ctx->EnttUUID);
-			prefab->Path = p_Metadata.FilePath;
 			prefab->Handle = p_Handle;
 		}
+
+		prefab->Path = p_Metadata.FilePath;
+		return prefab;
+	}
+
+	Ref<Prefab> PrefabImporter::ImportPrefabFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (p_Metadata.Type != AssetType::Prefab)
+		{
+			KTN_CORE_ERROR("Invalid asset type for prefab import: {}", GetAssetTypeName(p_Metadata.Type));
+			return nullptr;
+		}
+
+		auto ctx = static_cast<PrefabContext*>(p_Metadata.AssetData);
+
+		auto prefab = LoadPrefabBin(p_Data, ctx->Scene);
+		prefab->Path = p_Metadata.FilePath;
 
 		return prefab;
 	}
 
-	Ref<Prefab> PrefabImporter::LoadPrefab(const std::string& p_Path)
+	Ref<Prefab> PrefabImporter::LoadPrefab(AssetHandle p_SceneHandle, const std::string& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();
 
@@ -63,20 +82,6 @@ namespace KTN
 		Ref<Prefab> prefab = CreateRef<Prefab>();
 		prefab->Path = p_Path;
 
-		if (!data["Scene"])
-		{
-			KTN_CORE_ERROR("Failed to load file '{0}'\n     The Scene data doesn't exist!", p_Path);
-			return nullptr;
-		}
-		auto sceneID = data["Scene"].as<AssetHandle>();
-		
-		Ref<Scene> scene = As<Asset, Scene>(AssetManager::Get()->GetAsset(sceneID));
-		if (!scene)
-		{
-			KTN_CORE_ERROR("Failed to load file '{0}'\n     Failed to get Scene asset!", p_Path);
-			return nullptr;
-		}
-
 		if (!data["AssetHandle"])
 		{
 			KTN_CORE_ERROR("Failed to load file '{0}'\n     The AssetHandle data doesn't exist!", p_Path);
@@ -84,15 +89,20 @@ namespace KTN
 		}	
 		prefab->Handle = data["AssetHandle"].as<uint64_t>();
 
-		if (!data["Entity"])
-		{
-			KTN_CORE_ERROR("Failed to load file '{0}'\n     The Entity data doesn't exist!", p_Path);
-			return nullptr;
-		}
-		auto enttID = data["Entity"].as<uint64_t>();
+		Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(p_SceneHandle);
+		Entity deserializedEntt = scene->CreateEntity(UUID(), "Entity Prefab");
 
-		Entity deserializedEntt = scene->GetEntityByUUID((UUID)enttID);
 		EntitySerializer::Deserialize(&data, deserializedEntt);
+
+		auto& tag = deserializedEntt.GetComponent<TagComponent>().Tag;
+		tag = tag + " (Prefab)";
+
+		auto comp = deserializedEntt.TryGetComponent<TransformComponent>();
+		if (comp)
+		{
+			comp->SetLocalTranslation({ 0.0f, 0.0f, 0.0f });
+			comp->SetLocalRotation({ 0.0f, 0.0f, 0.0f });
+		}
 
 		prefab->Entt = deserializedEntt;
 
@@ -105,9 +115,7 @@ namespace KTN
 
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << p_Prefab->Entt.GetScene()->Handle;
 		out << YAML::Key << "AssetHandle" << YAML::Value << p_Prefab->Handle;
-		out << YAML::Key << "Entity" << YAML::Value << p_Prefab->Entt.GetUUID();
 		EntitySerializer::Serialize(&out, p_Prefab->Entt);
 		out << YAML::EndMap;
 
@@ -133,10 +141,8 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		p_Out.write(reinterpret_cast<const char*>(&p_Prefab->Entt.GetScene()->Handle), sizeof(AssetHandle));
+		p_Out.write(reinterpret_cast<const char*>(&p_Prefab->Handle), sizeof(AssetHandle));
 
-		auto uuid = p_Prefab->Entt.GetUUID();
-		p_Out.write(reinterpret_cast<const char*>(&uuid), sizeof(UUID));
 		EntitySerializer::SerializeBin(p_Out, p_Prefab->Entt);
 	}
 
@@ -152,23 +158,75 @@ namespace KTN
 		SavePrefabBin(p_Out, prefab);
 	}
 
-	Ref<Prefab> PrefabImporter::LoadPrefabBin(std::ifstream& p_In)
+	Ref<Prefab> PrefabImporter::LoadPrefabBin(std::ifstream& p_In, AssetHandle p_SceneHandle)
 	{
 		KTN_PROFILE_FUNCTION();
 
 		auto prefab = CreateRef<Prefab>();
 
-		AssetHandle sceneHandle;
-		p_In.read(reinterpret_cast<char*>(&sceneHandle), sizeof(AssetHandle));
-		Ref<Scene> scene = As<Asset, Scene>(AssetManager::Get()->GetAsset(sceneHandle));
+		AssetHandle prefabHandle;
+		p_In.read(reinterpret_cast<char*>(&prefabHandle), sizeof(prefabHandle));
+		prefab->Handle = prefabHandle;
 
-		UUID uuid;
-		p_In.read(reinterpret_cast<char*>(&uuid), sizeof(uuid));
+		Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(p_SceneHandle);
+		Entity entt = scene->CreateEntity(UUID());
 
-		Entity entt = scene->CreateEntity(uuid);
 		EntitySerializer::DeserializeBin(p_In, entt);
 
+		auto& tag = entt.GetComponent<TagComponent>().Tag;
+		tag = tag + " (Prefab)";
+
+		auto comp = entt.TryGetComponent<TransformComponent>();
+		if (comp)
+		{
+			comp->SetLocalTranslation({ 0.0f, 0.0f, 0.0f });
+			comp->SetLocalRotation({ 0.0f, 0.0f, 0.0f });
+		}
+
+		prefab->Entt = entt;
 		return prefab;
+	}
+
+	Ref<Prefab> PrefabImporter::LoadPrefabBin(const Buffer& p_In, AssetHandle p_SceneHandle)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		BufferReader reader(p_In);
+
+		auto prefab = CreateRef<Prefab>();
+
+		AssetHandle prefabHandle;
+		reader.ReadBytes(&prefabHandle, sizeof(prefabHandle));
+		prefab->Handle = prefabHandle;
+
+		Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(p_SceneHandle);
+		Entity entt = scene->CreateEntity(UUID());
+
+		EntitySerializer::DeserializeBin(reader, entt);
+
+		auto& tag = entt.GetComponent<TagComponent>().Tag;
+		tag = tag + " (Prefab)";
+
+		auto comp = entt.TryGetComponent<TransformComponent>();
+		if (comp)
+		{
+			comp->SetLocalTranslation({ 0.0f, 0.0f, 0.0f });
+			comp->SetLocalRotation({ 0.0f, 0.0f, 0.0f });
+		}
+
+		prefab->Entt = entt;
+		return prefab;
+	}
+
+	void PrefabImporter::LoadPrefabBin(std::ifstream& p_In, Buffer& p_Buffer)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		AssetHandle prefabHandle;
+		p_In.read(reinterpret_cast<char*>(&prefabHandle), sizeof(prefabHandle));
+		p_Buffer.Write(&prefabHandle, sizeof(prefabHandle));
+
+		EntitySerializer::DeserializeBin(p_In, p_Buffer);
 	}
 
 }

@@ -45,6 +45,27 @@ namespace KTN
 		p_In.read(reinterpret_cast<char*>(&RestitutionThreshold), sizeof(RestitutionThreshold));
 	}
 
+	void PhysicsMaterial2D::DeserializeBin(BufferReader& p_In)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		p_In.ReadBytes(&Friction, sizeof(Friction));
+		p_In.ReadBytes(&Restitution, sizeof(Restitution));
+		p_In.ReadBytes(&RestitutionThreshold, sizeof(RestitutionThreshold));
+	}
+
+	void PhysicsMaterial2D::DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer)
+	{
+		float friction, restitution, restitutionThreshold;
+		p_In.read(reinterpret_cast<char*>(&friction), sizeof(friction));
+		p_In.read(reinterpret_cast<char*>(&restitution), sizeof(restitution));
+		p_In.read(reinterpret_cast<char*>(&restitutionThreshold), sizeof(restitutionThreshold));
+
+		p_Buffer.Write(&friction, sizeof(friction));
+		p_Buffer.Write(&restitution, sizeof(restitution));
+		p_Buffer.Write(&restitutionThreshold, sizeof(restitutionThreshold));
+	}
+
 	AssetHandle PhysicsMaterial2D::GetDefault()
 	{
 		KTN_PROFILE_FUNCTION();

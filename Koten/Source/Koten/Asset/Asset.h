@@ -40,6 +40,7 @@ namespace KTN
 		AssetType Type = AssetType::None;
 		std::string FilePath;
 		void* AssetData = nullptr; // Pointer to the actual asset data (e.g., for fonts, textures, etc.)
+		bool SerializeAssetData = true;
 
 		operator bool() const { return Type != AssetType::None; }
 	};
