@@ -3,6 +3,8 @@
 #include "Koten/Scene/Scene.h"
 #include "Koten/Scene/EntitySerializer.h"
 #include "AssetManager.h"
+#include "Koten/Scene/SceneManager.h"
+#include "Koten/Systems/B2Physics.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -11,6 +13,25 @@
 
 namespace KTN
 {
+	namespace
+	{
+		static Ref<Scene> GetScene(AssetHandle p_Handle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Ref<Scene> scene = SceneManager::GetScene(p_Handle);
+			if (!scene) scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
+			if (!scene)
+			{
+				KTN_CORE_ERROR("Failed to get scene! Please provide a valid scene handle, Handle: {}", (uint64_t)p_Handle);
+				return nullptr;
+			}
+
+			return scene;
+		}
+
+	} // namespace
+
 	Ref<Prefab> PrefabImporter::ImportPrefab(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -27,11 +48,12 @@ namespace KTN
 		if (FileSystem::Exists(p_Metadata.FilePath))
 			prefab = LoadPrefab(ctx->Scene, p_Metadata.FilePath);
 		else
+		{
 			prefab = CreateRef<Prefab>();
 
-		if (!prefab)
-		{
-			Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(ctx->Scene);
+			auto scene = GetScene(ctx->Scene);
+			if (!scene) return nullptr;
+
 			prefab->Entt = scene->GetEntityByUUID(ctx->EnttUUID);
 			prefab->Handle = p_Handle;
 		}
@@ -89,23 +111,14 @@ namespace KTN
 		}	
 		prefab->Handle = data["AssetHandle"].as<uint64_t>();
 
-		Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(p_SceneHandle);
-		Entity deserializedEntt = scene->CreateEntity(UUID(), "Entity Prefab");
+		Ref<Scene> scene = GetScene(p_SceneHandle);
+		if (!scene) return nullptr;
+
+		Entity deserializedEntt = scene->CreateEntity("Entity Prefab");
 
 		EntitySerializer::Deserialize(&data, deserializedEntt);
 
-		auto& tag = deserializedEntt.GetComponent<TagComponent>().Tag;
-		tag = tag + " (Prefab)";
-
-		auto comp = deserializedEntt.TryGetComponent<TransformComponent>();
-		if (comp)
-		{
-			comp->SetLocalTranslation({ 0.0f, 0.0f, 0.0f });
-			comp->SetLocalRotation({ 0.0f, 0.0f, 0.0f });
-		}
-
 		prefab->Entt = deserializedEntt;
-
 		return prefab;
 	}
 
@@ -168,20 +181,12 @@ namespace KTN
 		p_In.read(reinterpret_cast<char*>(&prefabHandle), sizeof(prefabHandle));
 		prefab->Handle = prefabHandle;
 
-		Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(p_SceneHandle);
-		Entity entt = scene->CreateEntity(UUID());
+		auto scene = GetScene(p_SceneHandle);
+		if (!scene) return nullptr;
+
+		Entity entt = scene->CreateEntity("Entity Prefab");
 
 		EntitySerializer::DeserializeBin(p_In, entt);
-
-		auto& tag = entt.GetComponent<TagComponent>().Tag;
-		tag = tag + " (Prefab)";
-
-		auto comp = entt.TryGetComponent<TransformComponent>();
-		if (comp)
-		{
-			comp->SetLocalTranslation({ 0.0f, 0.0f, 0.0f });
-			comp->SetLocalRotation({ 0.0f, 0.0f, 0.0f });
-		}
 
 		prefab->Entt = entt;
 		return prefab;
@@ -199,20 +204,12 @@ namespace KTN
 		reader.ReadBytes(&prefabHandle, sizeof(prefabHandle));
 		prefab->Handle = prefabHandle;
 
-		Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(p_SceneHandle);
-		Entity entt = scene->CreateEntity(UUID());
+		auto scene = GetScene(p_SceneHandle);
+		if (!scene) return nullptr;
+
+		Entity entt = scene->CreateEntity("Entity Prefab");
 
 		EntitySerializer::DeserializeBin(reader, entt);
-
-		auto& tag = entt.GetComponent<TagComponent>().Tag;
-		tag = tag + " (Prefab)";
-
-		auto comp = entt.TryGetComponent<TransformComponent>();
-		if (comp)
-		{
-			comp->SetLocalTranslation({ 0.0f, 0.0f, 0.0f });
-			comp->SetLocalRotation({ 0.0f, 0.0f, 0.0f });
-		}
 
 		prefab->Entt = entt;
 		return prefab;

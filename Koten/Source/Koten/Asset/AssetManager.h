@@ -46,6 +46,15 @@ namespace KTN
 				return As<Asset, T>(GetAsset(p_Handle));
 			}
 
+			template<typename T>
+			Ref<T> LoadAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+			{
+				if constexpr (std::is_same_v<Asset, T>)
+					return LoadAsset(p_Handle, p_Metadata);
+
+				return As<Asset, T>(LoadAsset(p_Handle, p_Metadata));
+			}
+
 			bool RemoveAsset(AssetHandle p_Handle);
 
 			AssetHandle GetHandleByPath(const std::string& p_FilePath) const;
@@ -64,6 +73,7 @@ namespace KTN
 
 		private:
 			Ref<Asset> GetAsset(AssetHandle p_Handle);
+			Ref<Asset> LoadAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata);
 
 		private:
 			AssetRegistry m_AssetRegistry;

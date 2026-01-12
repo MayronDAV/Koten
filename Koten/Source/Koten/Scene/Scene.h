@@ -30,6 +30,7 @@ namespace KTN
 			~Scene();
 
 			static void Copy(const Ref<Scene>& p_Src, const Ref<Scene>& p_Dest);
+			static Entity DuplicateEntity(const Entity& p_Entity);
 			static Ref<Scene> Copy(const Ref<Scene>& p_Scene);
 
 			Entity CreateEntity(const std::string& p_Tag = std::string());
@@ -51,6 +52,8 @@ namespace KTN
 			void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
 			void SetViewportSize(uint32_t p_Width, uint32_t p_Height);
 			void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
+
+			void SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos = glm::vec3{ 0.0f }, const glm::vec3& p_Rot = glm::vec3{ 0.0f });
 
 			void Step(int p_Frames = 1);
 

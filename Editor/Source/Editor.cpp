@@ -93,7 +93,7 @@ namespace KTN
 		KTN_CORE_ASSERT(!p_ProjectPath.empty(), "Project path cannot be empty!");
 
 		Init();
-		
+
 		OpenProject(p_ProjectPath);
 	}
 	

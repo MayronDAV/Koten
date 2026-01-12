@@ -2,9 +2,12 @@ using System;
 
 namespace KTN
 {
-    public abstract class Component
+    public abstract class Component : Object
     {
-        public Entity Entity { get; internal set; }
+        protected Component()
+            : base()
+        {
+        }
     }
 
     public class Transform : Component
@@ -13,27 +16,26 @@ namespace KTN
         {
             get
             {
-                InternalCalls.TransformComponent_GetLocalTranslation(Entity.ID, out Vector3 translation);
+                InternalCalls.TransformComponent_GetLocalTranslation(ID, out Vector3 translation);
                 return translation;
             }
             set
             {
-                InternalCalls.TransformComponent_SetLocalTranslation(Entity.ID, ref value);
+                InternalCalls.TransformComponent_SetLocalTranslation(ID, ref value);
             }
         }
     }
 
     public class IDComponent : Component
     {
-        public ulong ID => Entity.ID;
     }
 
     public class TagComponent : Component
     {
         public string Tag
         {
-            get => InternalCalls.TagComponent_GetTag(Entity.ID);
-            set => InternalCalls.TagComponent_SetTag(Entity.ID, value);
+            get => InternalCalls.TagComponent_GetTag(ID);
+            set => InternalCalls.TagComponent_SetTag(ID, value);
         }
     }
 
@@ -41,14 +43,14 @@ namespace KTN
     {
         public bool Enabled
         {
-            get => InternalCalls.RuntimeComponent_IsEnabled(Entity.ID);
-            set => InternalCalls.RuntimeComponent_SetEnabled(Entity.ID, value);
+            get => InternalCalls.RuntimeComponent_IsEnabled(ID);
+            set => InternalCalls.RuntimeComponent_SetEnabled(ID, value);
         }
 
         public bool Active
         {
-            get => InternalCalls.RuntimeComponent_IsActive(Entity.ID);
-            set => InternalCalls.RuntimeComponent_SetActive(Entity.ID, value);
+            get => InternalCalls.RuntimeComponent_IsActive(ID);
+            set => InternalCalls.RuntimeComponent_SetActive(ID, value);
         }
     }
 
@@ -64,62 +66,62 @@ namespace KTN
     {
         public string String
         {
-            get => InternalCalls.TextRendererComponent_GetString(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetString(Entity.ID, value);
+            get => InternalCalls.TextRendererComponent_GetString(ID);
+            set => InternalCalls.TextRendererComponent_SetString(ID, value);
         }
 
         public string Font
         {
-            get => InternalCalls.TextRendererComponent_GetFontPath(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetFont(Entity.ID, value);
+            get => InternalCalls.TextRendererComponent_GetFontPath(ID);
+            set => InternalCalls.TextRendererComponent_SetFont(ID, value);
         }
 
         public Vector4 Color
         {
             get
             {
-                InternalCalls.TextRendererComponent_GetColor(Entity.ID, out Vector4 color);
+                InternalCalls.TextRendererComponent_GetColor(ID, out Vector4 color);
                 return color;
             }
-            set => InternalCalls.TextRendererComponent_SetColor(Entity.ID, ref value);
+            set => InternalCalls.TextRendererComponent_SetColor(ID, ref value);
         }
 
         public Vector4 BgColor
         {
             get
             {
-                InternalCalls.TextRendererComponent_GetBgColor(Entity.ID, out Vector4 color);
+                InternalCalls.TextRendererComponent_GetBgColor(ID, out Vector4 color);
                 return color;
             }
-            set => InternalCalls.TextRendererComponent_SetBgColor(Entity.ID, ref value);
+            set => InternalCalls.TextRendererComponent_SetBgColor(ID, ref value);
         }
 
         public Vector4 CharBgColor
         {
             get
             {
-                InternalCalls.TextRendererComponent_GetCharBgColor(Entity.ID, out Vector4 color);
+                InternalCalls.TextRendererComponent_GetCharBgColor(ID, out Vector4 color);
                 return color;
             }
-            set => InternalCalls.TextRendererComponent_SetCharBgColor(Entity.ID, ref value);
+            set => InternalCalls.TextRendererComponent_SetCharBgColor(ID, ref value);
         }
 
         public bool DrawBg
         {
-            get => InternalCalls.TextRendererComponent_GetDrawBg(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetDrawBg(Entity.ID, value);
+            get => InternalCalls.TextRendererComponent_GetDrawBg(ID);
+            set => InternalCalls.TextRendererComponent_SetDrawBg(ID, value);
         }
 
         public float Kerning
         {
-            get => InternalCalls.TextRendererComponent_GetKerning(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetKerning(Entity.ID, value);
+            get => InternalCalls.TextRendererComponent_GetKerning(ID);
+            set => InternalCalls.TextRendererComponent_SetKerning(ID, value);
         }
 
         public float LineSpacing
         {
-            get => InternalCalls.TextRendererComponent_GetLineSpacing(Entity.ID);
-            set => InternalCalls.TextRendererComponent_SetLineSpacing(Entity.ID, value);
+            get => InternalCalls.TextRendererComponent_GetLineSpacing(ID);
+            set => InternalCalls.TextRendererComponent_SetLineSpacing(ID, value);
         }
 
     }
@@ -138,7 +140,7 @@ namespace KTN
         {
             get
             {
-                InternalCalls.B2_GetGravity(Entity.ID, out Vector2 gravity);
+                InternalCalls.B2_GetGravity(ID, out Vector2 gravity);
                 return gravity;
             }
         }
@@ -147,50 +149,50 @@ namespace KTN
         {
             get
             {
-                InternalCalls.B2_GetRealGravity(Entity.ID, out Vector2 gravity);
+                InternalCalls.B2_GetRealGravity(ID, out Vector2 gravity);
                 return gravity;
             }
         }
 
         public Vector2 GetLinearVelocity()
         {
-           InternalCalls.B2_GetLinearVelocity(Entity.ID, out Vector2 result);
+           InternalCalls.B2_GetLinearVelocity(ID, out Vector2 result);
            return result;
         }
 
         public void SetLinearVelocity(Vector2 p_Velocity)
         {
-            InternalCalls.B2_SetLinearVelocity(Entity.ID, ref p_Velocity);
+            InternalCalls.B2_SetLinearVelocity(ID, ref p_Velocity);
         }
 
         public float GetAngularVelocity()
         {        
-            return InternalCalls.B2_GetAngularVelocity(Entity.ID);
+            return InternalCalls.B2_GetAngularVelocity(ID);
         }
 
         public void SetAngularVelocity(float p_Velocity)
         {
-            InternalCalls.B2_SetAngularVelocity(Entity.ID, p_Velocity);
+            InternalCalls.B2_SetAngularVelocity(ID, p_Velocity);
         }
 
         public void ApplyForce(Vector2 p_Force)
         {
-            InternalCalls.B2_ApplyForce(Entity.ID, ref p_Force);
+            InternalCalls.B2_ApplyForce(ID, ref p_Force);
         }
 
         public void ApplyLinearImpulse(Vector2 p_Impulse)
         {
-            InternalCalls.B2_ApplyLinearImpulse(Entity.ID, ref p_Impulse);
+            InternalCalls.B2_ApplyLinearImpulse(ID, ref p_Impulse);
         }
 
         public void ApplyAngularImpulse(float p_Impulse)
         {
-            InternalCalls.B2_ApplyAngularImpulse(Entity.ID, p_Impulse);
+            InternalCalls.B2_ApplyAngularImpulse(ID, p_Impulse);
         }
 
         public void ApplyTorque(float p_Torque)
         {
-            InternalCalls.B2_ApplyTorque(Entity.ID, p_Torque);
+            InternalCalls.B2_ApplyTorque(ID, p_Torque);
         }
     }
 
@@ -202,25 +204,25 @@ namespace KTN
     {
         public bool OnFloor
         {
-            get => InternalCalls.CharacterBody2DComponent_IsOnFloor(Entity.ID);
+            get => InternalCalls.CharacterBody2DComponent_IsOnFloor(ID);
         }
         public bool OnWall
         {
-            get => InternalCalls.CharacterBody2DComponent_IsOnWall(Entity.ID);
+            get => InternalCalls.CharacterBody2DComponent_IsOnWall(ID);
         }
         public bool OnCeiling
         {
-            get => InternalCalls.CharacterBody2DComponent_IsOnCeiling(Entity.ID);
+            get => InternalCalls.CharacterBody2DComponent_IsOnCeiling(ID);
         }
 
         public void MoveAndSlide()
         {
-            InternalCalls.CharacterBody2DComponent_MoveAndSlide(Entity.ID);
+            InternalCalls.CharacterBody2DComponent_MoveAndSlide(ID);
         }
 
         public void MoveAndCollide()
         {
-            InternalCalls.CharacterBody2DComponent_MoveAndCollide(Entity.ID);
+            InternalCalls.CharacterBody2DComponent_MoveAndCollide(ID);
         }
     }
 

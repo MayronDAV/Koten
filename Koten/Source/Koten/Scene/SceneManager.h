@@ -45,6 +45,7 @@ namespace KTN
 			static bool Save(AssetHandle p_Handle);
 			static void SaveAs(AssetHandle p_Handle, const std::string& p_Path);
 
+			static Ref<Scene> GetScene(AssetHandle p_Handle);
 			static const std::vector<Ref<Scene>>& GetLoadedScenes();
 			static const std::vector<Ref<Scene>>& GetActiveScenes();
 			static bool IsPaused();
@@ -54,8 +55,6 @@ namespace KTN
 
 		private:
 			static bool ExecuteLoadOperation(AssetHandle p_Handle, LoadMode p_Mode);
-
-			static void UpdateQueue();
 
 			friend class Application;
 	};

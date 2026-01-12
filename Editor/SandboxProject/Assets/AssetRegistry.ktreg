@@ -20,6 +20,11 @@ AssetRegistry:
   - Handle: 14825518371462149883
     FilePath: Scenes\Hierarchy.ktscn
     Type: Scene
+  - Handle: 15067756456627096400
+    FilePath: Prefabs\Circle.ktprefab
+    Type: Prefab
+    AssetData:
+      {}
   - Handle: 15556688609004031601
     FilePath: Scenes\Example2.ktscn
     Type: Scene

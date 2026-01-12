@@ -477,6 +477,22 @@ namespace KTN
 		SceneImporter::SaveScene(scene, p_Path);
 	}
 
+	Ref<Scene> SceneManager::GetScene(AssetHandle p_Handle)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto& scenes = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy : s_Data->Scenes;
+		auto it = std::find_if(scenes.begin(), scenes.end(), [&](const Ref<Scene>& p_Scene)
+		{
+			return p_Scene->Handle == p_Handle;
+		});
+
+		if (it == scenes.end())
+			return nullptr;
+
+		return *it;
+	}
+
 	const std::vector<Ref<Scene>>& SceneManager::GetLoadedScenes()
 	{
 		KTN_PROFILE_FUNCTION();

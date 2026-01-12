@@ -19,6 +19,7 @@ namespace KTN
 
 			bool OnStart(Scene* p_Scene) override;
 			bool OnStop(Scene* p_Scene) override;
+			void OnCreateEntity(Entity p_Entity);
 
 			bool OnInit() override;
 			void OnUpdate(Scene* p_Scene) override;
@@ -29,11 +30,16 @@ namespace KTN
 			void SetGravity(const glm::vec2& p_Gravity);
 
 			void SyncTransforms(Scene* p_Scene);
+			
+			void SetTransform(Entity p_Entity, const glm::vec3& p_Pos, float p_Rot = 0.0f);
 
 			void MoveAndCollide(Entity p_Entity);
 			void MoveAndSlide(Entity p_Entity);
 
+			bool IsRunning() const { return m_IsRunning; }
+
 		private:
+			bool m_IsRunning = false;
 			glm::vec2 m_Gravity = { 0.0f, -9.81f };
 
 			B2WorldID m_World = {};

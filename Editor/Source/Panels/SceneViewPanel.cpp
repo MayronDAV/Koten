@@ -184,6 +184,7 @@ namespace KTN
 
 			if (Shortcuts::IsActionPressed("Play"))
 			{
+				m_Editor->UnSelectEntt();
 				SceneManager::Play();
 				m_Editor->SetState(RuntimeState::Play);
 			}
@@ -376,6 +377,7 @@ namespace KTN
 
 				if (ImGui::Button(icon.c_str()))
 				{
+					m_Editor->UnSelectEntt();
 					if (state != RuntimeState::Play)
 						SceneManager::Play();
 					else

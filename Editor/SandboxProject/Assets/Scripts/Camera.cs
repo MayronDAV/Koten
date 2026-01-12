@@ -3,9 +3,10 @@ using KTN;
 
 namespace Sandbox
 {
-	public class Camera : Entity
+	public class Camera : ScriptBehavior
 	{
-		private Entity m_Player;
+		private Transform m_Player;
+		private Transform m_Local;
 
 		public float DistanceFromPlayer = 5.0f;
 
@@ -14,7 +15,9 @@ namespace Sandbox
 
 		void OnCreate()
 		{
-			m_Player = GetEntityByTag("Player");
+			var gameObject = GameObject.FindWithTag("Player");
+			m_Player = gameObject.GetComponent<Transform>();
+			m_Local = GetComponent<Transform>();
 		}
 
 		void OnUpdate()
@@ -34,7 +37,7 @@ namespace Sandbox
 			{
 				Vector3 playerTranslation = m_Player.LocalTranslation;
 				playerTranslation.Z = DistanceFromPlayer;
-				LocalTranslation = playerTranslation;
+				m_Local.LocalTranslation = playerTranslation;
 				return;
 			}
 
@@ -61,10 +64,10 @@ namespace Sandbox
 
 			velocity *= speed;
 
-			Vector3 translation = LocalTranslation;
+			Vector3 translation = m_Local.LocalTranslation;
 			translation += velocity * Time.DeltaTime;
 			translation.Z = DistanceFromPlayer;
-			LocalTranslation = translation;
+			m_Local.LocalTranslation = translation;
 		}
 
 	}

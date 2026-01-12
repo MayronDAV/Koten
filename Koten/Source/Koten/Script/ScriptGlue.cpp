@@ -8,6 +8,7 @@
 #include "Koten/Project/Project.h"
 #include "Koten/Scene/SceneManager.h"
 #include "Koten/Systems/B2Physics.h"
+#include "Koten/Asset/PrefabImporter.h"
 
 // lib
 #include <mono/metadata/object.h>
@@ -28,6 +29,7 @@ namespace KTN
 		{
 			uint64_t ID;
 			uint64_t SceneHandle;
+			int32_t Type;
 		};
 
 		static std::string MonoStringToString(MonoString* p_String)
@@ -69,13 +71,116 @@ namespace KTN
 		{
 			return ScriptEngine::GetManagedInstance(p_UUID);
 		}
+		
+		#pragma region Object
+		static ObjectHandle Object_Instantiate(ObjectHandle p_Handle, glm::vec3* p_Position, glm::vec3* p_Rotation)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto type = (AssetType)p_Handle.Type;
+
+			uint64_t sceneHandle = p_Handle.SceneHandle;
+			if (!sceneHandle && (type == AssetType::None || type == AssetType::Prefab))
+			{
+				auto& scenes = SceneManager::GetActiveScenes();
+				if (scenes.empty())
+				{
+					KTN_CORE_ERROR("Failed to instantiate the object. Please provide a valid scene handle! Handle: (ID: {}, SceneHandle: {}, Type: {})",
+						p_Handle.ID, sceneHandle, p_Handle.Type);
+					return { 0, 0, 0 };
+				}
+
+				sceneHandle = scenes[0]->Handle;
+			}
+
+			if (type == AssetType::None)
+			{
+				auto scene = SceneManager::GetScene(sceneHandle);
+				auto entity = scene->GetEntityByUUID(p_Handle.ID);
+				if (!entity)
+				{
+					KTN_CORE_ERROR("Failed to instantiate the object. Please provide a valid game object id! Handle: (ID: {}, SceneHandle: {}, Type: {})",
+						p_Handle.ID, sceneHandle, p_Handle.Type);
+					return { 0, 0, 0 };
+				}
+
+				auto newEntity = Scene::DuplicateEntity(entity);
+				if (!newEntity)
+				{
+					KTN_CORE_ERROR("Failed to instantiate the object. Duplicate failed! Handle: (ID: {}, SceneHandle: {}, Type: {})",
+						p_Handle.ID, sceneHandle, p_Handle.Type);
+					return { 0, 0, 0 };
+				}
+
+				auto pos = p_Position ? *p_Position : glm::vec3{0.0f};
+				auto rot = p_Rotation ? *p_Rotation : glm::vec3{ 0.0f };
+				
+				scene->SetEntityTransform(newEntity, pos, rot);
+
+				return { newEntity.GetUUID(), sceneHandle, 0 };
+			}
+
+			if (type == AssetType::Prefab)
+			{
+				KTN_CORE_INFO("Loading Preafab! Handle: (ID: {}, SceneHandle: {}, Type: {})",
+					p_Handle.ID, sceneHandle, p_Handle.Type);
+
+				auto& metadata = AssetManager::Get()->GetMetadata(p_Handle.ID);
+				delete metadata.AssetData;
+				metadata.AssetData = nullptr;
+				metadata.AssetData = new PrefabContext{ 0, (AssetHandle)sceneHandle };
+
+				auto prefab = AssetManager::Get()->LoadAsset<Prefab>(p_Handle.ID, metadata);
+				if (!prefab)
+				{
+					KTN_CORE_ERROR("Failed to instantiate the object. Please provide a valid prefab handle! Handle: (ID: {}, SceneHandle: {}, Type: {})", 
+						p_Handle.ID, sceneHandle, p_Handle.Type);
+					return { 0, 0, 0 };
+				}
+
+				auto& entt = prefab->Entt;
+				auto scene = entt.GetScene();
+
+				auto pos = p_Position ? *p_Position : glm::vec3{ 0.0f };
+				auto rot = p_Rotation ? *p_Rotation : glm::vec3{ 0.0f };
+
+				auto tcomp = entt.TryGetComponent<TransformComponent>();
+				if (tcomp)
+				{
+					tcomp->SetLocalTranslation(pos);
+					tcomp->SetLocalRotation(rot);
+				}
+
+				if (scene->GetSystemManager()->HasSystem<B2Physics>())
+				{
+					auto system = scene->GetSystemManager()->GetSystem<B2Physics>();
+					if (system->IsRunning())
+					{
+						system->OnCreateEntity(entt);
+					}
+				}
+
+				return { entt.GetUUID(), sceneHandle, 0 };
+			}
+
+			// Load the asset
+			auto& metadata = AssetManager::Get()->GetMetadata(p_Handle.ID);
+			auto asset = AssetManager::Get()->LoadAsset<Asset>(p_Handle.ID, metadata);
+
+			return p_Handle;
+		}
+		#pragma endregion
 
 		#pragma region AssetManager
 		static ObjectHandle AssetManager_FindWithPath(MonoString* p_Path)
 		{
+			KTN_PROFILE_FUNCTION_LOW();
+
 			auto path = MonoStringToString(p_Path);
+			path = Project::GetAssetFileSystemPath(path).string();
 			auto handle = AssetManager::Get()->GetHandleByPath(path);
-			return { handle, 0 };
+			auto type = AssetManager::Get()->GetAssetType(handle);
+			return { handle, 0, (int32_t)type };
 		}
 
 		static bool AssetManager_IsAssetHandleValid(AssetHandle p_Handle)
@@ -132,7 +237,7 @@ namespace KTN
 			if (!entity)
 				return { 0, 0 };
 
-			return { entity.GetUUID(), entity.GetScene()->Handle };
+			return { entity.GetUUID(), entity.GetScene()->Handle, 0 };
 		}
 
 		static ObjectHandle GameObject_FindWithUUID(UUID p_ID)
@@ -143,7 +248,7 @@ namespace KTN
 			if (!entity)
 				return { 0, 0 };
 
-			return { entity.GetUUID(), entity.GetScene()->Handle };
+			return { entity.GetUUID(), entity.GetScene()->Handle, 0 };
 		}
 
 		static bool GameObject_IsValid(ObjectHandle p_Handle)
@@ -153,11 +258,9 @@ namespace KTN
 			Entity entity = FindWithUUID(p_Handle);
 			return entity ? true : false;
 		}
-
 		#pragma	endregion
 
 		#pragma region SceneManager
-
 		static int SceneManager_GetConfigLoadMode()
 		{
 			KTN_PROFILE_FUNCTION_LOW();
@@ -997,6 +1100,8 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		KTN_ADD_INTERNAL_CALL(GetScriptInstance);
+
+		KTN_ADD_INTERNAL_CALL(Object_Instantiate);
 
 		KTN_ADD_INTERNAL_CALL(AssetManager_FindWithPath);
 		KTN_ADD_INTERNAL_CALL(AssetManager_IsAssetHandleValid);

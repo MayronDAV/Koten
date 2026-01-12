@@ -39,6 +39,69 @@ namespace KTN
 
 			(CopyComponentIfExists<Component>(p_Src, p_Dest, p_SrcRegistry, p_DestRegistry), ...);
 		}
+
+		static Entity DuplicateEntityRecursive(Scene* p_Scene, entt::registry& p_Registry, entt::entity p_Source, entt::entity p_NewParent)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			const auto& tag = p_Registry.get<TagComponent>(p_Source).Tag;
+			Entity newEntity = p_Scene->CreateEntity(tag);
+
+			CopyEntity<ALL_COMPONENTS>(p_Source, (entt::entity)newEntity, p_Registry, p_Registry);
+
+			if (p_Scene->GetSystemManager()->HasSystem<B2Physics>())
+			{
+				auto system = p_Scene->GetSystemManager()->GetSystem<B2Physics>();
+				if (system->IsRunning())
+				{
+					system->OnCreateEntity(newEntity);
+				}
+			}
+
+			auto& newHierarchy = p_Registry.get_or_emplace<HierarchyComponent>((entt::entity)newEntity);
+			newHierarchy.Parent = p_NewParent;
+			newHierarchy.First = entt::null;
+			newHierarchy.Next = entt::null;
+			newHierarchy.Prev = entt::null;
+
+			auto* sourceHierarchy = p_Registry.try_get<HierarchyComponent>(p_Source);
+			if (!sourceHierarchy)
+				return newEntity;
+
+			entt::entity prevChildNew = entt::null;
+			entt::entity child = sourceHierarchy->First;
+
+			while (child != entt::null && p_Registry.valid(child))
+			{
+				Entity newChild = DuplicateEntityRecursive(p_Scene, p_Registry, child, (entt::entity)newEntity);
+
+				auto& childHierarchyNew = p_Registry.get<HierarchyComponent>((entt::entity)newChild);
+
+				if (prevChildNew == entt::null)
+				{
+					newHierarchy.First = (entt::entity)newChild;
+					childHierarchyNew.Prev = entt::null;
+				}
+				else
+				{
+					auto& prevHierarchyNew = p_Registry.get<HierarchyComponent>(prevChildNew);
+
+					prevHierarchyNew.Next = (entt::entity)newChild;
+					childHierarchyNew.Prev = prevChildNew;
+				}
+
+				childHierarchyNew.Next = entt::null;
+
+				prevChildNew = (entt::entity)newChild;
+
+				auto* childHierarchyOld = p_Registry.try_get<HierarchyComponent>(child);
+				child = childHierarchyOld ? childHierarchyOld->Next : entt::null;
+			}
+
+			return newEntity;
+		}
+
+
 	}
 
 	Scene::Scene()
@@ -122,6 +185,16 @@ namespace KTN
 		});
 
 		p_Dest->m_SceneGraph->DisableOnConstruct(destRegistry, false);
+	}
+
+	Entity Scene::DuplicateEntity(const Entity& p_Entity)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		Scene* scene = p_Entity.GetScene();
+		auto& registry = scene->GetRegistry();
+
+		return DuplicateEntityRecursive(scene, registry, p_Entity, entt::null);
 	}
 
 	Ref<Scene> Scene::Copy(const Ref<Scene>& p_Scene)
@@ -288,6 +361,24 @@ namespace KTN
 
 		m_Width = p_Width;
 		m_Height = p_Height;
+	}
+
+	void Scene::SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos, const glm::vec3& p_Rot)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if ((p_Entity.HasComponent<CharacterBody2DComponent>() || p_Entity.HasComponent<Rigidbody2DComponent>() || p_Entity.HasComponent<StaticBody2DComponent>()) &&
+			m_SystemManager->HasSystem<B2Physics>())
+		{
+			m_SystemManager->GetSystem<B2Physics>()->SetTransform(p_Entity, p_Pos, p_Rot.z);
+		}
+
+		auto tcomp = p_Entity.TryGetComponent<TransformComponent>();
+		if (tcomp)
+		{
+			tcomp->SetLocalTranslation(p_Pos);
+			tcomp->SetLocalRotation(p_Rot);
+		}
 	}
 
 	void Scene::Step(int p_Frames)

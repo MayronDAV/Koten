@@ -4,7 +4,7 @@ using System;
 
 namespace Sandbox
 {	
-	public class Player : Entity
+	public class Player : ScriptBehavior
 	{
 		public float Speed = 5.0f;
 		public float Timestep = 0.0f;
@@ -20,6 +20,20 @@ namespace Sandbox
 		void OnCreate()
 		{
 			m_Component = GetComponent<CharacterBody2DComponent>();
+
+			var box = GameObject.FindWithTag("Box");
+
+			Vector3 pos = Vector3.Zero;
+			Instantiate(box, pos, Vector3.Zero);
+			pos.X += 10.0f;
+			Instantiate(box, pos, Vector3.Zero);
+			pos.X += 10.0f;
+			Instantiate(box, pos, Vector3.Zero);
+
+			var circle = AssetManager.FindWithPath("Prefabs\\Circle.ktprefab");
+			pos.X = 10.0f;
+			pos.Y = 10.0f;
+			Instantiate(circle, pos, Vector3.Zero);
 		}
 
 		void OnTriggerEnter(ulong p_Sensor)

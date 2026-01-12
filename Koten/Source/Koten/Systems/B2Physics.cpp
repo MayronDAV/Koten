@@ -530,6 +530,21 @@ namespace KTN
 			}
 		}
 
+		static B2BodyID GetPhysicsBody2D(Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			if (p_Entity.HasComponent<Rigidbody2DComponent>())
+				return p_Entity.GetComponent<Rigidbody2DComponent>().Body;
+			else if (p_Entity.HasComponent<CharacterBody2DComponent>())
+				return p_Entity.GetComponent<CharacterBody2DComponent>().Body;
+			else if (p_Entity.HasComponent<StaticBody2DComponent>())
+				return p_Entity.GetComponent<StaticBody2DComponent>().Body;
+
+			return {};
+		}
+
+
 	} // namespace
 
 	B2Physics::B2Physics()
@@ -606,6 +621,7 @@ namespace KTN
 			CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, &p_Body);
 		});
 
+		m_IsRunning = true;
 		return true;
 	}
 
@@ -636,7 +652,38 @@ namespace KTN
 			}
 		});
 
+		m_IsRunning = false;
 		return true;
+	}
+
+	void B2Physics::OnCreateEntity(Entity p_Entity)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!p_Entity.IsActive()) return;
+
+		if (!p_Entity.HasComponent<TransformComponent>()) return;
+
+		auto& transform = p_Entity.GetComponent<TransformComponent>();
+
+		if (p_Entity.HasComponent<CharacterBody2DComponent>())
+		{
+			auto& body = p_Entity.GetComponent<CharacterBody2DComponent>();
+			body.Body = {};
+			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, m_World, &body);
+		}
+		else if (p_Entity.HasComponent<Rigidbody2DComponent>())
+		{
+			auto& body = p_Entity.GetComponent<Rigidbody2DComponent>();
+			body.Body = {};
+			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, m_World, &body);
+		}
+		else if (p_Entity.HasComponent<StaticBody2DComponent>())
+		{
+			auto& body = p_Entity.GetComponent<StaticBody2DComponent>();
+			body.Body = {};
+			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, m_World, &body);
+		}
 	}
 
 	bool B2Physics::OnInit()
@@ -739,6 +786,23 @@ namespace KTN
 			p_Transform.SetLocalRotation({ p_Transform.GetLocalRotation().x, p_Transform.GetLocalRotation().y, b2Rot_GetAngle(b2Body_GetRotation(body)) });
 			p_Transform.SetWorldMatrix(glm::mat4(1.0f));
 		});
+	}
+
+	void B2Physics::SetTransform(Entity p_Entity, const glm::vec3& p_Pos, float p_Rot)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto body = GetPhysicsBody2D(p_Entity);
+
+		if (body == B2BodyID{}) return;
+
+		b2BodyId bodyId = {
+			.index1 = body.Index,
+			.world0 = body.World,
+			.generation = body.Generation
+		};
+
+		b2Body_SetTransform(bodyId, { p_Pos.x, p_Pos.z }, b2MakeRot(p_Rot));
 	}
 
 	void B2Physics::MoveAndSlide(Entity p_Entity)

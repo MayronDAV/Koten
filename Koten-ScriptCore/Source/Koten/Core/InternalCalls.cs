@@ -9,11 +9,13 @@ namespace KTN
     {
         public ulong ID;
         public ulong SceneHandle;
+        public Int32 Type;
 
         public ObjectHandle(ulong p_ID, ulong p_SceneHandle)
         {
             ID = p_ID;
             SceneHandle = p_SceneHandle;
+            Type = 0;
         }
     }
 
@@ -21,6 +23,11 @@ namespace KTN
 	{
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static object GetScriptInstance(ulong p_UUID);
+
+        #region Object
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static ObjectHandle Object_Instantiate(ObjectHandle p_Handle, ref Vector3 p_Postion, ref Vector3 p_Rotation);
+        #endregion
 
         #region AssetManager
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

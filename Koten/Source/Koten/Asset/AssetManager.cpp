@@ -59,7 +59,54 @@ namespace KTN
 			return asset;
 		}
 
-		KTN_CORE_ERROR("AssetManager::GetAsset - Something wrong!");
+		KTN_CORE_ERROR("AssetManager::GetAsset - Something went wrong! LoadAssetsFromPath or LoadAssetsFromMemory must be true.");
+		return nullptr;
+	}
+
+	Ref<Asset> AssetManager::LoadAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!IsAssetHandleValid(p_Handle))
+		{
+			KTN_CORE_ERROR("AssetManager::LoadAsset - Invalid asset handle {}", (uint64_t)p_Handle);
+			return nullptr;
+		}
+
+		if (m_Config.LoadAssetsFromPath || p_Metadata.Type == AssetType::Font)
+		{
+			auto asset = AssetImporter::ImportAsset(p_Handle, p_Metadata);
+			if (!asset)
+			{
+				KTN_CORE_ERROR("AssetManager::LoadAsset - Asset import failed!");
+				return nullptr;
+			}
+
+			delete m_AssetRegistry[p_Handle].AssetData;
+			m_AssetRegistry[p_Handle].AssetData = nullptr;
+			m_AssetRegistry[p_Handle] = p_Metadata;
+
+			m_LoadedAssets[p_Handle] = asset;
+			return asset;
+		}
+		else if (m_Config.LoadAssetsFromMemory)
+		{
+			auto asset = AssetImporter::ImportAssetFromMemory(p_Handle, p_Metadata, m_AssetCache[p_Handle]->GetBuffer());
+			if (!asset)
+			{
+				KTN_CORE_ERROR("AssetManager::LoadAsset - Load Asset from memory failed!");
+				return nullptr;
+			}
+
+			delete m_AssetRegistry[p_Handle].AssetData;
+			m_AssetRegistry[p_Handle].AssetData = nullptr;
+			m_AssetRegistry[p_Handle] = p_Metadata;
+
+			m_LoadedAssets[p_Handle] = asset;
+			return asset;
+		}
+
+		KTN_CORE_ERROR("AssetManager::LoadAsset - Something went wrong! LoadAssetsFromPath or LoadAssetsFromMemory must be true.");
 		return nullptr;
 	}
 
@@ -317,7 +364,7 @@ namespace KTN
 
 		out.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
-		for (const auto& [handle, metadata] : m_AssetRegistry)
+		for (auto& [handle, metadata] : m_AssetRegistry)
 		{
 			out.write(reinterpret_cast<const char*>(&handle), sizeof(handle));
 			out.write(reinterpret_cast<const char*>(&metadata.Type), sizeof(metadata.Type));
@@ -403,10 +450,18 @@ namespace KTN
 
 			if (metadata.Type == AssetType::Prefab)
 			{
-				auto prefab = GetAsset<Prefab>(handle);
+				// TODO
+
+				delete metadata.AssetData;
+				metadata.AssetData = nullptr;
+				metadata.AssetData = new PrefabContext{ 0, SceneManager::GetActiveScenes()[0]->Handle };
+
+				auto prefab = LoadAsset<Prefab>(handle, metadata);
 				KTN_CORE_ASSERT(prefab, "Prefab is nullptr!");
 
 				PrefabImporter::SavePrefabBin(out, prefab);
+
+				prefab->Entt.Destroy();
 			}
 		}
 	}

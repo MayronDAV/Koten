@@ -157,7 +157,7 @@ namespace KTN
 
 			const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(s_Data->AppAssemblyImage, MONO_TABLE_TYPEDEF);
 			int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
-			MonoClass* entityClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "Entity");
+			MonoClass* entityClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "ScriptBehavior");
 
 			for (int32_t i = 0; i < numTypes; i++)
 			{
@@ -322,7 +322,7 @@ namespace KTN
 			return;
 		}
 
-		s_Data->EntityClass = ScriptClass("KTN", "Entity", true);
+		s_Data->EntityClass = ScriptClass("KTN", "ScriptBehavior", true);
 	}
 
 	void ScriptEngine::Shutdown()
@@ -521,7 +521,7 @@ namespace KTN
 		}
 
 		// Retrieve and instantiate class
-		s_Data->EntityClass = ScriptClass("KTN", "Entity", true);
+		s_Data->EntityClass = ScriptClass("KTN", "ScriptBehavior", true);
 	}
 
 	void ScriptEngine::RecompileAppAssembly()
@@ -547,7 +547,7 @@ namespace KTN
 		}
 
 		// Retrieve and instantiate class
-		s_Data->EntityClass = ScriptClass("KTN", "Entity", true);
+		s_Data->EntityClass = ScriptClass("KTN", "ScriptBehavior", true);
 	}
 
 	bool ScriptEngine::EntityClassExists(const std::string& p_FullClassName)
