@@ -2,41 +2,56 @@ AssetRegistry:
   - Handle: 2566776566270304147
     FilePath: Textures\checkerboard.png
     Type: Texture2D
+    SerializeAssetData: true
   - Handle: 3434738318904853432
     FilePath: Scenes\Physic.ktscn
     Type: Scene
+    SerializeAssetData: true
   - Handle: 8980688827075891201
     FilePath: Scenes\Script.ktscn
     Type: Scene
+    SerializeAssetData: true
   - Handle: 9502784354411428008
     FilePath: Scenes\Example1.ktscn
     Type: Scene
+    SerializeAssetData: true
   - Handle: 12271434598275799779
     FilePath: Fonts\Arial\Arial Regular.ttf
     Type: Font
+    SerializeAssetData: true
   - Handle: 14741027536934809899
     FilePath: Textures\RPGpack_sheet.png
     Type: Texture2D
+    SerializeAssetData: true
   - Handle: 14825518371462149883
     FilePath: Scenes\Hierarchy.ktscn
     Type: Scene
-  - Handle: 15067756456627096400
-    FilePath: Prefabs\Circle.ktprefab
+    SerializeAssetData: true
+  - Handle: 15417427832436463977
+    FilePath: Prefabs\Player.ktprefab
     Type: Prefab
-    AssetData:
-      {}
+    SerializeAssetData: false
   - Handle: 15556688609004031601
     FilePath: Scenes\Example2.ktscn
     Type: Scene
+    SerializeAssetData: true
+  - Handle: 15984850507640491793
+    FilePath: Prefabs\Circle.ktprefab
+    Type: Prefab
+    SerializeAssetData: false
   - Handle: 16295214029103593474
     FilePath: Scenes\Text.ktscn
     Type: Scene
+    SerializeAssetData: true
   - Handle: 16476766747718580719
     FilePath: Materials\Default.ktasset
     Type: PhysicsMaterial2D
+    SerializeAssetData: true
   - Handle: 16701336105888932281
     FilePath: Scenes\Example.ktscn
     Type: Scene
+    SerializeAssetData: true
   - Handle: 16725911295934914230
     FilePath: Textures\wall.jpg
     Type: Texture2D
+    SerializeAssetData: true

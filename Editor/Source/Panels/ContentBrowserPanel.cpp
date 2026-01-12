@@ -82,6 +82,7 @@ namespace KTN
 						metadata.AssetData = new PrefabContext{ (uint32_t)entt.GetHandle(), entt.GetScene()->Handle };
 						metadata.FilePath = path;
 						metadata.Type = AssetType::Prefab;
+						metadata.SerializeAssetData = false;
 						auto handle = AssetManager::Get()->ImportAsset(metadata);
 
 						auto prefab = CreateRef<Prefab>();
@@ -466,6 +467,7 @@ namespace KTN
 									metadata.AssetData = new PrefabContext{ enttID, entt.GetScene()->Handle };
 									metadata.FilePath = path;
 									metadata.Type = AssetType::Prefab;
+									metadata.SerializeAssetData = false;
 									auto handle = AssetManager::Get()->ImportAsset(metadata);
 
 									auto prefab = CreateRef<Prefab>();

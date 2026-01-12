@@ -34,6 +34,11 @@ namespace Sandbox
 			pos.X = 10.0f;
 			pos.Y = 10.0f;
 			Instantiate(circle, pos, Vector3.Zero);
+
+			var player = AssetManager.FindWithPath("Prefabs\\Player.ktprefab");
+			pos.X = -5.0f;
+			pos.Y = 10.0f;
+			Instantiate(player, pos, Vector3.Zero);
 		}
 
 		void OnTriggerEnter(ulong p_Sensor)

@@ -30,6 +30,179 @@ namespace KTN
 			return scene;
 		}
 
+		struct ReadStream
+		{
+			std::ifstream* InStream;
+			BufferReader* Buffer;
+		};
+
+		static void SerializeEntityRecursive(YAML::Emitter& p_Out, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto& registry = p_Entity.GetScene()->GetRegistry();
+
+			auto hcomp = p_Entity.TryGetComponent<HierarchyComponent>();
+
+			HierarchyComponent backup{};
+			bool hasHierarchy = false;
+
+			if (hcomp)
+			{
+				backup = *hcomp;
+				hcomp->Parent = entt::null;
+				hcomp->First = entt::null;
+				hcomp->Next = entt::null;
+				hcomp->Prev = entt::null;
+				hasHierarchy = true;
+			}
+
+			p_Out << YAML::BeginMap;
+
+			p_Out << YAML::Key << "Entity";
+			p_Out << YAML::BeginMap;
+
+			EntitySerializer::Serialize(&p_Out, p_Entity);
+
+			if (hasHierarchy)
+				*hcomp = backup;
+
+			p_Out << YAML::Key << "Children";
+			p_Out << YAML::Value << YAML::BeginSeq;
+
+			if (hcomp)
+			{
+				entt::entity child = hcomp->First;
+				while (child != entt::null && registry.valid(child))
+				{
+					SerializeEntityRecursive(p_Out, Entity{ child, p_Entity.GetScene() });
+
+					auto* ch = registry.try_get<HierarchyComponent>(child);
+					child = ch ? ch->Next : entt::null;
+				}
+			}
+
+			p_Out << YAML::EndSeq;
+			p_Out << YAML::EndMap;
+			p_Out << YAML::EndMap;
+		}
+
+		static Entity DeserializeEntityRecursive(const YAML::Node& p_Node, const Ref<Scene>& p_Scene, Entity p_Parent = {})
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = p_Scene->CreateEntity("Child Prefab");
+
+			auto node = p_Node["Entity"];
+			EntitySerializer::Deserialize(&node, entity);
+
+			if (p_Parent)
+				entity.SetParent(p_Parent);
+
+			const auto& children = node["Children"];
+			if (children)
+			{
+				for (const auto& childNode : children)
+				{
+					DeserializeEntityRecursive(childNode, p_Scene, entity);
+				}
+			}
+
+			return entity;
+		}
+
+		static void SerializeEntityRecursive(std::ofstream& p_Out, Entity p_Entity)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto& registry = p_Entity.GetScene()->GetRegistry();
+
+			auto hcomp = p_Entity.TryGetComponent<HierarchyComponent>();
+
+			HierarchyComponent backup{};
+			bool hasHierarchy = false;
+
+			if (hcomp)
+			{
+				backup = *hcomp;
+				hcomp->Parent = entt::null;
+				hcomp->First = entt::null;
+				hcomp->Next = entt::null;
+				hcomp->Prev = entt::null;
+				hasHierarchy = true;
+			}
+
+			EntitySerializer::SerializeBin(p_Out, p_Entity);
+
+			if (hasHierarchy)
+				*hcomp = backup;
+
+			std::vector<Entity> children;
+
+			if (hasHierarchy)
+			{
+				entt::entity child = backup.First;
+				while (child != entt::null && registry.valid(child))
+				{
+					children.emplace_back(child, p_Entity.GetScene());
+
+					auto* ch = registry.try_get<HierarchyComponent>(child);
+					child = ch ? ch->Next : entt::null;
+				}
+			}
+
+			uint32_t count = (uint32_t)children.size();
+			p_Out.write(reinterpret_cast<const char*>(&count), sizeof(count));
+
+			for (auto& child : children)
+				SerializeEntityRecursive(p_Out, child);
+		}
+
+		static Entity DeserializeEntityRecursive(ReadStream& p_In, Scene* p_Scene, Entity p_Parent = {})
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			Entity entity = p_Scene->CreateEntity("Child Prefab");
+
+			if (p_In.InStream)
+				EntitySerializer::DeserializeBin(*p_In.InStream, entity);
+			else if (p_In.Buffer)
+				EntitySerializer::DeserializeBin(*p_In.Buffer, entity);
+			else return {};
+
+			if (p_Parent)
+				entity.SetParent(p_Parent);
+
+			uint32_t childCount = 0;
+			if (p_In.InStream)
+				p_In.InStream->read(reinterpret_cast<char*>(&childCount), sizeof(childCount));
+			else if (p_In.Buffer)
+				p_In.Buffer->ReadBytes(&childCount, sizeof(childCount));
+
+			for (uint32_t i = 0; i < childCount; i++)
+			{
+				DeserializeEntityRecursive(p_In, p_Scene, entity);
+			}
+
+			return entity;
+		}
+
+		static void DeserializeEntityRecursive(std::ifstream& p_In, Buffer& p_Buffer)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			EntitySerializer::DeserializeBin(p_In, p_Buffer);
+
+			uint32_t childCount = 0;
+			p_In.read(reinterpret_cast<char*>(&childCount), sizeof(childCount));
+			p_Buffer.Write(&childCount, sizeof(childCount));
+
+			for (uint32_t i = 0; i < childCount; i++)
+			{
+				DeserializeEntityRecursive(p_In, p_Buffer);
+			}
+		}
+
 	} // namespace
 
 	Ref<Prefab> PrefabImporter::ImportPrefab(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
@@ -86,7 +259,7 @@ namespace KTN
 
 		if (FileSystem::GetExtension(p_Path) != ".ktprefab")
 		{
-			KTN_CORE_ERROR("Failed to load file '{0}'\n     Wrong extension!", p_Path);
+			KTN_CORE_ERROR("Failed to load file '{}'\n     Wrong extension!", p_Path);
 			return nullptr;
 		}
 
@@ -95,30 +268,29 @@ namespace KTN
 		{
 			data = YAML::LoadFile(p_Path);
 		}
-		catch (YAML::ParserException e)
+		catch (const YAML::ParserException& e)
 		{
-			KTN_CORE_ERROR("Failed to load .ktprefab file '{0}'\n     {1}", p_Path, e.what());
+			KTN_CORE_ERROR("Failed to load .ktprefab file '{}'\n     {}", p_Path, e.what());
 			return nullptr;
 		}
 
-		Ref<Prefab> prefab = CreateRef<Prefab>();
-		prefab->Path = p_Path;
-
-		if (!data["AssetHandle"])
+		if (!data["AssetHandle"] || !data["Root"])
 		{
-			KTN_CORE_ERROR("Failed to load file '{0}'\n     The AssetHandle data doesn't exist!", p_Path);
+			KTN_CORE_ERROR("Failed to load file '{}'\n     Invalid prefab format!", p_Path);
 			return nullptr;
-		}	
-		prefab->Handle = data["AssetHandle"].as<uint64_t>();
+		}
 
 		Ref<Scene> scene = GetScene(p_SceneHandle);
-		if (!scene) return nullptr;
+		if (!scene)
+			return nullptr;
 
-		Entity deserializedEntt = scene->CreateEntity("Entity Prefab");
+		Ref<Prefab> prefab = CreateRef<Prefab>();
+		prefab->Path = p_Path;
+		prefab->Handle = data["AssetHandle"].as<uint64_t>();
 
-		EntitySerializer::Deserialize(&data, deserializedEntt);
+		Entity root = DeserializeEntityRecursive(data["Root"], scene);
 
-		prefab->Entt = deserializedEntt;
+		prefab->Entt = root;
 		return prefab;
 	}
 
@@ -128,8 +300,14 @@ namespace KTN
 
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+
 		out << YAML::Key << "AssetHandle" << YAML::Value << p_Prefab->Handle;
-		EntitySerializer::Serialize(&out, p_Prefab->Entt);
+
+		out << YAML::Key << "Root";
+		out << YAML::Value;
+
+		SerializeEntityRecursive(out, p_Prefab->Entt);
+
 		out << YAML::EndMap;
 
 		std::ofstream fout(p_Prefab->Path);
@@ -156,7 +334,7 @@ namespace KTN
 
 		p_Out.write(reinterpret_cast<const char*>(&p_Prefab->Handle), sizeof(AssetHandle));
 
-		EntitySerializer::SerializeBin(p_Out, p_Prefab->Entt);
+		SerializeEntityRecursive(p_Out, p_Prefab->Entt);
 	}
 
 	void PrefabImporter::SaveAsPrefabBin(std::ofstream& p_Out, Entity p_Entt, const std::string& p_Path)
@@ -175,18 +353,19 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		auto scene = GetScene(p_SceneHandle);
+		if (!scene) return nullptr;
+
 		auto prefab = CreateRef<Prefab>();
 
 		AssetHandle prefabHandle;
 		p_In.read(reinterpret_cast<char*>(&prefabHandle), sizeof(prefabHandle));
 		prefab->Handle = prefabHandle;
 
-		auto scene = GetScene(p_SceneHandle);
-		if (!scene) return nullptr;
+		ReadStream stream = {};
+		stream.InStream = &p_In;
 
-		Entity entt = scene->CreateEntity("Entity Prefab");
-
-		EntitySerializer::DeserializeBin(p_In, entt);
+		Entity entt = DeserializeEntityRecursive(stream, scene.get());
 
 		prefab->Entt = entt;
 		return prefab;
@@ -196,6 +375,9 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
+		auto scene = GetScene(p_SceneHandle);
+		if (!scene) return nullptr;
+
 		BufferReader reader(p_In);
 
 		auto prefab = CreateRef<Prefab>();
@@ -204,12 +386,10 @@ namespace KTN
 		reader.ReadBytes(&prefabHandle, sizeof(prefabHandle));
 		prefab->Handle = prefabHandle;
 
-		auto scene = GetScene(p_SceneHandle);
-		if (!scene) return nullptr;
+		ReadStream stream = {};
+		stream.Buffer = &reader;
 
-		Entity entt = scene->CreateEntity("Entity Prefab");
-
-		EntitySerializer::DeserializeBin(reader, entt);
+		Entity entt = DeserializeEntityRecursive(stream, scene.get());
 
 		prefab->Entt = entt;
 		return prefab;
@@ -223,7 +403,7 @@ namespace KTN
 		p_In.read(reinterpret_cast<char*>(&prefabHandle), sizeof(prefabHandle));
 		p_Buffer.Write(&prefabHandle, sizeof(prefabHandle));
 
-		EntitySerializer::DeserializeBin(p_In, p_Buffer);
+		DeserializeEntityRecursive(p_In, p_Buffer);
 	}
 
 }

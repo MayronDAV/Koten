@@ -1,0 +1,100 @@
+AssetHandle: 15417427832436463977
+Root:
+  Entity:
+    TagComponent:
+      Tag: Player
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 1, 1, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    HierarchyComponent:
+      Parent: 0
+      First: 0
+      Prev: 0
+      Next: 0
+      ChildCount: 1
+    Rigidbody2DComponent:
+      IsTrigger: false
+      Mass: 1
+      PhysicsMaterial2D: 16476766747718580719
+      LinearDamping: 0
+      AngularDamping: 0.1
+      GravityScale: 1
+      FixedRotation: false
+      Sleeping: false
+      CanSleep: true
+    BodyShape2DComponent:
+      Shape: 0
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+    PrefabComponent:
+      Path: Prefabs\Player.ktprefab
+    Children:
+      - Entity:
+          TagComponent:
+            Tag: Child
+          RuntimeComponent:
+            Enabled: true
+            Active: true
+          TransformComponent:
+            Translation: [0, 0.8, 0]
+            Rotation: [0, 0, 0]
+            Scale: [0.5, 0.5, 1]
+          SpriteComponent:
+            Type: 0
+            Color: [1, 1, 1, 1]
+            Texture: 0
+            Thickness: 1
+            Fade: 0.005
+            Size: [0, 0]
+            BySize: true
+            Offset: [0, 0]
+            Scale: [1, 1]
+          HierarchyComponent:
+            Parent: 0
+            First: 0
+            Prev: 0
+            Next: 0
+            ChildCount: 1
+          Children:
+            - Entity:
+                TagComponent:
+                  Tag: Child 2
+                RuntimeComponent:
+                  Enabled: true
+                  Active: true
+                TransformComponent:
+                  Translation: [0.9, 0, 0]
+                  Rotation: [0, 0, 0]
+                  Scale: [0.25, 0.25, 1]
+                SpriteComponent:
+                  Type: 0
+                  Color: [1, 1, 1, 1]
+                  Texture: 0
+                  Thickness: 1
+                  Fade: 0.005
+                  Size: [0, 0]
+                  BySize: true
+                  Offset: [0, 0]
+                  Scale: [1, 1]
+                HierarchyComponent:
+                  Parent: 0
+                  First: 0
+                  Prev: 0
+                  Next: 0
+                  ChildCount: 0
+                Children:
+                  []

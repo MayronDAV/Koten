@@ -450,13 +450,7 @@ namespace KTN
 
 			if (metadata.Type == AssetType::Prefab)
 			{
-				// TODO
-
-				delete metadata.AssetData;
-				metadata.AssetData = nullptr;
-				metadata.AssetData = new PrefabContext{ 0, SceneManager::GetActiveScenes()[0]->Handle };
-
-				auto prefab = LoadAsset<Prefab>(handle, metadata);
+				auto prefab = PrefabImporter::LoadPrefab(SceneManager::GetActiveScenes()[0]->Handle, metadata.FilePath);
 				KTN_CORE_ASSERT(prefab, "Prefab is nullptr!");
 
 				PrefabImporter::SavePrefabBin(out, prefab);
@@ -618,7 +612,8 @@ namespace KTN
 				out << YAML::Key << "Handle" << YAML::Value << handle;
 				out << YAML::Key << "FilePath" << YAML::Value << FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string());
 				out << YAML::Key << "Type" << YAML::Value << (std::string)GetAssetTypeName(metadata.Type);
-				if (metadata.AssetData)
+				out << YAML::Key << "SerializeAssetData" << YAML::Value << metadata.SerializeAssetData;
+				if (metadata.AssetData && metadata.SerializeAssetData)
 				{
 					out << YAML::Key << "AssetData" << YAML::Value << YAML::BeginMap;
 					auto assetData = metadata.AssetData;
@@ -710,6 +705,7 @@ namespace KTN
 			metadata.FilePath = (Project::GetAssetDirectory() / node["FilePath"].as<std::string>()).string();
 			auto type = node["Type"].as<std::string>();
 			metadata.Type = GetAssetTypeFromName(type.c_str());
+			metadata.SerializeAssetData = node["SerializeAssetData"].as<bool>();
 
 			if (node["AssetData"])
 			{

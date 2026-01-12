@@ -160,6 +160,27 @@ namespace KTN
 					}
 				}
 
+				auto hcomp = entt.TryGetComponent<HierarchyComponent>();
+				if (hcomp)
+				{
+					KTN_CORE_INFO("Parent: {}, First: {}, Prev: {}, Next: {}",
+						(uint32_t)hcomp->Parent, (uint32_t)hcomp->First, (uint32_t)hcomp->Prev, (uint32_t)hcomp->Next)
+
+					auto& registry = entt.GetScene()->GetRegistry();
+					entt::entity child = hcomp->First;
+					while (child != entt::null && registry.valid(child))
+					{
+						auto* ch = registry.try_get<HierarchyComponent>(child);
+
+						if (ch)
+						{
+							KTN_CORE_INFO("Parent: {}, First: {}, Prev: {}, Next: {}",
+								(uint32_t)ch->Parent, (uint32_t)ch->First, (uint32_t)ch->Prev, (uint32_t)ch->Next)
+						}
+						child = ch ? ch->Next : entt::null;
+					}
+				}
+
 				return { entt.GetUUID(), sceneHandle, 0 };
 			}
 

@@ -80,8 +80,22 @@ namespace KTN
 		if (noChildren)
 			flags |= ImGuiTreeNodeFlags_Leaf;
 
+		bool parentIsPrefab = false;
+		if (hierarchyComponent)
+		{
+			auto parent = p_Entt.GetParent();
+			while (parent)
+			{
+				auto prefab = parent.TryGetComponent<PrefabComponent>();
+				parentIsPrefab = prefab != nullptr;
+				if (parentIsPrefab) break;
+
+				parent = parent.GetParent();
+			}
+		}
+
 		bool isPrefab = p_Entt.HasComponent<PrefabComponent>();
-		if (isPrefab)
+		if (isPrefab || parentIsPrefab)
 			ImGui::PushStyleColor(ImGuiCol_Text, { 0.0f, 1.0f, 1.0f, 1.0f });
 
 		{
@@ -109,7 +123,7 @@ namespace KTN
 			ImGui::EndDragDropSource();
 		}
 
-		if (isPrefab)
+		if (isPrefab || parentIsPrefab)
 			ImGui::PopStyleColor();
 
 		if (ImGui::IsItemClicked())
