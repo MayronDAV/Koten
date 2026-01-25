@@ -1,0 +1,25 @@
+AssetRegistry:
+  - Handle: 3912666485704849466
+    FilePath: Textures\can.png
+    Type: Texture2D
+    SerializeAssetData: true
+  - Handle: 7980078156861383348
+    FilePath: Materials\Default.ktasset
+    Type: PhysicsMaterial2D
+    SerializeAssetData: true
+  - Handle: 8490365996118832830
+    FilePath: Scenes\Main.ktscn
+    Type: Scene
+    SerializeAssetData: true
+  - Handle: 12683029619627609206
+    FilePath: Prefabs\Can.ktprefab
+    Type: Prefab
+    SerializeAssetData: false
+  - Handle: 12721382578166247808
+    FilePath: Textures\apple.png
+    Type: Texture2D
+    SerializeAssetData: true
+  - Handle: 14396906392080750853
+    FilePath: Prefabs\Apple.ktprefab
+    Type: Prefab
+    SerializeAssetData: false
