@@ -27,6 +27,9 @@ namespace KTN
         #region Object
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static ObjectHandle Object_Instantiate(ObjectHandle p_Handle, ref Vector3 p_Postion, ref Vector3 p_Rotation);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Object_Destroy(ObjectHandle p_Handle);
         #endregion
 
         #region AssetManager

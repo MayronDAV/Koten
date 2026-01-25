@@ -9,6 +9,7 @@
 #include "Koten/Scene/SceneManager.h"
 #include "Koten/Systems/B2Physics.h"
 #include "Koten/Asset/PrefabImporter.h"
+#include "Koten/Core/Application.h"
 
 // lib
 #include <mono/metadata/object.h>
@@ -61,7 +62,7 @@ namespace KTN
 			if (!p_Handle.SceneHandle)
 				return SceneManager::GetEntityByUUID(p_Handle.ID);
 
-			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle.SceneHandle);
+			auto scene = SceneManager::GetScene(p_Handle.SceneHandle);
 			return scene->GetEntityByUUID(p_Handle.ID);
 		}
 
@@ -190,6 +191,32 @@ namespace KTN
 
 			return p_Handle;
 		}
+		
+		static void Object_Destroy(ObjectHandle p_Handle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto type = (AssetType)p_Handle.Type;
+
+			if (type == AssetType::None)
+			{
+				auto entt = FindWithUUID(p_Handle);
+				if (!entt)
+				{
+					KTN_CORE_ERROR("Failed to destroy the object. Please provide a valid uuid! Handle: (ID: {}, SceneHandle: {}, Type: {})",
+						p_Handle.ID, p_Handle.SceneHandle, p_Handle.Type);
+					return;
+				}
+
+				entt.Destroy();
+			}
+
+			if (AssetManager::Get()->IsAssetHandleValid(p_Handle.ID))
+			{
+				AssetManager::Get()->RemoveAsset(p_Handle.ID);
+			}
+		}
+
 		#pragma endregion
 
 		#pragma region AssetManager
@@ -1123,6 +1150,7 @@ namespace KTN
 		KTN_ADD_INTERNAL_CALL(GetScriptInstance);
 
 		KTN_ADD_INTERNAL_CALL(Object_Instantiate);
+		KTN_ADD_INTERNAL_CALL(Object_Destroy);
 
 		KTN_ADD_INTERNAL_CALL(AssetManager_FindWithPath);
 		KTN_ADD_INTERNAL_CALL(AssetManager_IsAssetHandleValid);

@@ -6,6 +6,7 @@
 #include "Koten/Asset/SceneImporter.h"
 #include "Koten/Graphics/Renderer.h"
 #include "Koten/Core/Application.h"
+#include "Koten/Scene/SceneSerializer.h"
 
 // std
 #include <future>
@@ -436,21 +437,38 @@ namespace KTN
 		}
 	}
 
-	AssetHandle SceneManager::New()
+	AssetHandle SceneManager::New(const std::string& p_Path, const SceneConfig& p_Config)
 	{
 		KTN_PROFILE_FUNCTION();
 
-		auto scene = CreateRef<Scene>();
-		s_Data->Scenes.push_back(scene);
-		AssetMetadata metadata = {};
-		metadata.Type = AssetType::Scene;
-		metadata.FilePath = "";
 		AssetHandle handle;
-		if (AssetManager::Get()->ImportAsset(handle, metadata, scene))
+		if (New(handle, p_Path, p_Config))
 			return handle;
 
 		KTN_CORE_ERROR("Failed to create new scene!");
 		return 0;
+	}
+
+	bool SceneManager::New(AssetHandle p_Handle, const std::string& p_Path, const SceneConfig& p_Config)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto scene = CreateRef<Scene>();
+		scene->Handle = p_Handle;
+		scene->GetConfig() = p_Config;
+		s_Data->Scenes.push_back(scene);
+
+		if (!p_Path.empty())
+		{
+			SceneSerializer serializer(scene);
+			serializer.Serialize(p_Path);
+		}
+
+		AssetMetadata metadata = {};
+		metadata.Type = AssetType::Scene;
+		metadata.FilePath = p_Path;
+
+		return AssetManager::Get()->ImportAsset(p_Handle, metadata, scene);
 	}
 
 	bool SceneManager::Save(AssetHandle p_Handle)
@@ -475,6 +493,19 @@ namespace KTN
 			return;
 		}
 		SceneImporter::SaveScene(scene, p_Path);
+	}
+
+	bool SceneManager::Exists(AssetHandle p_Handle)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto& scenes = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy : s_Data->Scenes;
+		auto it = std::find_if(scenes.begin(), scenes.end(), [&](const Ref<Scene>& p_Scene)
+		{
+			return p_Scene->Handle == p_Handle;
+		});
+
+		return it != scenes.end();
 	}
 
 	Ref<Scene> SceneManager::GetScene(AssetHandle p_Handle)

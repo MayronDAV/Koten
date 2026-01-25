@@ -1,5 +1,6 @@
 #include "HierarchyPanel.h"
 #include "Editor.h"
+#include "SceneEditPanel.h"
 
 // lib
 #include <imgui.h>
@@ -30,6 +31,31 @@ namespace KTN
 			flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_DefaultOpen;
 
 			bool opened = ImGui::TreeNodeEx((void*)(uint64_t)scene->Handle, flags, name.c_str());
+
+			if (ImGui::BeginPopupContextItem())
+			{
+				if (ImGui::MenuItem(ICON_MDI_FLOPPY " Save"))
+				{
+					m_Editor->SaveScene(scene->Handle);
+				}
+
+				if (ImGui::MenuItem(ICON_MDI_FLOPPY " Save As"))
+				{
+					m_Editor->SaveSceneAs(scene->Handle);
+				}
+
+				if (ImGui::MenuItem(ICON_MDI_PEN " Edit"))
+				{
+					m_Editor->GetSceneEditPanel()->Edit(scene->Handle);
+				}
+
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Create Empty Entity"))
+					scene->CreateEntity("Empty Entity");
+
+				ImGui::EndPopup();
+			}
 
 			if (opened)
 			{

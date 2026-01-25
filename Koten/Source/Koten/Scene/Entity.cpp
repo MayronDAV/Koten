@@ -92,6 +92,12 @@ namespace KTN
 
 	void Entity::Destroy()
 	{
+		if (!m_Scene || m_Handle == entt::null)
+			return;
+
+		if (!m_Scene->GetRegistry().valid(m_Handle))
+			return;
+
 		auto rbody2DComponent = TryGetComponent<Rigidbody2DComponent>();
 		if (rbody2DComponent)
 		{

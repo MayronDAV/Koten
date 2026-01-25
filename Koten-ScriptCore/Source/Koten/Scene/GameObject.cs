@@ -27,6 +27,17 @@ namespace KTN
             return component;
         }
 
+        public void Destroy()
+        {
+            Object.DestroyObject(this);
+        }
+
+        public bool IsValid()
+        {
+            var obj = new ObjectHandle() { ID = ID, SceneHandle = SceneHandle, Type = Type };
+            return InternalCalls.GameObject_IsValid(obj);
+        }
+
         static public GameObject FindWithTag(string p_Tag)
         {
             var handle = InternalCalls.GameObject_FindWithTag(p_Tag);

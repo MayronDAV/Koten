@@ -27,6 +27,12 @@ namespace KTN
         public ulong SceneHandle { get; internal set; }
         internal Int32 Type = 0;
 
+        static internal void DestroyObject(Object p_Object)
+        {
+            var handle = new ObjectHandle(p_Object.ID, p_Object.SceneHandle) { Type = p_Object.Type };
+            InternalCalls.Object_Destroy(handle);
+        }
+
         static internal Object InstantiateObject(Object p_Object, Vector3 p_Position, Vector3 p_Rotation)
         {
             var handle = InternalCalls.Object_Instantiate(new ObjectHandle { ID = p_Object.ID, SceneHandle = p_Object.SceneHandle, Type = p_Object.Type }, ref p_Position, ref p_Rotation);

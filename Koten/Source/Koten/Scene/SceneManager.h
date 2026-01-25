@@ -41,9 +41,12 @@ namespace KTN
 			static void LoadAsync(AssetHandle p_Handle, LoadMode p_Mode);
 			static void Unload(AssetHandle p_Handle, bool p_ThreadSafe = false);
 
-			static AssetHandle New();
+			static AssetHandle New(const std::string& p_Path = "", const SceneConfig& p_Config = {});
+			static bool New(AssetHandle p_Handle, const std::string& p_Path = "", const SceneConfig& p_Config = {});
 			static bool Save(AssetHandle p_Handle);
 			static void SaveAs(AssetHandle p_Handle, const std::string& p_Path);
+
+			static bool Exists(AssetHandle p_Handle);
 
 			static Ref<Scene> GetScene(AssetHandle p_Handle);
 			static const std::vector<Ref<Scene>>& GetLoadedScenes();

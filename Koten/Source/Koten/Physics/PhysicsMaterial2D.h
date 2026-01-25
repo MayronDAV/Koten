@@ -1,6 +1,7 @@
 #pragma once
 #include "Koten/Core/Base.h"
 #include "Koten/Asset/Asset.h"
+#include "Koten/Core/Buffer.h"
 
 
 

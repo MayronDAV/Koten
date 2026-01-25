@@ -71,31 +71,31 @@ namespace KTN
 					{ m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
 				};
 
-				bool imguizmo = (m_GuizmoType != 0 && ImGuizmo::IsOver()) || ImGuizmo::IsUsing();
-				if (Engine::Get().GetSettings().MousePicking && !ImGui::IsDragDropActive() && !imguizmo)
-				{
-					auto [mx, my] = ImGui::GetMousePos();
-					mx -= viewportBounds[0].x;
-					my -= viewportBounds[0].y;
-					if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-						my = m_Height - my;
+				//bool imguizmo = (m_GuizmoType != 0 && ImGuizmo::IsOver()) || ImGuizmo::IsUsing();
+				//if (Engine::Get().GetSettings().MousePicking && !ImGui::IsDragDropActive() && !imguizmo)
+				//{
+				//	auto [mx, my] = ImGui::GetMousePos();
+				//	mx -= viewportBounds[0].x;
+				//	my -= viewportBounds[0].y;
+				//	if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
+				//		my = m_Height - my;
 
-					glm::ivec2 mouse = { (int)mx, (int)my };
+				//	glm::ivec2 mouse = { (int)mx, (int)my };
 
-					if ((mouse.x >= 0 && mouse.x < (int)m_Width) &&
-						(mouse.y >= 0 && mouse.y < (int)m_Height))
-					{
-						if (Input::IsMouseButtonPressed(Mouse::Button_Left))
-						{
-							auto texture = Renderer::GetPickingTexture();
-							int id = static_cast<int>((intptr_t)RendererCommand::ReadPixel(texture, mouse.x, mouse.y));
-							/*if (id >= 0)
-								m_Editor->SetSelectedEntt({ (entt::entity)id, m_Context.get() });
-							else
-								m_Editor->UnSelectEntt();*/
-						}
-					}
-				}
+				//	if ((mouse.x >= 0 && mouse.x < (int)m_Width) &&
+				//		(mouse.y >= 0 && mouse.y < (int)m_Height))
+				//	{
+				//		if (Input::IsMouseButtonPressed(Mouse::Button_Left))
+				//		{
+				//			auto texture = Renderer::GetPickingTexture();
+				//			int id = static_cast<int>((intptr_t)RendererCommand::ReadPixel(texture, mouse.x, mouse.y));
+				//			if (id >= 0)
+				//				m_Editor->SetSelectedEntt({ (entt::entity)id, m_Context.get() });
+				//			else
+				//				m_Editor->UnSelectEntt();
+				//		}
+				//	}
+				//}
 
 
 				// Gizmos

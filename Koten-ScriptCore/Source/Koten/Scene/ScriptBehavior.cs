@@ -28,6 +28,11 @@ namespace KTN
             return GameObject.GetComponent<T>();
         }
 
+        public void Destroy(Object p_Object)
+        {
+            Object.DestroyObject(p_Object);
+        }
+
         public Object Instantiate(Object p_Object, Vector3 p_Position, Vector3 p_Rotation)
         {
             var obj = new Object(p_Object.ID, SceneHandle) { Type = p_Object.Type };

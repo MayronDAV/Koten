@@ -10,6 +10,7 @@ namespace KTN
 	class AssetImporterPanel;
 	class ProjectExporterPanel;
 	class MaterialPanel;
+	class SceneEditPanel;
 
 	enum class RuntimeState
 	{
@@ -35,10 +36,14 @@ namespace KTN
 			void OnImgui() override;
 			void OnEvent(Event& p_Event) override;
 
+			void SaveSceneAs(AssetHandle p_Scene);
+			void SaveScene(AssetHandle p_Scene);
+
 			bool IsSelected(Entity p_Entt) const { return p_Entt == m_SelectedEntt; }
 			Entity GetSelected() const { return m_SelectedEntt; }
 			Ref<AssetImporterPanel> GetAssetImporterPanel() { return m_AssetImporter; }
 			Ref<MaterialPanel> GetMaterialPanel() { return m_MaterialPanel; }
+			Ref<SceneEditPanel> GetSceneEditPanel() { return m_SceneEditPanel; }
 
 			const Ref<EditorCamera>& GetCamera() { return m_Camera; }
 
@@ -58,6 +63,7 @@ namespace KTN
 
 			void OpenScene();
 			void SaveSceneAs();
+			void SaveScene();
 
 		private:
 			std::vector<Ref<EditorPanel>> m_Panels;
@@ -65,6 +71,7 @@ namespace KTN
 			Ref<AssetImporterPanel> m_AssetImporter = nullptr;
 			Ref<ProjectExporterPanel> m_ProjectExporter = nullptr;
 			Ref<MaterialPanel> m_MaterialPanel = nullptr;
+			Ref<SceneEditPanel> m_SceneEditPanel = nullptr;
 
 			Entity m_SelectedEntt;
 			RuntimeState m_State = RuntimeState::Edit;

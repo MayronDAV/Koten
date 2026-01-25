@@ -109,7 +109,7 @@ namespace KTN
 					if (project)
 					{
 						m_ShouldOpenProject = true;
-						m_ProjectPath = (project->GetProjectDirectory() / "Project.ktproj").string();
+						m_ProjectPath = (project->GetProjectDirectory() / (projectName + ".ktproj")).string();
 					}
 					folderPath = "";
 					ImGui::CloseCurrentPopup();

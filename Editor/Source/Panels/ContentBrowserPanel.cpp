@@ -330,6 +330,11 @@ namespace KTN
 				{
 					SceneManager::Load(AssetManager::Get()->ImportAsset(AssetType::Scene, p_Path.string()), LoadMode::Single);
 				}
+
+				if (ImGui::MenuItem(ICON_MDI_PLUS_BOX " Add Scene"))
+				{
+					SceneManager::Load(AssetManager::Get()->ImportAsset(AssetType::Scene, p_Path.string()), LoadMode::Additive);
+				}
 			}
 
 			if (ImGui::MenuItem(ICON_MDI_RENAME_BOX " Rename"))

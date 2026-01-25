@@ -8,6 +8,7 @@
 #include "Panels/ProjectExporterPanel.h"
 #include "Panels/AssetRegistryPanel.h"
 #include "Panels/MaterialPanel.h"
+#include "Panels/SceneEditPanel.h"
 #include "Shortcuts.h"
 
 // lib
@@ -99,6 +100,8 @@ namespace KTN
 	
 	void Editor::Init()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		SceneManagerConfig config{};
 		config.CopyScenesOnPlay = true;
 		SceneManager::Init(config);
@@ -124,14 +127,16 @@ namespace KTN
 		m_AssetImporter = CreateRef<AssetImporterPanel>();
 		m_ProjectExporter = CreateRef<ProjectExporterPanel>();
 		m_MaterialPanel = CreateRef<MaterialPanel>();
+		m_SceneEditPanel = CreateRef<SceneEditPanel>();
 
+		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
+		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
+		m_Panels.emplace_back(CreateRef<InspectorPanel>());
+		m_Panels.emplace_back(m_SceneEditPanel);
 		m_Panels.emplace_back(m_AssetImporter);
 		m_Panels.emplace_back(m_Settings);
 		m_Panels.emplace_back(m_ProjectExporter);
 		m_Panels.emplace_back(m_MaterialPanel);
-		m_Panels.emplace_back(CreateRef<SceneViewPanel>());
-		m_Panels.emplace_back(CreateRef<HierarchyPanel>());
-		m_Panels.emplace_back(CreateRef<InspectorPanel>());
 		m_Panels.emplace_back(CreateRef<AssetRegistryPanel>());
 
 		auto contentBrowser = CreateRef<ContentBrowserPanel>(Project::GetAssetDirectory().string());
@@ -458,6 +463,8 @@ namespace KTN
 	
 	void Editor::OnDetach()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		UnSelectEntt();
 
 		ImGuizmo::Shutdown();
@@ -533,6 +540,48 @@ namespace KTN
 		});
 	}
 
+	void Editor::SaveSceneAs(AssetHandle p_Scene)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!p_Scene) return;
+
+		if (!SceneManager::Exists(p_Scene)) return;
+
+		std::string path = "";
+		if (FileDialog::Save(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+		{
+			if (path.find(".ktscn") == std::string::npos)
+				path += ".ktscn";
+
+			SceneManager::SaveAs(p_Scene, path);
+		}
+	}
+
+	void Editor::SaveScene(AssetHandle p_Scene)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!SceneManager::Exists(p_Scene) || !AssetManager::Get()->IsAssetHandleValid(p_Scene)) return;
+
+		auto& path = AssetManager::Get()->GetMetadata(p_Scene).FilePath;
+		if (path.empty())
+		{
+			std::string newPath = "";
+			if (FileDialog::Save(".ktscn", Project::GetAssetDirectory().string(), newPath) == FileDialogResult::SUCCESS)
+			{
+				if (newPath.find(".ktscn") == std::string::npos)
+					newPath += ".ktscn";
+
+				SceneManager::SaveAs(p_Scene, newPath);
+				path = newPath;
+			}
+			return;
+		}
+
+		SceneManager::SaveAs(p_Scene, path);
+	}
+
 	void Editor::OpenProject(const std::filesystem::path& p_Path)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -553,10 +602,22 @@ namespace KTN
 
 	void Editor::DrawMenuBar()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("New Scene"))
+				{
+					m_SceneEditPanel->Create();
+				}
+
+				ImGui::Separator();
+
+				if (ImGui::MenuItem("Save Scene"))
+					SaveScene();
+
 				auto shortcut = Shortcuts::GetShortcutStr("Save Scene As");
 				if (ImGui::MenuItem("Save Scene As", shortcut.c_str()))
 					SaveSceneAs();
@@ -606,7 +667,7 @@ namespace KTN
 				auto shortcut = Shortcuts::GetShortcutStr("Open Settings");
 				if (ImGui::MenuItem(ICON_MDI_COGS "  Settings...", shortcut.c_str()))
 				{
-					 m_Settings->SetActive(!m_Settings->IsActive());
+					m_Settings->SetActive(!m_Settings->IsActive());
 				}
 
 				ImGui::EndMenu();
@@ -618,6 +679,8 @@ namespace KTN
 
 	void Editor::Shortcuts()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		if (!m_CaptureShortcuts)
 			return;
 
@@ -636,6 +699,8 @@ namespace KTN
 
 	void Editor::OpenScene()
 	{
+		KTN_PROFILE_FUNCTION();
+
 		std::string path = "";
 		if (FileDialog::Open(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
 		{
@@ -647,14 +712,44 @@ namespace KTN
 
 	void Editor::SaveSceneAs()
 	{
-		if (SceneManager::GetConfig().Mode != LoadMode::Single)
-			return;
+		KTN_PROFILE_FUNCTION();
 
-		std::string path = "";
-		if (FileDialog::Save(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+		AssetHandle scene = 0;
+		auto& config = SceneManager::GetConfig();
+		if (m_SelectedEntt && config.Mode != LoadMode::Single)
+			scene = m_SelectedEntt.GetScene()->Handle;
+		else
 		{
-			SceneManager::SaveAs(SceneManager::GetLoadedScenes().front()->Handle, path);
+			auto& scenes = SceneManager::GetLoadedScenes();
+			if (scenes.empty()) return;
+
+			scene = scenes.front()->Handle;
 		}
+
+		if (!scene) return;
+
+		SaveSceneAs(scene);
+	}
+
+	void Editor::SaveScene()
+	{
+		KTN_PROFILE_FUNCTION();
+
+		AssetHandle scene = 0;
+		auto& config = SceneManager::GetConfig();
+		if (m_SelectedEntt && config.Mode != LoadMode::Single)
+			scene = m_SelectedEntt.GetScene()->Handle;
+		else
+		{
+			auto& scenes = SceneManager::GetLoadedScenes();
+			if (scenes.empty()) return;
+
+			scene = scenes.front()->Handle;
+		}
+
+		if (!scene) return;
+
+		SaveScene(scene);
 	}
 
 } // namespace KTN
