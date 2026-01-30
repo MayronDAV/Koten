@@ -16,6 +16,8 @@ namespace KTN
 			void OnImgui() override;
 
 		private:
+			std::string m_SceneFolder = "";
+			std::string m_SceneName = "NewScene";
 			bool m_IsCreating = false;
 			bool m_IsEditing = false;
 			AssetHandle m_SceneHandle = 0;

@@ -21,6 +21,8 @@ namespace KTN
 		m_SceneHandle = p_Scene;
 		m_IsCreating = true;
 		m_IsEditing = false;
+		m_SceneFolder = (Project::GetAssetDirectory() / "Scenes").string();
+		m_SceneName = "NewScene";
 	}
 
 	void SceneEditPanel::Edit(AssetHandle p_Scene)
@@ -31,6 +33,8 @@ namespace KTN
 		m_SceneHandle = p_Scene;
 		m_IsCreating = false;
 		m_IsEditing = true;
+		m_SceneFolder = AssetManager::Get()->GetMetadata(p_Scene).FilePath;
+		m_SceneName = FileSystem::GetStem(m_SceneFolder);
 	}
 
 	void SceneEditPanel::OnImgui()
@@ -42,27 +46,39 @@ namespace KTN
 
 		ImGui::Begin(m_Name.c_str());
 
-		static std::string scenePath = (Project::GetAssetDirectory() / "Scenes" / "NewScene.ktscn").string();
-		
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+
 		if (m_IsEditing)
+			ImGui::BeginDisabled();
+
+		UI::InputText("Folder", m_SceneFolder, true, 0, 2.0f, true);
+		ImGui::SameLine();
+		if (ImGui::Button(ICON_MDI_FOLDER_SEARCH, { 0.0f, lineHeight }))
 		{
-			ImGui::Text("Path");
-			ImGui::SameLine();
-			auto size = ImGui::GetContentRegionAvail();
-			scenePath = AssetManager::Get()->GetMetadata(m_SceneHandle).FilePath;
-			if (ImGui::Button(scenePath.c_str(), { size.x, 0.0f }))
+			std::string folderPath = "";
+			if (FileDialog::PickFolder(m_SceneFolder, folderPath) == FileDialogResult::SUCCESS)
 			{
-				std::string path = "";
-				if (FileDialog::Open(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
-				{
-					scenePath = path;
-				}
+				auto path = std::filesystem::path(folderPath);
+				bool isDir = std::filesystem::is_directory(path);
+				m_SceneFolder = isDir ? folderPath : path.parent_path().string();
 			}
 		}
-		else
+
+		UI::InputText("Name ", m_SceneName, true, 0, 2.0f, true);
+
+		bool canCreate = !m_SceneFolder.empty() && !m_SceneName.empty();
+		if (!m_SceneName.empty())
 		{
-			UI::InputText("Path", scenePath, true, 0, 2.0f, true);
+			std::string fullPath = m_SceneFolder + "/" + (m_SceneName + ".ktscn");
+			if (std::filesystem::exists(fullPath))
+			{
+				ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "A scene with this name already exists!");
+				canCreate = false;
+			}
 		}
+
+		if (m_IsEditing)
+			ImGui::EndDisabled();
 
 		SceneConfig config = {};
 		if (m_IsEditing)
@@ -72,7 +88,6 @@ namespace KTN
 		}
 
 		auto size = ImGui::GetContentRegionAvail();
-		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
 		ImGui::BeginChild("##SceneConfig", { size.x, size.y - (lineHeight * 1.5f) }, false);
@@ -82,36 +97,36 @@ namespace KTN
 		}
 		ImGui::EndChild();
 
+		if (!m_IsEditing && !canCreate)
+			ImGui::BeginDisabled();
+
 		if (ImGui::Button(m_IsEditing ? "Save" : "Create", {100.0f, lineHeight}))
 		{
+			std::string fullPath = m_SceneFolder + "/" + (m_SceneName + ".ktscn");
+
 			if (m_IsCreating)
 			{
-				SceneManager::New(m_SceneHandle, scenePath, config);
+				SceneManager::New(m_SceneHandle, fullPath, config);
 			}
 			else if (m_IsEditing)
 			{
 				auto& metadata = AssetManager::Get()->GetMetadata(m_SceneHandle);
-				metadata.FilePath = scenePath;
+				metadata.FilePath = fullPath;
 
 				auto scene = AssetManager::Get()->GetAsset<Scene>(m_SceneHandle);
 				scene->GetConfig() = config;
 			}
 			m_Active = false;
-			m_IsCreating = false;
-			m_IsEditing = false;
-			m_SceneHandle = 0;
-			scenePath = (Project::GetAssetDirectory() / "Scenes" / "NewScene.ktscn").string();
 		}
+
+		if (!m_IsEditing && !canCreate)
+			ImGui::EndDisabled();
 
 		ImGui::SameLine();
 
 		if (ImGui::Button("Cancel", {100.0f, lineHeight}))
 		{
 			m_Active = false;
-			m_IsCreating = false;
-			m_IsEditing = false;
-			m_SceneHandle = 0;
-			scenePath = (Project::GetAssetDirectory() / "Scenes" / "NewScene.ktscn").string();
 		}
 
 		ImGui::End();

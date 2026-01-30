@@ -2,6 +2,11 @@
 #include "Koten/Core/Application.h"
 #include "Koten/Core/Log.h"
 
+#if defined(KTN_WINDOWS)
+	#include <Windows.h>
+	#include <ole2.h>
+#endif
+
 // defined by the client
 extern KTN::Application* KTN::CreateApplication(int p_Argc, char** p_Argv);
 
@@ -15,12 +20,25 @@ namespace KTN
 		Log::Init();
 	#endif
 
+	#if defined(KTN_WINDOWS)
+		bool oleInitialized = false;
+		HRESULT hr = OleInitialize(NULL);
+		if (SUCCEEDED(hr))
+			oleInitialized = true;
+	#endif
+
 		auto app = CreateApplication(p_Argc, p_Argv);
 		if (app) 
 		{
 			app->Run();
 			delete app;
 		}
+
+	#if defined(KTN_WINDOWS)
+		if (oleInitialized)
+			OleUninitialize();
+	#endif
+
 		return 0;
 	}
 
@@ -28,8 +46,6 @@ namespace KTN
 
 
 #if defined(KTN_WINDOWS) && defined(KTN_DIST)
-	#include <Windows.h>
-
 	int APIENTRY WinMain(HINSTANCE p_hInst, HINSTANCE p_hInstPrev, PSTR p_cmdline, int p_cmdshow)
 	{
 		return KTN::Main(__argc, __argv);

@@ -113,8 +113,8 @@ namespace KTN
 		ZeroMemory(&bi, sizeof(bi));
 		bi.hwndOwner = nullptr;
 		bi.pszDisplayName = new char[MAX_PATH];
-		bi.lpszTitle = "Selecione uma pasta";
-		bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+		bi.lpszTitle = "Select a folder";
+		bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
 
 		if (!p_DefaultPath.empty())
 		{

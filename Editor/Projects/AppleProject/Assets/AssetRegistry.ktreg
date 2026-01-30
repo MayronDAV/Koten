@@ -11,6 +11,14 @@ AssetRegistry:
     FilePath: Scenes\Main.ktscn
     Type: Scene
     SerializeAssetData: true
+  - Handle: 8992233462149999766
+    FilePath: Scenes\Main
+    Type: Scene
+    SerializeAssetData: true
+  - Handle: 10943318142349051139
+    FilePath: Scenes\NewScene.ktscn
+    Type: Scene
+    SerializeAssetData: true
   - Handle: 12683029619627609206
     FilePath: Prefabs\Can.ktprefab
     Type: Prefab

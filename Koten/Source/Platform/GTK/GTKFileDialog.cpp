@@ -152,7 +152,7 @@ namespace KTN
 		}
 
 		GtkWidget* dialog = gtk_file_chooser_dialog_new(
-			"Select Folder",
+			"Select a Folder",
 			nullptr,
 			GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
 			"Cancel", GTK_RESPONSE_CANCEL,
