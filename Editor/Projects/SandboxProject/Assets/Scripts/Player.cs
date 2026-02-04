@@ -1,5 +1,6 @@
 using KTN;
 using System;
+using System.Numerics;
 
 
 namespace Sandbox
@@ -17,28 +18,16 @@ namespace Sandbox
 
 		private CharacterBody2DComponent m_Component;
 
+		private Asset m_PlayerAsset;
+
+		private float m_OldTime = 0.0f;
+		private float m_CurTime = 0.0f;
+
 		void OnCreate()
 		{
 			m_Component = GetComponent<CharacterBody2DComponent>();
 
-			var box = GameObject.FindWithTag("Box");
-
-			Vector3 pos = Vector3.Zero;
-			Instantiate(box, pos, Vector3.Zero);
-			pos.X += 10.0f;
-			Instantiate(box, pos, Vector3.Zero);
-			pos.X += 10.0f;
-			Instantiate(box, pos, Vector3.Zero);
-
-			var circle = AssetManager.FindWithPath("Prefabs\\Circle.ktprefab");
-			pos.X = 10.0f;
-			pos.Y = 10.0f;
-			Instantiate(circle, pos, Vector3.Zero);
-
-			var player = AssetManager.FindWithPath("Prefabs\\Player.ktprefab");
-			pos.X = -5.0f;
-			pos.Y = 10.0f;
-			Instantiate(player, pos, Vector3.Zero);
+			m_PlayerAsset = AssetManager.FindWithPath("Prefabs\\Player.ktprefab");
 		}
 
 		void OnTriggerEnter(ulong p_Sensor)
@@ -51,15 +40,47 @@ namespace Sandbox
 			}
 		}
 
-		void OnCollisionEnter(ulong p_Collider)
+		void OnCollisionEnter(ulong p_Entity)
 		{
-			Console.WriteLine($"Player.OnCollisionEnter: {p_Collider}");
+			Console.WriteLine($"Player.OnCollisionEnter: {p_Entity}");
+
+			var gameObject = FindWithUUID(p_Entity);
+			if (gameObject == null || !gameObject.IsValid())
+			{
+				Console.WriteLine("Failed to find game object!");
+				return;
+			}
+
+			var tc = gameObject.GetComponent<TagComponent>();
+			var tag = tc.Tag;
+
+			if (tag == "Player")
+				Destroy(gameObject);
 		}
 
 		void OnUpdate()
 		{
 			Timestep += Time.DeltaTime;
 			m_DeltaTime = Time.DeltaTime;
+
+			m_CurTime = Time.CurTime;
+			if (m_CurTime - m_OldTime >= 1.5f)
+			{
+				m_OldTime = m_CurTime;
+				var rand = new Random();
+
+				var count = rand.Next(4);
+				for (int i = 0; i < count; i++)
+				{
+					Vector3 spawnerPos = Vector3.Zero;
+					float min = -5.0f;
+					float max = 5.0f;
+					spawnerPos.X = (float)rand.NextDouble() * (max - min) + min;
+
+					Instantiate(m_PlayerAsset, spawnerPos, Vector3.Zero);
+				}
+			}
+
 
 			//Console.WriteLine($"Player.OnUpdate: {m_DeltaTime}");
 

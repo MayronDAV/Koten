@@ -3,20 +3,16 @@ AssetRegistry:
     FilePath: Textures\can.png
     Type: Texture2D
     SerializeAssetData: true
+  - Handle: 7835493660212497376
+    FilePath: Fonts\Arial\Arial Regular.ttf
+    Type: Font
+    SerializeAssetData: true
   - Handle: 7980078156861383348
     FilePath: Materials\Default.ktasset
     Type: PhysicsMaterial2D
     SerializeAssetData: true
   - Handle: 8490365996118832830
     FilePath: Scenes\Main.ktscn
-    Type: Scene
-    SerializeAssetData: true
-  - Handle: 8992233462149999766
-    FilePath: Scenes\Main
-    Type: Scene
-    SerializeAssetData: true
-  - Handle: 10943318142349051139
-    FilePath: Scenes\NewScene.ktscn
     Type: Scene
     SerializeAssetData: true
   - Handle: 12683029619627609206
@@ -31,3 +27,7 @@ AssetRegistry:
     FilePath: Prefabs\Apple.ktprefab
     Type: Prefab
     SerializeAssetData: false
+  - Handle: 15647201069320742082
+    FilePath: Scenes\UI.ktscn
+    Type: Scene
+    SerializeAssetData: true

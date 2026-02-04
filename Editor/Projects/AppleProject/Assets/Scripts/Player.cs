@@ -7,11 +7,21 @@ namespace Apple
 	public class Player : ScriptBehavior
 	{
 		public float Speed = 5.0f;
+		
+		[ShowInEditor]
+		private float m_Score = 0.0f;
 
 		private CharacterBody2DComponent m_Component;
 
+		public float GetScore()
+		{
+			return m_Score;
+		}
+
 		void OnCreate()
 		{
+			SceneManager.LoadScene("Scenes\\UI.ktscn", LoadMode.Additive); 
+
 			m_Component = GetComponent<CharacterBody2DComponent>();
 		}
 
@@ -19,8 +29,8 @@ namespace Apple
 		{
 			Console.WriteLine($"Player.OnCollisionEnter: {p_Entity}");
 
-			var gameObject = GameObject.FindWithUUID(p_Entity);
-			if (!gameObject.IsValid())
+			var gameObject = FindWithUUID(p_Entity);
+			if (gameObject == null || !gameObject.IsValid())
 			{
 				Console.WriteLine("Failed to find game object!");
 				return;
@@ -28,6 +38,19 @@ namespace Apple
 
 			var tc = gameObject.GetComponent<TagComponent>();
 			var tag = tc.Tag;
+
+			if (tag == "Apple")
+			{
+				m_Score += 1.0f;
+				Console.WriteLine($"Score: {m_Score}");
+			}
+			else if (tag == "Can")
+			{
+				m_Score -= 1.0f;
+				m_Score = Math.Max(0.0f, m_Score);
+				Console.WriteLine($"Score: {m_Score}");
+			}
+
 			if (tag == "Apple" || tag == "Can")
 				Destroy(gameObject);
 		}

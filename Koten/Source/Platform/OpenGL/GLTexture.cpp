@@ -150,6 +150,7 @@ namespace KTN
 
 		KTN_CORE_ASSERT(m_Specification.Samples <= 1, "SetData is not supported for multisample textures!");
 		KTN_CORE_ASSERT(p_Size >= size_t(m_Width * m_Height * m_Channels * m_BytesPerChannels), "Data must be entire texture!");
+
 		GLCall(glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_Format, GL_UNSIGNED_BYTE, p_Data));
 	}
 
@@ -157,12 +158,9 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION_LOW();
 
-		GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
-
 		std::vector<uint8_t> buffer(GetEstimatedSize());
-		GLCall(glGetTexImage(GL_TEXTURE_2D, 0, m_Format, GLUtils::TextureFormatToGLType(m_Specification.Format), buffer.data()));
+		GLCall(glGetTextureImage(m_RendererID, 0, m_Format, GLUtils::TextureFormatToGLType(m_Specification.Format), buffer.size(), buffer.data()));
 
-		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 		return buffer;
 	}
 

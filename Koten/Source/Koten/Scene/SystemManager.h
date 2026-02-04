@@ -17,6 +17,8 @@ namespace KTN
 			template <typename T, typename... Args>
 			System* RegisterSystem(Args&&... p_Args)
 			{
+				KTN_PROFILE_FUNCTION();
+
 				auto typeName = typeid(T).hash_code();
 				KTN_CORE_ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
@@ -30,6 +32,8 @@ namespace KTN
 			template <typename T>
 			System* RegisterSystem(T* p_System)
 			{
+				KTN_PROFILE_FUNCTION();
+
 				auto typeName = typeid(T).hash_code();
 				KTN_CORE_ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
@@ -43,6 +47,10 @@ namespace KTN
 			template <typename T>
 			void RemoveSystem()
 			{
+				KTN_PROFILE_FUNCTION_LOW();
+
+				if (!HasSystem<T>()) return;
+
 				auto typeName = typeid(T).hash_code();
 				delete m_Systems[typeName];
 				m_Systems.erase(typeName);
@@ -51,6 +59,8 @@ namespace KTN
 			template <typename T>
 			T* GetSystem()
 			{
+				KTN_PROFILE_FUNCTION_LOW();
+
 				auto typeName = typeid(T).hash_code();
 
 				auto find = m_Systems.find(typeName);
@@ -64,6 +74,8 @@ namespace KTN
 			template <typename T>
 			bool HasSystem()
 			{
+				KTN_PROFILE_FUNCTION_LOW();
+
 				auto typeName = typeid(T).hash_code();
 				auto find = m_Systems.find(typeName);
 				return find != m_Systems.end();
@@ -71,6 +83,8 @@ namespace KTN
 
 			void OnUpdate(Scene* p_Scene)
 			{
+				KTN_PROFILE_FUNCTION();
+
 				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
 				{
 					it->second->OnUpdate(p_Scene);
@@ -79,6 +93,8 @@ namespace KTN
 
 			void OnStart(Scene* p_Scene)
 			{
+				KTN_PROFILE_FUNCTION();
+
 				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
 				{
 					it->second->OnStart(p_Scene);
@@ -87,6 +103,8 @@ namespace KTN
 
 			void OnStop(Scene* p_Scene)
 			{
+				KTN_PROFILE_FUNCTION();
+
 				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
 				{
 					it->second->OnStop(p_Scene);

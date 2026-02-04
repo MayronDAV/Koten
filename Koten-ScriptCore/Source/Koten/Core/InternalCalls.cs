@@ -19,6 +19,17 @@ namespace KTN
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SceneHandle
+    {
+        public ulong Handle;
+
+        // Configuration Data
+
+        public byte UsePhysics2D;
+    }
+
+
     public static class InternalCalls
 	{
 		[MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -64,19 +75,31 @@ namespace KTN
         internal extern static int SceneManager_GetConfigLoadMode();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool SceneManager_IsActive(ulong p_SceneHandle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool SceneManager_IsImported(ulong p_SceneHandle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void SceneManager_SetConfigLoadMode(int p_LoadMode);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool SceneManager_LoadSceneByPath(string p_ScenePath, int p_Mode);
+        internal extern static SceneHandle SceneManager_ImportScene(string p_ScenePath);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool SceneManager_LoadScene(ulong p_SceneHandle, int p_Mode);
+        internal extern static SceneHandle SceneManager_ImportSceneAsync(string p_ScenePath);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SceneManager_LoadSceneAsyncByPath(string p_ScenePath, int p_Mode);
+        internal extern static SceneHandle SceneManager_LoadSceneByPath(string p_ScenePath, int p_Mode);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void SceneManager_LoadSceneAsync(ulong p_SceneHandle, int p_Mode);
+        internal extern static SceneHandle SceneManager_LoadScene(ulong p_SceneHandle, int p_Mode);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static SceneHandle SceneManager_LoadSceneAsyncByPath(string p_ScenePath, int p_Mode);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static SceneHandle SceneManager_LoadSceneAsync(ulong p_SceneHandle, int p_Mode);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
 		internal extern static void SceneManager_UnloadSceneByPath(string p_ScenePath);
@@ -101,10 +124,10 @@ namespace KTN
         internal extern static bool Scene_IsPaused(ulong p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool Scene_IsEntityValid(ulong p_Handle, ulong p_EntityID);
+        internal extern static bool Scene_IsUUIDValid(ulong p_Handle, ulong p_UUID);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static ulong Scene_GetEntityByTag(ulong p_Handle, string p_Tag);
+        internal extern static ulong Scene_FindWithTag(ulong p_Handle, string p_Tag);
 
         #endregion
 

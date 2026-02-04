@@ -23,6 +23,7 @@ namespace KTN
 		m_IsEditing = false;
 		m_SceneFolder = (Project::GetAssetDirectory() / "Scenes").string();
 		m_SceneName = "NewScene";
+		m_SceneConfig = {};
 	}
 
 	void SceneEditPanel::Edit(AssetHandle p_Scene)
@@ -35,6 +36,8 @@ namespace KTN
 		m_IsEditing = true;
 		m_SceneFolder = AssetManager::Get()->GetMetadata(p_Scene).FilePath;
 		m_SceneName = FileSystem::GetStem(m_SceneFolder);
+		auto scene = AssetManager::Get()->GetAsset<Scene>(m_SceneHandle);
+		m_SceneConfig = scene->GetConfig();
 	}
 
 	void SceneEditPanel::OnImgui()
@@ -80,20 +83,13 @@ namespace KTN
 		if (m_IsEditing)
 			ImGui::EndDisabled();
 
-		SceneConfig config = {};
-		if (m_IsEditing)
-		{
-			auto scene = AssetManager::Get()->GetAsset<Scene>(m_SceneHandle);
-			config = scene->GetConfig();
-		}
-
 		auto size = ImGui::GetContentRegionAvail();
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
 		ImGui::BeginChild("##SceneConfig", { size.x, size.y - (lineHeight * 1.5f) }, false);
 		ImGui::PopStyleVar();
 		{
-			ImGui::Checkbox("Use Physics 2D", &config.UsePhysics2D);
+			ImGui::Checkbox("Use Physics 2D", &m_SceneConfig.UsePhysics2D);
 		}
 		ImGui::EndChild();
 
@@ -106,7 +102,7 @@ namespace KTN
 
 			if (m_IsCreating)
 			{
-				SceneManager::New(m_SceneHandle, fullPath, config);
+				SceneManager::New(m_SceneHandle, fullPath, m_SceneConfig);
 			}
 			else if (m_IsEditing)
 			{
@@ -114,7 +110,7 @@ namespace KTN
 				metadata.FilePath = fullPath;
 
 				auto scene = AssetManager::Get()->GetAsset<Scene>(m_SceneHandle);
-				scene->GetConfig() = config;
+				scene->GetConfig() = m_SceneConfig;
 			}
 			m_Active = false;
 		}

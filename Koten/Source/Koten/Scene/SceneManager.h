@@ -35,6 +35,9 @@ namespace KTN
 			static void OnUpdate();
 			static void OnRender(const glm::mat4& p_Projection = glm::mat4(1.0f), const glm::mat4& p_View = glm::mat4(1.0f), const glm::vec4& p_ClearColor = {0.0f, 0.0f, 0.0f, 1.0f});
 
+			static AssetHandle Import(const std::string& p_Path, bool p_ThreadSafe = false);
+			static AssetHandle ImportAsync(const std::string& p_Path);
+
 			static bool Load(AssetHandle p_Handle, bool p_ThreadSafe = false) { return Load(p_Handle, GetConfig().Mode, p_ThreadSafe); }
 			static bool Load(AssetHandle p_Handle, LoadMode p_Mode, bool p_ThreadSafe = false);
 			static void LoadAsync(AssetHandle p_Handle) { LoadAsync(p_Handle, GetConfig().Mode); }
@@ -46,9 +49,11 @@ namespace KTN
 			static bool Save(AssetHandle p_Handle);
 			static void SaveAs(AssetHandle p_Handle, const std::string& p_Path);
 
-			static bool Exists(AssetHandle p_Handle);
+			static bool IsActive(AssetHandle p_Handle);
+			static bool IsLoaded(AssetHandle p_Handle);
 
 			static Ref<Scene> GetScene(AssetHandle p_Handle);
+			static Ref<Scene> GetLoadedScene(AssetHandle p_Handle);
 			static const std::vector<Ref<Scene>>& GetLoadedScenes();
 			static const std::vector<Ref<Scene>>& GetActiveScenes();
 			static bool IsPaused();
@@ -58,6 +63,7 @@ namespace KTN
 
 		private:
 			static bool ExecuteLoadOperation(AssetHandle p_Handle, LoadMode p_Mode);
+			static bool ExecuteImportOperation(const std::string& p_Path, AssetHandle p_Handle);
 
 			friend class Application;
 	};

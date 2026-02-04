@@ -20,6 +20,7 @@ namespace KTN
 			std::string m_SceneName = "NewScene";
 			bool m_IsCreating = false;
 			bool m_IsEditing = false;
+			SceneConfig m_SceneConfig = {};
 			AssetHandle m_SceneHandle = 0;
 	};
 

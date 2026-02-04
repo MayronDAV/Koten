@@ -33,6 +33,15 @@ namespace KTN
             Object.DestroyObject(p_Object);
         }
 
+        public GameObject FindWithUUID(ulong p_UUID)
+        {
+            var obj = new GameObject(p_UUID, SceneHandle);
+            if (obj.IsValid())
+                return obj;
+
+            return null;
+        }
+
         public Object Instantiate(Object p_Object, Vector3 p_Position, Vector3 p_Rotation)
         {
             var obj = new Object(p_Object.ID, SceneHandle) { Type = p_Object.Type };
@@ -47,6 +56,12 @@ namespace KTN
 
             var inst = Object.InstantiateObject(obj, p_Position, p_Rotation);
             return new T() { ID = inst.ID, SceneHandle = inst.SceneHandle, Type = obj.Type };
+        }
+
+        public T GetScriptBehavior<T>(Object p_Object) where T : ScriptBehavior, new()
+        {
+            object instance = InternalCalls.GetScriptInstance(p_Object.ID);
+            return instance as T;
         }
     }
 

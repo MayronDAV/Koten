@@ -218,6 +218,84 @@ namespace KTN
 		}
 	}
 
+	AssetHandle SceneManager::Import(const std::string& p_Path, bool p_ThreadSafe)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		AssetHandle handle{};
+
+		if (p_ThreadSafe)
+		{
+			Application::Get().SubmitToMainThread([=]() {
+				ExecuteImportOperation(p_Path, handle);
+			});
+		}
+		else
+			ExecuteImportOperation(p_Path, handle);
+
+		return handle;
+	}
+
+	AssetHandle SceneManager::ImportAsync(const std::string& p_Path)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		AssetHandle newHandle{};
+
+		std::jthread([=](std::stop_token p_Token)
+		{
+			if (p_Token.stop_requested())
+				return;
+
+			AssetHandle handle = 0;
+			if (!AssetManager::Get()->HasAsset(AssetType::Scene, p_Path))
+			{
+				AssetMetadata metadata = {};
+				metadata.Type = AssetType::Scene;
+				metadata.FilePath = p_Path;
+				if (!AssetManager::Get()->ImportAsset(newHandle, metadata))
+				{
+					KTN_CORE_ERROR("Failed to import scene at path: {}", p_Path);
+					return;
+				}
+
+				handle = newHandle;
+			}
+			else
+				handle = AssetManager::Get()->GetHandleByPath(p_Path); // maybe race condition here
+
+			if (handle == 0)
+			{
+				KTN_CORE_ERROR("Failed to import scene at path: {}", p_Path);
+				return;
+			}
+
+			auto scene = AssetManager::Get()->GetAsset<Scene>(handle); // Load the scene if not loaded, maybe race condition here
+			if (!scene)
+			{
+				KTN_CORE_ERROR("Failed to load scene from handle {}", (uint64_t)handle);
+				return;
+			}
+
+			Application::Get().SubmitToMainThread([scene]()
+			{
+				if (!s_Data->Scenes.empty())
+				{
+					auto it = std::find_if(s_Data->Scenes.begin(), s_Data->Scenes.end(), [&](auto& p_Scene)
+					{
+						return p_Scene->Handle == scene->Handle;
+					});
+
+					if (it != s_Data->Scenes.end()) return;
+				}
+
+				s_Data->Scenes.push_back(scene);
+			});
+		}).detach();
+	
+		return newHandle;
+	}
+
 	bool SceneManager::Load(AssetHandle p_Handle, LoadMode p_Mode, bool p_ThreadSafe)
 	{
 		KTN_PROFILE_FUNCTION();
@@ -256,14 +334,30 @@ namespace KTN
 			s_Data->ScenesCopy.clear();
 		}
 
-		auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
+		Ref<Scene> scene = nullptr;
+
+		if (p_Mode == LoadMode::Additive)
+		{
+			auto it = std::find_if(s_Data->Scenes.begin(), s_Data->Scenes.end(), [&](auto& p_Scene)
+			{
+				return p_Scene->Handle == p_Handle;
+			});
+
+			if (it != s_Data->Scenes.end())
+				scene = *it;
+		}
+		
+		if (!scene)
+		{
+			scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
+			s_Data->Scenes.push_back(scene);
+		}
+
 		if (!scene)
 		{
 			KTN_CORE_ERROR("Failed to load scene from handle {}", (uint64_t)p_Handle);
 			return false;
 		}
-
-		s_Data->Scenes.push_back(scene);
 		
 		if (curState != RuntimeState::None && p_Mode == LoadMode::Single)
 		{
@@ -278,13 +372,31 @@ namespace KTN
 			Ref<Scene> sceneToUse = scene;
 			if (s_Data->Config.CopyScenesOnPlay)
 			{
-				auto sceneCopy = Scene::Copy(scene);
+				Ref<Scene> sceneCopy = nullptr;
+
+				if (!s_Data->ScenesCopy.empty())
+				{
+					auto it = std::find_if(s_Data->ScenesCopy.begin(), s_Data->ScenesCopy.end(), [&](auto& p_Scene)
+					{
+						return p_Scene->Handle == scene->Handle;
+					});
+
+					if (it != s_Data->ScenesCopy.end())
+						sceneCopy = *it;
+				}
+
+				if (!sceneCopy)
+				{
+					sceneCopy = Scene::Copy(scene);
+					s_Data->ScenesCopy.push_back(sceneCopy);
+				}
+
 				if (!sceneCopy)
 				{
 					KTN_CORE_ERROR("Failed to copy scene");
 					return false;
 				}
-				s_Data->ScenesCopy.push_back(sceneCopy);
+
 				sceneToUse = sceneCopy;
 			}
 
@@ -297,6 +409,54 @@ namespace KTN
 		return true;
 	}
 
+	bool SceneManager::ExecuteImportOperation(const std::string& p_Path, AssetHandle p_Handle)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		AssetHandle handle = 0;
+		if (!AssetManager::Get()->HasAsset(AssetType::Scene, p_Path))
+		{
+			AssetMetadata metadata = {};
+			metadata.Type = AssetType::Scene;
+			metadata.FilePath = p_Path;
+			if (!AssetManager::Get()->ImportAsset(p_Handle != 0 ? p_Handle : AssetHandle(), metadata))
+			{
+				KTN_CORE_ERROR("Failed to import scene at path: {}", p_Path);
+				return false;
+			}
+
+			handle = p_Handle != 0 ? p_Handle : AssetManager::Get()->GetHandleByPath(p_Path);
+		}
+		else
+			handle = AssetManager::Get()->GetHandleByPath(p_Path);
+
+		if (handle == 0)
+		{
+			KTN_CORE_ERROR("Failed to import scene at path: {}", p_Path);
+			return false;
+		}
+
+		if (!s_Data->Scenes.empty())
+		{
+			auto it = std::find_if(s_Data->Scenes.begin(), s_Data->Scenes.end(), [&](auto& p_Scene)
+			{
+				return p_Scene->Handle == handle;
+			});
+
+			if (it != s_Data->Scenes.end()) return true;
+		}
+
+		Ref<Scene> scene = AssetManager::Get()->GetAsset<Scene>(handle);
+		if (!scene)
+		{
+			KTN_CORE_ERROR("Failed to load scene from handle {}, path: {}", (uint64_t)handle, p_Path);
+			return false;
+		}
+
+		s_Data->Scenes.push_back(scene);
+
+		return true;
+	}
 
 	void SceneManager::LoadAsync(AssetHandle p_Handle, LoadMode p_Mode)
 	{
@@ -316,18 +476,7 @@ namespace KTN
 				return;
 			}
 
-			Ref<Scene> sceneCopy = nullptr;
-			if (s_Data->Config.CopyScenesOnPlay && curState != RuntimeState::None)
-			{
-				sceneCopy = Scene::Copy(scene);
-				if (!sceneCopy)
-				{
-					KTN_CORE_ERROR("Failed to copy scene");
-					return;
-				}
-			}
-
-			Application::Get().SubmitToMainThread([p_Mode, curState, scene, sceneCopy]()
+			Application::Get().SubmitToMainThread([p_Mode, curState, scene]()
 			{
 				auto& config = SceneManager::GetConfig();
 
@@ -343,22 +492,56 @@ namespace KTN
 					s_Data->ScenesCopy.clear();
 				}
 
-				s_Data->Scenes.push_back(scene);
+				if (p_Mode == LoadMode::Additive && !s_Data->Scenes.empty())
+				{
+					auto it = std::find_if(s_Data->Scenes.begin(), s_Data->Scenes.end(), [&](auto& p_Scene)
+					{
+						return p_Scene->Handle == scene->Handle;
+					});
+
+					if (it == s_Data->Scenes.end())
+						s_Data->Scenes.push_back(scene);
+				}
+				else
+					s_Data->Scenes.push_back(scene);
 
 				if (curState != RuntimeState::None && p_Mode == LoadMode::Single)
 				{
 					if (curState == RuntimeState::Play)
 						Play();
-
 					if (curState == RuntimeState::Simulate)
-						Simulate();;
+						Simulate();
 				}
 				else if (curState != RuntimeState::None)
 				{
 					Ref<Scene> sceneToUse = scene;
-					if (config.CopyScenesOnPlay)
+					if (s_Data->Config.CopyScenesOnPlay)
 					{
-						s_Data->ScenesCopy.push_back(sceneCopy);
+						Ref<Scene> sceneCopy = nullptr;
+
+						if (!s_Data->ScenesCopy.empty())
+						{
+							auto it = std::find_if(s_Data->ScenesCopy.begin(), s_Data->ScenesCopy.end(), [&](auto& p_Scene)
+								{
+									return p_Scene->Handle == scene->Handle;
+								});
+
+							if (it != s_Data->ScenesCopy.end())
+								sceneCopy = *it;
+						}
+
+						if (!sceneCopy)
+						{
+							sceneCopy = Scene::Copy(scene);
+							s_Data->ScenesCopy.push_back(sceneCopy);
+						}
+
+						if (!sceneCopy)
+						{
+							KTN_CORE_ERROR("Failed to copy scene");
+							return;
+						}
+
 						sceneToUse = sceneCopy;
 					}
 
@@ -367,7 +550,9 @@ namespace KTN
 					if (curState == RuntimeState::Simulate)
 						sceneToUse->OnSimulationStart();
 				}
+				else return; // ???
 			});
+		
 		}).detach();
 	}
 
@@ -495,7 +680,7 @@ namespace KTN
 		SceneImporter::SaveScene(scene, p_Path);
 	}
 
-	bool SceneManager::Exists(AssetHandle p_Handle)
+	bool SceneManager::IsActive(AssetHandle p_Handle)
 	{
 		KTN_PROFILE_FUNCTION();
 
@@ -506,6 +691,17 @@ namespace KTN
 		});
 
 		return it != scenes.end();
+	}
+
+	bool SceneManager::IsLoaded(AssetHandle p_Handle)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto it = std::find_if(s_Data->Scenes.begin(), s_Data->Scenes.end(), [&](const Ref<Scene>& p_Scene)
+		{
+			return p_Scene->Handle == p_Handle;
+		});
+		return it != s_Data->Scenes.end();
 	}
 
 	Ref<Scene> SceneManager::GetScene(AssetHandle p_Handle)
@@ -519,6 +715,21 @@ namespace KTN
 		});
 
 		if (it == scenes.end())
+			return nullptr;
+
+		return *it;
+	}
+
+	Ref<Scene> SceneManager::GetLoadedScene(AssetHandle p_Handle)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		auto it = std::find_if(s_Data->Scenes.begin(), s_Data->Scenes.end(), [&](const Ref<Scene>& p_Scene)
+		{
+			return p_Scene->Handle == p_Handle;
+		});
+
+		if (it == s_Data->Scenes.end())
 			return nullptr;
 
 		return *it;

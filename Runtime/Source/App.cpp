@@ -27,7 +27,7 @@ namespace KTN
 
 			~RuntimeLayer() = default;
 
-			void OnAttach() override 
+			void OnAttach() override
 			{
 				KTN_PROFILE_FUNCTION();
 

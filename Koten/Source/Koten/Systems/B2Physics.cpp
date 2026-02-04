@@ -13,28 +13,6 @@
 
 
 
-namespace std 
-{
-	template<>
-	struct hash<std::pair<KTN::UUID, KTN::UUID>>
-	{
-		size_t operator()(const std::pair<KTN::UUID, KTN::UUID>& p) const
-		{
-			return hash<KTN::UUID>()(p.first) ^ (hash<KTN::UUID>()(p.second) << 1);
-		}
-	};
-
-	template<>
-	struct equal_to<std::pair<KTN::UUID, KTN::UUID>> 
-	{
-		bool operator()(const std::pair<KTN::UUID, KTN::UUID>& p_Lhs, const std::pair<KTN::UUID, KTN::UUID>& p_Rhs) const 
-		{
-			return p_Lhs.first == p_Rhs.first && p_Lhs.second == p_Rhs.second;
-		}
-	};
-
-} // namespace std 
-
 namespace KTN
 {
 	namespace
@@ -47,199 +25,32 @@ namespace KTN
 			CategoryTrigger = BIT(3)
 		};
 
-		struct ShapeUserData
+		static b2WorldId GetWorldID(const B2WorldID& p_World)
 		{
-			Entity Entt;
-			bool IsTrigger;
-		};
+			KTN_PROFILE_FUNCTION();
+			b2WorldId worldId = {};
+			worldId.index1 = p_World.Index;
+			worldId.generation = p_World.Generation;
+			return worldId;
+		}
 
-		static std::unordered_map<AssetHandle, std::vector<ShapeUserData*>> s_ToDelete;
-		static std::unordered_map<AssetHandle, std::unordered_set<std::pair<UUID, UUID>>> s_ActiveSensorEvents;
-		static std::unordered_map<AssetHandle, std::unordered_set<std::pair<UUID, UUID>>> s_ActiveContactEvents;
+		static b2BodyId GetBodyID(const B2BodyID& p_Body)
+		{
+			KTN_PROFILE_FUNCTION();
+			b2BodyId bodyId = {};
+			bodyId.index1 = p_Body.Index;
+			bodyId.world0 = p_Body.World;
+			bodyId.generation = p_Body.Generation;
+			return bodyId;
+		}
 
-		static std::unordered_map<AssetHandle, std::unordered_set<std::pair<UUID, UUID>>> s_FrameContactEvents;
-		static std::unordered_map<AssetHandle, std::unordered_set<std::pair<UUID, UUID>>> s_ActiveFrameContactEvents;
-
-		static ShapeUserData* GetShapeUserData(b2ShapeId p_ShapeId)
+		static B2Physics::ShapeUserData* GetShapeUserData(b2ShapeId p_ShapeId)
 		{
 			KTN_PROFILE_FUNCTION();
 
 			if (!b2Shape_IsValid(p_ShapeId)) return nullptr;
 			void* userData = b2Shape_GetUserData(p_ShapeId);
-			return userData ? static_cast<ShapeUserData*>(userData) : nullptr;
-		}
-
-		static void SensorEvents(b2WorldId& p_World, Scene* p_Scene)
-		{
-			KTN_PROFILE_FUNCTION();
-
-			auto sceneHandle = p_Scene->Handle;
-
-			b2SensorEvents sensorEvents = b2World_GetSensorEvents(p_World);
-			for (int i = 0; i < sensorEvents.beginCount; ++i)
-			{
-				b2SensorBeginTouchEvent* beginEvent = sensorEvents.beginEvents + i;
-
-				auto* sensorData = GetShapeUserData(beginEvent->sensorShapeId);
-				auto* visitorData = GetShapeUserData(beginEvent->visitorShapeId);
-
-				if (!sensorData || !visitorData) continue;
-
-				auto sensorID = sensorData->Entt.GetUUID();
-				auto visitorID = visitorData->Entt.GetUUID();
-
-				s_ActiveSensorEvents[sceneHandle].insert(std::make_pair(sensorID, visitorID));
-
-				auto sensorInstance = ScriptEngine::GetEntityScriptInstance(sensorID);
-				if (sensorInstance)
-				{
-					void* params[] = { &visitorID };
-					sensorInstance->TryInvokeMethod("OnTriggerEnter", 1, params);
-				}
-
-				auto visitorInstance = ScriptEngine::GetEntityScriptInstance(visitorID);
-				if (visitorInstance)
-				{
-					void* params[] = { &sensorID };
-					visitorInstance->TryInvokeMethod("OnTriggerEnter", 1, params);
-				}
-			}
-
-			for (int i = 0; i < sensorEvents.endCount; ++i)
-			{
-				b2SensorEndTouchEvent* endEvent = sensorEvents.endEvents + i;
-
-				auto* sensorData = GetShapeUserData(endEvent->sensorShapeId);
-				auto* visitorData = GetShapeUserData(endEvent->visitorShapeId);
-
-				if (!sensorData || !visitorData) continue;
-
-				auto sensorID = sensorData->Entt.GetUUID();
-				auto visitorID = visitorData->Entt.GetUUID();
-
-				s_ActiveSensorEvents[sceneHandle].erase(std::make_pair(sensorID, visitorID));
-				s_ActiveSensorEvents[sceneHandle].erase(std::make_pair(visitorID, sensorID));
-
-				auto sensorInstance = ScriptEngine::GetEntityScriptInstance(sensorID);
-				if (sensorInstance)
-				{
-					void* params[] = { &visitorID };
-					sensorInstance->TryInvokeMethod("OnTriggerExit", 1, params);
-				}
-
-				auto visitorInstance = ScriptEngine::GetEntityScriptInstance(visitorID);
-				if (visitorInstance)
-				{
-					void* params[] = { &sensorID };
-					visitorInstance->TryInvokeParentMethod("OnTriggerExit", 1, params);
-				}
-			}
-
-			for (const auto& collisionPair : s_ActiveSensorEvents[sceneHandle])
-			{
-				auto sensorID = collisionPair.first;
-				auto visitorID = collisionPair.second;
-
-				auto sensorInstance = ScriptEngine::GetEntityScriptInstance(sensorID);
-				if (sensorInstance)
-				{
-					void* params[] = { &visitorID };
-					sensorInstance->TryInvokeMethod("OnTriggerStay", 1, params);
-				}
-
-				auto visitorInstance = ScriptEngine::GetEntityScriptInstance(visitorID);
-				if (visitorInstance)
-				{
-					void* params[] = { &sensorID };
-					visitorInstance->TryInvokeMethod("OnTriggerStay", 1, params);
-				}
-			}
-		}
-
-		static void ContactEvents(b2WorldId& p_World, Scene* p_Scene)
-		{
-			KTN_PROFILE_FUNCTION();
-
-			auto sceneHandle = p_Scene->Handle;
-
-			b2ContactEvents contactEvents = b2World_GetContactEvents(p_World);
-			for (int i = 0; i < contactEvents.beginCount; ++i)
-			{
-				b2ContactBeginTouchEvent* beginEvent = contactEvents.beginEvents + i;
-
-				auto* userDataA = GetShapeUserData(beginEvent->shapeIdA);
-				auto* userDataB = GetShapeUserData(beginEvent->shapeIdB);
-
-				if (!userDataA || !userDataB) continue;
-
-				auto aID = userDataA->Entt.GetUUID();
-				auto bID = userDataB->Entt.GetUUID();
-
-				s_ActiveContactEvents[sceneHandle].insert(std::make_pair(aID, bID));
-
-				auto aInstance = ScriptEngine::GetEntityScriptInstance(aID);
-				if (aInstance)
-				{
-					void* params[] = { &bID };
-					aInstance->TryInvokeMethod("OnCollisionEnter", 1, params);
-				}
-
-				auto bInstance = ScriptEngine::GetEntityScriptInstance(bID);
-				if (bInstance)
-				{
-					void* params[] = { &aID };
-					bInstance->TryInvokeMethod("OnCollisionEnter", 1, params);
-				}
-			}
-
-			for (int i = 0; i < contactEvents.endCount; ++i)
-			{
-				b2ContactEndTouchEvent* endEvent = contactEvents.endEvents + i;
-
-				auto* userDataA = GetShapeUserData(endEvent->shapeIdA);
-				auto* userDataB = GetShapeUserData(endEvent->shapeIdB);
-
-				if (!userDataA || !userDataB) continue;
-
-				auto aID = userDataA->Entt.GetUUID();
-				auto bID = userDataB->Entt.GetUUID();
-
-				s_ActiveContactEvents[sceneHandle].erase(std::make_pair(aID, bID));
-
-				auto aInstance = ScriptEngine::GetEntityScriptInstance(aID);
-				if (aInstance)
-				{
-					void* params[] = { &bID };
-					aInstance->TryInvokeMethod("OnCollisionExit", 1, params);
-				}
-
-				auto bInstance = ScriptEngine::GetEntityScriptInstance(bID);
-				if (bInstance)
-				{
-					void* params[] = { &aID };
-					bInstance->TryInvokeMethod("OnCollisionExit", 1, params);
-				}
-			}
-
-			for (const auto& collisionPair : s_ActiveContactEvents[sceneHandle])
-			{
-				auto aID = collisionPair.first;
-				auto bID = collisionPair.second;
-
-				auto aInstance = ScriptEngine::GetEntityScriptInstance(aID);
-				if (aInstance)
-				{
-					void* params[] = { &bID };
-					aInstance->TryInvokeMethod("OnCollisionStay", 1, params);
-				}
-
-				auto bInstance = ScriptEngine::GetEntityScriptInstance(bID);
-				if (bInstance)
-				{
-					void* params[] = { &aID };
-					bInstance->TryInvokeMethod("OnCollisionStay", 1, params);
-				}
-			}
+			return userData ? static_cast<B2Physics::ShapeUserData*>(userData) : nullptr;
 		}
 
 		static uint64_t GetFilterCategory(PhysicsBody2D* p_Body)
@@ -252,109 +63,6 @@ namespace KTN
 			return B2_DEFAULT_CATEGORY_BITS;
 		}
 
-		static void CreateShape(Scene* p_Scene, Entity p_Entt, b2BodyId p_Body, PhysicsBody2D* p_PhyBody, BodyShape2DComponent& p_Shape, const glm::vec3& p_Scale)
-		{
-			KTN_PROFILE_FUNCTION();
-
-			auto* userData = new ShapeUserData{
-				.Entt = p_Entt,
-				.IsTrigger = p_PhyBody->IsTrigger
-			};
-			s_ToDelete[p_Scene->Handle].push_back(userData);
-
-			b2ShapeDef shapeDef = b2DefaultShapeDef();
-			auto material = AssetManager::Get()->GetAsset<PhysicsMaterial2D>(p_PhyBody->PhysicsMaterial2D);
-			shapeDef.density = p_PhyBody->Mass;
-			shapeDef.material.friction = material->Friction;
-			shapeDef.material.restitution = material->Restitution;
-			shapeDef.material.rollingResistance = material->RestitutionThreshold;
-			shapeDef.userData = userData;
-			shapeDef.enableSensorEvents = true;
-			shapeDef.enableContactEvents = true;
-			shapeDef.filter.categoryBits = GetFilterCategory(p_PhyBody);
-			shapeDef.filter.maskBits = CategoryTrigger | CategoryStatic | CategoryCharacter | CategoryDynamic;
-
-			if (p_PhyBody->IsTrigger)
-			{
-				shapeDef.isSensor = true;
-				shapeDef.density = 0.0f;
-			}
-
-			if (p_Shape.Shape == Shape2D::Rect)
-			{
-				b2Polygon box = b2MakeOffsetBox(p_Shape.Size.x * p_Scale.x, p_Shape.Size.y * p_Scale.y, b2Vec2(p_Shape.Offset.x, p_Shape.Offset.y), b2MakeRot(0.0f));
-				b2CreatePolygonShape(p_Body, &shapeDef, &box);
-			}
-
-			if (p_Shape.Shape == Shape2D::Circle)
-			{
-				b2Circle circle = { { p_Shape.Offset.x, p_Shape.Offset.y }, p_Shape.Size.x * p_Scale.x };
-				b2CreateCircleShape(p_Body, &shapeDef, &circle);
-			}
-		}
-
-		static void CreatePhysicsBody(Scene* p_Scene, Entity p_Entt, TransformComponent& p_Transform, const B2WorldID& p_World, PhysicsBody2D* p_Body)
-		{
-			KTN_PROFILE_FUNCTION();
-
-			if (!p_Body)
-			{
-				KTN_CORE_ERROR("PhysicsBody2D is null!");
-				return;
-			}
-
-			b2BodyDef bodyDef = b2DefaultBodyDef();
-
-			bodyDef.gravityScale = 0.0f;
-			bodyDef.fixedRotation = true;
-			bodyDef.linearDamping = 0.0f;
-			bodyDef.angularDamping = 0.0f;
-			bodyDef.isEnabled = p_Entt.IsEnabled();
-
-			switch (p_Body->GetType())
-			{
-				case Rigidbody2DComponent::Type::Static:
-					bodyDef.type = b2_staticBody;
-					break;
-				case Rigidbody2DComponent::Type::Rigidbody:
-				{
-					bodyDef.type = b2_dynamicBody;
-					auto* rc = static_cast<Rigidbody2DComponent*>(p_Body);
-					bodyDef.gravityScale = rc->GravityScale;
-					bodyDef.fixedRotation = rc->FixedRotation;
-					bodyDef.linearDamping = rc->LinearDamping;
-					bodyDef.angularDamping = rc->AngularDamping;
-					bodyDef.isAwake = !rc->Sleeping;
-					bodyDef.enableSleep = rc->CanSleep;
-					break;
-				}
-				case Rigidbody2DComponent::Type::Character:
-					bodyDef.type = b2_kinematicBody;
-					break;
-			}
-
-			glm::vec3 pos = p_Transform.GetWorldTranslation();
-			glm::vec3 scale = p_Transform.GetWorldScale();
-			glm::vec3 rot = p_Transform.GetWorldRotation();
-
-			bodyDef.position = { pos.x, pos.y };
-			bodyDef.rotation = b2MakeRot(rot.z);
-
-			b2WorldId world = { .index1 = p_World.Index, .generation = p_World.Generation };
-			b2BodyId body = b2CreateBody(world, &bodyDef);
-
-			p_Body->Body.Index      = body.index1;
-			p_Body->Body.World      = body.world0;
-			p_Body->Body.Generation = body.generation;
-
-
-			if (p_Entt.HasComponent<BodyShape2DComponent>())
-			{
-				auto& shape = p_Entt.GetComponent<BodyShape2DComponent>();
-				CreateShape(p_Scene, p_Entt, body, p_Body, shape, scale);
-			}
-		}
-		
 		struct Hit
 		{
 			b2ShapeId Shape;
@@ -365,9 +73,9 @@ namespace KTN
 		{
 			Entity CharacterEntity;
 			std::vector<Hit> Collisions;
-			b2Transform CharacterTransform;
-			b2ShapeId CharacterShape;
-			b2BodyId CharacterBody;
+			b2Transform CharacterTransform = {};
+			b2ShapeId CharacterShape = {};
+			b2BodyId CharacterBody = {};
 			glm::vec2 UpDirection = { 0.0f, 1.0f };
 			float FloorMaxAngle = glm::radians(45.0f);
 			float FloorMinCos = 0.0f;
@@ -442,94 +150,6 @@ namespace KTN
 			return p_A < p_B ? std::make_pair(p_A, p_B) : std::make_pair(p_B, p_A);
 		}
 
-		static void OverlapContactEvents(Scene* p_Scene)
-		{
-			KTN_PROFILE_FUNCTION();
-
-			auto& frameContacts = s_FrameContactEvents[p_Scene->Handle];
-			auto& activeFrameContacts = s_ActiveFrameContactEvents[p_Scene->Handle];
-
-			for (const auto& pair : frameContacts)
-			{
-				if (activeFrameContacts.empty() || !activeFrameContacts.contains(pair))
-				{
-					activeFrameContacts.insert(pair);
-
-					UUID idA = pair.first;
-					UUID idB = pair.second;
-
-					auto aInstance = ScriptEngine::GetEntityScriptInstance(idA);
-					if (aInstance)
-					{
-						void* params[] = { &idB };
-						aInstance->TryInvokeMethod("OnCollisionEnter", 1, params);
-					}
-
-					auto bInstance = ScriptEngine::GetEntityScriptInstance(idB);
-					if (bInstance)
-					{
-						void* params[] = { &idA };
-						bInstance->TryInvokeMethod("OnCollisionEnter", 1, params);
-					}
-				}
-			}
-
-			for (const auto& pair : frameContacts)
-			{
-				if (!activeFrameContacts.empty() && activeFrameContacts.contains(pair))
-				{
-					UUID idA = pair.first;
-					UUID idB = pair.second;
-
-					auto aInstance = ScriptEngine::GetEntityScriptInstance(idA);
-					if (aInstance)
-					{
-						void* params[] = { &idB };
-						aInstance->TryInvokeMethod("OnCollisionStay", 1, params);
-					}
-
-					auto bInstance = ScriptEngine::GetEntityScriptInstance(idB);
-					if (bInstance)
-					{
-						void* params[] = { &idA };
-						bInstance->TryInvokeMethod("OnCollisionStay", 1, params);
-					}
-				}
-			}
-
-			std::unordered_set<std::pair<UUID, UUID>> toDelete;
-
-			for (const auto& pair : activeFrameContacts)
-			{
-				if (frameContacts.empty() || !frameContacts.contains(pair))
-				{
-					toDelete.insert(pair);
-
-					UUID idA = pair.first;
-					UUID idB = pair.second;
-
-					auto aInstance = ScriptEngine::GetEntityScriptInstance(idA);
-					if (aInstance)
-					{
-						void* params[] = { &idB };
-						aInstance->TryInvokeMethod("OnCollisionExit", 1, params);
-					}
-
-					auto bInstance = ScriptEngine::GetEntityScriptInstance(idB);
-					if (bInstance)
-					{
-						void* params[] = { &idA };
-						bInstance->TryInvokeMethod("OnCollisionExit", 1, params);
-					}
-				}
-			}
-
-			for (const auto& pair : toDelete)
-			{
-				activeFrameContacts.erase(pair);
-			}
-		}
-
 		static B2BodyID GetPhysicsBody2D(Entity p_Entity)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
@@ -556,18 +176,11 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (!s_ToDelete.empty())
+		for (auto* userData : m_ToDelete)
 		{
-			for (auto& [scene, toDelete] : s_ToDelete)
-			{
-				for (auto& userData : toDelete)
-				{
-					if (userData)
-						delete userData;
-				}
-			}
-			s_ToDelete.clear();
+			delete userData;
 		}
+		m_ToDelete.clear();
 
 		b2WorldId world = { .index1 = m_World.Index, .generation = m_World.Generation };
 		b2DestroyWorld(world);
@@ -600,7 +213,7 @@ namespace KTN
 			Entity entt{ p_Entt, p_Scene };
 			if (!entt.IsActive()) return;
 
-			CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, &p_Body);
+			CreatePhysicsBody(p_Scene, entt, p_Transform, &p_Body);
 		});
 
 		registry.view<TransformComponent, Rigidbody2DComponent>().each(
@@ -609,7 +222,7 @@ namespace KTN
 			Entity entt{ p_Entt, p_Scene };
 			if (!entt.IsActive()) return;
 
-			CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, &p_Body);
+			CreatePhysicsBody(p_Scene, entt, p_Transform, &p_Body);
 		});
 
 		registry.view<TransformComponent, StaticBody2DComponent>().each(
@@ -618,7 +231,7 @@ namespace KTN
 			Entity entt{ p_Entt, p_Scene };
 			if (!entt.IsActive()) return;
 
-			CreatePhysicsBody(p_Scene, entt, p_Transform, m_World, &p_Body);
+			CreatePhysicsBody(p_Scene, entt, p_Transform, &p_Body);
 		});
 
 		m_IsRunning = true;
@@ -630,16 +243,15 @@ namespace KTN
 		KTN_PROFILE_FUNCTION();
 
 		auto sceneHandle = p_Scene->Handle;
-		for (ShapeUserData* userData : s_ToDelete[sceneHandle])
+		for (ShapeUserData* userData : m_ToDelete)
 		{
-			if (userData)
-				delete userData;
+			delete userData;
 		}
-		s_ToDelete.erase(sceneHandle);
-		s_ActiveSensorEvents.erase(sceneHandle);
-		s_ActiveContactEvents.erase(sceneHandle);
-		s_FrameContactEvents.erase(sceneHandle);
-		s_ActiveFrameContactEvents.erase(sceneHandle);
+		m_ToDelete.clear();
+		m_ActiveSensorEvents.clear();
+		m_ActiveContactEvents.clear();
+		m_FrameContactEvents.clear();
+		m_ActiveFrameContactEvents.clear();
 
 		auto& registry = p_Scene->GetRegistry();
 		registry.view<TransformComponent, PhysicsBody2D>().each(
@@ -670,19 +282,19 @@ namespace KTN
 		{
 			auto& body = p_Entity.GetComponent<CharacterBody2DComponent>();
 			body.Body = {};
-			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, m_World, &body);
+			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, &body);
 		}
 		else if (p_Entity.HasComponent<Rigidbody2DComponent>())
 		{
 			auto& body = p_Entity.GetComponent<Rigidbody2DComponent>();
 			body.Body = {};
-			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, m_World, &body);
+			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, &body);
 		}
 		else if (p_Entity.HasComponent<StaticBody2DComponent>())
 		{
 			auto& body = p_Entity.GetComponent<StaticBody2DComponent>();
 			body.Body = {};
-			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, m_World, &body);
+			CreatePhysicsBody(p_Entity.GetScene(), p_Entity, transform, &body);
 		}
 	}
 
@@ -707,16 +319,14 @@ namespace KTN
 
 		if (m_Paused || p_Scene->IsPaused()) return;
 
-		b2WorldId world = { .index1 = m_World.Index, .generation = m_World.Generation };
-
 		auto ts = Time::GetDeltaTime();
-		b2World_Step(world, (float)ts, 4);
+		b2World_Step(GetWorldID(m_World), (float)ts, 4);
 
 		SyncTransforms(p_Scene);
 
-		SensorEvents(world, p_Scene);
+		SensorEvents(p_Scene);
 
-		ContactEvents(world, p_Scene);
+		ContactEvents(p_Scene);
 	}
 
 	glm::vec2 B2Physics::GetGravity(Entity p_Entity) const
@@ -816,8 +426,7 @@ namespace KTN
 		if (character.Body == B2BodyID{})
 			return;
 
-		auto& frameContacts = s_FrameContactEvents[p_Entity.GetScene()->Handle];
-		auto it = std::erase_if(frameContacts, [&](const std::pair<UUID, UUID>& pair) -> bool
+		auto it = std::erase_if(m_FrameContactEvents, [&](const std::pair<UUID, UUID>& pair) -> bool
 		{
 			auto id = p_Entity.GetUUID();
 			return id == pair.first || id == pair.second;
@@ -884,9 +493,10 @@ namespace KTN
 
 			auto* userdata = GetShapeUserData(collision.Shape);
 			KTN_CORE_ASSERT(userdata, "ShapeUserData is null!");
-			auto pair = MakePair(p_Entity.GetUUID(), userdata->Entt.GetUUID());
-			if (!frameContacts.contains(pair))
-				frameContacts.insert(pair);
+			auto uuid = p_Entity.GetScene()->GetRegistry().get<IDComponent>(userdata->ID).ID;
+			auto pair = MakePair(p_Entity.GetUUID(), uuid);
+			if (!m_FrameContactEvents.contains(pair))
+				m_FrameContactEvents.insert(pair);
 		}
 
 		OverlapContactEvents(p_Entity.GetScene());
@@ -903,8 +513,7 @@ namespace KTN
 		if (character.Body == B2BodyID{})
 			return;
 
-		auto& frameContacts = s_FrameContactEvents[p_Entity.GetScene()->Handle];
-		auto it = std::erase_if(frameContacts, [&](const std::pair<UUID, UUID>& pair) -> bool
+		auto it = std::erase_if(m_FrameContactEvents, [&](const std::pair<UUID, UUID>& pair) -> bool
 		{
 			auto id = p_Entity.GetUUID();
 			return id == pair.first || id == pair.second;
@@ -971,12 +580,423 @@ namespace KTN
 
 			auto* userdata = GetShapeUserData(collision.Shape);
 			KTN_CORE_ASSERT(userdata, "ShapeUserData is null!");
-			auto pair = MakePair(p_Entity.GetUUID(), userdata->Entt.GetUUID());
-			if (!frameContacts.contains(pair))
-				frameContacts.insert(pair);
+			auto uuid = p_Entity.GetScene()->GetRegistry().get<IDComponent>(userdata->ID).ID;
+			auto pair = MakePair(p_Entity.GetUUID(), uuid);
+			if (!m_FrameContactEvents.contains(pair))
+				m_FrameContactEvents.insert(pair);
 		}
 
 		OverlapContactEvents(p_Entity.GetScene());
+	}
+
+	void B2Physics::SensorEvents(Scene* p_Scene)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		b2WorldId world = GetWorldID(m_World);
+
+		auto sceneHandle = p_Scene->Handle;
+		auto& registry = p_Scene->GetRegistry();
+
+		b2SensorEvents sensorEvents = b2World_GetSensorEvents(world);
+		for (int i = 0; i < sensorEvents.beginCount; ++i)
+		{
+			b2SensorBeginTouchEvent* beginEvent = sensorEvents.beginEvents + i;
+
+			auto* sensorData = GetShapeUserData(beginEvent->sensorShapeId);
+			auto* visitorData = GetShapeUserData(beginEvent->visitorShapeId);
+
+			if (!sensorData || !visitorData) continue;
+
+			if (!registry.valid(sensorData->ID) || !registry.valid(visitorData->ID))
+			{
+				KTN_CORE_ERROR("One of the entities involved in the sensor begin event is invalid. Sensor ID: '{}', Visitor ID: '{}'", (uint32_t)sensorData->ID, (uint32_t)visitorData->ID);
+				continue;
+			}
+
+			auto sensorID = registry.get<IDComponent>(sensorData->ID).ID;
+			auto visitorID = registry.get<IDComponent>(visitorData->ID).ID;
+
+			m_ActiveSensorEvents.insert(std::make_pair(sensorID, visitorID));
+
+			auto sensorInstance = ScriptEngine::GetEntityScriptInstance(sensorID);
+			if (sensorInstance)
+			{
+				void* params[] = { &visitorID };
+				sensorInstance->TryInvokeMethod("OnTriggerEnter", 1, params);
+			}
+
+			auto visitorInstance = ScriptEngine::GetEntityScriptInstance(visitorID);
+			if (visitorInstance)
+			{
+				void* params[] = { &sensorID };
+				visitorInstance->TryInvokeMethod("OnTriggerEnter", 1, params);
+			}
+		}
+
+		for (int i = 0; i < sensorEvents.endCount; ++i)
+		{
+			b2SensorEndTouchEvent* endEvent = sensorEvents.endEvents + i;
+
+			auto* sensorData = GetShapeUserData(endEvent->sensorShapeId);
+			auto* visitorData = GetShapeUserData(endEvent->visitorShapeId);
+
+			if (!sensorData || !visitorData) continue;
+
+			if (!registry.valid(sensorData->ID) || !registry.valid(visitorData->ID))
+			{
+				KTN_CORE_ERROR("One of the entities involved in the sensor end event is invalid. Sensor ID: '{}', Visitor ID: '{}'", (uint32_t)sensorData->ID, (uint32_t)visitorData->ID);
+				continue;
+			}
+
+			auto sensorID = registry.get<IDComponent>(sensorData->ID).ID;
+			auto visitorID = registry.get<IDComponent>(visitorData->ID).ID;
+
+			m_ActiveSensorEvents.erase(std::make_pair(sensorID, visitorID));
+			m_ActiveSensorEvents.erase(std::make_pair(visitorID, sensorID));
+
+			auto sensorInstance = ScriptEngine::GetEntityScriptInstance(sensorID);
+			if (sensorInstance)
+			{
+				void* params[] = { &visitorID };
+				sensorInstance->TryInvokeMethod("OnTriggerExit", 1, params);
+			}
+
+			auto visitorInstance = ScriptEngine::GetEntityScriptInstance(visitorID);
+			if (visitorInstance)
+			{
+				void* params[] = { &sensorID };
+				visitorInstance->TryInvokeParentMethod("OnTriggerExit", 1, params);
+			}
+		}
+
+		for (const auto& collisionPair : m_ActiveSensorEvents)
+		{
+			auto sensorID = collisionPair.first;
+			auto visitorID = collisionPair.second;
+
+			auto sensorInstance = ScriptEngine::GetEntityScriptInstance(sensorID);
+			if (sensorInstance)
+			{
+				void* params[] = { &visitorID };
+				sensorInstance->TryInvokeMethod("OnTriggerStay", 1, params);
+			}
+
+			auto visitorInstance = ScriptEngine::GetEntityScriptInstance(visitorID);
+			if (visitorInstance)
+			{
+				void* params[] = { &sensorID };
+				visitorInstance->TryInvokeMethod("OnTriggerStay", 1, params);
+			}
+		}
+	}
+
+	void B2Physics::ContactEvents(Scene* p_Scene)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		b2WorldId world = GetWorldID(m_World);
+
+		auto sceneHandle = p_Scene->Handle;
+		auto& registry = p_Scene->GetRegistry();
+
+		b2ContactEvents contactEvents = b2World_GetContactEvents(world);
+		for (int i = 0; i < contactEvents.beginCount; ++i)
+		{
+			b2ContactBeginTouchEvent* beginEvent = contactEvents.beginEvents + i;
+
+			auto* userDataA = GetShapeUserData(beginEvent->shapeIdA);
+			auto* userDataB = GetShapeUserData(beginEvent->shapeIdB);
+
+			if (!userDataA || !userDataB) continue;
+
+			if (!registry.valid(userDataA->ID) || !registry.valid(userDataB->ID))
+			{
+				KTN_CORE_ERROR("One of the entities involved in the contact begin event is invalid. ShapeA ID: '{}', ShapeB ID: '{}'", (uint32_t)userDataA->ID, (uint32_t)userDataB->ID);
+				continue;
+			}
+
+			auto aID = registry.get<IDComponent>(userDataA->ID).ID;
+			auto bID = registry.get<IDComponent>(userDataB->ID).ID;
+
+			m_ActiveContactEvents.insert(std::make_pair(aID, bID));
+
+			auto aInstance = ScriptEngine::GetEntityScriptInstance(aID);
+			if (aInstance)
+			{
+				void* params[] = { &bID };
+				aInstance->TryInvokeMethod("OnCollisionEnter", 1, params);
+			}
+
+			auto bInstance = ScriptEngine::GetEntityScriptInstance(bID);
+			if (bInstance)
+			{
+				void* params[] = { &aID };
+				bInstance->TryInvokeMethod("OnCollisionEnter", 1, params);
+			}
+		}
+
+		for (int i = 0; i < contactEvents.endCount; ++i)
+		{
+			b2ContactEndTouchEvent* endEvent = contactEvents.endEvents + i;
+
+			auto* userDataA = GetShapeUserData(endEvent->shapeIdA);
+			auto* userDataB = GetShapeUserData(endEvent->shapeIdB);
+
+			if (!userDataA || !userDataB) continue;
+
+			if (!registry.valid(userDataA->ID) || !registry.valid(userDataB->ID))
+			{
+				KTN_CORE_ERROR("One of the entities involved in the contact end event is invalid. ShapeA ID: '{}', ShapeB ID: '{}'", (uint32_t)userDataA->ID, (uint32_t)userDataB->ID);
+				continue;
+			}
+
+			auto aID = registry.get<IDComponent>(userDataA->ID).ID;
+			auto bID = registry.get<IDComponent>(userDataB->ID).ID;
+
+			m_ActiveContactEvents.erase(std::make_pair(aID, bID));
+
+			auto aInstance = ScriptEngine::GetEntityScriptInstance(aID);
+			if (aInstance)
+			{
+				void* params[] = { &bID };
+				aInstance->TryInvokeMethod("OnCollisionExit", 1, params);
+			}
+
+			auto bInstance = ScriptEngine::GetEntityScriptInstance(bID);
+			if (bInstance)
+			{
+				void* params[] = { &aID };
+				bInstance->TryInvokeMethod("OnCollisionExit", 1, params);
+			}
+		}
+
+		for (const auto& collisionPair : m_ActiveContactEvents)
+		{
+			auto aID = collisionPair.first;
+			auto bID = collisionPair.second;
+
+			auto aInstance = ScriptEngine::GetEntityScriptInstance(aID);
+			if (aInstance)
+			{
+				void* params[] = { &bID };
+				aInstance->TryInvokeMethod("OnCollisionStay", 1, params);
+			}
+
+			auto bInstance = ScriptEngine::GetEntityScriptInstance(bID);
+			if (bInstance)
+			{
+				void* params[] = { &aID };
+				bInstance->TryInvokeMethod("OnCollisionStay", 1, params);
+			}
+		}
+	}
+
+	void B2Physics::OverlapContactEvents(Scene* p_Scene)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		for (const auto& pair : m_FrameContactEvents)
+		{
+			if (m_ActiveFrameContactEvents.empty() || !m_ActiveFrameContactEvents.contains(pair))
+			{
+				m_ActiveFrameContactEvents.insert(pair);
+
+				UUID idA = pair.first;
+				UUID idB = pair.second;
+
+				auto aInstance = ScriptEngine::GetEntityScriptInstance(idA);
+				if (aInstance)
+				{
+					void* params[] = { &idB };
+					aInstance->TryInvokeMethod("OnCollisionEnter", 1, params);
+				}
+
+				auto bInstance = ScriptEngine::GetEntityScriptInstance(idB);
+				if (bInstance)
+				{
+					void* params[] = { &idA };
+					bInstance->TryInvokeMethod("OnCollisionEnter", 1, params);
+				}
+			}
+		}
+
+		for (const auto& pair : m_FrameContactEvents)
+		{
+			if (!m_ActiveFrameContactEvents.empty() && m_ActiveFrameContactEvents.contains(pair))
+			{
+				UUID idA = pair.first;
+				UUID idB = pair.second;
+
+				auto aInstance = ScriptEngine::GetEntityScriptInstance(idA);
+				if (aInstance)
+				{
+					void* params[] = { &idB };
+					aInstance->TryInvokeMethod("OnCollisionStay", 1, params);
+				}
+
+				auto bInstance = ScriptEngine::GetEntityScriptInstance(idB);
+				if (bInstance)
+				{
+					void* params[] = { &idA };
+					bInstance->TryInvokeMethod("OnCollisionStay", 1, params);
+				}
+			}
+		}
+
+		std::unordered_set<std::pair<UUID, UUID>> toDelete;
+
+		for (const auto& pair : m_ActiveFrameContactEvents)
+		{
+			if (m_FrameContactEvents.empty() || !m_FrameContactEvents.contains(pair))
+			{
+				toDelete.insert(pair);
+
+				UUID idA = pair.first;
+				UUID idB = pair.second;
+
+				auto aInstance = ScriptEngine::GetEntityScriptInstance(idA);
+				if (aInstance)
+				{
+					void* params[] = { &idB };
+					aInstance->TryInvokeMethod("OnCollisionExit", 1, params);
+				}
+
+				auto bInstance = ScriptEngine::GetEntityScriptInstance(idB);
+				if (bInstance)
+				{
+					void* params[] = { &idA };
+					bInstance->TryInvokeMethod("OnCollisionExit", 1, params);
+				}
+			}
+		}
+
+		for (const auto& pair : toDelete)
+		{
+			m_ActiveFrameContactEvents.erase(pair);
+		}
+	}
+
+	void B2Physics::CreateShape(Scene* p_Scene, Entity p_Entt, PhysicsBody2D* p_PhyBody, BodyShape2DComponent& p_Shape, const glm::vec3& p_Scale)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!p_Scene || !p_Entt)
+		{
+			KTN_CORE_ERROR("Scene or Entity is null!");
+			return;
+		}
+
+		if (!p_PhyBody)
+		{
+			KTN_CORE_ERROR("PhysicsBody2D is null!");
+			return;
+		}
+
+		auto* userData = new ShapeUserData{
+			.ID = p_Entt.GetHandle(),
+			.IsTrigger = p_PhyBody->IsTrigger
+		};
+		m_ToDelete.push_back(userData);
+
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+		auto material = AssetManager::Get()->GetAsset<PhysicsMaterial2D>(p_PhyBody->PhysicsMaterial2D);
+		shapeDef.density = p_PhyBody->Mass;
+		shapeDef.material.friction = material->Friction;
+		shapeDef.material.restitution = material->Restitution;
+		shapeDef.material.rollingResistance = material->RestitutionThreshold;
+		shapeDef.userData = userData;
+		shapeDef.enableSensorEvents = true;
+		shapeDef.enableContactEvents = !p_PhyBody->IsTrigger;
+		shapeDef.filter.categoryBits = GetFilterCategory(p_PhyBody);
+		shapeDef.filter.maskBits = CategoryTrigger | CategoryStatic | CategoryCharacter | CategoryDynamic;
+
+		if (p_PhyBody->IsTrigger)
+		{
+			shapeDef.isSensor = true;
+			shapeDef.density = 0.0f;
+		}
+
+		b2BodyId body = GetBodyID(p_PhyBody->Body);
+
+		if (p_Shape.Shape == Shape2D::Rect)
+		{
+			b2Polygon box = b2MakeOffsetBox(p_Shape.Size.x * p_Scale.x, p_Shape.Size.y * p_Scale.y, b2Vec2(p_Shape.Offset.x, p_Shape.Offset.y), b2MakeRot(0.0f));
+			b2CreatePolygonShape(body, &shapeDef, &box);
+		}
+
+		if (p_Shape.Shape == Shape2D::Circle)
+		{
+			b2Circle circle = { { p_Shape.Offset.x, p_Shape.Offset.y }, p_Shape.Size.x * p_Scale.x };
+			b2CreateCircleShape(body, &shapeDef, &circle);
+		}
+	}
+
+	void B2Physics::CreatePhysicsBody(Scene* p_Scene, Entity p_Entt, TransformComponent& p_Transform, PhysicsBody2D* p_Body)
+	{
+		KTN_PROFILE_FUNCTION();
+
+		if (!p_Scene || !p_Entt)
+		{
+			KTN_CORE_ERROR("Scene or Entity is null!");
+			return;
+		}
+
+		if (!p_Body)
+		{
+			KTN_CORE_ERROR("PhysicsBody2D is null!");
+			return;
+		}
+
+		b2BodyDef bodyDef = b2DefaultBodyDef();
+
+		bodyDef.gravityScale = 0.0f;
+		bodyDef.fixedRotation = true;
+		bodyDef.linearDamping = 0.0f;
+		bodyDef.angularDamping = 0.0f;
+		bodyDef.isEnabled = p_Entt.IsEnabled();
+
+		switch (p_Body->GetType())
+		{
+			case Rigidbody2DComponent::Type::Static:
+				bodyDef.type = b2_staticBody;
+				break;
+			case Rigidbody2DComponent::Type::Rigidbody:
+			{
+				bodyDef.type = b2_dynamicBody;
+				auto* rc = static_cast<Rigidbody2DComponent*>(p_Body);
+				bodyDef.gravityScale = rc->GravityScale;
+				bodyDef.fixedRotation = rc->FixedRotation;
+				bodyDef.linearDamping = rc->LinearDamping;
+				bodyDef.angularDamping = rc->AngularDamping;
+				bodyDef.isAwake = !rc->Sleeping;
+				bodyDef.enableSleep = rc->CanSleep;
+				break;
+			}
+			case Rigidbody2DComponent::Type::Character:
+				bodyDef.type = b2_kinematicBody;
+				break;
+		}
+
+		glm::vec3 pos = p_Transform.GetWorldTranslation();
+		glm::vec3 scale = p_Transform.GetWorldScale();
+		glm::vec3 rot = p_Transform.GetWorldRotation();
+
+		bodyDef.position = { pos.x, pos.y };
+		bodyDef.rotation = b2MakeRot(rot.z);
+
+		b2WorldId world = GetWorldID(m_World);
+		b2BodyId body = b2CreateBody(world, &bodyDef);
+
+		p_Body->Body.Index = body.index1;
+		p_Body->Body.World = body.world0;
+		p_Body->Body.Generation = body.generation;
+
+		if (p_Entt.HasComponent<BodyShape2DComponent>())
+		{
+			auto& shape = p_Entt.GetComponent<BodyShape2DComponent>();
+			CreateShape(p_Scene, p_Entt, p_Body, shape, scale);
+		}
 	}
 
 } // namespace KTN

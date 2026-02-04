@@ -15,7 +15,7 @@ namespace Sandbox
 
 		void OnCreate()
 		{
-			var gameObject = GameObject.FindWithTag("Player");
+			var gameObject = GameObject.FindWithTag("Player1");
 			m_Player = gameObject.GetComponent<Transform>();
 			m_Local = GetComponent<Transform>();
 		}

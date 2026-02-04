@@ -18,18 +18,3 @@ namespace KTN
 	};
 
 } // namespace KTN
-
-namespace std
-{
-	template <typename T> struct hash;
-
-	template<>
-	struct hash<KTN::UUID>
-	{
-		std::size_t operator()(const KTN::UUID& p_UUID) const
-		{
-			return (uint64_t)p_UUID;
-		}
-	};
-
-} // namespace std

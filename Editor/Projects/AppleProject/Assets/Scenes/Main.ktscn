@@ -2,6 +2,78 @@ Scene: 8490365996118832830
 Configs:
   - UsePhysics2D: true
 Entities:
+  - Entity: 3433803422352475660
+    TagComponent:
+      Tag: AppleSpawner
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 7, 0]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      FullClassName: Apple.Spawner
+      ScriptFields:
+        []
+  - Entity: 9134091759235243697
+    TagComponent:
+      Tag: Ground
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, -6, 0]
+      Rotation: [0, 0, 0]
+      Scale: [13.7, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Color: [1, 0, 0, 1]
+      Texture: 0
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    StaticBody2DComponent:
+      IsTrigger: false
+      Mass: 0
+      PhysicsMaterial2D: 7980078156861383348
+    BodyShape2DComponent:
+      Shape: 0
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+    ScriptComponent:
+      FullClassName: Apple.Ground
+  - Entity: 18241545563351049444
+    TagComponent:
+      Tag: Camera
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 10]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      ClearColor: [0, 0, 0, 1]
+      Width: 0
+      Height: 0
+      IsOrthographic: false
+      IsAspectRatioFixed: false
+      FOV: 90
+      Far: 1000
+      Near: 0.001
+      Scale: 10
+      Zoom: 1
+    ScriptComponent:
+      FullClassName: Apple.Camera
+      ScriptFields:
+        - Name: DistanceFromPlayer
+          Type: Float
+          Data: 10
   - Entity: 10580865177713273455
     TagComponent:
       Tag: Player
@@ -9,7 +81,7 @@ Entities:
       Enabled: true
       Active: true
     TransformComponent:
-      Translation: [2.8, -4.4, 0]
+      Translation: [2.8, -4.5, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 2, 1]
     SpriteComponent:
@@ -42,54 +114,16 @@ Entities:
         - Name: Speed
           Type: Float
           Data: 5
-  - Entity: 18241545563351049444
+  - Entity: 3091286931331438698
     TagComponent:
-      Tag: Camera
+      Tag: Wall
     RuntimeComponent:
       Enabled: true
       Active: true
     TransformComponent:
-      Translation: [0, 0, 10]
+      Translation: [7.4, -1.5, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Primary: true
-      ClearColor: [0, 0, 0, 1]
-      Width: 0
-      Height: 0
-      IsOrthographic: false
-      IsAspectRatioFixed: false
-      FOV: 90
-      Far: 1000
-      Near: 0.001
-      Scale: 10
-      Zoom: 1
-    ScriptComponent:
-      FullClassName: Apple.Camera
-      ScriptFields:
-        - Name: DistanceFromPlayer
-          Type: Float
-          Data: 10
-  - Entity: 9134091759235243697
-    TagComponent:
-      Tag: Ground
-    RuntimeComponent:
-      Enabled: true
-      Active: true
-    TransformComponent:
-      Translation: [0, -6, 0]
-      Rotation: [0, 0, 0]
-      Scale: [13.7, 1, 1]
-    SpriteComponent:
-      Type: 0
-      Color: [1, 0, 0, 1]
-      Texture: 0
-      Thickness: 1
-      Fade: 0.005
-      Size: [0, 0]
-      BySize: true
-      Offset: [0, 0]
-      Scale: [1, 1]
+      Scale: [1, 10, 1]
     StaticBody2DComponent:
       IsTrigger: false
       Mass: 0
@@ -98,15 +132,21 @@ Entities:
       Shape: 0
       Offset: [0, 0]
       Size: [0.5, 0.5]
-  - Entity: 3433803422352475660
+  - Entity: 6924866583544488863
     TagComponent:
-      Tag: AppleSpawner
+      Tag: Wall
     RuntimeComponent:
       Enabled: true
       Active: true
     TransformComponent:
-      Translation: [0, 7, 0]
-      Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
-    ScriptComponent:
-      FullClassName: Apple.Spawner
+      Translation: [-7.4, -1.5, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 10, 1]
+    StaticBody2DComponent:
+      IsTrigger: false
+      Mass: 0
+      PhysicsMaterial2D: 7980078156861383348
+    BodyShape2DComponent:
+      Shape: 0
+      Offset: [0, 0]
+      Size: [0.5, 0.5]

@@ -33,6 +33,15 @@ namespace KTN
 			int32_t Type;
 		};
 
+		struct SceneHandle
+		{
+			uint64_t Handle;
+
+			// Configuration Data
+
+			uint8_t UsePhysics2D;
+		};
+
 		static std::string MonoStringToString(MonoString* p_String)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
@@ -78,11 +87,17 @@ namespace KTN
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
+			KTN_CORE_INFO("Instantiate called: ID={}, SceneHandle={}, Type={}",
+				p_Handle.ID, p_Handle.SceneHandle, p_Handle.Type);
+
 			auto type = (AssetType)p_Handle.Type;
 
 			uint64_t sceneHandle = p_Handle.SceneHandle;
 			if (!sceneHandle && (type == AssetType::None || type == AssetType::Prefab))
 			{
+				KTN_CORE_WARN("The Scene handle '{}' is invalid, trying to get the first Scene handle!",
+					p_Handle.SceneHandle);
+
 				auto& scenes = SceneManager::GetActiveScenes();
 				if (scenes.empty())
 				{
@@ -97,6 +112,13 @@ namespace KTN
 			if (type == AssetType::None)
 			{
 				auto scene = SceneManager::GetScene(sceneHandle);
+				if (!scene)
+				{
+					KTN_CORE_ERROR("Failed to instantiate the object. Please provide a valid Scene Handle! Handle: (ID: {}, SceneHandle: {}, Type: {})",
+						p_Handle.ID, sceneHandle, p_Handle.Type);
+					return { 0, 0, 0 };
+				}
+
 				auto entity = scene->GetEntityByUUID(p_Handle.ID);
 				if (!entity)
 				{
@@ -123,9 +145,6 @@ namespace KTN
 
 			if (type == AssetType::Prefab)
 			{
-				KTN_CORE_INFO("Loading Preafab! Handle: (ID: {}, SceneHandle: {}, Type: {})",
-					p_Handle.ID, sceneHandle, p_Handle.Type);
-
 				auto& metadata = AssetManager::Get()->GetMetadata(p_Handle.ID);
 				delete metadata.AssetData;
 				metadata.AssetData = nullptr;
@@ -323,7 +342,68 @@ namespace KTN
 			SceneManager::GetConfig().Mode = (LoadMode)p_LoadMode;
 		}
 
-		static bool SceneManager_LoadSceneByPath(MonoString* p_ScenePath, int p_Mode)
+		static bool SceneManager_IsActive(AssetHandle p_SceneHandle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			return SceneManager::IsActive(p_SceneHandle);
+		}
+
+		static bool SceneManager_IsImported(AssetHandle p_SceneHandle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			return SceneManager::IsLoaded(p_SceneHandle);
+		}
+
+		static SceneHandle ReturnSceneHandle(AssetHandle p_Handle)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			if (!p_Handle)
+			{
+				return { 0, 0 };
+			}
+
+			SceneConfig config = {0};
+			bool isLoaded = SceneManager::IsLoaded(p_Handle);
+			if (isLoaded)
+			{
+				auto scene = SceneManager::GetLoadedScene(p_Handle);
+				if (scene)
+					config = scene->GetConfig();
+				else
+				{
+					KTN_CORE_ERROR("Scene is nullptr for loaded scene handle: {}", (uint64_t)p_Handle);
+				}
+			}
+
+			return { p_Handle, config.UsePhysics2D };
+		}
+
+		static SceneHandle SceneManager_ImportScene(MonoString* p_ScenePath)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto str = MonoStringToString(p_ScenePath);
+			auto path = Project::GetAssetFileSystemPath(str).string();
+			auto handle = SceneManager::Import(path, true);
+
+			return ReturnSceneHandle(handle);
+		}
+
+		static SceneHandle SceneManager_ImportSceneAsync(MonoString* p_ScenePath)
+		{
+			KTN_PROFILE_FUNCTION_LOW();
+
+			auto str = MonoStringToString(p_ScenePath);
+			auto path = Project::GetAssetFileSystemPath(str).string();
+			auto handle = SceneManager::ImportAsync(path);
+
+			return ReturnSceneHandle(handle);
+		}
+
+		static SceneHandle SceneManager_LoadSceneByPath(MonoString* p_ScenePath, int p_Mode)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
@@ -332,17 +412,27 @@ namespace KTN
 
 			auto handle = AssetManager::Get()->GetHandleByPath(path);
 
-			return SceneManager::Load(handle, (LoadMode)p_Mode, true);
+			if (!SceneManager::Load(handle, (LoadMode)p_Mode, true))
+			{
+				return ReturnSceneHandle(0);
+			}
+
+			return ReturnSceneHandle(handle);
 		}
 
-		static bool SceneManager_LoadScene(AssetHandle p_SceneHandle, int p_Mode)
+		static SceneHandle SceneManager_LoadScene(AssetHandle p_SceneHandle, int p_Mode)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
-			return SceneManager::Load(p_SceneHandle, (LoadMode)p_Mode, true);
+			if (!SceneManager::Load(p_SceneHandle, (LoadMode)p_Mode, true))
+			{
+				return ReturnSceneHandle(0);
+			}
+
+			return ReturnSceneHandle(p_SceneHandle);
 		}
 
-		static void SceneManager_LoadSceneAsyncByPath(MonoString* p_ScenePath, int p_Mode)
+		static SceneHandle SceneManager_LoadSceneAsyncByPath(MonoString* p_ScenePath, int p_Mode)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
@@ -351,13 +441,17 @@ namespace KTN
 			auto handle = AssetManager::Get()->GetHandleByPath(path);
 
 			SceneManager::LoadAsync(handle, (LoadMode)p_Mode);
+
+			return ReturnSceneHandle(handle);
 		}
 
-		static void SceneManager_LoadSceneAsync(AssetHandle p_SceneHandle, int p_Mode)
+		static SceneHandle SceneManager_LoadSceneAsync(AssetHandle p_SceneHandle, int p_Mode)
 		{
 			KTN_PROFILE_FUNCTION_LOW();
 
 			SceneManager::LoadAsync(p_SceneHandle, (LoadMode)p_Mode);
+
+			return ReturnSceneHandle(p_SceneHandle);
 		}
 
 		static void SceneManager_UnloadSceneByPath(MonoString* p_ScenePath)
@@ -412,7 +506,7 @@ namespace KTN
 			return scene->IsPaused();
 		}
 
-		static bool Scene_IsEntityValid(AssetHandle p_Handle, UUID p_EntityID)
+		static bool Scene_IsUUIDValid(AssetHandle p_Handle, UUID p_EntityID)
 		{
 			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
 			KTN_CORE_VERIFY(scene, "Scene is nullptr!");
@@ -424,7 +518,7 @@ namespace KTN
 			return entt ? true : false;
 		}
 
-		static UUID Scene_GetEntityByTag(AssetHandle p_Handle, MonoString* p_Tag)
+		static UUID Scene_FindWithTag(AssetHandle p_Handle, MonoString* p_Tag)
 		{
 			auto scene = AssetManager::Get()->GetAsset<Scene>(p_Handle);
 			KTN_CORE_VERIFY(scene, "Scene is nullptr!");
@@ -1166,6 +1260,10 @@ namespace KTN
 
 		KTN_ADD_INTERNAL_CALL(SceneManager_GetConfigLoadMode);
 		KTN_ADD_INTERNAL_CALL(SceneManager_SetConfigLoadMode);
+		KTN_ADD_INTERNAL_CALL(SceneManager_IsActive);
+		KTN_ADD_INTERNAL_CALL(SceneManager_IsImported);
+		KTN_ADD_INTERNAL_CALL(SceneManager_ImportScene);
+		KTN_ADD_INTERNAL_CALL(SceneManager_ImportSceneAsync);
 		KTN_ADD_INTERNAL_CALL(SceneManager_LoadSceneByPath);
 		KTN_ADD_INTERNAL_CALL(SceneManager_LoadScene);
 		KTN_ADD_INTERNAL_CALL(SceneManager_LoadSceneAsyncByPath);
@@ -1177,8 +1275,8 @@ namespace KTN
 
 		KTN_ADD_INTERNAL_CALL(Scene_Pause);
 		KTN_ADD_INTERNAL_CALL(Scene_IsPaused);
-		KTN_ADD_INTERNAL_CALL(Scene_IsEntityValid);
-		KTN_ADD_INTERNAL_CALL(Scene_GetEntityByTag);
+		KTN_ADD_INTERNAL_CALL(Scene_IsUUIDValid);
+		KTN_ADD_INTERNAL_CALL(Scene_FindWithTag);
 
 		KTN_ADD_INTERNAL_CALL(TagComponent_GetTag);
 		KTN_ADD_INTERNAL_CALL(TagComponent_SetTag);

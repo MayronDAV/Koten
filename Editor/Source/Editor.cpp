@@ -546,7 +546,7 @@ namespace KTN
 
 		if (!p_Scene) return;
 
-		if (!SceneManager::Exists(p_Scene)) return;
+		if (!SceneManager::IsLoaded(p_Scene)) return;
 
 		std::string path = "";
 		if (FileDialog::Save(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
@@ -562,7 +562,7 @@ namespace KTN
 	{
 		KTN_PROFILE_FUNCTION();
 
-		if (!SceneManager::Exists(p_Scene) || !AssetManager::Get()->IsAssetHandleValid(p_Scene)) return;
+		if (!SceneManager::IsLoaded(p_Scene) || !AssetManager::Get()->IsAssetHandleValid(p_Scene)) return;
 
 		auto& path = AssetManager::Get()->GetMetadata(p_Scene).FilePath;
 		if (path.empty())

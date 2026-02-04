@@ -1,4 +1,4 @@
-#if defined(_MSC_VER)
+#ifdef KTN_WINDOWS
 #pragma once
 #endif
 
@@ -34,6 +34,46 @@
 #ifdef KTN_WINDOWS
 	#include <Windows.h>
 #endif
+
+
+namespace std
+{
+#ifndef KTNPCH_H_STDHASH
+	#ifndef KTN_WINDOWS
+		#define KTNPCH_H_STDHASH
+	#endif
+
+	template <typename T> struct hash;
+
+	template<>
+	struct hash<KTN::UUID>
+	{
+		std::size_t operator()(const KTN::UUID& p_UUID) const
+		{
+			return (uint64_t)p_UUID;
+		}
+	};
+
+	template<>
+	struct hash<std::pair<KTN::UUID, KTN::UUID>>
+	{
+		size_t operator()(const std::pair<KTN::UUID, KTN::UUID>& p) const
+		{
+			return hash<KTN::UUID>()(p.first) ^ (hash<KTN::UUID>()(p.second) << 1);
+		}
+	};
+
+	template<>
+	struct equal_to<std::pair<KTN::UUID, KTN::UUID>>
+	{
+		bool operator()(const std::pair<KTN::UUID, KTN::UUID>& p_Lhs, const std::pair<KTN::UUID, KTN::UUID>& p_Rhs) const
+		{
+			return p_Lhs.first == p_Rhs.first && p_Lhs.second == p_Rhs.second;
+		}
+	};
+#endif
+
+} // namespace std 
 
 
 namespace YAML
