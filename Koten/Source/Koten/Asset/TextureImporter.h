@@ -6,13 +6,13 @@
 
 namespace KTN
 {
-	struct KTN_API TextureImporter
-	{
-		static Ref<Texture2D> ImportTexture2D(AssetHandle p_Handle, const AssetMetadata& p_Metadata);
-		static Ref<Texture2D> ImportTexture2DFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data);
+    struct KTN_API TextureImporter
+    {
+        static Ref<Texture2D> ImportTexture2D(AssetHandle p_Handle, const AssetMetadata& p_Metadata);
+        static Ref<Texture2D> ImportTexture2DFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data);
 
-		static Ref<Texture2D> LoadTexture2D(const std::string& p_Path);
-		static Ref<Texture2D> LoadTexture2D(const std::string& p_Path, const TextureSpecification& p_Spec);
-	};
+        static Ref<Texture2D> LoadTexture2D(const std::string& p_Path);
+        static Ref<Texture2D> LoadTexture2D(const std::string& p_Path, const TextureSpecification& p_Spec);
+    };
 
 } // namespace KTN

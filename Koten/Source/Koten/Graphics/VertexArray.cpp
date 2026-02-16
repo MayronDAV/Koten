@@ -7,14 +7,14 @@
 
 namespace KTN
 {
-	Ref<VertexArray> VertexArray::Create()
-	{
-		KTN_PROFILE_FUNCTION();
+    Ref<VertexArray> VertexArray::Create()
+    {
+        KTN_PROFILE_FUNCTION();
 
-		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-			return CreateRef<GLVertexArray>();
+        if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
+            return CreateRef<GLVertexArray>();
 
-		KTN_CORE_ERROR("Unsupported API!");
-		return nullptr;
-	}
+        KTN_CORE_ERROR("Unsupported API!");
+        return nullptr;
+    }
 }

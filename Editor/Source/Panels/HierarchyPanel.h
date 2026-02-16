@@ -6,17 +6,17 @@
 
 namespace KTN
 {
-	class HierarchyPanel : public EditorPanel
-	{
-		public:
-			HierarchyPanel();
-			~HierarchyPanel() override = default;
+    class HierarchyPanel : public EditorPanel
+    {
+        public:
+            HierarchyPanel();
+            ~HierarchyPanel() override = default;
 
-			void OnImgui() override;
+            void OnImgui() override;
 
-		private:
-			void DrawEnttNode(Entity p_Entt);
-	};
+        private:
+            void DrawEnttNode(Entity p_Entt);
+    };
 
 
 } // namespace KTN

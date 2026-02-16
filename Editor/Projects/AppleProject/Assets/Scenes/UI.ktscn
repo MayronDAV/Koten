@@ -2,28 +2,6 @@ Scene: 15647201069320742082
 Configs:
   - UsePhysics2D: false
 Entities:
-  - Entity: 144438836318150557
-    TagComponent:
-      Tag: Camera
-    RuntimeComponent:
-      Enabled: true
-      Active: true
-    TransformComponent:
-      Translation: [0, 0, 0.1]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Primary: true
-      ClearColor: [0, 0, 0, 1]
-      Width: 0
-      Height: 0
-      IsOrthographic: true
-      IsAspectRatioFixed: false
-      FOV: 90
-      Far: 1000
-      Near: 0.001
-      Scale: 10
-      Zoom: 1
   - Entity: 1502291685140100884
     TagComponent:
       Tag: Score
@@ -31,7 +9,7 @@ Entities:
       Enabled: true
       Active: true
     TransformComponent:
-      Translation: [5, 4, 0]
+      Translation: [4, 4, 0]
       Rotation: [0, 0, 0]
       Scale: [0.5, 0.5, 1]
     TextRendererComponent:
@@ -45,3 +23,25 @@ Entities:
       LineSpacing: 0
     ScriptComponent:
       FullClassName: Apple.Score
+  - Entity: 144438836318150557
+    TagComponent:
+      Tag: Camera
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 0.1]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      ClearColor: [0, 0, 0, 1]
+      Width: 556
+      Height: 417
+      IsOrthographic: true
+      IsAspectRatioFixed: false
+      FOV: 90
+      Far: 1000
+      Near: 0.001
+      Scale: 10
+      Zoom: 1

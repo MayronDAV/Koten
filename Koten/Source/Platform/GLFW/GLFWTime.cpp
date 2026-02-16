@@ -5,9 +5,9 @@
 
 namespace KTN
 {
-	double Time::GetTime()
-	{
-		return glfwGetTime();
-	}
+    double Time::GetTime()
+    {
+        return glfwGetTime();
+    }
 
 } // namespace KTN

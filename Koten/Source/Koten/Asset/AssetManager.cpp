@@ -485,7 +485,7 @@ namespace KTN
             return false;
         }
 
-        #define	READ_WRITE(dest, size)					  \
+        #define    READ_WRITE(dest, size)                      \
             in.read(reinterpret_cast<char*>(dest), size); \
             buffer.Write(dest, size);
 
@@ -620,7 +620,7 @@ namespace KTN
                     out << YAML::Key << "AssetData" << YAML::Value << YAML::BeginMap;
                     if (metadata.Type == AssetType::Font)
                     {
-						auto dffont = GetAsset<DFFont>(handle);
+                        auto dffont = GetAsset<DFFont>(handle);
                         const auto& config = dffont->GetConfig();
                         out << YAML::Key << "ImageType" << YAML::Value << (std::string)magic_enum::enum_name(config.ImageType).data();
                         out << YAML::Key << "GlyphIdentifier" << YAML::Value << (std::string)magic_enum::enum_name(config.GlyphIdentifier).data();
@@ -653,7 +653,7 @@ namespace KTN
 
                     if (metadata.Type == AssetType::Texture2D)
                     {
-						auto texture = GetAsset<Texture2D>(handle);
+                        auto texture = GetAsset<Texture2D>(handle);
                         const auto& spec = texture->GetSpecification();
                         out << YAML::Key << "MinFilter" << YAML::Value << (std::string)magic_enum::enum_name(spec.MinFilter);
                         out << YAML::Key << "MagFilter" << YAML::Value << (std::string)magic_enum::enum_name(spec.MagFilter);

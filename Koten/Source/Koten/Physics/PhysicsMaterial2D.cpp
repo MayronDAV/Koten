@@ -9,100 +9,100 @@
 
 namespace KTN
 {
-	void PhysicsMaterial2D::Serialize(const std::string& p_Path) const
-	{
-		KTN_PROFILE_FUNCTION();
+    void PhysicsMaterial2D::Serialize(const std::string& p_Path) const
+    {
+        KTN_PROFILE_FUNCTION();
 
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "PhysicsMaterial2D" << YAML::Value << Handle;
-		out << YAML::Key << "Friction" << YAML::Value << Friction;
-		out << YAML::Key << "Restitution" << YAML::Value << Restitution;
-		out << YAML::Key << "RestitutionThreshold" << YAML::Value << RestitutionThreshold;
-		out << YAML::EndMap;
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "PhysicsMaterial2D" << YAML::Value << Handle;
+        out << YAML::Key << "Friction" << YAML::Value << Friction;
+        out << YAML::Key << "Restitution" << YAML::Value << Restitution;
+        out << YAML::Key << "RestitutionThreshold" << YAML::Value << RestitutionThreshold;
+        out << YAML::EndMap;
 
-		std::ofstream fout(p_Path);
-		fout << out.c_str();
+        std::ofstream fout(p_Path);
+        fout << out.c_str();
 
-		KTN_CORE_INFO("PhysicsMaterial2D serialized to path: {}", p_Path);
-	}
+        KTN_CORE_INFO("PhysicsMaterial2D serialized to path: {}", p_Path);
+    }
 
-	void PhysicsMaterial2D::SerializeBin(std::ofstream& p_Out) const
-	{
-		KTN_PROFILE_FUNCTION();
+    void PhysicsMaterial2D::SerializeBin(std::ofstream& p_Out) const
+    {
+        KTN_PROFILE_FUNCTION();
 
-		p_Out.write(reinterpret_cast<const char*>(&Friction), sizeof(Friction));
-		p_Out.write(reinterpret_cast<const char*>(&Restitution), sizeof(Restitution));
-		p_Out.write(reinterpret_cast<const char*>(&RestitutionThreshold), sizeof(RestitutionThreshold));
-	}
+        p_Out.write(reinterpret_cast<const char*>(&Friction), sizeof(Friction));
+        p_Out.write(reinterpret_cast<const char*>(&Restitution), sizeof(Restitution));
+        p_Out.write(reinterpret_cast<const char*>(&RestitutionThreshold), sizeof(RestitutionThreshold));
+    }
 
-	void PhysicsMaterial2D::DeserializeBin(std::ifstream& p_In)
-	{
-		KTN_PROFILE_FUNCTION();
+    void PhysicsMaterial2D::DeserializeBin(std::ifstream& p_In)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		p_In.read(reinterpret_cast<char*>(&Friction), sizeof(Friction));
-		p_In.read(reinterpret_cast<char*>(&Restitution), sizeof(Restitution));
-		p_In.read(reinterpret_cast<char*>(&RestitutionThreshold), sizeof(RestitutionThreshold));
-	}
+        p_In.read(reinterpret_cast<char*>(&Friction), sizeof(Friction));
+        p_In.read(reinterpret_cast<char*>(&Restitution), sizeof(Restitution));
+        p_In.read(reinterpret_cast<char*>(&RestitutionThreshold), sizeof(RestitutionThreshold));
+    }
 
-	void PhysicsMaterial2D::DeserializeBin(BufferReader& p_In)
-	{
-		KTN_PROFILE_FUNCTION();
+    void PhysicsMaterial2D::DeserializeBin(BufferReader& p_In)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		p_In.ReadBytes(&Friction, sizeof(Friction));
-		p_In.ReadBytes(&Restitution, sizeof(Restitution));
-		p_In.ReadBytes(&RestitutionThreshold, sizeof(RestitutionThreshold));
-	}
+        p_In.ReadBytes(&Friction, sizeof(Friction));
+        p_In.ReadBytes(&Restitution, sizeof(Restitution));
+        p_In.ReadBytes(&RestitutionThreshold, sizeof(RestitutionThreshold));
+    }
 
-	void PhysicsMaterial2D::DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer)
-	{
-		float friction, restitution, restitutionThreshold;
-		p_In.read(reinterpret_cast<char*>(&friction), sizeof(friction));
-		p_In.read(reinterpret_cast<char*>(&restitution), sizeof(restitution));
-		p_In.read(reinterpret_cast<char*>(&restitutionThreshold), sizeof(restitutionThreshold));
+    void PhysicsMaterial2D::DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer)
+    {
+        float friction, restitution, restitutionThreshold;
+        p_In.read(reinterpret_cast<char*>(&friction), sizeof(friction));
+        p_In.read(reinterpret_cast<char*>(&restitution), sizeof(restitution));
+        p_In.read(reinterpret_cast<char*>(&restitutionThreshold), sizeof(restitutionThreshold));
 
-		p_Buffer.Write(&friction, sizeof(friction));
-		p_Buffer.Write(&restitution, sizeof(restitution));
-		p_Buffer.Write(&restitutionThreshold, sizeof(restitutionThreshold));
-	}
+        p_Buffer.Write(&friction, sizeof(friction));
+        p_Buffer.Write(&restitution, sizeof(restitution));
+        p_Buffer.Write(&restitutionThreshold, sizeof(restitutionThreshold));
+    }
 
-	AssetHandle PhysicsMaterial2D::GetDefault()
-	{
-		KTN_PROFILE_FUNCTION();
+    AssetHandle PhysicsMaterial2D::GetDefault()
+    {
+        KTN_PROFILE_FUNCTION();
 
-		static auto path = (Project::GetAssetFileSystemPath("Materials") / "Default.ktasset").string();
-		FileSystem::CreateDirectories(Project::GetAssetFileSystemPath("Materials").string());
-		if (!AssetManager::Get()->HasAsset(AssetType::PhysicsMaterial2D, path))
-		{
-			if (FileSystem::Exists(path))
-			{
-				auto material = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, path);
-				if (!material)
-				{
-					KTN_CORE_ERROR("Failed to import default PhysicsMaterial2D: {}", path);
-					return (AssetHandle)0;
-				}
-				return material;
-			}
-			
-			auto material = CreateRef<PhysicsMaterial2D>();
-			material->Serialize(path);
+        static auto path = (Project::GetAssetFileSystemPath("Materials") / "Default.ktasset").string();
+        FileSystem::CreateDirectories(Project::GetAssetFileSystemPath("Materials").string());
+        if (!AssetManager::Get()->HasAsset(AssetType::PhysicsMaterial2D, path))
+        {
+            if (FileSystem::Exists(path))
+            {
+                auto material = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, path);
+                if (!material)
+                {
+                    KTN_CORE_ERROR("Failed to import default PhysicsMaterial2D: {}", path);
+                    return (AssetHandle)0;
+                }
+                return material;
+            }
+            
+            auto material = CreateRef<PhysicsMaterial2D>();
+            material->Serialize(path);
 
-			AssetHandle handle;
-			AssetMetadata metadata = {};
-			metadata.FilePath = path;
-			metadata.Type = AssetType::PhysicsMaterial2D;
-			auto success = AssetManager::Get()->ImportAsset(handle, metadata, material);
-			if (!success)
-			{
-				KTN_CORE_ERROR("Failed to import default PhysicsMaterial2D: {}", path);
-				return (AssetHandle)0;
-			}
+            AssetHandle handle;
+            AssetMetadata metadata = {};
+            metadata.FilePath = path;
+            metadata.Type = AssetType::PhysicsMaterial2D;
+            auto success = AssetManager::Get()->ImportAsset(handle, metadata, material);
+            if (!success)
+            {
+                KTN_CORE_ERROR("Failed to import default PhysicsMaterial2D: {}", path);
+                return (AssetHandle)0;
+            }
 
-			return handle;
-		}
+            return handle;
+        }
 
-		return AssetManager::Get()->GetHandleByPath(path);
-	}
+        return AssetManager::Get()->GetHandleByPath(path);
+    }
 
 } // namespace KTN

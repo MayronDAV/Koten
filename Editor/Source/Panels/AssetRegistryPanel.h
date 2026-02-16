@@ -3,13 +3,13 @@
 
 namespace KTN
 {
-	class AssetRegistryPanel : public EditorPanel
-	{
-		public:
-			AssetRegistryPanel();
-			~AssetRegistryPanel() override = default;
+    class AssetRegistryPanel : public EditorPanel
+    {
+        public:
+            AssetRegistryPanel();
+            ~AssetRegistryPanel() override = default;
 
-			void OnImgui() override;
-	};
+            void OnImgui() override;
+    };
 
 } // namespace KTN

@@ -8,110 +8,110 @@
 
 namespace KTN
 {
-	class KTN_API SystemManager
-	{
-		public:
-			SystemManager() = default;
-			~SystemManager();
+    class KTN_API SystemManager
+    {
+        public:
+            SystemManager() = default;
+            ~SystemManager();
 
-			template <typename T, typename... Args>
-			System* RegisterSystem(Args&&... p_Args)
-			{
-				KTN_PROFILE_FUNCTION();
+            template <typename T, typename... Args>
+            System* RegisterSystem(Args&&... p_Args)
+            {
+                KTN_PROFILE_FUNCTION();
 
-				auto typeName = typeid(T).hash_code();
-				KTN_CORE_ASSERT(!HasSystem<T>(), "Registering system more than once.");
+                auto typeName = typeid(T).hash_code();
+                KTN_CORE_ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
-				// Create a pointer to the system and return it so it can be used externally
-				System* system = new T(std::forward<Args>(p_Args)...);
-				system->OnInit();
-				m_Systems[typeName] = system;
-				return system;
-			}
+                // Create a pointer to the system and return it so it can be used externally
+                System* system = new T(std::forward<Args>(p_Args)...);
+                system->OnInit();
+                m_Systems[typeName] = system;
+                return system;
+            }
 
-			template <typename T>
-			System* RegisterSystem(T* p_System)
-			{
-				KTN_PROFILE_FUNCTION();
+            template <typename T>
+            System* RegisterSystem(T* p_System)
+            {
+                KTN_PROFILE_FUNCTION();
 
-				auto typeName = typeid(T).hash_code();
-				KTN_CORE_ASSERT(!HasSystem<T>(), "Registering system more than once.");
+                auto typeName = typeid(T).hash_code();
+                KTN_CORE_ASSERT(!HasSystem<T>(), "Registering system more than once.");
 
-				// Create a pointer to the system and return it so it can be used externally
-				System* system = p_System;
-				system->OnInit();
-				m_Systems[typeName] = system;
-				return system;
-			}
+                // Create a pointer to the system and return it so it can be used externally
+                System* system = p_System;
+                system->OnInit();
+                m_Systems[typeName] = system;
+                return system;
+            }
 
-			template <typename T>
-			void RemoveSystem()
-			{
-				KTN_PROFILE_FUNCTION_LOW();
+            template <typename T>
+            void RemoveSystem()
+            {
+                KTN_PROFILE_FUNCTION_LOW();
 
-				if (!HasSystem<T>()) return;
+                if (!HasSystem<T>()) return;
 
-				auto typeName = typeid(T).hash_code();
-				delete m_Systems[typeName];
-				m_Systems.erase(typeName);
-			}
+                auto typeName = typeid(T).hash_code();
+                delete m_Systems[typeName];
+                m_Systems.erase(typeName);
+            }
 
-			template <typename T>
-			T* GetSystem()
-			{
-				KTN_PROFILE_FUNCTION_LOW();
+            template <typename T>
+            T* GetSystem()
+            {
+                KTN_PROFILE_FUNCTION_LOW();
 
-				auto typeName = typeid(T).hash_code();
+                auto typeName = typeid(T).hash_code();
 
-				auto find = m_Systems.find(typeName);
-				if (find != m_Systems.end())
-					return dynamic_cast<T*>(find->second);
+                auto find = m_Systems.find(typeName);
+                if (find != m_Systems.end())
+                    return dynamic_cast<T*>(find->second);
 
-				KTN_CORE_WARN("Failed to find system");
-				return nullptr;
-			}
+                KTN_CORE_WARN("Failed to find system");
+                return nullptr;
+            }
 
-			template <typename T>
-			bool HasSystem()
-			{
-				KTN_PROFILE_FUNCTION_LOW();
+            template <typename T>
+            bool HasSystem()
+            {
+                KTN_PROFILE_FUNCTION_LOW();
 
-				auto typeName = typeid(T).hash_code();
-				auto find = m_Systems.find(typeName);
-				return find != m_Systems.end();
-			}
+                auto typeName = typeid(T).hash_code();
+                auto find = m_Systems.find(typeName);
+                return find != m_Systems.end();
+            }
 
-			void OnUpdate(Scene* p_Scene)
-			{
-				KTN_PROFILE_FUNCTION();
+            void OnUpdate(Scene* p_Scene)
+            {
+                KTN_PROFILE_FUNCTION();
 
-				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
-				{
-					it->second->OnUpdate(p_Scene);
-				}
-			}
+                for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
+                {
+                    it->second->OnUpdate(p_Scene);
+                }
+            }
 
-			void OnStart(Scene* p_Scene)
-			{
-				KTN_PROFILE_FUNCTION();
+            void OnStart(Scene* p_Scene)
+            {
+                KTN_PROFILE_FUNCTION();
 
-				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
-				{
-					it->second->OnStart(p_Scene);
-				}
-			}
+                for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
+                {
+                    it->second->OnStart(p_Scene);
+                }
+            }
 
-			void OnStop(Scene* p_Scene)
-			{
-				KTN_PROFILE_FUNCTION();
+            void OnStop(Scene* p_Scene)
+            {
+                KTN_PROFILE_FUNCTION();
 
-				for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
-				{
-					it->second->OnStop(p_Scene);
-				}
-			}
+                for (auto it = m_Systems.begin(); it != m_Systems.end(); ++it)
+                {
+                    it->second->OnStop(p_Scene);
+                }
+            }
 
-		private:
-			std::unordered_map<size_t, System*> m_Systems;
-	};
+        private:
+            std::unordered_map<size_t, System*> m_Systems;
+    };
 } // namespace KTN

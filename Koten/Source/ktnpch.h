@@ -32,45 +32,45 @@
 #include <sstream>
 #include <cstdint>
 #ifdef KTN_WINDOWS
-	#include <Windows.h>
+    #include <Windows.h>
 #endif
 
 
 namespace std
 {
 #ifndef KTNPCH_H_STDHASH
-	#ifndef KTN_WINDOWS
-		#define KTNPCH_H_STDHASH
-	#endif
+    #ifndef KTN_WINDOWS
+        #define KTNPCH_H_STDHASH
+    #endif
 
-	template <typename T> struct hash;
+    template <typename T> struct hash;
 
-	template<>
-	struct hash<KTN::UUID>
-	{
-		std::size_t operator()(const KTN::UUID& p_UUID) const
-		{
-			return (uint64_t)p_UUID;
-		}
-	};
+    template<>
+    struct hash<KTN::UUID>
+    {
+        std::size_t operator()(const KTN::UUID& p_UUID) const
+        {
+            return (uint64_t)p_UUID;
+        }
+    };
 
-	template<>
-	struct hash<std::pair<KTN::UUID, KTN::UUID>>
-	{
-		size_t operator()(const std::pair<KTN::UUID, KTN::UUID>& p) const
-		{
-			return hash<KTN::UUID>()(p.first) ^ (hash<KTN::UUID>()(p.second) << 1);
-		}
-	};
+    template<>
+    struct hash<std::pair<KTN::UUID, KTN::UUID>>
+    {
+        size_t operator()(const std::pair<KTN::UUID, KTN::UUID>& p) const
+        {
+            return hash<KTN::UUID>()(p.first) ^ (hash<KTN::UUID>()(p.second) << 1);
+        }
+    };
 
-	template<>
-	struct equal_to<std::pair<KTN::UUID, KTN::UUID>>
-	{
-		bool operator()(const std::pair<KTN::UUID, KTN::UUID>& p_Lhs, const std::pair<KTN::UUID, KTN::UUID>& p_Rhs) const
-		{
-			return p_Lhs.first == p_Rhs.first && p_Lhs.second == p_Rhs.second;
-		}
-	};
+    template<>
+    struct equal_to<std::pair<KTN::UUID, KTN::UUID>>
+    {
+        bool operator()(const std::pair<KTN::UUID, KTN::UUID>& p_Lhs, const std::pair<KTN::UUID, KTN::UUID>& p_Rhs) const
+        {
+            return p_Lhs.first == p_Rhs.first && p_Lhs.second == p_Rhs.second;
+        }
+    };
 #endif
 
 } // namespace std 
@@ -79,101 +79,101 @@ namespace std
 namespace YAML
 {
 #ifndef KTNPCH_H_YAMLCONVERSIONS
-	#ifndef KTN_WINDOWS
-		#define KTNPCH_H_YAMLCONVERSIONS
-	#endif
+    #ifndef KTN_WINDOWS
+        #define KTNPCH_H_YAMLCONVERSIONS
+    #endif
 
-	template<>
-	struct convert<KTN::UUID>
-	{
-		static inline Node encode(const KTN::UUID& p_UUID)
-		{
-			Node node;
-			node.push_back((uint64_t)p_UUID);
-			return node;
-		}
+    template<>
+    struct convert<KTN::UUID>
+    {
+        static inline Node encode(const KTN::UUID& p_UUID)
+        {
+            Node node;
+            node.push_back((uint64_t)p_UUID);
+            return node;
+        }
 
-		static inline bool decode(const Node& p_Node, KTN::UUID& p_UUID)
-		{
-			p_UUID = p_Node.as<uint64_t>();
-			return true;
-		}
-	};
+        static inline bool decode(const Node& p_Node, KTN::UUID& p_UUID)
+        {
+            p_UUID = p_Node.as<uint64_t>();
+            return true;
+        }
+    };
 
-	template<>
-	struct convert<glm::vec2>
-	{
-		static inline Node encode(const glm::vec2& p_Rhs)
-		{
-			Node node;
-			node.push_back(p_Rhs.x);
-			node.push_back(p_Rhs.y);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
+    template<>
+    struct convert<glm::vec2>
+    {
+        static inline Node encode(const glm::vec2& p_Rhs)
+        {
+            Node node;
+            node.push_back(p_Rhs.x);
+            node.push_back(p_Rhs.y);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
 
-		static inline bool decode(const Node& p_Node, glm::vec2& p_Rhs)
-		{
-			if (!p_Node.IsSequence() || p_Node.size() != 2)
-				return false;
+        static inline bool decode(const Node& p_Node, glm::vec2& p_Rhs)
+        {
+            if (!p_Node.IsSequence() || p_Node.size() != 2)
+                return false;
 
-			p_Rhs.x = p_Node[0].as<float>();
-			p_Rhs.y = p_Node[1].as<float>();
-			return true;
-		}
-	};
+            p_Rhs.x = p_Node[0].as<float>();
+            p_Rhs.y = p_Node[1].as<float>();
+            return true;
+        }
+    };
 
-	template<>
-	struct convert<glm::vec3>
-	{
-		static inline Node encode(const glm::vec3& p_Rhs)
-		{
-			Node node;
-			node.push_back(p_Rhs.x);
-			node.push_back(p_Rhs.y);
-			node.push_back(p_Rhs.z);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
+    template<>
+    struct convert<glm::vec3>
+    {
+        static inline Node encode(const glm::vec3& p_Rhs)
+        {
+            Node node;
+            node.push_back(p_Rhs.x);
+            node.push_back(p_Rhs.y);
+            node.push_back(p_Rhs.z);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
 
-		static inline bool decode(const Node& p_Node, glm::vec3& p_Rhs)
-		{
-			if (!p_Node.IsSequence() || p_Node.size() != 3)
-				return false;
+        static inline bool decode(const Node& p_Node, glm::vec3& p_Rhs)
+        {
+            if (!p_Node.IsSequence() || p_Node.size() != 3)
+                return false;
 
-			p_Rhs.x = p_Node[0].as<float>();
-			p_Rhs.y = p_Node[1].as<float>();
-			p_Rhs.z = p_Node[2].as<float>();
-			return true;
-		}
-	};
+            p_Rhs.x = p_Node[0].as<float>();
+            p_Rhs.y = p_Node[1].as<float>();
+            p_Rhs.z = p_Node[2].as<float>();
+            return true;
+        }
+    };
 
-	template<>
-	struct convert<glm::vec4>
-	{
-		static inline Node encode(const glm::vec4& p_Rhs)
-		{
-			Node node;
-			node.push_back(p_Rhs.x);
-			node.push_back(p_Rhs.y);
-			node.push_back(p_Rhs.z);
-			node.push_back(p_Rhs.w);
-			node.SetStyle(EmitterStyle::Flow);
-			return node;
-		}
+    template<>
+    struct convert<glm::vec4>
+    {
+        static inline Node encode(const glm::vec4& p_Rhs)
+        {
+            Node node;
+            node.push_back(p_Rhs.x);
+            node.push_back(p_Rhs.y);
+            node.push_back(p_Rhs.z);
+            node.push_back(p_Rhs.w);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
 
-		static inline bool decode(const Node& p_Node, glm::vec4& p_Rhs)
-		{
-			if (!p_Node.IsSequence() || p_Node.size() != 4)
-				return false;
+        static inline bool decode(const Node& p_Node, glm::vec4& p_Rhs)
+        {
+            if (!p_Node.IsSequence() || p_Node.size() != 4)
+                return false;
 
-			p_Rhs.x = p_Node[0].as<float>();
-			p_Rhs.y = p_Node[1].as<float>();
-			p_Rhs.z = p_Node[2].as<float>();
-			p_Rhs.w = p_Node[3].as<float>();
-			return true;
-		}
-	};
+            p_Rhs.x = p_Node[0].as<float>();
+            p_Rhs.y = p_Node[1].as<float>();
+            p_Rhs.z = p_Node[2].as<float>();
+            p_Rhs.w = p_Node[3].as<float>();
+            return true;
+        }
+    };
 #endif
 
     Emitter& operator<<(Emitter& p_Out, const glm::vec2& p_Value);

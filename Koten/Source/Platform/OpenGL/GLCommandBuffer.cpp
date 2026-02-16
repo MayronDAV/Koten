@@ -8,106 +8,106 @@
 
 namespace KTN
 {
-	void GLCommandBuffer::SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::SetViewport(float p_X, float p_Y, uint32_t p_Width, uint32_t p_Height)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		GLCall(glViewport((GLint)p_X, (GLint)p_Y, (GLsizei)p_Width, (GLsizei)p_Height));
-	}
+        GLCall(glViewport((GLint)p_X, (GLint)p_Y, (GLsizei)p_Width, (GLsizei)p_Height));
+    }
 
-	void GLCommandBuffer::DispatchCompute(uint32_t p_NumGroups_X, uint32_t p_NumGroups_Y, uint32_t p_NumGroups_Z)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::DispatchCompute(uint32_t p_NumGroups_X, uint32_t p_NumGroups_Y, uint32_t p_NumGroups_Z)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		GLCall(glDispatchCompute(p_NumGroups_X, p_NumGroups_Y, p_NumGroups_Z));
-	}
+        GLCall(glDispatchCompute(p_NumGroups_X, p_NumGroups_Y, p_NumGroups_Z));
+    }
 
-	void GLCommandBuffer::EnableDepthBias(bool p_Enable)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::EnableDepthBias(bool p_Enable)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		if (p_Enable)
-			GLCall(glEnable(GL_POLYGON_OFFSET_FILL));
-		else
-			GLCall(glDisable(GL_POLYGON_OFFSET_FILL));
-	}
+        if (p_Enable)
+            GLCall(glEnable(GL_POLYGON_OFFSET_FILL));
+        else
+            GLCall(glDisable(GL_POLYGON_OFFSET_FILL));
+    }
 
-	void GLCommandBuffer::EnableStencil(bool p_Enable)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::EnableStencil(bool p_Enable)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		if (p_Enable)
-			GLCall(glEnable(GL_STENCIL_TEST));
-		else
-			GLCall(glDisable(GL_STENCIL_TEST));
-	}
+        if (p_Enable)
+            GLCall(glEnable(GL_STENCIL_TEST));
+        else
+            GLCall(glDisable(GL_STENCIL_TEST));
+    }
 
-	void GLCommandBuffer::SetDepthBias(float p_ConstantFactor, float p_SlopeFactor)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::SetDepthBias(float p_ConstantFactor, float p_SlopeFactor)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		GLCall(glPolygonOffset(p_SlopeFactor, p_ConstantFactor));
-	}
+        GLCall(glPolygonOffset(p_SlopeFactor, p_ConstantFactor));
+    }
 
-	void GLCommandBuffer::SetStencil(StencilFace p_Face, StencilCompare p_Compare, uint32_t p_CompareMask, uint32_t p_WriteMask, int p_Reference)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::SetStencil(StencilFace p_Face, StencilCompare p_Compare, uint32_t p_CompareMask, uint32_t p_WriteMask, int p_Reference)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		GLCall(glStencilFuncSeparate(
-			GLUtils::StencilFaceToGL(p_Face),
-			GLUtils::StencilCompareToGL(p_Compare),
-			p_Reference,
-			p_CompareMask));
-		GLCall(glStencilMaskSeparate(GLUtils::StencilFaceToGL(p_Face), p_WriteMask));
-	}
+        GLCall(glStencilFuncSeparate(
+            GLUtils::StencilFaceToGL(p_Face),
+            GLUtils::StencilCompareToGL(p_Compare),
+            p_Reference,
+            p_CompareMask));
+        GLCall(glStencilMaskSeparate(GLUtils::StencilFaceToGL(p_Face), p_WriteMask));
+    }
 
-	void GLCommandBuffer::Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::Draw(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, uint32_t p_VertexCount)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		KTN_CORE_VERIFY(p_VertexCount > 0);
-		if (p_VertexArray)
-			p_VertexArray->Bind(this);
+        KTN_CORE_VERIFY(p_VertexCount > 0);
+        if (p_VertexArray)
+            p_VertexArray->Bind(this);
 
-		GLCall(glDrawArrays(GLUtils::DrawTypeToGL(p_Type), 0, p_VertexCount));
-	}
+        GLCall(glDrawArrays(GLUtils::DrawTypeToGL(p_Type), 0, p_VertexCount));
+    }
 
-	void GLCommandBuffer::DrawIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::DrawIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		if (p_VertexArray)
-			p_VertexArray->Bind(this);
+        if (p_VertexArray)
+            p_VertexArray->Bind(this);
 
-		As<IndirectBuffer, GLIndirectBuffer>(p_Buffer)->Bind();
-		GLCall(glDrawArraysIndirect(GLUtils::DrawTypeToGL(p_Type), nullptr));
-	}
+        As<IndirectBuffer, GLIndirectBuffer>(p_Buffer)->Bind();
+        GLCall(glDrawArraysIndirect(GLUtils::DrawTypeToGL(p_Type), nullptr));
+    }
 
-	void GLCommandBuffer::DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLCommandBuffer::DrawIndexed(DrawType p_Type, const Ref<VertexArray>& p_VertexArray)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		KTN_CORE_VERIFY(p_VertexArray != nullptr);
-		KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer());
-		KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer()->GetCount() > 0);
+        KTN_CORE_VERIFY(p_VertexArray != nullptr);
+        KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer());
+        KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer()->GetCount() > 0);
 
-		p_VertexArray->Bind(this);
-		uint32_t count = p_VertexArray->GetIndexBuffer()->GetCount();
+        p_VertexArray->Bind(this);
+        uint32_t count = p_VertexArray->GetIndexBuffer()->GetCount();
 
-		GLCall(glDrawElements(GLUtils::DrawTypeToGL(p_Type), count, GL_UNSIGNED_INT, nullptr));
-	}
+        GLCall(glDrawElements(GLUtils::DrawTypeToGL(p_Type), count, GL_UNSIGNED_INT, nullptr));
+    }
 
-	void GLCommandBuffer::DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)
-	{
-		KTN_CORE_VERIFY(p_VertexArray != nullptr);
-		KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer());
-		KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer()->GetCount() > 0);
+    void GLCommandBuffer::DrawIndexedIndirect(DrawType p_Type, const Ref<VertexArray>& p_VertexArray, const Ref<IndirectBuffer>& p_Buffer)
+    {
+        KTN_CORE_VERIFY(p_VertexArray != nullptr);
+        KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer());
+        KTN_CORE_VERIFY(p_VertexArray->GetIndexBuffer()->GetCount() > 0);
 
-		p_VertexArray->Bind(this);
+        p_VertexArray->Bind(this);
 
-		As<IndirectBuffer, GLIndirectBuffer>(p_Buffer)->Bind();
+        As<IndirectBuffer, GLIndirectBuffer>(p_Buffer)->Bind();
 
-		GLCall(glDrawElementsIndirect(GLUtils::DrawTypeToGL(p_Type), GL_UNSIGNED_INT, nullptr));
-	}
+        GLCall(glDrawElementsIndirect(GLUtils::DrawTypeToGL(p_Type), GL_UNSIGNED_INT, nullptr));
+    }
 
 } // namespace KTN

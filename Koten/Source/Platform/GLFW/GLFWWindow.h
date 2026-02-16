@@ -9,78 +9,78 @@
 
 namespace KTN
 {
-	struct KeyStateData
-	{
-		int Key;
-		KeyState PrevState = KeyState::NONE;
-		KeyState State     = KeyState::NONE;
-	};
+    struct KeyStateData
+    {
+        int Key;
+        KeyState PrevState = KeyState::NONE;
+        KeyState State     = KeyState::NONE;
+    };
 
-	class GLFWWindow : public Window
-	{
-		public:
-			GLFWWindow(const WindowSpecification& p_Spec = {});
-			~GLFWWindow() override;
+    class GLFWWindow : public Window
+    {
+        public:
+            GLFWWindow(const WindowSpecification& p_Spec = {});
+            ~GLFWWindow() override;
 
-			void SwapBuffer() override;
-			void OnUpdate() override;
+            void SwapBuffer() override;
+            void OnUpdate() override;
 
-			void Maximize() override;
-			void Minimize() override;
-			void Restore() override;
+            void Maximize() override;
+            void Minimize() override;
+            void Restore() override;
 
-			float GetDPIScale() const { return m_Data.DPIScale; }
+            float GetDPIScale() const { return m_Data.DPIScale; }
 
-			void SubmitEvent(Event& p_Event) override;
-			void SetEventCallback(EventCallbackFn p_Callback) override { m_Data.EventCallback = p_Callback; }
-			void SetPosition(int p_X, int p_Y) override;
-			void SetVsync(bool p_Value) override;
-			void SetTitle(const std::string& p_Title) override;
+            void SubmitEvent(Event& p_Event) override;
+            void SetEventCallback(EventCallbackFn p_Callback) override { m_Data.EventCallback = p_Callback; }
+            void SetPosition(int p_X, int p_Y) override;
+            void SetVsync(bool p_Value) override;
+            void SetTitle(const std::string& p_Title) override;
 
-			void Resize(uint32_t p_Width, uint32_t p_Height) override;
-			void ChangeMode(WindowMode p_Mode, bool p_Maximize = true) override;
+            void Resize(uint32_t p_Width, uint32_t p_Height) override;
+            void ChangeMode(WindowMode p_Mode, bool p_Maximize = true) override;
 
-			KeyState GetKeyState(int p_Key) override { return m_Data.Keys[p_Key].State; }
+            KeyState GetKeyState(int p_Key) override { return m_Data.Keys[p_Key].State; }
 
-			bool IsMaximized() const override;
-			bool IsMinimized() const override;
+            bool IsMaximized() const override;
+            bool IsMinimized() const override;
 
-			Unique<GraphicsContext>& GetContext() override { return m_Data.Context; }
+            Unique<GraphicsContext>& GetContext() override { return m_Data.Context; }
 
-			glm::vec2 GetPosition() const override;
+            glm::vec2 GetPosition() const override;
 
-			std::vector<WindowResolution> GetResolutions() const override;
+            std::vector<WindowResolution> GetResolutions() const override;
 
-			uint32_t GetWidth() const override { return m_Data.Width; }
-			uint32_t GetHeight() const override { return m_Data.Height; }
-			void* GetNative() override { return m_Window; }
-			bool IsVsync() const override { return m_Data.Vsync; }
+            uint32_t GetWidth() const override { return m_Data.Width; }
+            uint32_t GetHeight() const override { return m_Data.Height; }
+            void* GetNative() override { return m_Window; }
+            bool IsVsync() const override { return m_Data.Vsync; }
 
-		private:
-			void Init(const WindowSpecification& p_Spec);
-			void Shutdown() noexcept;
-			void UpdateControllers();
+        private:
+            void Init(const WindowSpecification& p_Spec);
+            void Shutdown() noexcept;
+            void UpdateControllers();
 
-		private:
-			GLFWwindow* m_Window				= nullptr;
+        private:
+            GLFWwindow* m_Window                = nullptr;
 
-			struct WindowData
-			{
-				std::string Title				= "Koten";
-				uint32_t Width					= 800;
-				uint32_t Height					= 600;
-				WindowMode Mode					= WindowMode::Windowed;
-				bool Resizable					= true;
-				bool Maximise					= false;
-				bool Vsync						= false;
-				float DPIScale					= 1.0f;
-				std::array<KeyStateData, GLFW_KEY_LAST> Keys;
-				std::vector<int> KeysReleased;
+            struct WindowData
+            {
+                std::string Title                = "Koten";
+                uint32_t Width                    = 800;
+                uint32_t Height                    = 600;
+                WindowMode Mode                    = WindowMode::Windowed;
+                bool Resizable                    = true;
+                bool Maximise                    = false;
+                bool Vsync                        = false;
+                float DPIScale                    = 1.0f;
+                std::array<KeyStateData, GLFW_KEY_LAST> Keys;
+                std::vector<int> KeysReleased;
 
-				EventCallbackFn EventCallback	= nullptr;
-				Unique<GraphicsContext> Context = nullptr;
-			} m_Data;
-	};
+                EventCallbackFn EventCallback    = nullptr;
+                Unique<GraphicsContext> Context = nullptr;
+            } m_Data;
+    };
 
 
 } // namespace KTN

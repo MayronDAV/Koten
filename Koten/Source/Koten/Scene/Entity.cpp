@@ -7,124 +7,124 @@
 
 namespace KTN
 {
-	Entity::Entity(entt::entity p_Handle, Scene* p_Scene)
-		: m_Handle(p_Handle), m_Scene(p_Scene)
-	{
-		KTN_PROFILE_FUNCTION();
-	}
+    Entity::Entity(entt::entity p_Handle, Scene* p_Scene)
+        : m_Handle(p_Handle), m_Scene(p_Scene)
+    {
+        KTN_PROFILE_FUNCTION();
+    }
 
-	bool Entity::IsParent(Entity p_Entity)
-	{
-		auto nodeHierarchyComponent = TryGetComponent<HierarchyComponent>();
-		if (nodeHierarchyComponent)
-		{
-			auto parent = nodeHierarchyComponent->Parent;
-			while (parent != entt::null)
-			{
-				if (parent == p_Entity.m_Handle)
-				{
-					return true;
-				}
-				else
-				{
-					nodeHierarchyComponent = m_Scene->GetRegistry().try_get<HierarchyComponent>(parent);
-					parent = nodeHierarchyComponent ? nodeHierarchyComponent->Parent : entt::null;
-				}
-			}
-		}
+    bool Entity::IsParent(Entity p_Entity)
+    {
+        auto nodeHierarchyComponent = TryGetComponent<HierarchyComponent>();
+        if (nodeHierarchyComponent)
+        {
+            auto parent = nodeHierarchyComponent->Parent;
+            while (parent != entt::null)
+            {
+                if (parent == p_Entity.m_Handle)
+                {
+                    return true;
+                }
+                else
+                {
+                    nodeHierarchyComponent = m_Scene->GetRegistry().try_get<HierarchyComponent>(parent);
+                    parent = nodeHierarchyComponent ? nodeHierarchyComponent->Parent : entt::null;
+                }
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	void Entity::SetParent(Entity p_Entity)
-	{
-		bool acceptable = false;
-		auto hierarchyComponent = TryGetComponent<HierarchyComponent>();
-		if (hierarchyComponent != nullptr)
-		{
-			acceptable = p_Entity.m_Handle != m_Handle && (!p_Entity.IsParent(*this)) && (hierarchyComponent->Parent != m_Handle);
-		}
-		else
-			acceptable = p_Entity.m_Handle != m_Handle;
+    void Entity::SetParent(Entity p_Entity)
+    {
+        bool acceptable = false;
+        auto hierarchyComponent = TryGetComponent<HierarchyComponent>();
+        if (hierarchyComponent != nullptr)
+        {
+            acceptable = p_Entity.m_Handle != m_Handle && (!p_Entity.IsParent(*this)) && (hierarchyComponent->Parent != m_Handle);
+        }
+        else
+            acceptable = p_Entity.m_Handle != m_Handle;
 
-		if (!acceptable)
-		{
-			KTN_CORE_ERROR("Failed to parent entity!");
-			return;
-		}
+        if (!acceptable)
+        {
+            KTN_CORE_ERROR("Failed to parent entity!");
+            return;
+        }
 
-		if (hierarchyComponent)
-			HierarchyComponent::Reparent(m_Handle, p_Entity.m_Handle, m_Scene->GetRegistry(), *hierarchyComponent);
-		else
-		{
-			AddComponent<HierarchyComponent>(p_Entity.m_Handle);
-		}
-	}
+        if (hierarchyComponent)
+            HierarchyComponent::Reparent(m_Handle, p_Entity.m_Handle, m_Scene->GetRegistry(), *hierarchyComponent);
+        else
+        {
+            AddComponent<HierarchyComponent>(p_Entity.m_Handle);
+        }
+    }
 
-	bool Entity::IsEnabled() const
-	{
-		return m_Scene->m_Registry.get<RuntimeComponent>(m_Handle).Enabled;
-	}
+    bool Entity::IsEnabled() const
+    {
+        return m_Scene->m_Registry.get<RuntimeComponent>(m_Handle).Enabled;
+    }
 
-	bool Entity::IsActive() const
-	{
-		return m_Scene->m_Registry.get<RuntimeComponent>(m_Handle).Active;
-	}
+    bool Entity::IsActive() const
+    {
+        return m_Scene->m_Registry.get<RuntimeComponent>(m_Handle).Active;
+    }
 
-	Entity Entity::GetParent()
-	{
-		auto hierarchyComp = TryGetComponent<HierarchyComponent>();
-		if (hierarchyComp)
-			return Entity(hierarchyComp->Parent, m_Scene);
+    Entity Entity::GetParent()
+    {
+        auto hierarchyComp = TryGetComponent<HierarchyComponent>();
+        if (hierarchyComp)
+            return Entity(hierarchyComp->Parent, m_Scene);
 
-		return Entity(entt::null, nullptr);
-	}
+        return Entity(entt::null, nullptr);
+    }
 
-	UUID Entity::GetUUID() const
-	{
-		return m_Scene->m_Registry.get<IDComponent>(m_Handle).ID;
-	}
+    UUID Entity::GetUUID() const
+    {
+        return m_Scene->m_Registry.get<IDComponent>(m_Handle).ID;
+    }
 
-	std::string Entity::GetTag() const
-	{
-		return m_Scene->m_Registry.get<TagComponent>(m_Handle).Tag;
-	}
+    std::string Entity::GetTag() const
+    {
+        return m_Scene->m_Registry.get<TagComponent>(m_Handle).Tag;
+    }
 
-	void Entity::Destroy()
-	{
-		if (!m_Scene || m_Handle == entt::null)
-			return;
+    void Entity::Destroy()
+    {
+        if (!m_Scene || m_Handle == entt::null)
+            return;
 
-		if (!m_Scene->GetRegistry().valid(m_Handle))
-			return;
+        if (!m_Scene->GetRegistry().valid(m_Handle))
+            return;
 
-		auto rbody2DComponent = TryGetComponent<Rigidbody2DComponent>();
-		if (rbody2DComponent)
-		{
-			if (rbody2DComponent->Body != B2BodyID{})
-			{
-				if (m_Scene->m_SystemManager->HasSystem<B2Physics>())
-					m_Scene->m_SystemManager->GetSystem<B2Physics>()->DestroyBody(rbody2DComponent->Body);
-			}
-		}
+        auto rbody2DComponent = TryGetComponent<Rigidbody2DComponent>();
+        if (rbody2DComponent)
+        {
+            if (rbody2DComponent->Body != B2BodyID{})
+            {
+                if (m_Scene->m_SystemManager->HasSystem<B2Physics>())
+                    m_Scene->m_SystemManager->GetSystem<B2Physics>()->DestroyBody(rbody2DComponent->Body);
+            }
+        }
 
-		auto hierarchyComponent = TryGetComponent<HierarchyComponent>();
-		if (hierarchyComponent)
-		{
-			entt::entity child = hierarchyComponent->First;
-			while (child != entt::null)
-			{
-				auto centt = Entity(child, m_Scene);
-				auto hierarchyComponent = centt.TryGetComponent<HierarchyComponent>();
-				auto next = hierarchyComponent ? hierarchyComponent->Next : entt::null;
-				centt.Destroy();
-				child = next;
-			}
-		}
+        auto hierarchyComponent = TryGetComponent<HierarchyComponent>();
+        if (hierarchyComponent)
+        {
+            entt::entity child = hierarchyComponent->First;
+            while (child != entt::null)
+            {
+                auto centt = Entity(child, m_Scene);
+                auto hierarchyComponent = centt.TryGetComponent<HierarchyComponent>();
+                auto next = hierarchyComponent ? hierarchyComponent->Next : entt::null;
+                centt.Destroy();
+                child = next;
+            }
+        }
 
-		m_Scene->GetRegistry().destroy(m_Handle);
-		m_Scene = nullptr;
-		m_Handle = entt::null;
-	}
+        m_Scene->GetRegistry().destroy(m_Handle);
+        m_Scene = nullptr;
+        m_Handle = entt::null;
+    }
 
 } // namespace KTN

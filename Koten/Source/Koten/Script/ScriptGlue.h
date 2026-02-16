@@ -5,11 +5,11 @@
 
 namespace KTN
 {
-	class KTN_API ScriptGlue
-	{
-		public:
-			static void RegisterComponents();
-			static void RegisterFunctions();
-	};
+    class KTN_API ScriptGlue
+    {
+        public:
+            static void RegisterComponents();
+            static void RegisterFunctions();
+    };
 
 } // namespace KTN

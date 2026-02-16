@@ -5,15 +5,15 @@
 
 namespace KTN
 {
-	class InspectorPanel : public EditorPanel
-	{
-		public:
-			InspectorPanel();
-			~InspectorPanel() override = default;
+    class InspectorPanel : public EditorPanel
+    {
+        public:
+            InspectorPanel();
+            ~InspectorPanel() override = default;
 
-			void OnImgui() override;
+            void OnImgui() override;
 
-			Editor* GetEditor() const { return m_Editor; }
-	};
+            Editor* GetEditor() const { return m_Editor; }
+    };
 
 } // namespace KTN

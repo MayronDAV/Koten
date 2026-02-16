@@ -73,7 +73,7 @@ project "Koten"
 
 
 	filter "files:Thirdparty/Optick/src/**.cpp"
-		flags { "NoPCH" }
+		enablepch "Off"
 
 	filter "system:windows"
 		systemversion "latest"

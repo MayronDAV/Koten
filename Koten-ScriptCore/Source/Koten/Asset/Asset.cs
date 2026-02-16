@@ -4,11 +4,11 @@ namespace KTN
 {
     enum AssetType
     {
-		Scene = 1,
-		Font,
-		Texture2D,
-		PhysicsMaterial2D,
-		Prefab
+        Scene = 1,
+        Font,
+        Texture2D,
+        PhysicsMaterial2D,
+        Prefab
     };
 
     public class Asset : Object

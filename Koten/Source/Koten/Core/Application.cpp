@@ -18,220 +18,220 @@
 
 namespace KTN
 {
-	Application* Application::s_Instance = nullptr;
+    Application* Application::s_Instance = nullptr;
 
-	Application::Application(const ApplicationConfig& p_Config)
-	{
-		KTN_PROFILE_FUNCTION();
+    Application::Application(const ApplicationConfig& p_Config)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		s_Instance = this;
+        s_Instance = this;
 
-		Engine::Init();
-		
-		Engine::Get().LoadSettings();
+        Engine::Init();
+        
+        Engine::Get().LoadSettings();
 
-		auto& settings = Engine::Get().GetSettings();
+        auto& settings = Engine::Get().GetSettings();
 
-		m_UpdateMinimized = settings.UpdateMinimized;
+        m_UpdateMinimized = settings.UpdateMinimized;
 
-		WindowSpecification spec = {};
-		spec.Title = p_Config.Title;
-		spec.Width = settings.Width;
-		spec.Height = settings.Height;
-		spec.Mode = settings.Mode;
-		spec.Resizable = settings.Resizable;
-		spec.Maximize = settings.Maximize;
-		spec.Center = settings.Center;
-		spec.Vsync = settings.Vsync;
-		spec.IconPath = p_Config.IconPath;
-		m_Window = Window::Create(spec);
+        WindowSpecification spec = {};
+        spec.Title = p_Config.Title;
+        spec.Width = settings.Width;
+        spec.Height = settings.Height;
+        spec.Mode = settings.Mode;
+        spec.Resizable = settings.Resizable;
+        spec.Maximize = settings.Maximize;
+        spec.Center = settings.Center;
+        spec.Vsync = settings.Vsync;
+        spec.IconPath = p_Config.IconPath;
+        m_Window = Window::Create(spec);
 
-		m_Window->SetEventCallback(
-		[&] (Event& p_Event) 
-		{
-			OnEvent(p_Event);
-		});
+        m_Window->SetEventCallback(
+        [&] (Event& p_Event) 
+        {
+            OnEvent(p_Event);
+        });
 
-		RendererCommand::Init();
+        RendererCommand::Init();
 
-		m_ImGui = ImGuiLayer::Create();
-		PushOverlay(m_ImGui);
+        m_ImGui = ImGuiLayer::Create();
+        PushOverlay(m_ImGui);
 
-		Renderer::Init();
-		ScriptEngine::Init();
-	}
+        Renderer::Init();
+        ScriptEngine::Init();
+    }
 
-	Application::~Application()
-	{
-		KTN_PROFILE_FUNCTION();
+    Application::~Application()
+    {
+        KTN_PROFILE_FUNCTION();
 
-		m_LayerStack.Clear();
+        m_LayerStack.Clear();
 
-		SceneManager::Shutdown();
+        SceneManager::Shutdown();
 
-		Renderer::Shutdown();
+        Renderer::Shutdown();
 
-		Pipeline::ClearCache();
-		Framebuffer::ClearCache();
-		Renderpass::ClearCache();
-		Texture::ClearCache();
+        Pipeline::ClearCache();
+        Framebuffer::ClearCache();
+        Renderpass::ClearCache();
+        Texture::ClearCache();
 
-		KTN_PROFILE_SHUTDOWN();
+        KTN_PROFILE_SHUTDOWN();
 
-		ScriptEngine::Shutdown();
-		RendererCommand::Release();
+        ScriptEngine::Shutdown();
+        RendererCommand::Release();
 
-		Engine::Shutdown();
+        Engine::Shutdown();
 
-		s_Instance = nullptr;
-	}
+        s_Instance = nullptr;
+    }
 
-	void Application::Run()
-	{
-		while (m_Running)
-		{
-			KTN_PROFILE_FRAME("MainThread");
+    void Application::Run()
+    {
+        while (m_Running)
+        {
+            KTN_PROFILE_FRAME("MainThread");
 
-			ExecuteMainThreadQueue();
+            ExecuteMainThreadQueue();
 
-			// Update
-			if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
-			{
-				KTN_PROFILE_SCOPE("Update");
+            // Update
+            if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
+            {
+                KTN_PROFILE_SCOPE("Update");
 
-				Time::OnUpdate();
+                Time::OnUpdate();
 
-				Engine::Get().ResetStats();
+                Engine::Get().ResetStats();
 
-				if (auto currentTime = Time::GetTime();
-					currentTime - m_LastTime >= 1.0)
-				{
-					Engine::Get().GetStats().FramesPerSecond = uint32_t(m_Counter / (currentTime - m_LastTime));
-					m_LastTime = currentTime;
-					m_Counter = 0;
-				}
-				m_Counter++;
+                if (auto currentTime = Time::GetTime();
+                    currentTime - m_LastTime >= 1.0)
+                {
+                    Engine::Get().GetStats().FramesPerSecond = uint32_t(m_Counter / (currentTime - m_LastTime));
+                    m_LastTime = currentTime;
+                    m_Counter = 0;
+                }
+                m_Counter++;
 
-				for (auto& layer : m_LayerStack)
-					layer->OnUpdate();
-			}
+                for (auto& layer : m_LayerStack)
+                    layer->OnUpdate();
+            }
 
-			// Render
-			if (!m_Window->IsMinimized())
-			{
-				KTN_PROFILE_SCOPE("Render");
+            // Render
+            if (!m_Window->IsMinimized())
+            {
+                KTN_PROFILE_SCOPE("Render");
 
-				RendererCommand::Begin();
+                RendererCommand::Begin();
 
-				for (auto& layer : m_LayerStack)
-					layer->OnRender();
+                for (auto& layer : m_LayerStack)
+                    layer->OnRender();
 
-				// ImGui
-				m_ImGui->Begin();
-				{
-					for (auto& layer : m_LayerStack)
-						layer->OnImgui();
-				}
-				m_ImGui->End();
+                // ImGui
+                m_ImGui->Begin();
+                {
+                    for (auto& layer : m_LayerStack)
+                        layer->OnImgui();
+                }
+                m_ImGui->End();
 
-				RendererCommand::End();
+                RendererCommand::End();
 
-				m_Window->SwapBuffer();
-			}
+                m_Window->SwapBuffer();
+            }
 
-			m_Window->OnUpdate();
+            m_Window->OnUpdate();
 
-			if (!m_Window->IsMinimized())
-			{
-				KTN_PROFILE_SCOPE("Deleting Cache");
+            if (!m_Window->IsMinimized())
+            {
+                KTN_PROFILE_SCOPE("Deleting Cache");
 
-				Pipeline::DeleteUnusedCache();
-				Framebuffer::DeleteUnusedCache();
-				Renderpass::DeleteUnusedCache();
-				Texture::DeleteUnusedCache();
-			}
-		}
-	}
+                Pipeline::DeleteUnusedCache();
+                Framebuffer::DeleteUnusedCache();
+                Renderpass::DeleteUnusedCache();
+                Texture::DeleteUnusedCache();
+            }
+        }
+    }
 
-	void Application::PushLayer(const Ref<Layer>& p_Layer)
-	{
-		KTN_PROFILE_FUNCTION();
+    void Application::PushLayer(const Ref<Layer>& p_Layer)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		p_Layer->OnAttach();
-		m_LayerStack.PushLayer(p_Layer);
-	}
+        p_Layer->OnAttach();
+        m_LayerStack.PushLayer(p_Layer);
+    }
 
-	void Application::PushOverlay(const Ref<Layer>& p_Overlay)
-	{
-		KTN_PROFILE_FUNCTION();
+    void Application::PushOverlay(const Ref<Layer>& p_Overlay)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		p_Overlay->OnAttach();
-		m_LayerStack.PushOverlay(p_Overlay);
-	}
+        p_Overlay->OnAttach();
+        m_LayerStack.PushOverlay(p_Overlay);
+    }
 
-	void Application::PopLayer(const Ref<Layer>& p_Layer)
-	{
-		KTN_PROFILE_FUNCTION();
+    void Application::PopLayer(const Ref<Layer>& p_Layer)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		p_Layer->OnDetach();
-		m_LayerStack.PopLayer(p_Layer);
-	}
+        p_Layer->OnDetach();
+        m_LayerStack.PopLayer(p_Layer);
+    }
 
-	void Application::PopOverlay(const Ref<Layer>& p_Overlay)
-	{
-		KTN_PROFILE_FUNCTION();
+    void Application::PopOverlay(const Ref<Layer>& p_Overlay)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		p_Overlay->OnDetach();
-		m_LayerStack.PopOverlay(p_Overlay);
-	}
+        p_Overlay->OnDetach();
+        m_LayerStack.PopOverlay(p_Overlay);
+    }
 
-	void Application::SubmitToMainThread(const std::function<void()>& p_Func)
-	{
-		KTN_PROFILE_FUNCTION();
+    void Application::SubmitToMainThread(const std::function<void()>& p_Func)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
-		
-		m_MainThreadQueue.emplace_back(p_Func);
-	}
+        std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+        
+        m_MainThreadQueue.emplace_back(p_Func);
+    }
 
-	void Application::OnEvent(Event& p_Event)
-	{
-		KTN_PROFILE_FUNCTION();
+    void Application::OnEvent(Event& p_Event)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		p_Event.Dispatch<WindowCloseEvent>(
-		[&](WindowCloseEvent& p_Event)
-		{
-			m_Running = false;
-			return true;
-		});
+        p_Event.Dispatch<WindowCloseEvent>(
+        [&](WindowCloseEvent& p_Event)
+        {
+            m_Running = false;
+            return true;
+        });
 
-		p_Event.Dispatch<WindowResizeEvent>(
-		[&](WindowResizeEvent& p_Event)
-		{
-			RendererCommand::OnResize(p_Event.GetHeight(), p_Event.GetHeight());
-			return false;
-		});
+        p_Event.Dispatch<WindowResizeEvent>(
+        [&](WindowResizeEvent& p_Event)
+        {
+            RendererCommand::OnResize(p_Event.GetHeight(), p_Event.GetHeight());
+            return false;
+        });
 
-		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
-		{
-			KTN_PROFILE_SCOPE("Layers OnEvent");
+        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
+        {
+            KTN_PROFILE_SCOPE("Layers OnEvent");
 
-			(*--it)->OnEvent(p_Event);
-			if (p_Event.Handled)
-				break;
-		}
-	}
+            (*--it)->OnEvent(p_Event);
+            if (p_Event.Handled)
+                break;
+        }
+    }
 
-	void Application::ExecuteMainThreadQueue()
-	{
-		KTN_PROFILE_FUNCTION();
+    void Application::ExecuteMainThreadQueue()
+    {
+        KTN_PROFILE_FUNCTION();
 
-		std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
+        std::scoped_lock<std::mutex> lock(m_MainThreadQueueMutex);
 
-		for (auto& func : m_MainThreadQueue)
-			func();
+        for (auto& func : m_MainThreadQueue)
+            func();
 
-		m_MainThreadQueue.clear();
-	}
+        m_MainThreadQueue.clear();
+    }
 
 } // namespace KTN

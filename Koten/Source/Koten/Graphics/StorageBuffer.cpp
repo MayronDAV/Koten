@@ -7,26 +7,26 @@
 
 namespace KTN
 {
-	Ref<StorageBuffer> StorageBuffer::Create(size_t p_Size)
-	{
-		KTN_PROFILE_FUNCTION();
+    Ref<StorageBuffer> StorageBuffer::Create(size_t p_Size)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-			return CreateRef<GLStorageBuffer>(p_Size);
+        if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
+            return CreateRef<GLStorageBuffer>(p_Size);
 
-		KTN_CORE_ERROR("Unsupported API!");
-		return nullptr;
-	}
+        KTN_CORE_ERROR("Unsupported API!");
+        return nullptr;
+    }
 
-	Ref<StorageBuffer> StorageBuffer::Create(const void* p_Data, size_t p_Size)
-	{
-		KTN_PROFILE_FUNCTION();
+    Ref<StorageBuffer> StorageBuffer::Create(const void* p_Data, size_t p_Size)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-			return CreateRef<GLStorageBuffer>(p_Data, p_Size);
+        if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
+            return CreateRef<GLStorageBuffer>(p_Data, p_Size);
 
-		KTN_CORE_ERROR("Unsupported API!");
-		return nullptr;
-	}
+        KTN_CORE_ERROR("Unsupported API!");
+        return nullptr;
+    }
 
 } // namespace KTN

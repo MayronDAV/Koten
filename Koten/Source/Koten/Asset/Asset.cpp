@@ -15,9 +15,9 @@ namespace KTN
     }
 
     AssetType GetAssetTypeFromName(const char* p_Name)
-	{
+    {
         auto type = magic_enum::enum_cast<AssetType>(p_Name);
         return type.has_value() ? type.value() : AssetType::None;
-	}
+    }
 
 } // namespace KTN

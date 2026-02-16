@@ -198,7 +198,7 @@ namespace KTN
 
     public class Rigidbody2DComponent : PhysicsBody
     {     
-	}
+    }
 
     public class CharacterBody2DComponent : PhysicsBody
     {

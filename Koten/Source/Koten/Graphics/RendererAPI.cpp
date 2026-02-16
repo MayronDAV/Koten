@@ -6,15 +6,15 @@
 
 namespace KTN
 {
-	RendererAPI* RendererAPI::Create()
-	{
-		KTN_PROFILE_FUNCTION();
+    RendererAPI* RendererAPI::Create()
+    {
+        KTN_PROFILE_FUNCTION();
 
-		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-			return new GLRendererAPI();
+        if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
+            return new GLRendererAPI();
 
-		KTN_CORE_ERROR("Unsupported API!");
-		return nullptr;
-	}
+        KTN_CORE_ERROR("Unsupported API!");
+        return nullptr;
+    }
 
 } // namespace KTN

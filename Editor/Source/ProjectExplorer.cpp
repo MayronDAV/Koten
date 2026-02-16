@@ -8,23 +8,23 @@
 
 namespace KTN
 {
-	namespace
-	{
-		ImVec2 CalcTextSizeA(const char* p_Text)
-		{
-			return ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, 0.0f, p_Text);
-		}
+    namespace
+    {
+        ImVec2 CalcTextSizeA(const char* p_Text)
+        {
+            return ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, 0.0f, p_Text);
+        }
 
-	} // namespace
+    } // namespace
 
-	ProjectExplorer::ProjectExplorer()
-		: Layer("ProjectExplorer")
-	{
-	}
+    ProjectExplorer::ProjectExplorer()
+        : Layer("ProjectExplorer")
+    {
+    }
 
-	ProjectExplorer::~ProjectExplorer()
-	{
-	}
+    ProjectExplorer::~ProjectExplorer()
+    {
+    }
 
     void ProjectExplorer::OnImgui()
     {
@@ -98,7 +98,7 @@ namespace KTN
                 if (FileSystem::Exists(m_NewProjectFolder) == false)
                 {
                     FileSystem::CreateDirectories(m_NewProjectFolder);
-				}
+                }
 
                 m_NewProjectName = "";
                 m_State = ProjectExplorerState::CreatingProject;
@@ -140,7 +140,7 @@ namespace KTN
             if (FileDialog::PickFolder(m_NewProjectFolder, folderPath) == FileDialogResult::SUCCESS)
             {
                 auto path = std::filesystem::path(folderPath);
-				bool isDir = std::filesystem::is_directory(path);
+                bool isDir = std::filesystem::is_directory(path);
                 m_NewProjectFolder = isDir ? folderPath : path.parent_path().string();
             }
         }

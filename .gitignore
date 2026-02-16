@@ -18,3 +18,5 @@ Makefile
 *.ktap
 *.pdb
 /.vscode
+*.slnx
+/Koten-ScriptCore/obj

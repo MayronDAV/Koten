@@ -9,44 +9,44 @@
 
 namespace KTN
 {
-	struct DescriptorSetSpecification
-	{
-		uint32_t Set		= 0;
-		Ref<Shader> pShader = nullptr;
-	};
+    struct DescriptorSetSpecification
+    {
+        uint32_t Set        = 0;
+        Ref<Shader> pShader = nullptr;
+    };
 
-	class KTN_API DescriptorSet
-	{
-		friend class CommandBuffer;
-		friend class GLCommandBuffer;
+    class KTN_API DescriptorSet
+    {
+        friend class CommandBuffer;
+        friend class GLCommandBuffer;
 
-		public:
-			virtual ~DescriptorSet() = default;
+        public:
+            virtual ~DescriptorSet() = default;
 
-			virtual void SetUniformData(const std::string& p_Name, const Ref<UniformBuffer>& p_UniformBuffer) = 0;
-			virtual void SetUniformData(const std::string& p_Name, void* p_Data) = 0;
-			virtual void SetUniformData(const std::string& p_Name, void* p_Data, size_t p_Size) = 0;
+            virtual void SetUniformData(const std::string& p_Name, const Ref<UniformBuffer>& p_UniformBuffer) = 0;
+            virtual void SetUniformData(const std::string& p_Name, void* p_Data) = 0;
+            virtual void SetUniformData(const std::string& p_Name, void* p_Data, size_t p_Size) = 0;
 
-			virtual void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) = 0;
-			virtual void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) = 0;
+            virtual void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) = 0;
+            virtual void SetUniform(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) = 0;
 
-			virtual void PrepareStorageBuffer(const std::string& p_Name, size_t p_Size) = 0;
+            virtual void PrepareStorageBuffer(const std::string& p_Name, size_t p_Size) = 0;
 
-			virtual void SetStorageData(const std::string& p_Name, const Ref<StorageBuffer>& p_StorageBuffer) = 0;
-			virtual void SetStorageData(const std::string& p_Name, void* p_Data) = 0;
-			virtual void SetStorageData(const std::string& p_Name, void* p_Data, size_t p_Size) = 0;
+            virtual void SetStorageData(const std::string& p_Name, const Ref<StorageBuffer>& p_StorageBuffer) = 0;
+            virtual void SetStorageData(const std::string& p_Name, void* p_Data) = 0;
+            virtual void SetStorageData(const std::string& p_Name, void* p_Data, size_t p_Size) = 0;
 
-			virtual void SetStorage(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) = 0;
-			virtual void SetStorage(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) = 0;
+            virtual void SetStorage(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data) = 0;
+            virtual void SetStorage(const std::string& p_BufferName, const std::string& p_MemberName, void* p_Data, size_t p_Size) = 0;
 
-			virtual void SetTexture(const std::string& p_Name, const Ref<Texture2D>& p_Texture) = 0;
-			virtual void SetTexture(const std::string& p_Name, const Ref<Texture2D>* p_TextureData, uint32_t p_Count) = 0;
+            virtual void SetTexture(const std::string& p_Name, const Ref<Texture2D>& p_Texture) = 0;
+            virtual void SetTexture(const std::string& p_Name, const Ref<Texture2D>* p_TextureData, uint32_t p_Count) = 0;
 
-			virtual void Upload(CommandBuffer* p_CommandBuffer) = 0;
+            virtual void Upload(CommandBuffer* p_CommandBuffer) = 0;
 
-			static Ref<DescriptorSet> Create(const DescriptorSetSpecification& p_Spec);
+            static Ref<DescriptorSet> Create(const DescriptorSetSpecification& p_Spec);
 
-		protected:
-			virtual void Bind(CommandBuffer* p_CommandBuffer) = 0;
-	};
+        protected:
+            virtual void Bind(CommandBuffer* p_CommandBuffer) = 0;
+    };
 } // namespace KTN

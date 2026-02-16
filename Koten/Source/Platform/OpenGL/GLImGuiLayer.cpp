@@ -12,48 +12,48 @@
 
 namespace KTN
 {
-	void GLImGuiLayer::OnAttach()
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLImGuiLayer::OnAttach()
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		Init();
+        Init();
 
-		GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow()->GetNative());
+        GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow()->GetNative());
 
-		// Setup Platform/Renderer bindings
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
-		ImGui_ImplOpenGL3_Init("#version 460 core");
-	}
+        // Setup Platform/Renderer bindings
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 460 core");
+    }
 
-	void GLImGuiLayer::OnDetach()
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLImGuiLayer::OnDetach()
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		ImGui_ImplOpenGL3_Shutdown();
-		Shutdown();
-	}
+        ImGui_ImplOpenGL3_Shutdown();
+        Shutdown();
+    }
 
-	void GLImGuiLayer::Begin()
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLImGuiLayer::Begin()
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		ImGui_ImplOpenGL3_NewFrame();
-		NewFrame();
-	}
+        ImGui_ImplOpenGL3_NewFrame();
+        NewFrame();
+    }
 
-	void GLImGuiLayer::End()
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    void GLImGuiLayer::End()
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		ImGuiIO& io = ImGui::GetIO();
-		auto& window = Application::Get().GetWindow();
-		io.DisplaySize = ImVec2((float)window->GetWidth(), (float)window->GetHeight());
+        ImGuiIO& io = ImGui::GetIO();
+        auto& window = Application::Get().GetWindow();
+        io.DisplaySize = ImVec2((float)window->GetWidth(), (float)window->GetHeight());
 
-		// Rendering
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        // Rendering
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-		EndFrame();
-	}
+        EndFrame();
+    }
 
 } // namespace KTN

@@ -1,44 +1,51 @@
+include "./Tools/Customization/solution_items.lua"
 include "premake-dependencies.lua"
 
 
 workspace "Koten"
-	architecture "x64"
-	startproject "Editor"
-	flags "MultiProcessorCompile"
-	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-	
-	configurations
-	{
-		"Debug",
-		"Release",
-		"Dist"
-	}
+    architecture "x64"
+    startproject "Editor"
+    multiprocessorcompile ("On")
+    outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+    
 
-	IMGUI_GLFW 		= "ON"
-	IMGUI_OPENGL 	= "ON"
+    configurations
+    {
+        "Debug",
+        "Release",
+        "Dist"
+    }
 
-	filter "system:windows"
-		systemversion "latest"
-	
-		filter { "system:windows", "configurations:Dist" }
-			linkoptions { "/SUBSYSTEM:WINDOWS" }
-	
-	
+    solution_items
+    {
+        ".editorconfig"
+    }
+
+    IMGUI_GLFW 		= "ON"
+    IMGUI_OPENGL 	= "ON"
+
+    filter "system:windows"
+        systemversion "latest"
+    
+        filter { "system:windows", "configurations:Dist" }
+            linkoptions { "/SUBSYSTEM:WINDOWS" }
+    
+    
 group "Thirdparty"
-	include "Tools"
-	include "Thirdparty/premake-imgui.lua"
-	include "Thirdparty/premake-spdlog.lua"
-	include "Thirdparty/premake-yaml-cpp.lua"
-	include "Thirdparty/ImGuizmo"
-	include "Koten/include-dependencies.lua"
+    include "Tools"
+    include "Thirdparty/premake-imgui.lua"
+    include "Thirdparty/premake-spdlog.lua"
+    include "Thirdparty/premake-yaml-cpp.lua"
+    include "Thirdparty/ImGuizmo"
+    include "Koten/include-dependencies.lua"
 group ""
 
 group "Core"
-	include "Koten"
-	include "Koten-ScriptCore"
+    include "Koten"
+    include "Koten-ScriptCore"
 group ""
 
 group "Tools"
-	include "Editor"
-	include "Runtime"
+    include "Editor"
+    include "Runtime"
 group ""

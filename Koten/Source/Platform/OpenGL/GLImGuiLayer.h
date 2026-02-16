@@ -6,17 +6,17 @@
 
 namespace KTN
 {
-	class GLImGuiLayer : public ImGuiLayer
-	{
-		public:
-			GLImGuiLayer() = default;
-			~GLImGuiLayer() override = default;
+    class GLImGuiLayer : public ImGuiLayer
+    {
+        public:
+            GLImGuiLayer() = default;
+            ~GLImGuiLayer() override = default;
 
-			void OnAttach() override;
-			void OnDetach() override;
+            void OnAttach() override;
+            void OnDetach() override;
 
-			void Begin() override;
-			void End() override;
-	};
+            void Begin() override;
+            void End() override;
+    };
 
 } // namespace KTN

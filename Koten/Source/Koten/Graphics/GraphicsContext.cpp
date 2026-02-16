@@ -7,15 +7,15 @@
 
 namespace KTN
 {
-	Unique<GraphicsContext> GraphicsContext::Create()
-	{
-		KTN_PROFILE_FUNCTION();
+    Unique<GraphicsContext> GraphicsContext::Create()
+    {
+        KTN_PROFILE_FUNCTION();
 
-		if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-			return CreateUnique<GLContext>();
+        if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
+            return CreateUnique<GLContext>();
 
-		KTN_CORE_ERROR("Unsupported API!");
-		return nullptr;
-	}
+        KTN_CORE_ERROR("Unsupported API!");
+        return nullptr;
+    }
 
 } // namespace KTN

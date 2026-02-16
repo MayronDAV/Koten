@@ -5,68 +5,72 @@
 
 namespace KTN
 {
-	enum class LoadMode
-	{
-		Single = 0,
-		Additive
-	};
+    enum class LoadMode
+    {
+        Single = 0,
+        Additive
+    };
 
-	struct SceneManagerConfig
-	{
-		LoadMode Mode = LoadMode::Single;
-		bool CopyScenesOnPlay = false;
-	};
+    struct SceneManagerConfig
+    {
+        LoadMode Mode = LoadMode::Single;
+        bool CopyScenesOnPlay = false;
+    };
 
-	class KTN_API SceneManager
-	{
-		public:
-			static void Init(const SceneManagerConfig& p_Config = {});
-			static void Shutdown();
+    class KTN_API SceneManager
+    {
+        public:
+            static void Init(const SceneManagerConfig& p_Config = {});
+            static void Shutdown();
 
-			static void SetRenderTarget(const Ref<Texture2D>& p_Target);
-			static void SetViewportSize(uint32_t p_Width, uint32_t p_Height);
+            static void SetRenderTarget(const Ref<Texture2D>& p_Target);
+            static void SetViewportSize(uint32_t p_Width, uint32_t p_Height);
 
-			static void Play();
-			static void Simulate();
-			static void Pause(bool p_Value = true);
-			static void Stop();
-			static void Step(int p_Frames = 1);
+            static void Play();
+            static void Simulate();
+            static void Pause(bool p_Value = true);
+            static void Stop();
+            static void Step(int p_Frames = 1);
 
-			static void OnUpdate();
-			static void OnRender(const glm::mat4& p_Projection = glm::mat4(1.0f), const glm::mat4& p_View = glm::mat4(1.0f), const glm::vec4& p_ClearColor = {0.0f, 0.0f, 0.0f, 1.0f});
+            static void OnUpdate();
+            static void OnRender(const glm::mat4& p_Projection = glm::mat4(1.0f), const glm::mat4& p_View = glm::mat4(1.0f), const glm::vec4& p_ClearColor = {0.0f, 0.0f, 0.0f, 1.0f});
+            static void OnRenderRuntime();
 
-			static AssetHandle Import(const std::string& p_Path, bool p_ThreadSafe = false);
-			static AssetHandle ImportAsync(const std::string& p_Path);
+            static void OnRender(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::mat4& p_Projection = glm::mat4(1.0f), const glm::mat4& p_View = glm::mat4(1.0f), const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
+            static void OnRenderRuntime(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height);
 
-			static bool Load(AssetHandle p_Handle, bool p_ThreadSafe = false) { return Load(p_Handle, GetConfig().Mode, p_ThreadSafe); }
-			static bool Load(AssetHandle p_Handle, LoadMode p_Mode, bool p_ThreadSafe = false);
-			static void LoadAsync(AssetHandle p_Handle) { LoadAsync(p_Handle, GetConfig().Mode); }
-			static void LoadAsync(AssetHandle p_Handle, LoadMode p_Mode);
-			static void Unload(AssetHandle p_Handle, bool p_ThreadSafe = false);
+            static AssetHandle Import(const std::string& p_Path, bool p_ThreadSafe = false);
+            static AssetHandle ImportAsync(const std::string& p_Path);
 
-			static AssetHandle New(const std::string& p_Path = "", const SceneConfig& p_Config = {});
-			static bool New(AssetHandle p_Handle, const std::string& p_Path = "", const SceneConfig& p_Config = {});
-			static bool Save(AssetHandle p_Handle);
-			static void SaveAs(AssetHandle p_Handle, const std::string& p_Path);
+            static bool Load(AssetHandle p_Handle, bool p_ThreadSafe = false) { return Load(p_Handle, GetConfig().Mode, p_ThreadSafe); }
+            static bool Load(AssetHandle p_Handle, LoadMode p_Mode, bool p_ThreadSafe = false);
+            static void LoadAsync(AssetHandle p_Handle) { LoadAsync(p_Handle, GetConfig().Mode); }
+            static void LoadAsync(AssetHandle p_Handle, LoadMode p_Mode);
+            static void Unload(AssetHandle p_Handle, bool p_ThreadSafe = false);
 
-			static bool IsActive(AssetHandle p_Handle);
-			static bool IsLoaded(AssetHandle p_Handle);
+            static AssetHandle New(const std::string& p_Path = "", const SceneConfig& p_Config = {});
+            static bool New(AssetHandle p_Handle, const std::string& p_Path = "", const SceneConfig& p_Config = {});
+            static bool Save(AssetHandle p_Handle);
+            static void SaveAs(AssetHandle p_Handle, const std::string& p_Path);
 
-			static Ref<Scene> GetScene(AssetHandle p_Handle);
-			static Ref<Scene> GetLoadedScene(AssetHandle p_Handle);
-			static const std::vector<Ref<Scene>>& GetLoadedScenes();
-			static const std::vector<Ref<Scene>>& GetActiveScenes();
-			static bool IsPaused();
-			static Entity GetEntityByUUID(UUID p_UUID);
-			static Entity GetEntityByTag(const std::string& p_Tag);
-			static SceneManagerConfig& GetConfig();
+            static bool IsActive(AssetHandle p_Handle);
+            static bool IsLoaded(AssetHandle p_Handle);
 
-		private:
-			static bool ExecuteLoadOperation(AssetHandle p_Handle, LoadMode p_Mode);
-			static bool ExecuteImportOperation(const std::string& p_Path, AssetHandle p_Handle);
+            static Ref<Scene> GetScene(AssetHandle p_Handle);
+            static Ref<Scene> GetLoadedScene(AssetHandle p_Handle);
+            static const std::vector<Ref<Scene>>& GetLoadedScenes();
+            static const std::vector<Ref<Scene>>& GetActiveScenes();
+            static bool IsPaused();
+            static Entity GetEntityByUUID(UUID p_UUID);
+            static Entity GetEntityByTag(const std::string& p_Tag);
+            static SceneManagerConfig& GetConfig();
 
-			friend class Application;
-	};
+        private:
+            static bool ExecuteLoadOperation(AssetHandle p_Handle, LoadMode p_Mode);
+            static bool ExecuteImportOperation(const std::string& p_Path, AssetHandle p_Handle);
+
+            friend class Application;
+    };
 
 
 } // namespace KTN

@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace KTN
 {
-	public enum LoadMode
-	{
-		Single = 0,
-		Additive
+    public enum LoadMode
+    {
+        Single = 0,
+        Additive
     };
 
     public class SceneManager
-	{
+    {
         public static LoadMode Mode { get => (LoadMode)InternalCalls.SceneManager_GetConfigLoadMode(); set => InternalCalls.SceneManager_SetConfigLoadMode((int)value); }
         public static bool IsPaused { get => InternalCalls.SceneManager_IsPaused(); set => InternalCalls.SceneManager_Pause(value); }
 
@@ -45,8 +45,8 @@ namespace KTN
         }
 
         public static Scene LoadScene(ulong p_SceneHandle, LoadMode p_Mode)
-		{
-			var sceneHandle = InternalCalls.SceneManager_LoadScene(p_SceneHandle, (int)p_Mode);
+        {
+            var sceneHandle = InternalCalls.SceneManager_LoadScene(p_SceneHandle, (int)p_Mode);
             var scene = new Scene(sceneHandle.Handle);
             return scene;
         }

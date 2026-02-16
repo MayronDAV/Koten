@@ -6,116 +6,116 @@
 
 namespace KTN
 {
-	const std::filesystem::path& Project::GetProjectDirectory()
-	{
-		KTN_CORE_ASSERT(s_ActiveProject);
-		return s_ActiveProject->m_ProjectDirectory;
-	}
+    const std::filesystem::path& Project::GetProjectDirectory()
+    {
+        KTN_CORE_ASSERT(s_ActiveProject);
+        return s_ActiveProject->m_ProjectDirectory;
+    }
 
-	std::filesystem::path Project::GetAssetDirectory()
-	{
-		KTN_CORE_ASSERT(s_ActiveProject);
-		return GetProjectDirectory() / s_ActiveProject->m_Config.AssetDirectory;
-	}
+    std::filesystem::path Project::GetAssetDirectory()
+    {
+        KTN_CORE_ASSERT(s_ActiveProject);
+        return GetProjectDirectory() / s_ActiveProject->m_Config.AssetDirectory;
+    }
 
-	std::filesystem::path Project::GetAssetFileSystemPath(const std::filesystem::path& p_Path)
-	{
-		KTN_CORE_ASSERT(s_ActiveProject);
-		return GetAssetDirectory() / p_Path;
-	}
+    std::filesystem::path Project::GetAssetFileSystemPath(const std::filesystem::path& p_Path)
+    {
+        KTN_CORE_ASSERT(s_ActiveProject);
+        return GetAssetDirectory() / p_Path;
+    }
 
-	Ref<Project> Project::New()
-	{
-		s_ActiveProject = CreateUnique<Project>();
-		return s_ActiveProject;
-	}
+    Ref<Project> Project::New()
+    {
+        s_ActiveProject = CreateUnique<Project>();
+        return s_ActiveProject;
+    }
 
-	Ref<Project> Project::New(const std::filesystem::path& p_FolderPath)
-	{
-		ProjectConfig config = {};
-		config.Name = p_FolderPath.stem().string();
-		config.AssetDirectory = "Assets";
-		config.StartScene = 0;
+    Ref<Project> Project::New(const std::filesystem::path& p_FolderPath)
+    {
+        ProjectConfig config = {};
+        config.Name = p_FolderPath.stem().string();
+        config.AssetDirectory = "Assets";
+        config.StartScene = 0;
 
-		return New(p_FolderPath, config);
-	}
+        return New(p_FolderPath, config);
+    }
 
-	Ref<Project> Project::New(const std::filesystem::path& p_FolderPath, const ProjectConfig& p_Config)
-	{
-		auto project = New();
-		project->m_Config = p_Config;
-		SaveActive(p_FolderPath / (p_Config.Name + ".ktproj"));
+    Ref<Project> Project::New(const std::filesystem::path& p_FolderPath, const ProjectConfig& p_Config)
+    {
+        auto project = New();
+        project->m_Config = p_Config;
+        SaveActive(p_FolderPath / (p_Config.Name + ".ktproj"));
 
-		FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Scenes").string());
-		FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Scripts").string());
-		FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Textures").string());
+        FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Scenes").string());
+        FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Scripts").string());
+        FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Textures").string());
 
-		project->m_AssetManager = AssetManager::Create();
-		return project;
-	}
+        project->m_AssetManager = AssetManager::Create();
+        return project;
+    }
 
-	Ref<Project> Project::Load(const std::filesystem::path& p_Path)
-	{
-		KTN_PROFILE_FUNCTION();
+    Ref<Project> Project::Load(const std::filesystem::path& p_Path)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		Ref<Project> project = CreateRef<Project>();
+        Ref<Project> project = CreateRef<Project>();
 
-		ProjectSerializer serializer(project);
-		if (serializer.Deserialize(p_Path))
-		{
-			project->m_ProjectDirectory = p_Path.parent_path();
-			project->m_AssetManager = AssetManager::Create();
-			s_ActiveProject = project;
-			s_ActiveProject->m_AssetManager->DeserializeAssetRegistry();
-			return s_ActiveProject;
-		}
+        ProjectSerializer serializer(project);
+        if (serializer.Deserialize(p_Path))
+        {
+            project->m_ProjectDirectory = p_Path.parent_path();
+            project->m_AssetManager = AssetManager::Create();
+            s_ActiveProject = project;
+            s_ActiveProject->m_AssetManager->DeserializeAssetRegistry();
+            return s_ActiveProject;
+        }
 
-		return nullptr;
-	}
+        return nullptr;
+    }
 
-	bool Project::SaveActive(const std::filesystem::path& p_Path)
-	{
-		KTN_PROFILE_FUNCTION();
+    bool Project::SaveActive(const std::filesystem::path& p_Path)
+    {
+        KTN_PROFILE_FUNCTION();
 
-		ProjectSerializer serializer(s_ActiveProject);
-		if (serializer.Serialize(p_Path))
-		{
-			s_ActiveProject->m_ProjectDirectory = p_Path.parent_path();
-			return true;
-		}
+        ProjectSerializer serializer(s_ActiveProject);
+        if (serializer.Serialize(p_Path))
+        {
+            s_ActiveProject->m_ProjectDirectory = p_Path.parent_path();
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	Ref<Project> Project::LoadRuntime(const std::filesystem::path& p_Path)
-	{
-		Ref<Project> project = CreateRef<Project>();
+    Ref<Project> Project::LoadRuntime(const std::filesystem::path& p_Path)
+    {
+        Ref<Project> project = CreateRef<Project>();
 
-		ProjectSerializer serializer(project);
-		if (serializer.DeserializeRuntime(p_Path))
-		{
-			project->m_ProjectDirectory = p_Path.parent_path();
-			project->m_IsRuntime = true;
-			AssetManagerConfig config = {};
-			config.LoadAssetsFromMemory = true;
-			config.LoadAssetsFromPath = false;
-			project->m_AssetManager = AssetManager::Create(config);
-			s_ActiveProject = project;
-			return s_ActiveProject;
-		}
+        ProjectSerializer serializer(project);
+        if (serializer.DeserializeRuntime(p_Path))
+        {
+            project->m_ProjectDirectory = p_Path.parent_path();
+            project->m_IsRuntime = true;
+            AssetManagerConfig config = {};
+            config.LoadAssetsFromMemory = true;
+            config.LoadAssetsFromPath = false;
+            project->m_AssetManager = AssetManager::Create(config);
+            s_ActiveProject = project;
+            return s_ActiveProject;
+        }
 
-		return nullptr;
-	}
+        return nullptr;
+    }
 
-	bool Project::SaveActiveRuntime(const std::filesystem::path& p_Path)
-	{
-		ProjectSerializer serializer(s_ActiveProject);
-		return serializer.SerializeRuntime(p_Path);
-	}
+    bool Project::SaveActiveRuntime(const std::filesystem::path& p_Path)
+    {
+        ProjectSerializer serializer(s_ActiveProject);
+        return serializer.SerializeRuntime(p_Path);
+    }
 
-	Project::Project()
-		: m_Config({})
-	{
-	}
+    Project::Project()
+        : m_Config({})
+    {
+    }
 
 } // namespace KTN

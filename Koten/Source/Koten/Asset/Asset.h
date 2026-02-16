@@ -8,41 +8,41 @@
 
 namespace KTN
 {
-	using AssetHandle = UUID;
+    using AssetHandle = UUID;
 
-	enum class AssetType : uint16_t
-	{
-		None = 0,
-		Scene,
-		Font,
-		Texture2D,
-		PhysicsMaterial2D,
-		Prefab
-	};
+    enum class AssetType : uint16_t
+    {
+        None = 0,
+        Scene,
+        Font,
+        Texture2D,
+        PhysicsMaterial2D,
+        Prefab
+    };
 
-	KTN_API const char* GetAssetTypeName(AssetType p_Type);
-	KTN_API AssetType GetAssetTypeFromName(const char* p_Name);
+    KTN_API const char* GetAssetTypeName(AssetType p_Type);
+    KTN_API AssetType GetAssetTypeFromName(const char* p_Name);
 
-	#define ASSET_CLASS_METHODS(type)															\
-			static AssetType GetStaticType() { return AssetType::type; }						\
-			virtual AssetType GetType() const override { return GetStaticType(); }
+    #define ASSET_CLASS_METHODS(type)                                                            \
+            static AssetType GetStaticType() { return AssetType::type; }                        \
+            virtual AssetType GetType() const override { return GetStaticType(); }
 
-	class KTN_API Asset
-	{
-		public:
-			AssetHandle Handle;
+    class KTN_API Asset
+    {
+        public:
+            AssetHandle Handle;
 
-			virtual AssetType GetType() const = 0;
-	};
+            virtual AssetType GetType() const = 0;
+    };
 
-	struct KTN_API AssetMetadata
-	{
-		AssetType Type = AssetType::None;
-		std::string FilePath;
-		void* AssetData = nullptr; // Pointer to the actual asset data (e.g., for fonts, textures, etc.)
-		bool SerializeAssetData = true;
+    struct KTN_API AssetMetadata
+    {
+        AssetType Type = AssetType::None;
+        std::string FilePath;
+        void* AssetData = nullptr; // Pointer to the actual asset data (e.g., for fonts, textures, etc.)
+        bool SerializeAssetData = true;
 
-		operator bool() const { return Type != AssetType::None; }
-	};
+        operator bool() const { return Type != AssetType::None; }
+    };
 
 } // namespace KTN
