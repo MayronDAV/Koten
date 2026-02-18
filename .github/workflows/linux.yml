@@ -19,13 +19,16 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y g++-11 gcc-11 libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxxf86vm-dev mesa-common-dev libgtk-3-dev mono-complete
+        sudo apt-get install -y build-essential \
+          libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev \
+          libxcursor-dev libxi-dev libxxf86vm-dev mesa-common-dev \
+          libgtk-3-dev mono-complete g++-13 gcc-13
 
     - name: Build ${{ matrix.platform }} ${{ matrix.config }}
       run: |
         chmod u+r+x Tools/Linux/premake5
         Tools/Linux/premake5 gmake2 --dotnet=mono
-        make config=${{ matrix.config }} CC=gcc-11 CXX=g++-11 -j8
+        make config=${{ matrix.config }} CC=gcc-13 CXX=g++-13 -j8
 
     - name: Upload Bin Artifacts
       uses: ./.github/actions/upload-artifact
