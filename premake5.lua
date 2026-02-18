@@ -5,7 +5,6 @@ include "premake-dependencies.lua"
 workspace "Koten"
     architecture "x64"
     startproject "Editor"
-    multiprocessorcompile ("On")
     outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
     
 
@@ -26,6 +25,7 @@ workspace "Koten"
 
     filter "system:windows"
         systemversion "latest"
+        multiprocessorcompile ("On")
     
         filter { "system:windows", "configurations:Dist" }
             linkoptions { "/SUBSYSTEM:WINDOWS" }

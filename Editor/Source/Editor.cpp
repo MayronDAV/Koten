@@ -42,7 +42,6 @@ namespace KTN
         static float GetFPSWidth()
         {
             std::string text = std::format("FPS: {}", Engine::Get().GetStats().FramesPerSecond);
-
             float textWidth  = ImGui::CalcTextSize(text.c_str()).x;
             float padding    = ImGui::GetStyle().CellPadding.x * 2.0f;
 
@@ -52,12 +51,9 @@ namespace KTN
         float GetGuizmoWidth()
         {
             float width             = 0.0f;
-
             const float buttonWidth = ImGui::CalcTextSize(ICON_MDI_CURSOR_DEFAULT).x + ImGui::GetStyle().FramePadding.x * 2.0f;
             const float spacing     = ImGui::GetStyle().ItemSpacing.x;
-
             int buttonCount         = 5; // select, move, rotate, scale, universal
-
             width                   = buttonCount * buttonWidth + (buttonCount - 1) * spacing;
 
             return width + 20.0f; // + extra padding
