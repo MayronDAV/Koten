@@ -12,8 +12,7 @@ Root:
       Scale: [1, 1, 1]
     SpriteComponent:
       Type: 1
-      Color: [1, 1, 1, 1]
-      Texture: 12721382578166247808
+      Material: 2347241170725850122
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]

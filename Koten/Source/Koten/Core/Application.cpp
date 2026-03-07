@@ -30,21 +30,21 @@ namespace KTN
         
         Engine::Get().LoadSettings();
 
-        auto& settings = Engine::Get().GetSettings();
+        auto& settings           = Engine::Get().GetSettings();
 
-        m_UpdateMinimized = settings.UpdateMinimized;
+        m_UpdateMinimized        = settings.UpdateMinimized;
 
         WindowSpecification spec = {};
-        spec.Title = p_Config.Title;
-        spec.Width = settings.Width;
-        spec.Height = settings.Height;
-        spec.Mode = settings.Mode;
-        spec.Resizable = settings.Resizable;
-        spec.Maximize = settings.Maximize;
-        spec.Center = settings.Center;
-        spec.Vsync = settings.Vsync;
-        spec.IconPath = p_Config.IconPath;
-        m_Window = Window::Create(spec);
+        spec.Title               = p_Config.Title;
+        spec.Width               = settings.Width;
+        spec.Height              = settings.Height;
+        spec.Mode                = settings.Mode;
+        spec.Resizable           = settings.Resizable;
+        spec.Maximize            = settings.Maximize;
+        spec.Center              = settings.Center;
+        spec.Vsync               = settings.Vsync;
+        spec.IconPath            = p_Config.IconPath;
+        m_Window                 = Window::Create(spec);
 
         m_Window->SetEventCallback(
         [&] (Event& p_Event) 
@@ -126,7 +126,8 @@ namespace KTN
                 for (auto& layer : m_LayerStack)
                     layer->OnRender();
 
-                // ImGui
+                RendererCommand::End();
+
                 m_ImGui->Begin();
                 {
                     for (auto& layer : m_LayerStack)
@@ -134,14 +135,12 @@ namespace KTN
                 }
                 m_ImGui->End();
 
-                RendererCommand::End();
-
                 m_Window->SwapBuffer();
             }
 
             m_Window->OnUpdate();
 
-            if (!m_Window->IsMinimized())
+            //if (!m_Window->IsMinimized())
             {
                 KTN_PROFILE_SCOPE("Deleting Cache");
 

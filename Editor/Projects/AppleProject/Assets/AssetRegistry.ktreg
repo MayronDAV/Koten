@@ -1,33 +1,122 @@
 AssetRegistry:
+  - Handle: 1349744040832645468
+    FilePath: Materials\Orange.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
+  - Handle: 2347241170725850122
+    FilePath: Materials\Apple.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 3912666485704849466
     FilePath: Textures\can.png
     Type: Texture2D
+    Load: true
     SerializeAssetData: true
+    AssetData:
+      MinFilter: LINEAR
+      MagFilter: LINEAR
+      WrapU: REPEAT
+      WrapV: REPEAT
+      SRGB: true
+      AnisotropyEnable: true
+      GenerateMipmaps: true
+      BorderColor: [0, 0, 0, 1]
+      DebugName: can.png
+  - Handle: 4418300607174133455
+    FilePath: Materials\Can.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 7835493660212497376
     FilePath: Fonts\Arial\Arial Regular.ttf
     Type: Font
+    Load: true
     SerializeAssetData: true
+    AssetData:
+      ImageType: MSDF
+      GlyphIdentifier: UNICODE_CODEPOINT
+      ImageFormat: PNG
+      EmSize: 40
+      PxRange: 2
+      MiterLimit: 1
+      AngleThreshold: 3
+      FontScale: 1
+      ThreadCount: 4
+      ExpensiveColoring: false
+      FixedScale: true
+      OverlapSupport: true
+      ScanlinePass: true
+      UseDefaultCharset: true
   - Handle: 7980078156861383348
     FilePath: Materials\Default.ktasset
     Type: PhysicsMaterial2D
+    Load: true
     SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 8490365996118832830
     FilePath: Scenes\Main.ktscn
     Type: Scene
+    Load: true
     SerializeAssetData: true
+    AssetData:
+      {}
+  - Handle: 11804150252124444193
+    FilePath: DefaultTexture2D
+    Type: Texture2D
+    Load: false
+    SerializeAssetData: false
   - Handle: 12683029619627609206
     FilePath: Prefabs\Can.ktprefab
     Type: Prefab
+    Load: true
     SerializeAssetData: false
   - Handle: 12721382578166247808
     FilePath: Textures\apple.png
     Type: Texture2D
+    Load: true
     SerializeAssetData: true
+    AssetData:
+      MinFilter: LINEAR
+      MagFilter: LINEAR
+      WrapU: REPEAT
+      WrapV: REPEAT
+      SRGB: true
+      AnisotropyEnable: true
+      GenerateMipmaps: true
+      BorderColor: [0, 0, 0, 1]
+      DebugName: apple.png
+  - Handle: 14323510693760139011
+    FilePath: Materials\Default.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 14396906392080750853
     FilePath: Prefabs\Apple.ktprefab
     Type: Prefab
+    Load: true
     SerializeAssetData: false
   - Handle: 15647201069320742082
     FilePath: Scenes\UI.ktscn
     Type: Scene
+    Load: true
     SerializeAssetData: true
+    AssetData:
+      {}
+  - Handle: 16735559612679961702
+    FilePath: Materials\Red.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}

@@ -4,7 +4,6 @@
 #include "Koten/Project/Project.h"
 #include "Koten/Graphics/DFFont.h"
 #include "Koten/Scene/Entity.h"
-#include "Koten/Script/ScriptEngine.h"
 #include "Koten/Utils/Utils.h"
 #include "Koten/Scene/SceneSerializer.h"
 #include "Koten/Physics/PhysicsMaterial2D.h"
@@ -14,8 +13,6 @@
 // lib
 #include <yaml-cpp/yaml.h>
 #include <magic_enum/magic_enum.hpp>
-
-#include <stb/stb_image_write.h>
 
 // std
 #include <algorithm>
@@ -36,7 +33,7 @@ namespace KTN
 
         const auto& metadata = GetMetadata(p_Handle);
 
-        if (m_Config.LoadAssetsFromPath || metadata.Type == AssetType::Font)
+        if ((m_Config.LoadAssetsFromPath && metadata.Load) || metadata.Type == AssetType::Font)
         {
             auto asset = AssetImporter::ImportAsset(p_Handle, metadata);
             if (!asset)
@@ -75,9 +72,9 @@ namespace KTN
             return nullptr;
         }
 
-        if (m_Config.LoadAssetsFromPath || p_Metadata.Type == AssetType::Font)
+        if ((m_Config.LoadAssetsFromPath && p_Metadata.Load) || p_Metadata.Type == AssetType::Font)
         {
-            auto asset = AssetImporter::ImportAsset(p_Handle, p_Metadata);
+            auto asset                          = AssetImporter::ImportAsset(p_Handle, p_Metadata);
             if (!asset)
             {
                 KTN_CORE_ERROR("AssetManager::LoadAsset - Asset import failed!");
@@ -86,14 +83,14 @@ namespace KTN
 
             delete m_AssetRegistry[p_Handle].AssetData;
             m_AssetRegistry[p_Handle].AssetData = nullptr;
-            m_AssetRegistry[p_Handle] = p_Metadata;
+            m_AssetRegistry[p_Handle]           = p_Metadata;
 
-            m_LoadedAssets[p_Handle] = asset;
+            m_LoadedAssets[p_Handle]            = asset;
             return asset;
         }
         else if (m_Config.LoadAssetsFromMemory)
         {
-            auto asset = AssetImporter::ImportAssetFromMemory(p_Handle, p_Metadata, m_AssetCache[p_Handle]->GetBuffer());
+            auto asset                          = AssetImporter::ImportAssetFromMemory(p_Handle, p_Metadata, m_AssetCache[p_Handle]->GetBuffer());
             if (!asset)
             {
                 KTN_CORE_ERROR("AssetManager::LoadAsset - Load Asset from memory failed!");
@@ -102,9 +99,9 @@ namespace KTN
 
             delete m_AssetRegistry[p_Handle].AssetData;
             m_AssetRegistry[p_Handle].AssetData = nullptr;
-            m_AssetRegistry[p_Handle] = p_Metadata;
+            m_AssetRegistry[p_Handle]           = p_Metadata;
 
-            m_LoadedAssets[p_Handle] = asset;
+            m_LoadedAssets[p_Handle]            = asset;
             return asset;
         }
 
@@ -370,8 +367,9 @@ namespace KTN
         {
             out.write(reinterpret_cast<const char*>(&handle), sizeof(handle));
             out.write(reinterpret_cast<const char*>(&metadata.Type), sizeof(metadata.Type));
-            Utils::WriteString(out, FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string()));
+            Utils::WriteString(out, metadata.Load ? FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string()) : metadata.FilePath);
 
+            out.write(reinterpret_cast<const char*>(&metadata.Load), sizeof(metadata.Load));
             out.write(reinterpret_cast<const char*>(&metadata.SerializeAssetData), sizeof(metadata.SerializeAssetData));
 
             if (metadata.SerializeAssetData)
@@ -459,6 +457,14 @@ namespace KTN
 
                 prefab->Entt.Destroy();
             }
+
+            if (metadata.Type == AssetType::Material)
+            {
+                auto material = GetAsset<Material>(handle);
+                KTN_CORE_ASSERT(material, "Material is nullptr!");
+
+                material->SerializeBin(out);
+            }
         }
     }
 
@@ -500,6 +506,9 @@ namespace KTN
             metadata.FilePath = (Project::GetAssetDirectory() / path).string();
 
             Buffer buffer = {};
+
+            metadata.Load = false;
+            in.read(reinterpret_cast<char*>(&metadata.Load), sizeof(metadata.Load));
 
             metadata.SerializeAssetData = false;
             in.read(reinterpret_cast<char*>(&metadata.SerializeAssetData), sizeof(metadata.SerializeAssetData));
@@ -579,6 +588,11 @@ namespace KTN
                 PrefabImporter::LoadPrefabBin(in, buffer);
             }
 
+            if (metadata.Type == AssetType::Material)
+            {
+                Material::DeserializeBin(in, buffer);
+            }
+
             m_AssetCache[handle] = CreateRef<ScopedBuffer>(buffer);
             m_AssetRegistry[handle] = metadata;
         }
@@ -612,8 +626,9 @@ namespace KTN
             {
                 out << YAML::BeginMap;
                 out << YAML::Key << "Handle" << YAML::Value << handle;
-                out << YAML::Key << "FilePath" << YAML::Value << FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string());
+                out << YAML::Key << "FilePath" << YAML::Value << (metadata.Load ? FileSystem::GetRelative(metadata.FilePath, Project::GetAssetDirectory().string()) : metadata.FilePath);
                 out << YAML::Key << "Type" << YAML::Value << (std::string)GetAssetTypeName(metadata.Type);
+                out << YAML::Key << "Load" << YAML::Value << metadata.Load;
                 out << YAML::Key << "SerializeAssetData" << YAML::Value << metadata.SerializeAssetData;
                 if (metadata.SerializeAssetData)
                 {
@@ -703,33 +718,35 @@ namespace KTN
 
         for (const auto& node : rootNode)
         {
-            AssetHandle handle = node["Handle"].as<uint64_t>();
-            auto& metadata = m_AssetRegistry[handle];
-            metadata.FilePath = (Project::GetAssetDirectory() / node["FilePath"].as<std::string>()).string();
-            auto type = node["Type"].as<std::string>();
-            metadata.Type = GetAssetTypeFromName(type.c_str());
+            AssetHandle handle          = node["Handle"].as<uint64_t>();
+            auto& metadata              = m_AssetRegistry[handle];
+            auto path                   = node["FilePath"].as<std::string>();
+            auto type                   = node["Type"].as<std::string>();
+            metadata.Type               = GetAssetTypeFromName(type.c_str());
+            metadata.Load               = node["Load"].as<bool>();
+            metadata.FilePath           = metadata.Load ? (Project::GetAssetDirectory() / path).string() : path;
             metadata.SerializeAssetData = node["SerializeAssetData"].as<bool>();
 
             if (node["AssetData"])
             {
-                auto assetDataNode = node["AssetData"];
+                auto assetDataNode            = node["AssetData"];
                 if (metadata.Type == AssetType::Font)
                 {
                     auto config = new DFFontConfig();
 
-                    config->ImageType = magic_enum::enum_cast<FontImageType>(assetDataNode["ImageType"].as<std::string>().c_str()).value_or(config->ImageType);
-                    config->GlyphIdentifier = magic_enum::enum_cast<GlyphIdentifierType>(assetDataNode["GlyphIdentifier"].as<std::string>().c_str()).value_or(config->GlyphIdentifier);
-                    config->ImageFormat = magic_enum::enum_cast<FontImageFormat>(assetDataNode["ImageFormat"].as<std::string>().c_str()).value_or(config->ImageFormat);
-                    config->EmSize = assetDataNode["EmSize"].as<float>();
-                    config->PxRange = assetDataNode["PxRange"].as<double>();
-                    config->MiterLimit = assetDataNode["MiterLimit"].as<double>();
-                    config->AngleThreshold = assetDataNode["AngleThreshold"].as<double>();
-                    config->FontScale = assetDataNode["FontScale"].as<double>();
-                    config->ThreadCount = assetDataNode["ThreadCount"].as<int>();
+                    config->ImageType         = magic_enum::enum_cast<FontImageType>(assetDataNode["ImageType"].as<std::string>().c_str()).value_or(config->ImageType);
+                    config->GlyphIdentifier   = magic_enum::enum_cast<GlyphIdentifierType>(assetDataNode["GlyphIdentifier"].as<std::string>().c_str()).value_or(config->GlyphIdentifier);
+                    config->ImageFormat       = magic_enum::enum_cast<FontImageFormat>(assetDataNode["ImageFormat"].as<std::string>().c_str()).value_or(config->ImageFormat);
+                    config->EmSize            = assetDataNode["EmSize"].as<float>();
+                    config->PxRange           = assetDataNode["PxRange"].as<double>();
+                    config->MiterLimit        = assetDataNode["MiterLimit"].as<double>();
+                    config->AngleThreshold    = assetDataNode["AngleThreshold"].as<double>();
+                    config->FontScale         = assetDataNode["FontScale"].as<double>();
+                    config->ThreadCount       = assetDataNode["ThreadCount"].as<int>();
                     config->ExpensiveColoring = assetDataNode["ExpensiveColoring"].as<bool>();
-                    config->FixedScale = assetDataNode["FixedScale"].as<bool>();
-                    config->OverlapSupport = assetDataNode["OverlapSupport"].as<bool>();
-                    config->ScanlinePass = assetDataNode["ScanlinePass"].as<bool>();
+                    config->FixedScale        = assetDataNode["FixedScale"].as<bool>();
+                    config->OverlapSupport    = assetDataNode["OverlapSupport"].as<bool>();
+                    config->ScanlinePass      = assetDataNode["ScanlinePass"].as<bool>();
                     config->UseDefaultCharset = assetDataNode["UseDefaultCharset"].as<bool>();
                     if (!config->UseDefaultCharset)
                     {
@@ -737,26 +754,26 @@ namespace KTN
                         for (const auto& range : assetDataNode["CharsetRanges"])
                         {
                             uint32_t start = range["Start"].as<uint32_t>();
-                            uint32_t end = range["End"].as<uint32_t>();
+                            uint32_t end   = range["End"].as<uint32_t>();
                             config->CharsetRanges.push_back({ start, end });
                         }
                     }
-                    metadata.AssetData = config;
+                    metadata.AssetData     = config;
                 }
 
                 if (metadata.Type == AssetType::Texture2D)
                 {
-                    auto spec = new TextureSpecification();
-                    spec->MinFilter = magic_enum::enum_cast<TextureFilter>(assetDataNode["MinFilter"].as<std::string>().c_str()).value_or(TextureFilter::LINEAR);
-                    spec->MagFilter = magic_enum::enum_cast<TextureFilter>(assetDataNode["MagFilter"].as<std::string>().c_str()).value_or(TextureFilter::LINEAR);
-                    spec->WrapU = magic_enum::enum_cast<TextureWrap>(assetDataNode["WrapU"].as<std::string>().c_str()).value_or(TextureWrap::REPEAT);
-                    spec->WrapV = magic_enum::enum_cast<TextureWrap>(assetDataNode["WrapV"].as<std::string>().c_str()).value_or(TextureWrap::REPEAT);
-                    spec->SRGB = assetDataNode["SRGB"].as<bool>();
+                    auto spec              = new TextureSpecification();
+                    spec->MinFilter        = magic_enum::enum_cast<TextureFilter>(assetDataNode["MinFilter"].as<std::string>().c_str()).value_or(TextureFilter::LINEAR);
+                    spec->MagFilter        = magic_enum::enum_cast<TextureFilter>(assetDataNode["MagFilter"].as<std::string>().c_str()).value_or(TextureFilter::LINEAR);
+                    spec->WrapU            = magic_enum::enum_cast<TextureWrap>(assetDataNode["WrapU"].as<std::string>().c_str()).value_or(TextureWrap::REPEAT);
+                    spec->WrapV            = magic_enum::enum_cast<TextureWrap>(assetDataNode["WrapV"].as<std::string>().c_str()).value_or(TextureWrap::REPEAT);
+                    spec->SRGB             = assetDataNode["SRGB"].as<bool>();
                     spec->AnisotropyEnable = assetDataNode["AnisotropyEnable"].as<bool>();
-                    spec->GenerateMips = assetDataNode["GenerateMipmaps"].as<bool>();
-                    spec->BorderColor = assetDataNode["BorderColor"].as<glm::vec4>();
-                    spec->DebugName = assetDataNode["DebugName"].as<std::string>();
-                    metadata.AssetData = spec;
+                    spec->GenerateMips     = assetDataNode["GenerateMipmaps"].as<bool>();
+                    spec->BorderColor      = assetDataNode["BorderColor"].as<glm::vec4>();
+                    spec->DebugName        = assetDataNode["DebugName"].as<std::string>();
+                    metadata.AssetData     = spec;
                 }
             }
         }

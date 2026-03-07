@@ -50,15 +50,17 @@ namespace KTN::UI
         ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, p_UV0, p_UV1);
     }
 
-    KTN_API void ImageCircleMask(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec4& p_BgColor, bool p_Border, const ImVec4& p_BorderColor, float p_BorderThickness)
+    KTN_API void ImageCircleMask(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec4& p_TintColor, const ImVec4& p_BgColor, bool p_Border, const ImVec4& p_BorderColor, float p_BorderThickness)
     {
         KTN_PROFILE_FUNCTION();
 
-        ImageCircleMask(p_Texture, p_Size, { 0, 1 }, { 1, 0 }, p_BgColor, p_Border, p_BorderColor);
+        ImageCircleMask(p_Texture, p_Size, p_TintColor, { 0, 1 }, { 1, 0 }, p_BgColor, p_Border, p_BorderColor);
     }
 
-    KTN_API void ImageCircleMask(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec2& p_UV0, const ImVec2& p_UV1, const ImVec4& p_BgColor, bool p_Border, const ImVec4& p_BorderColor, float p_BorderThickness)
+    KTN_API void ImageCircleMask(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec4& p_TintColor, const ImVec2& p_UV0, const ImVec2& p_UV1, const ImVec4& p_BgColor, bool p_Border, const ImVec4& p_BorderColor, float p_BorderThickness)
     {
+        KTN_PROFILE_FUNCTION();
+
         ImVec2 pos = ImGui::GetCursorScreenPos();
         ImDrawList* draw = ImGui::GetWindowDrawList();
 
@@ -72,6 +74,7 @@ namespace KTN::UI
 
         ImU32 bgU32 = ImGui::ColorConvertFloat4ToU32(p_BgColor);
         ImU32 borderU32 = ImGui::ColorConvertFloat4ToU32(p_BorderColor);
+        ImU32 tintU32 = ImGui::ColorConvertFloat4ToU32(p_TintColor);
 
         draw->AddRectFilled(pos, ImVec2(pos.x + w, pos.y + h), bgU32);
 
@@ -84,7 +87,7 @@ namespace KTN::UI
             squareMax,
             p_UV0,
             p_UV1,
-            IM_COL32_WHITE,
+            tintU32,
             radius,
             ImDrawFlags_RoundCornersAll
         );

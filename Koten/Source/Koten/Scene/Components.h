@@ -7,6 +7,7 @@
 #include "Koten/Graphics/DFFont.h"
 #include "Koten/Asset/Asset.h"
 #include "Koten/Physics/PhysicsMaterial2D.h"
+#include "Koten/Graphics/Material.h"
 
 // std
 #include <string>
@@ -54,20 +55,19 @@ namespace KTN
 
     struct SpriteComponent
     {
-        RenderType2D Type        = RenderType2D::Quad;
-        AssetHandle Texture        = 0;
-        glm::vec4 Color            = { 1.0f, 1.0f, 1.0f, 1.0f };
-        float Thickness            = 1.0f;
-        float Fade                = 0.005f;
+        RenderType2D Type    = RenderType2D::Quad;
+        AssetHandle Material = 0;
+        float Thickness      = 1.0f;
+        float Fade           = 0.005f;
 
-        glm::vec2 Size            = { 0.0f, 0.0f };
+        glm::vec2 Size       = { 0.0f, 0.0f };
         // [true] if you want to pass the tile coord as a multiplier of the tile size
         // [false] if you want to pass the actual coord directly
-        bool BySize                = true;
-        glm::vec2 Offset        = { 0.0f, 0.0f };
-        glm::vec2 Scale            = { 1.0f, 1.0f };
+        bool BySize          = true;
+        glm::vec2 Offset     = { 0.0f, 0.0f };
+        glm::vec2 Scale      = { 1.0f, 1.0f };
 
-        SpriteComponent() = default;
+        SpriteComponent(bool p_GetDefault = true) : Material(p_GetDefault ? Material::GetDefault() : (AssetHandle)0) {}
         SpriteComponent(const SpriteComponent&) = default;
     };
 

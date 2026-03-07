@@ -194,6 +194,26 @@ namespace KTN::Utils
         p_Out.write(p_Str.data(), size);
     }
 
+    void WriteString(Buffer& p_Buffer, const std::string& p_String)
+    {
+        std::string string = p_String;
+
+        size_t size = string.size();
+        p_Buffer.Write(&size, sizeof(size));
+        p_Buffer.Write(string.data(), size);
+    }
+
+    std::string ReadString(BufferReader& p_Buffer)
+    {
+        size_t size = 0;
+        p_Buffer.ReadBytes(&size, sizeof(size));
+
+        std::string str(size, '\0');
+        p_Buffer.ReadBytes(&str[0], size);
+
+        return str;
+    }
+
     std::string ReadString(std::ifstream& p_In)
     {
         size_t size = 0;

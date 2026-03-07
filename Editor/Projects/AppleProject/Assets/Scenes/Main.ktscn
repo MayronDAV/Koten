@@ -28,8 +28,7 @@ Entities:
       Scale: [13.7, 1, 1]
     SpriteComponent:
       Type: 0
-      Color: [1, 0, 0, 1]
-      Texture: 0
+      Material: 16735559612679961702
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]
@@ -59,8 +58,8 @@ Entities:
     CameraComponent:
       Primary: true
       ClearColor: [0, 0, 0, 1]
-      Width: 0
-      Height: 0
+      Width: 389
+      Height: 292
       IsOrthographic: false
       IsAspectRatioFixed: false
       FOV: 90
@@ -86,8 +85,7 @@ Entities:
       Scale: [1, 2, 1]
     SpriteComponent:
       Type: 0
-      Color: [1, 1, 1, 1]
-      Texture: 0
+      Material: 1349744040832645468
       Thickness: 1
       Fade: 0.005
       Size: [0, 0]

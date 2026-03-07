@@ -10,29 +10,23 @@ namespace KTN
     class KTN_API Texture : public Asset
     {
         public:
-            virtual ~Texture() = default;
+            virtual ~Texture()                                           = default;
 
-            virtual uint32_t GetWidth() const = 0;
-            virtual uint32_t GetHeight() const = 0;
-            virtual uint32_t GetChannels() const = 0;
-            virtual uint32_t GetBytesPerChannels() const = 0;
-            virtual uint32_t GetMipLevels() const = 0;
-            virtual int GetSampleCount() const = 0;
-
-            virtual uint64_t GetEstimatedSize() const = 0;
-
+            virtual uint32_t GetWidth() const                            = 0;
+            virtual uint32_t GetHeight() const                           = 0;
+            virtual uint32_t GetChannels() const                         = 0;
+            virtual uint32_t GetBytesPerChannels() const                 = 0;
+            virtual uint32_t GetMipLevels() const                        = 0;
+            virtual int GetSampleCount() const                           = 0;
+            virtual uint64_t GetEstimatedSize() const                    = 0;
             virtual const TextureSpecification& GetSpecification() const = 0;
+            virtual void GenerateMipmap(CommandBuffer* p_CommandBuffer)  = 0;
+            virtual void SetData(const void* p_Data, size_t p_Size)      = 0;
+            virtual void Bind(uint32_t p_Slot = 0)                       = 0;
+            virtual void Unbind()                                        = 0;
+            virtual std::vector<uint8_t> GetData() const                 = 0;
 
-            virtual void GenerateMipmap(CommandBuffer* p_CommandBuffer) = 0;
-
-            virtual void SetData(const void* p_Data, size_t p_Size) = 0;
-
-            virtual void Bind(uint32_t p_Slot = 0) = 0;
-            virtual void Unbind() = 0;
-
-            virtual std::vector<uint8_t> GetData() const = 0;
-
-            virtual bool operator== (const Texture& p_Other) const = 0;
+            virtual bool operator== (const Texture& p_Other) const       = 0;
 
             static bool IsDepthStencilFormat(TextureFormat p_Format)
             {
@@ -76,6 +70,9 @@ namespace KTN
             static Ref<Texture2D> Create(const TextureSpecification& p_Spec, const uint8_t* p_Data, size_t p_Size);
 
             static Ref<Texture2D> Get(const TextureSpecification& p_Spec = {});
+
+            static AssetHandle GetDefault();
+            static void LoadDefault();
 
             ASSET_CLASS_METHODS(Texture2D)
     };

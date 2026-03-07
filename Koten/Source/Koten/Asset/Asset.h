@@ -17,7 +17,8 @@ namespace KTN
         Font,
         Texture2D,
         PhysicsMaterial2D,
-        Prefab
+        Prefab,
+        Material
     };
 
     KTN_API const char* GetAssetTypeName(AssetType p_Type);
@@ -37,10 +38,11 @@ namespace KTN
 
     struct KTN_API AssetMetadata
     {
-        AssetType Type = AssetType::None;
-        std::string FilePath;
-        void* AssetData = nullptr; // Pointer to the actual asset data (e.g., for fonts, textures, etc.)
+        AssetType Type          = AssetType::None;
+        std::string FilePath    = "";
+        void* AssetData         = nullptr; // Pointer to the actual asset data (e.g., for fonts, textures, etc.)
         bool SerializeAssetData = true;
+        bool Load               = true;
 
         operator bool() const { return Type != AssetType::None; }
     };

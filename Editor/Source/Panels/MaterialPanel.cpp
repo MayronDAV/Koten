@@ -9,6 +9,19 @@
 
 namespace KTN
 {
+    namespace
+    {
+        static std::string GetRelative(const std::string& p_Path)
+        {
+            auto relativePath = FileSystem::GetRelative(p_Path, Project::GetActive()->GetAssetDirectory().string());
+            if (relativePath.empty())
+                return p_Path;
+
+            return relativePath;
+        }
+
+    } // namespace
+
     MaterialPanel::MaterialPanel()
         : EditorPanel("Material")
     {
@@ -54,7 +67,7 @@ namespace KTN
         }
 
         ImGui::SetNextWindowPos(
-            ImVec2(btnPos.x + btnSize.x + 4, btnPos.y), // 4px de margem
+            ImVec2(btnPos.x + btnSize.x + 4, btnPos.y),
             ImGuiCond_Appearing
         );
 
@@ -62,16 +75,28 @@ namespace KTN
         {
             if (ImGui::Selectable("Copy"))
             {
-                m_Metadata.FilePath = (Project::GetAssetFileSystemPath("Materials") / (FileSystem::GetStem(m_Metadata.FilePath) + "(1).ktasset")).string();
-                m_Material->Handle = m_MaterialHandle;
+                m_Metadata.FilePath = (Project::GetAssetFileSystemPath("Materials") / (FileSystem::GetStem(m_Metadata.FilePath) + (m_Metadata.Type == AssetType::Material ? "(1).ktmat" : "(1).ktasset"))).string();
+                m_Material->Handle  = m_MaterialHandle;
+            }
+
+            if (ImGui::Selectable("Material"))
+            {
+                m_Metadata.Type     = AssetType::Material;
+                m_Metadata.FilePath = (Project::GetAssetFileSystemPath("Materials") / "New.ktmat").string();
+
+                auto mat            = CreateRef<Material>();
+                mat->Name           = "New Material";
+
+                m_Material          = mat;
+                m_Material->Handle  = m_MaterialHandle;
             }
 
             if (ImGui::Selectable("PhysicsMaterial2D"))
             {
-                m_Metadata.Type = AssetType::PhysicsMaterial2D;
+                m_Metadata.Type     = AssetType::PhysicsMaterial2D;
                 m_Metadata.FilePath = (Project::GetAssetFileSystemPath("Materials") / "New.ktasset").string();
-                m_Material = CreateRef<PhysicsMaterial2D>();
-                m_Material->Handle = m_MaterialHandle;
+                m_Material          = CreateRef<PhysicsMaterial2D>();
+                m_Material->Handle  = m_MaterialHandle;
             }
 
             ImGui::EndPopup();
@@ -83,7 +108,47 @@ namespace KTN
         ImGui::PopStyleVar();
         if (m_Material)
         {
-            auto type = m_Material->GetType();
+            auto type = m_Metadata.Type;
+            if (type == AssetType::Material)
+            {
+                auto material = As<Asset, Material>(m_Material);
+
+                UI::ColorEdit4("Color", material->AlbedoColor, 1.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
+                if (ImGui::Button(ICON_MDI_CANCEL))
+                    material->Texture = Texture2D::GetDefault();
+
+                ImGui::SameLine();
+
+                std::string path = material->Texture != 0 ? GetRelative(AssetManager::Get()->GetMetadata(material->Texture).FilePath) : "";
+                std::string text = path.empty() ? "Texture" : path.c_str();
+                if (ImGui::Button(text.c_str()))
+                {
+                    std::string path = "";
+                    if (FileDialog::Open("", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                    {
+                        auto filepath = std::filesystem::path(path);
+                        if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
+                            material->Texture = AssetManager::Get()->ImportAsset(AssetType::Texture2D, path);
+                    }
+                }
+
+                ImGui::PopStyleVar();
+
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        const wchar_t* path = (const wchar_t*)payload->Data;
+                        auto filepath = std::filesystem::path(path);
+                        if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
+                            material->Texture = AssetManager::Get()->ImportAsset(AssetType::Texture2D, filepath.string());
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+            }
+
             if (type == AssetType::PhysicsMaterial2D)
             {
                 auto material = As<Asset, PhysicsMaterial2D>(m_Material);
@@ -108,15 +173,20 @@ namespace KTN
                 m_Edited = false;
             }
 
-            auto type = m_Material->GetType();
-            if (type == AssetType::PhysicsMaterial2D)
+            if (m_New)
             {
-                if (m_New)
-                {
-                    AssetManager::Get()->ImportAsset(m_MaterialHandle, m_Metadata, m_Material);
-                    m_New = false;
-                }
+                AssetManager::Get()->ImportAsset(m_MaterialHandle, m_Metadata, m_Material);
+                m_New = false;
+            }
 
+            if (m_Metadata.Type == AssetType::Material)
+            {
+                auto material = As<Asset, Material>(m_Material);
+                material->Serialize(m_Metadata.FilePath);
+            }
+
+            if (m_Metadata.Type == AssetType::PhysicsMaterial2D)
+            {
                 auto material = As<Asset, PhysicsMaterial2D>(m_Material);
                 material->Serialize(m_Metadata.FilePath);
             }
@@ -132,7 +202,13 @@ namespace KTN
                 auto filepath = std::filesystem::path(path);
                 if (filepath.extension() == ".ktasset")
                 {
-                    m_MaterialHandle = AssetManager::Get()->ImportAsset(AssetType::Texture2D, filepath.string());
+                    m_MaterialHandle = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, filepath.string());
+                    m_Changed = true;
+                }
+
+                if (filepath.extension() == ".ktmat")
+                {
+                    m_MaterialHandle = AssetManager::Get()->ImportAsset(AssetType::Material, filepath.string());
                     m_Changed = true;
                 }
             }

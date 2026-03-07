@@ -1,5 +1,6 @@
 #include "ktnpch.h"
 #include "Texture.h"
+#include "Koten/Asset/AssetManager.h"
 
 #include "Platform/OpenGL/GLTexture.h"
 
@@ -94,6 +95,58 @@ namespace KTN
         auto texture = Create(p_Spec);
         s_TextureCache[hash] = { texture, Time::GetTime() };
         return texture;
+    }
+
+    AssetHandle Texture2D::GetDefault()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        static auto path                = "DefaultTexture2D";
+
+        auto handle                     = AssetManager::Get()->GetHandleByPath(path);
+        if (!handle) handle             = AssetHandle();
+
+        if (!AssetManager::Get()->IsAssetHandleValid(handle) || !AssetManager::Get()->IsAssetLoaded(handle))
+        {
+            uint32_t whiteTextureData   = 0xffffffff;
+            auto texture                = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
+            texture->Handle             = handle;
+
+            AssetMetadata metadata      = {};
+            metadata.Type               = AssetType::Texture2D;
+            metadata.FilePath           = path;
+            metadata.Load               = false;
+            metadata.SerializeAssetData = false;
+
+            AssetManager::Get()->ImportAsset(handle, metadata, texture);
+        }
+
+        return handle;
+    }
+
+    void Texture2D::LoadDefault()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        static auto path                = "DefaultTexture2D";
+
+        auto handle                     = AssetManager::Get()->GetHandleByPath(path);
+        if (!handle) handle             = AssetHandle();
+
+        if (!AssetManager::Get()->IsAssetHandleValid(handle) || !AssetManager::Get()->IsAssetLoaded(handle))
+        {
+            uint32_t whiteTextureData   = 0xffffffff;
+            auto texture                = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
+            texture->Handle             = handle;
+
+            AssetMetadata metadata      = {};
+            metadata.Type               = AssetType::Texture2D;
+            metadata.FilePath           = path;
+            metadata.Load               = false;
+            metadata.SerializeAssetData = false;
+
+            AssetManager::Get()->ImportAsset(handle, metadata, texture);
+        }
     }
 
 } // namespace KTN

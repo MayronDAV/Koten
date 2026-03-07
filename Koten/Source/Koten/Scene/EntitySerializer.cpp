@@ -51,16 +51,11 @@ namespace KTN
             if (p_In.InStream) p_In.InStream->read(reinterpret_cast<char*>(dest), size); \
             else if (p_In.Buffer) p_In.Buffer->ReadBytes(dest, size);                     \
             if (p_Buffer) p_Buffer->Write(dest, size);
-        
+
         void WriteString(Buffer* p_Buffer, const std::string& p_String)
         {
-            if (!p_Buffer) return;
-
-            std::string string = p_String;
-
-            size_t size = string.size();
-            p_Buffer->Write(&size, sizeof(size));
-            p_Buffer->Write(string.data(), size);
+            if (p_Buffer)
+                Utils::WriteString(*p_Buffer, p_String);
         }
 
         std::string ReadString(const ReadStream& p_Stream)
@@ -69,15 +64,7 @@ namespace KTN
                 return Utils::ReadString(*p_Stream.InStream);
 
             if (p_Stream.Buffer)
-            {
-                size_t size = 0;
-                p_Stream.Buffer->ReadBytes(&size, sizeof(size));
-
-                std::string str(size, '\0');
-                p_Stream.Buffer->ReadBytes(&str[0], size);
-
-                return str;
-            }
+                return Utils::ReadString(*p_Stream.Buffer);
 
             return "";
         }
@@ -334,8 +321,7 @@ namespace KTN
 
             auto& comp = p_Entity.GetComponent<SpriteComponent>();
             ADD_KEY_VALUE("Type", (int)comp.Type);
-            ADD_KEY_VALUE("Color", comp.Color);
-            ADD_KEY_VALUE("Texture", comp.Texture);
+            ADD_KEY_VALUE("Material", comp.Material);
             ADD_KEY_VALUE("Thickness", comp.Thickness);
             ADD_KEY_VALUE("Fade", comp.Fade);
             ADD_KEY_VALUE("Size", comp.Size);
@@ -725,8 +711,7 @@ namespace KTN
             auto& comp = p_Entity.GetComponent<SpriteComponent>();
 
             p_Out.write(reinterpret_cast<const char*>(&comp.Type), sizeof(comp.Type));
-            p_Out.write(reinterpret_cast<const char*>(&comp.Color), sizeof(comp.Color));
-            p_Out.write(reinterpret_cast<const char*>(&comp.Texture), sizeof(comp.Texture));
+            p_Out.write(reinterpret_cast<const char*>(&comp.Material), sizeof(comp.Material));
             p_Out.write(reinterpret_cast<const char*>(&comp.Thickness), sizeof(comp.Thickness));
             p_Out.write(reinterpret_cast<const char*>(&comp.Fade), sizeof(comp.Fade));
             p_Out.write(reinterpret_cast<const char*>(&comp.Size), sizeof(comp.Size));
@@ -1064,19 +1049,21 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            auto spriteComp = p_Data["SpriteComponent"];
+            auto spriteComp    = p_Data["SpriteComponent"];
             if (spriteComp)
             {
-                auto& comp = p_Entity.AddOrReplaceComponent<SpriteComponent>();
-                comp.Color = spriteComp["Color"].as<glm::vec4>();
-                comp.Type = (RenderType2D)spriteComp["Type"].as<int>();
-                comp.Texture = spriteComp["Texture"].as<AssetHandle>();
+                auto& comp     = p_Entity.AddOrReplaceComponent<SpriteComponent>(false);
+                comp.Type      = (RenderType2D)spriteComp["Type"].as<int>();
+                comp.Material  = spriteComp["Material"].as<AssetHandle>();
+                if (!comp.Material)
+                    comp.Material = Material::GetDefault();
+
                 comp.Thickness = spriteComp["Thickness"].as<float>();
-                comp.Fade = spriteComp["Fade"].as<float>();
-                comp.Size = spriteComp["Size"].as<glm::vec2>();
-                comp.BySize = spriteComp["BySize"].as<bool>();
-                comp.Offset = spriteComp["Offset"].as<glm::vec2>();
-                comp.Scale = spriteComp["Scale"].as<glm::vec2>();
+                comp.Fade      = spriteComp["Fade"].as<float>();
+                comp.Size      = spriteComp["Size"].as<glm::vec2>();
+                comp.BySize    = spriteComp["BySize"].as<bool>();
+                comp.Offset    = spriteComp["Offset"].as<glm::vec2>();
+                comp.Scale     = spriteComp["Scale"].as<glm::vec2>();
             }
         }
 
@@ -1105,7 +1092,7 @@ namespace KTN
             auto textComp = p_Data["TextRendererComponent"];
             if (!textComp) return;
 
-            auto& comp = p_Entity.AddOrReplaceComponent<TextRendererComponent>();
+            auto& comp = p_Entity.AddOrReplaceComponent<TextRendererComponent>(false);
 
             comp.String = textComp["String"].as<std::string>();
             comp.Font = textComp["Font"].as<AssetHandle>();
@@ -1127,7 +1114,7 @@ namespace KTN
             auto data = p_Data["CharacterBody2DComponent"];
             if (!data) return;
 
-            auto& comp = p_Entity.AddOrReplaceComponent<CharacterBody2DComponent>();
+            auto& comp = p_Entity.AddOrReplaceComponent<CharacterBody2DComponent>(false);
 
             comp.IsTrigger = data["IsTrigger"].as<bool>();
             comp.Mass = data["Mass"].as<float>();
@@ -1148,7 +1135,7 @@ namespace KTN
             auto data = p_Data["Rigidbody2DComponent"];
             if (!data) return;
 
-            auto& comp = p_Entity.AddOrReplaceComponent<Rigidbody2DComponent>();
+            auto& comp = p_Entity.AddOrReplaceComponent<Rigidbody2DComponent>(false);
 
             comp.IsTrigger = data["IsTrigger"].as<bool>();
             comp.Mass = data["Mass"].as<float>();
@@ -1169,7 +1156,7 @@ namespace KTN
             auto data = p_Data["StaticBody2DComponent"];
             if (!data) return;
 
-            auto& comp = p_Entity.AddOrReplaceComponent<StaticBody2DComponent>();
+            auto& comp = p_Entity.AddOrReplaceComponent<StaticBody2DComponent>(false);
 
             comp.IsTrigger = data["IsTrigger"].as<bool>();
             comp.Mass = data["Mass"].as<float>();
@@ -1413,10 +1400,13 @@ namespace KTN
             if (p_Current != "SpriteComponent")
                 return;
 
-            SpriteComponent comp = {};
+            SpriteComponent comp(false);
             KTN_STREAM(&comp.Type, sizeof(comp.Type));
-            KTN_STREAM(&comp.Color, sizeof(comp.Color));
-            KTN_STREAM(&comp.Texture, sizeof(comp.Texture));
+            KTN_STREAM(&comp.Material, sizeof(comp.Material));
+
+            if (!comp.Material)
+                comp.Material = Material::GetDefault();
+
             KTN_STREAM(&comp.Thickness, sizeof(comp.Thickness));
             KTN_STREAM(&comp.Fade, sizeof(comp.Fade));
             KTN_STREAM(&comp.Size, sizeof(comp.Size));

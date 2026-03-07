@@ -56,6 +56,8 @@ namespace KTN
 
     void PhysicsMaterial2D::DeserializeBin(std::ifstream& p_In, Buffer& p_Buffer)
     {
+        KTN_PROFILE_FUNCTION();
+
         float friction, restitution, restitutionThreshold;
         p_In.read(reinterpret_cast<char*>(&friction), sizeof(friction));
         p_In.read(reinterpret_cast<char*>(&restitution), sizeof(restitution));
@@ -70,13 +72,13 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        static auto path = (Project::GetAssetFileSystemPath("Materials") / "Default.ktasset").string();
+        static auto path            = (Project::GetAssetFileSystemPath("Materials") / "Default.ktasset").string();
         FileSystem::CreateDirectories(Project::GetAssetFileSystemPath("Materials").string());
         if (!AssetManager::Get()->HasAsset(AssetType::PhysicsMaterial2D, path))
         {
             if (FileSystem::Exists(path))
             {
-                auto material = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, path);
+                auto material       = AssetManager::Get()->ImportAsset(AssetType::PhysicsMaterial2D, path);
                 if (!material)
                 {
                     KTN_CORE_ERROR("Failed to import default PhysicsMaterial2D: {}", path);
@@ -85,14 +87,14 @@ namespace KTN
                 return material;
             }
             
-            auto material = CreateRef<PhysicsMaterial2D>();
+            auto material           = CreateRef<PhysicsMaterial2D>();
             material->Serialize(path);
 
-            AssetHandle handle;
-            AssetMetadata metadata = {};
-            metadata.FilePath = path;
-            metadata.Type = AssetType::PhysicsMaterial2D;
-            auto success = AssetManager::Get()->ImportAsset(handle, metadata, material);
+            AssetHandle handle      = {};
+            AssetMetadata metadata  = {};
+            metadata.FilePath       = path;
+            metadata.Type           = AssetType::PhysicsMaterial2D;
+            auto success            = AssetManager::Get()->ImportAsset(handle, metadata, material);
             if (!success)
             {
                 KTN_CORE_ERROR("Failed to import default PhysicsMaterial2D: {}", path);

@@ -226,11 +226,11 @@ namespace KTN
         if (data.EventCallback)                \
             data.EventCallback(event);        \
 
-        m_Data.Title        = p_Spec.Title;
-        m_Data.Mode            = p_Spec.Mode;
-        m_Data.Resizable    = p_Spec.Resizable;
-        m_Data.Maximise        = p_Spec.Maximize;
-        m_Data.Vsync        = p_Spec.Vsync;
+        m_Data.Title     = p_Spec.Title;
+        m_Data.Mode      = p_Spec.Mode;
+        m_Data.Resizable = p_Spec.Resizable;
+        m_Data.Maximise  = p_Spec.Maximize;
+        m_Data.Vsync     = p_Spec.Vsync;
 
         KTN_GLFW_INFO("Creating window {0} ({1}, {2}) Vsync: {3}", p_Spec.Title, p_Spec.Width, p_Spec.Height, p_Spec.Vsync ? "true" : "false");
 

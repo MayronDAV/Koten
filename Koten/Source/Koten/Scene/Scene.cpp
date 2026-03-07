@@ -7,6 +7,7 @@
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Graphics/DFFont.h"
 #include "Koten/Project/Project.h"
+#include "Koten/Graphics/Material.h"
 
 
 
@@ -437,8 +438,11 @@ namespace KTN
                     command.Render2D.Type      = sprite->Type;
                     command.Render2D.Thickness = sprite->Thickness;
                     command.Render2D.Fade      = sprite->Fade;
-                    command.Render2D.Color     = sprite->Color;
-                    command.Render2D.Texture   = AssetManager::Get()->GetAsset<Texture2D>(sprite->Texture);
+
+                    auto mat                   = AssetManager::Get()->GetAsset<Material>(sprite->Material);
+
+                    command.Render2D.Color     = mat->AlbedoColor;
+                    command.Render2D.Texture   = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
                     command.Render2D.Size      = sprite->Size;
                     command.Render2D.BySize    = sprite->BySize;
                     command.Render2D.Offset    = sprite->Offset;

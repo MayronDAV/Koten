@@ -44,9 +44,7 @@ namespace KTN
         Ref<PhysicsMaterial2D> material = CreateRef<PhysicsMaterial2D>();
         material->Handle = p_Handle;
 
-        material->Friction = reader.Read<float>();
-        material->Restitution = reader.Read<float>();
-        material->RestitutionThreshold = reader.Read<float>();
+        material->DeserializeBin(reader);
 
         return material;
     }

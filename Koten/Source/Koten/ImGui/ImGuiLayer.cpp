@@ -36,8 +36,8 @@ namespace KTN
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        ImGuiIO& io = ImGui::GetIO(); (void)io;
-        io.IniFilename = nullptr;
+        ImGuiIO& io     = ImGui::GetIO(); (void)io;
+        io.IniFilename  = nullptr;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;        // Enable Keyboard Controls
         //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;        // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;            // Enable Docking
@@ -46,7 +46,7 @@ namespace KTN
         io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts;
         io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleViewports;
 
-        m_FontSize *= Application::Get().GetWindow()->GetDPIScale();
+        m_FontSize     *= Application::Get().GetWindow()->GetDPIScale();
 
         AddFonts();
     }
