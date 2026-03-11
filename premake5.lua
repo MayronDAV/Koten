@@ -29,6 +29,26 @@ workspace "Koten"
     
         filter { "system:windows", "configurations:Dist" }
             linkoptions { "/SUBSYSTEM:WINDOWS" }
+
+    filter "configurations:Debug"
+        debugenvs
+        {
+            "MONO_LOG_LEVEL=debug",
+            "MONO_LOG_MASK=all"
+        }
+
+    filter "configurations:Release"
+        debugenvs
+        {
+            "MONO_LOG_LEVEL=info",
+            "MONO_LOG_MASK=all"
+        }
+
+    filter "configurations:Dist"
+        debugenvs
+        {
+            "MONO_LOG_LEVEL=error"
+        }
     
     
 group "Thirdparty"

@@ -438,7 +438,7 @@ namespace KTN
             Entity entity = FindWithUUID(p_Handle);
             return entity ? true : false;
         }
-        #pragma    endregion
+        #pragma endregion
 
         #pragma region SceneManager
         static int SceneManager_GetConfigLoadMode()
@@ -645,57 +645,59 @@ namespace KTN
         #pragma endregion
 
         #pragma region TagComponent
-        static MonoString* TagComponent_GetTag(UUID p_EntityID)
+        static MonoString* TagComponent_GetTag(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Entity UUID!");
-                return nullptr;
-            }
+            Entity entity = FindWithUUID(p_Obj);
+            KTN_CORE_VERIFY(entity);
 
             auto& tc = entity.GetComponent<TagComponent>();
             return ScriptEngine::CreateString(tc.Tag.c_str());
         }
 
-        static void TagComponent_SetTag(UUID p_EntityID, MonoString* p_Tag)
+        static void TagComponent_SetTag(ObjectHandle p_Obj, MonoString* p_Tag)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            auto tag = MonoStringToString(p_Tag);
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Entity UUID!");
-                return;
-            }
+            Entity entity = FindWithUUID(p_Obj);
+            KTN_CORE_VERIFY(entity);
 
+            auto tag = MonoStringToString(p_Tag);
             auto& tc = entity.GetComponent<TagComponent>();
             tc.Tag = tag;
         }
         #pragma endregion
 
         #pragma region TransformComponent
-        static void TransformComponent_GetLocalTranslation(UUID p_EntityID, glm::vec3* p_Result)
+        static void TransformComponent_GetLocalTranslation(ObjectHandle p_Obj, glm::vec3* p_Result)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TransformComponent>());
+
+            if (!entity.HasComponent<TransformComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TransformComponent!");
+                return;
+            }
 
             *p_Result = entity.GetComponent<TransformComponent>().GetLocalTranslation();
         }
 
-        static void TransformComponent_SetLocalTranslation(UUID p_EntityID, glm::vec3* p_Value)
+        static void TransformComponent_SetLocalTranslation(ObjectHandle p_Obj, glm::vec3* p_Value)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TransformComponent>());
+            
+            if (!entity.HasComponent<TransformComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TransformComponent!");
+                return;
+            }
 
             auto& tc = entity.GetComponent<TransformComponent>();
             tc.SetLocalTranslation(*p_Value);
@@ -703,51 +705,43 @@ namespace KTN
         #pragma endregion
 
         #pragma region RuntimeComponent
-        static bool RuntimeComponent_IsEnabled(UUID p_EntityID)
+        static bool RuntimeComponent_IsEnabled(ObjectHandle p_Obj)
         {
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Entity UUID!");
-                return false;
-            }
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            KTN_CORE_VERIFY(entity);
 
             return entity.GetComponent<RuntimeComponent>().Enabled;
         }
 
-        static bool RuntimeComponent_IsActive(UUID p_EntityID)
+        static bool RuntimeComponent_IsActive(ObjectHandle p_Obj)
         {
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Entity UUID!");
-                return false;
-            }
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            KTN_CORE_VERIFY(entity);
 
             return entity.GetComponent<RuntimeComponent>().Active;
         }
 
-        static void RuntimeComponent_SetEnabled(UUID p_EntityID, bool p_Value)
+        static void RuntimeComponent_SetEnabled(ObjectHandle p_Obj, bool p_Value)
         {
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Entity UUID!");
-                return;
-            }
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            KTN_CORE_VERIFY(entity);
 
             auto& rc = entity.GetComponent<RuntimeComponent>();
             rc.Enabled = p_Value;
         }
 
-        static void RuntimeComponent_SetActive(UUID p_EntityID, bool p_Value)
+        static void RuntimeComponent_SetActive(ObjectHandle p_Obj, bool p_Value)
         {
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Entity UUID!");
-                return;
-            }
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            KTN_CORE_VERIFY(entity);
 
             auto& rc = entity.GetComponent<RuntimeComponent>();
             rc.Active = p_Value;
@@ -755,37 +749,53 @@ namespace KTN
         #pragma endregion
 
         #pragma region TextRendererComponent
-        static MonoString* TextRendererComponent_GetString(UUID p_EntityID)
+        static MonoString* TextRendererComponent_GetString(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return nullptr;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             return ScriptEngine::CreateString(tc.String.c_str());
         }
 
-        static void TextRendererComponent_SetString(UUID p_EntityID, MonoString* p_String)
+        static void TextRendererComponent_SetString(ObjectHandle p_Obj, MonoString* p_String)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             tc.String = MonoStringToString(p_String);
         }
 
-        static void TextRendererComponent_SetFont(UUID p_EntityID, MonoString* p_Path)
+        static void TextRendererComponent_SetFont(ObjectHandle p_Obj, MonoString* p_Path)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
+
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
             auto& tc = entity.GetComponent<TextRendererComponent>();
 
             std::string fontPath = MonoStringToString(p_Path);
@@ -798,171 +808,241 @@ namespace KTN
             }
         }
 
-        static MonoString* TextRendererComponent_GetFontPath(UUID p_EntityID)
+        static MonoString* TextRendererComponent_GetFontPath(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return nullptr;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             return ScriptEngine::CreateString(AssetManager::Get()->GetMetadata(tc.Font).FilePath.c_str());
         }
 
-        static MonoString* TextRendererComponent_GetFontName(UUID p_EntityID)
+        static MonoString* TextRendererComponent_GetFontName(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return nullptr;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             return ScriptEngine::CreateString(FileSystem::GetStem(AssetManager::Get()->GetMetadata(tc.Font).FilePath).c_str());
         }
 
-        static void TextRendererComponent_GetColor(UUID p_EntityID, glm::vec4* p_Color)
+        static void TextRendererComponent_GetColor(ObjectHandle p_Obj, glm::vec4* p_Color)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             *p_Color = tc.Color;
         }
 
-        static void TextRendererComponent_SetColor(UUID p_EntityID, glm::vec4* p_Color)
+        static void TextRendererComponent_SetColor(ObjectHandle p_Obj, glm::vec4* p_Color)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             tc.Color = *p_Color;
         }
 
-        static void TextRendererComponent_GetBgColor(UUID p_EntityID, glm::vec4* p_Color)
+        static void TextRendererComponent_GetBgColor(ObjectHandle p_Obj, glm::vec4* p_Color)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             *p_Color = tc.BgColor;
         }
 
-        static void TextRendererComponent_SetBgColor(UUID p_EntityID, glm::vec4* p_Color)
+        static void TextRendererComponent_SetBgColor(ObjectHandle p_Obj, glm::vec4* p_Color)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             tc.BgColor = *p_Color;
         }
 
-        static void TextRendererComponent_GetCharBgColor(UUID p_EntityID, glm::vec4* p_Color)
+        static void TextRendererComponent_GetCharBgColor(ObjectHandle p_Obj, glm::vec4* p_Color)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             *p_Color = tc.CharBgColor;
         }
 
-        static void TextRendererComponent_SetCharBgColor(UUID p_EntityID, glm::vec4* p_Color)
+        static void TextRendererComponent_SetCharBgColor(ObjectHandle p_Obj, glm::vec4* p_Color)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             tc.CharBgColor = *p_Color;
         }
 
-        static bool TextRendererComponent_GetDrawBg(UUID p_EntityID)
+        static bool TextRendererComponent_GetDrawBg(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return false;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             return tc.DrawBg;
         }
 
-        static void TextRendererComponent_SetDrawBg(UUID p_EntityID, bool p_Enable)
+        static void TextRendererComponent_SetDrawBg(ObjectHandle p_Obj, bool p_Enable)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             tc.DrawBg = p_Enable;
         }
 
-        static float TextRendererComponent_GetKerning(UUID p_EntityID)
+        static float TextRendererComponent_GetKerning(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return 0.0f;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             return tc.Kerning;
         }
 
-        static void TextRendererComponent_SetKerning(UUID p_EntityID, float p_Kerning)
+        static void TextRendererComponent_SetKerning(ObjectHandle p_Obj, float p_Kerning)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             tc.Kerning = p_Kerning;
         }
 
-        static float TextRendererComponent_GetLineSpacing(UUID p_EntityID)
+        static float TextRendererComponent_GetLineSpacing(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return 0.0f;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             return tc.LineSpacing;
         }
 
-        static void TextRendererComponent_SetLineSpacing(UUID p_EntityID, float p_LineSpacing)
+        static void TextRendererComponent_SetLineSpacing(ObjectHandle p_Obj, float p_LineSpacing)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            KTN_CORE_VERIFY(entity.HasComponent<TextRendererComponent>());
-            auto& tc = entity.GetComponent<TextRendererComponent>();
 
+            if (!entity.HasComponent<TextRendererComponent>())
+            {
+                KTN_CORE_ERROR("Entity does not have TextRendererComponent!");
+                return;
+            }
+
+            auto& tc = entity.GetComponent<TextRendererComponent>();
             tc.LineSpacing = p_LineSpacing;
         }
         #pragma endregion
@@ -1061,15 +1141,19 @@ namespace KTN
 
         #pragma region Box2D
 
-        static void B2_GetLinearVelocity(UUID p_EntityID, glm::vec2* p_OutVelocity)
+        static void B2_GetLinearVelocity(ObjectHandle p_Obj, glm::vec2* p_OutVelocity)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             B2BodyID body = GetPhysicsBody2D(entity);
-            KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+            if (body.Index == -1)
+            {
+                KTN_CORE_ERROR("Entity does not have a physics body!");
+                return;
+            }
 
             b2BodyId bodyId = { body.Index, body.World, body.Generation };
             auto velocity = b2Body_GetLinearVelocity(bodyId);
@@ -1077,109 +1161,137 @@ namespace KTN
             p_OutVelocity->y = velocity.y;
         }
 
-        static void B2_SetLinearVelocity(UUID p_EntityID, glm::vec2* p_Velocity)
+        static void B2_SetLinearVelocity(ObjectHandle p_Obj, glm::vec2* p_Velocity)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
-            
+
             B2BodyID body = GetPhysicsBody2D(entity);
-            KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+            if (body.Index == -1)
+            {
+                KTN_CORE_ERROR("Entity does not have a physics body!");
+                return;
+            }
 
             b2BodyId bodyId = { body.Index, body.World, body.Generation };
             b2Body_SetLinearVelocity(bodyId, { p_Velocity->x, p_Velocity->y });
         }
 
-        static float B2_GetAngularVelocity(UUID p_EntityID)
+        static float B2_GetAngularVelocity(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             B2BodyID body = GetPhysicsBody2D(entity);
-            KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+            if (body.Index == -1)
+            {
+                KTN_CORE_ERROR("Entity does not have a physics body!");
+                return 0.0f;
+            }
 
             b2BodyId bodyId = { body.Index, body.World, body.Generation };
             return b2Body_GetAngularVelocity(bodyId);
         }
 
-        static void B2_SetAngularVelocity(UUID p_EntityID, float p_AngVelocity)
+        static void B2_SetAngularVelocity(ObjectHandle p_Obj, float p_AngVelocity)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             B2BodyID body = GetPhysicsBody2D(entity);
-            KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+            if (body.Index == -1)
+            {
+                KTN_CORE_ERROR("Entity does not have a physics body!");
+                return;
+            }
 
             b2BodyId bodyId = { body.Index, body.World, body.Generation };
             b2Body_SetAngularVelocity(bodyId, p_AngVelocity);
         }
 
-        static void B2_ApplyForce(UUID p_EntityID, glm::vec2* p_Force)
+        static void B2_ApplyForce(ObjectHandle p_Obj, glm::vec2* p_Force)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             B2BodyID body = GetPhysicsBody2D(entity);
-            KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+            if (body.Index == -1)
+            {
+                KTN_CORE_ERROR("Entity does not have a physics body!");
+                return;
+            }
 
             b2BodyId bodyId = { body.Index, body.World, body.Generation };
             b2Body_ApplyForceToCenter(bodyId, { p_Force->x, p_Force->y }, true);
         }
 
-        static void B2_ApplyLinearImpulse(UUID p_EntityID, glm::vec2* p_Impulse)
+        static void B2_ApplyLinearImpulse(ObjectHandle p_Obj, glm::vec2* p_Impulse)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             B2BodyID body = GetPhysicsBody2D(entity);
-            KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+            if (body.Index == -1)
+            {
+                KTN_CORE_ERROR("Entity does not have a physics body!");
+                return;
+            }
 
             b2BodyId bodyId = { body.Index, body.World, body.Generation };
             b2Body_ApplyLinearImpulseToCenter(bodyId, { p_Impulse->x, p_Impulse->y }, true);
         }
 
-        static void B2_ApplyAngularImpulse(UUID p_EntityID, float p_Impulse)
+        static void B2_ApplyAngularImpulse(ObjectHandle p_Obj, float p_Impulse)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             B2BodyID body = GetPhysicsBody2D(entity);
-            KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+            if (body.Index == -1)
+            {
+                KTN_CORE_ERROR("Entity does not have a physics body!");
+                return;
+            }
 
             b2BodyId bodyId = { body.Index, body.World, body.Generation };
             b2Body_ApplyAngularImpulse(bodyId, p_Impulse, true);
         }
 
-        static void B2_ApplyTorque(UUID p_EntityID, float p_Torque)
+        static void B2_ApplyTorque(ObjectHandle p_Obj, float p_Torque)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             B2BodyID body = GetPhysicsBody2D(entity);
-            KTN_CORE_VERIFY(body.Index != -1, "Entity does not have a physics body!");
+            if (body.Index == -1)
+            {
+                KTN_CORE_ERROR("Entity does not have a physics body!");
+                return;
+            }
 
             b2BodyId bodyId = { body.Index, body.World, body.Generation };
             b2Body_ApplyTorque(bodyId, p_Torque, true);
         }
 
-        static void B2_GetGravity(UUID p_EntityID, glm::vec2* p_OutGravity)
+        static void B2_GetGravity(ObjectHandle p_Obj, glm::vec2* p_OutGravity)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             auto scene = entity.GetScene();
@@ -1187,6 +1299,7 @@ namespace KTN
             {
                 KTN_CORE_ERROR("The scene does not have the B2Physics system.");
                 p_OutGravity->x = p_OutGravity->y = 0.0f;
+                return;
             }
 
             auto gravity = scene->GetSystemManager()->GetSystem<B2Physics>()->GetGravity(entity);
@@ -1194,11 +1307,11 @@ namespace KTN
             p_OutGravity->y = gravity.y;
         }
 
-        static void B2_GetRealGravity(UUID p_EntityID, glm::vec2* p_OutGravity)
+        static void B2_GetRealGravity(ObjectHandle p_Obj, glm::vec2* p_OutGravity)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             auto scene = entity.GetScene();
@@ -1206,6 +1319,7 @@ namespace KTN
             {
                 KTN_CORE_ERROR("The scene does not have the B2Physics system.");
                 p_OutGravity->x = p_OutGravity->y = 0.0f;
+                return;
             }
 
             auto gravity = scene->GetSystemManager()->GetSystem<B2Physics>()->GetRealGravity();
@@ -1217,11 +1331,11 @@ namespace KTN
 
         #pragma region CharacterBody2DComponent
 
-        static void CharacterBody2DComponent_MoveAndSlide(UUID p_EntityID)
+        static void CharacterBody2DComponent_MoveAndSlide(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             auto* scene = entity.GetScene();
@@ -1229,11 +1343,11 @@ namespace KTN
                 scene->GetSystemManager()->GetSystem<B2Physics>()->MoveAndSlide(entity);
         }
 
-        static void CharacterBody2DComponent_MoveAndCollide(UUID p_EntityID)
+        static void CharacterBody2DComponent_MoveAndCollide(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             auto* scene = entity.GetScene();
@@ -1241,11 +1355,11 @@ namespace KTN
                 scene->GetSystemManager()->GetSystem<B2Physics>()->MoveAndCollide(entity);
         }
 
-        static bool CharacterBody2DComponent_IsOnFloor(UUID p_EntityID)
+        static bool CharacterBody2DComponent_IsOnFloor(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             if (!entity.HasComponent<CharacterBody2DComponent>())
@@ -1254,11 +1368,11 @@ namespace KTN
             return entity.GetComponent<CharacterBody2DComponent>().OnFloor;
         }
 
-        static bool CharacterBody2DComponent_IsOnWall(UUID p_EntityID)
+        static bool CharacterBody2DComponent_IsOnWall(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             if (!entity.HasComponent<CharacterBody2DComponent>())
@@ -1267,11 +1381,11 @@ namespace KTN
             return entity.GetComponent<CharacterBody2DComponent>().OnWall;
         }
 
-        static bool CharacterBody2DComponent_IsOnCeiling(UUID p_EntityID)
+        static bool CharacterBody2DComponent_IsOnCeiling(ObjectHandle p_Obj)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            Entity entity = SceneManager::GetEntityByUUID(p_EntityID);
+            Entity entity = FindWithUUID(p_Obj);
             KTN_CORE_VERIFY(entity);
 
             if (!entity.HasComponent<CharacterBody2DComponent>())

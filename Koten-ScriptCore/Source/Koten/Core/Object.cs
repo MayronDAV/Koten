@@ -58,5 +58,15 @@ namespace KTN
             };
             return obj;
         }
+
+        internal ObjectHandle GetHandle()
+        {
+            return new ObjectHandle
+            {
+                ID = ID,
+                SceneHandle = SceneHandle,
+                Type = Type
+            };
+        }
     }
 }

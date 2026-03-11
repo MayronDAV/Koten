@@ -76,6 +76,19 @@ namespace KTN
 
             mono_set_assemblies_path("Mono/lib");
 
+        #ifndef KTN_DIST
+            mono_set_signal_chaining(true);
+            mono_set_crash_chaining(true);
+
+            mono_debug_init(MONO_DEBUG_FORMAT_MONO);
+
+            const char* options[] = {
+                "--soft-breakpoints",
+            };
+
+            mono_jit_parse_options(1, (char**)options);
+        #endif
+
             MonoDomain* rootDomain = mono_jit_init("KotenJITRuntime");
             KTN_CORE_ASSERT(rootDomain);
 
@@ -279,6 +292,10 @@ namespace KTN
                 std::string comp = ".\\Mono\\mcs";
             #elif defined(KTN_LINUX)
                 std::string comp = "mcs";
+            #endif
+
+            #ifndef KTN_DIST
+                comp += " -debug";
             #endif
 
             std::string compileCommand = comp + " -w:0 -target:library -sdk:4.5 -out:" + p_OutputDllPath + 
@@ -696,8 +713,15 @@ namespace KTN
 
     MonoObject* ScriptClass::InvokeMethod(MonoObject* p_Instance, MonoMethod* p_Method, void** p_Params)
     {
+        KTN_PROFILE_FUNCTION();
+
         MonoObject* exception = nullptr;
-        return mono_runtime_invoke(p_Method, p_Instance, p_Params, &exception);
+        MonoObject* result = mono_runtime_invoke(p_Method, p_Instance, p_Params, &exception);
+
+        if (exception)
+            mono_print_unhandled_exception(exception);
+
+        return result;
     }
 
     #pragma endregion
@@ -709,18 +733,29 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        m_Instance = p_ScriptClass->Instantiate();
+        auto instance    = p_ScriptClass->Instantiate();
 
-        m_Constructor = s_Data->EntityClass.GetMethod(".ctor", 2);
+        m_Handle         = mono_gchandle_new(instance, false);
+
+        m_Constructor    = s_Data->EntityClass.GetMethod(".ctor", 2);
         m_OnCreateMethod = p_ScriptClass->GetMethod("OnCreate", 0);
         m_OnUpdateMethod = p_ScriptClass->GetMethod("OnUpdate", 0);
 
-        // Call Entity constructor
+        // Call constructor
         {
-            UUID entityID = p_Entity.GetUUID();
+            UUID entityID           = p_Entity.GetUUID();
             AssetHandle sceneHandle = p_Entity.GetScene()->Handle;
-            void* param[] = { &entityID, &sceneHandle };
-            m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, param);
+            void* param[]           = { &entityID, &sceneHandle };
+            m_ScriptClass->InvokeMethod(instance, m_Constructor, param);
+        }
+    }
+
+    ScriptInstance::~ScriptInstance()
+    {
+        if (m_Handle)
+        {
+            mono_gchandle_free(m_Handle);
+            m_Handle = 0;
         }
     }
 
@@ -728,40 +763,64 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
+        MonoObject* instance = GetManagedObject();
+        if (!instance)
+            return;
+
         if (m_OnCreateMethod)
-            m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod);
+            m_ScriptClass->InvokeMethod(instance, m_OnCreateMethod);
     }
 
     void ScriptInstance::InvokeOnUpdate()
     {
         KTN_PROFILE_FUNCTION();
 
+        MonoObject* instance = GetManagedObject();
+        if (!instance)
+            return;
+
         if (m_OnUpdateMethod)
-            m_ScriptClass->InvokeMethod(m_Instance, m_OnUpdateMethod);
+            m_ScriptClass->InvokeMethod(instance, m_OnUpdateMethod);
     }
 
     void ScriptInstance::TryInvokeMethod(const std::string& p_MethodName, int p_Count, void** p_Params)
     {
         KTN_PROFILE_FUNCTION();
 
+        MonoObject* instance = GetManagedObject();
+        if (!instance)
+            return;
+
         auto method = m_ScriptClass->GetMethod(p_MethodName, p_Count);
         if (method)
-            m_ScriptClass->InvokeMethod(m_Instance, method, p_Params);
+            m_ScriptClass->InvokeMethod(instance, method, p_Params);
     }
 
     void ScriptInstance::TryInvokeParentMethod(const std::string& p_MethodName, int p_Count, void** p_Params)
     {
         KTN_PROFILE_FUNCTION();
 
-        MonoClass* currentClass = mono_object_get_class(m_Instance);
+        MonoObject* instance = GetManagedObject();
+        if (!instance)
+            return;
+
+        MonoClass* currentClass = mono_object_get_class(instance);
         MonoClass* parentClass = mono_class_get_parent(currentClass);
 
         if (parentClass) 
         {
             MonoMethod* method = mono_class_get_method_from_name(parentClass, p_MethodName.c_str(), p_Count);
             if (method)
-                m_ScriptClass->InvokeMethod(m_Instance, method, p_Params);
+                m_ScriptClass->InvokeMethod(instance, method, p_Params);
         }
+    }
+
+    MonoObject* ScriptInstance::GetManagedObject()
+    {
+        if (!m_Handle)
+            return nullptr;
+
+        return mono_gchandle_get_target(m_Handle);
     }
 
     bool ScriptInstance::GetFieldValueInternal(const std::string& p_Name, void* p_Buffer)
@@ -773,8 +832,12 @@ namespace KTN
         if (it == fields.end())
             return false;
 
+        MonoObject* instance = GetManagedObject();
+        if (!instance)
+            return false;
+
         const ScriptField& field = it->second;
-        mono_field_get_value(m_Instance, field.ClassField, p_Buffer);
+        mono_field_get_value(instance, field.ClassField, p_Buffer);
         return true;
     }
 
@@ -787,8 +850,12 @@ namespace KTN
         if (it == fields.end())
             return false;
 
+        MonoObject* instance = GetManagedObject();
+        if (!instance)
+            return false;
+
         const ScriptField& field = it->second;
-        mono_field_set_value(m_Instance, field.ClassField, (void*)p_Value);
+        mono_field_set_value(instance, field.ClassField, (void*)p_Value);
         return true;
     }
 

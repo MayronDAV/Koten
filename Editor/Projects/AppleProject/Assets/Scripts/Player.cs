@@ -3,7 +3,7 @@ using System;
 
 
 namespace Apple
-{	
+{
 	public class Player : ScriptBehavior
 	{
 		public float Speed = 5.0f;
@@ -74,8 +74,11 @@ namespace Apple
 
 			velocity *= speed;
 
-			m_Component.SetLinearVelocity(velocity);
-			m_Component.MoveAndSlide();
+			if (m_Component != null)
+			{
+				m_Component.SetLinearVelocity(velocity);
+				m_Component.MoveAndSlide();	
+			}
 		}
 
 	}

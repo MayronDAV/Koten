@@ -98,7 +98,7 @@ namespace KTN
         internal extern static ObjectHandle GameObject_FindWithTag(string p_Tag);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static ObjectHandle GameObject_FindWithUUID(ulong p_EntityID);
+        internal extern static ObjectHandle GameObject_FindWithUUID(ulong p_UUID);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool GameObject_IsValid(ObjectHandle p_Handle);
@@ -168,70 +168,70 @@ namespace KTN
 
         #region TagComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static string TagComponent_GetTag(ulong p_UUID);
+        internal extern static string TagComponent_GetTag(ObjectHandle p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TagComponent_SetTag(ulong p_UUID, string p_Tag);
+        internal extern static void TagComponent_SetTag(ObjectHandle p_Handle, string p_Tag);
         #endregion
 
         #region TransformComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TransformComponent_GetLocalTranslation(ulong p_EntityID, out Vector3 p_Result);
+        internal extern static void TransformComponent_GetLocalTranslation(ObjectHandle p_Handle, out Vector3 p_Result);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TransformComponent_SetLocalTranslation(ulong p_EntityID, ref Vector3 p_Value);
+        internal extern static void TransformComponent_SetLocalTranslation(ObjectHandle p_Handle, ref Vector3 p_Value);
         #endregion
 
         #region RuntimeComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool RuntimeComponent_IsEnabled(ulong p_UUID);
+        internal extern static bool RuntimeComponent_IsEnabled(ObjectHandle p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool RuntimeComponent_IsActive(ulong p_UUID);
+        internal extern static bool RuntimeComponent_IsActive(ObjectHandle p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void RuntimeComponent_SetEnabled(ulong p_UUID, bool p_Value);
+        internal extern static void RuntimeComponent_SetEnabled(ObjectHandle p_Handle, bool p_Value);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void RuntimeComponent_SetActive(ulong p_UUID, bool p_Value);
+        internal extern static void RuntimeComponent_SetActive(ObjectHandle p_Handle, bool p_Value);
 
         #endregion
 
         #region TextRendererComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static string TextRendererComponent_GetString(ulong p_EntityID);
+        internal extern static string TextRendererComponent_GetString(ObjectHandle p_Handle);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_SetString(ulong p_EntityID, string p_String);
+        internal extern static void TextRendererComponent_SetString(ObjectHandle p_Handle, string p_String);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_SetFont(ulong p_EntityID, string p_Path);
+        internal extern static void TextRendererComponent_SetFont(ObjectHandle p_Handle, string p_Path);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static string TextRendererComponent_GetFontPath(ulong p_EntityID);
+        internal extern static string TextRendererComponent_GetFontPath(ObjectHandle p_Handle);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static string TextRendererComponent_GetFontName(ulong p_EntityID);
+        internal extern static string TextRendererComponent_GetFontName(ObjectHandle p_Handle);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_GetColor(ulong p_EntityID, out Vector4 p_Color);
+        internal extern static void TextRendererComponent_GetColor(ObjectHandle p_Handle, out Vector4 p_Color);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_SetColor(ulong p_EntityID, ref Vector4 p_Color);
+        internal extern static void TextRendererComponent_SetColor(ObjectHandle p_Handle, ref Vector4 p_Color);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_GetBgColor(ulong p_EntityID, out Vector4 p_Color);
+        internal extern static void TextRendererComponent_GetBgColor(ObjectHandle p_Handle, out Vector4 p_Color);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_SetBgColor(ulong p_EntityID, ref Vector4 p_Color);
+        internal extern static void TextRendererComponent_SetBgColor(ObjectHandle p_Handle, ref Vector4 p_Color);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_GetCharBgColor(ulong p_EntityID, out Vector4 p_Color);
+        internal extern static void TextRendererComponent_GetCharBgColor(ObjectHandle p_Handle, out Vector4 p_Color);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_SetCharBgColor(ulong p_EntityID, ref Vector4 p_Color);
+        internal extern static void TextRendererComponent_SetCharBgColor(ObjectHandle p_Handle, ref Vector4 p_Color);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool TextRendererComponent_GetDrawBg(ulong p_EntityID);
+        internal extern static bool TextRendererComponent_GetDrawBg(ObjectHandle p_Handle);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_SetDrawBg(ulong p_EntityID, bool p_Enable);
+        internal extern static void TextRendererComponent_SetDrawBg(ObjectHandle p_Handle, bool p_Enable);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static float TextRendererComponent_GetKerning(ulong p_EntityID);
+        internal extern static float TextRendererComponent_GetKerning(ObjectHandle p_Handle);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_SetKerning(ulong p_EntityID, float p_Kerning);
+        internal extern static void TextRendererComponent_SetKerning(ObjectHandle p_Handle, float p_Kerning);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static float TextRendererComponent_GetLineSpacing(ulong p_EntityID);
+        internal extern static float TextRendererComponent_GetLineSpacing(ObjectHandle p_Handle);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void TextRendererComponent_SetLineSpacing(ulong p_EntityID, float p_LineSpacing);
+        internal extern static void TextRendererComponent_SetLineSpacing(ObjectHandle p_Handle, float p_LineSpacing);
         #endregion
 
         #region Input
@@ -295,52 +295,52 @@ namespace KTN
 
         #region Box2D
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_GetLinearVelocity(ulong p_EntityID, out Vector2 p_OutVelocity);
+        internal extern static void B2_GetLinearVelocity(ObjectHandle p_Handle, out Vector2 p_OutVelocity);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_SetLinearVelocity(ulong p_EntityID, ref Vector2 p_Velocity);
+        internal extern static void B2_SetLinearVelocity(ObjectHandle p_Handle, ref Vector2 p_Velocity);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static float B2_GetAngularVelocity(ulong p_EntityID);
+        internal extern static float B2_GetAngularVelocity(ObjectHandle p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_SetAngularVelocity(ulong p_EntityID, float p_AngVelocity);
+        internal extern static void B2_SetAngularVelocity(ObjectHandle p_Handle, float p_AngVelocity);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_ApplyForce(ulong p_EntityID, ref Vector2 p_Force);
+        internal extern static void B2_ApplyForce(ObjectHandle p_Handle, ref Vector2 p_Force);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_ApplyLinearImpulse(ulong p_EntityID, ref Vector2 p_Impulse);
+        internal extern static void B2_ApplyLinearImpulse(ObjectHandle p_Handle, ref Vector2 p_Impulse);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_ApplyAngularImpulse(ulong p_EntityID, float p_Impulse);
+        internal extern static void B2_ApplyAngularImpulse(ObjectHandle p_Handle, float p_Impulse);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_ApplyTorque(ulong p_EntityID, float p_Torque);
+        internal extern static void B2_ApplyTorque(ObjectHandle p_Handle, float p_Torque);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_GetGravity(ulong p_EntityID, out Vector2 p_OutGravity);
+        internal extern static void B2_GetGravity(ObjectHandle p_Handle, out Vector2 p_OutGravity);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void B2_GetRealGravity(ulong p_EntityID, out Vector2 p_OutGravity);
+        internal extern static void B2_GetRealGravity(ObjectHandle p_Handle, out Vector2 p_OutGravity);
 
         #endregion
 
         #region CharacterBody2DComponent
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void CharacterBody2DComponent_MoveAndSlide(ulong p_EntityID);
+        internal extern static void CharacterBody2DComponent_MoveAndSlide(ObjectHandle p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void CharacterBody2DComponent_MoveAndCollide(ulong p_EntityID);
+        internal extern static void CharacterBody2DComponent_MoveAndCollide(ObjectHandle p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool CharacterBody2DComponent_IsOnFloor(ulong p_EntityID);
+        internal extern static bool CharacterBody2DComponent_IsOnFloor(ObjectHandle p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool CharacterBody2DComponent_IsOnWall(ulong p_EntityID);
+        internal extern static bool CharacterBody2DComponent_IsOnWall(ObjectHandle p_Handle);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool CharacterBody2DComponent_IsOnCeiling(ulong p_EntityID);
+        internal extern static bool CharacterBody2DComponent_IsOnCeiling(ObjectHandle p_Handle);
 
         #endregion
 

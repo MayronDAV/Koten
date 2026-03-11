@@ -16,12 +16,12 @@ namespace KTN
         {
             get
             {
-                InternalCalls.TransformComponent_GetLocalTranslation(ID, out Vector3 translation);
+                InternalCalls.TransformComponent_GetLocalTranslation(GetHandle(), out Vector3 translation);
                 return translation;
             }
             set
             {
-                InternalCalls.TransformComponent_SetLocalTranslation(ID, ref value);
+                InternalCalls.TransformComponent_SetLocalTranslation(GetHandle(), ref value);
             }
         }
     }
@@ -34,8 +34,8 @@ namespace KTN
     {
         public string Tag
         {
-            get => InternalCalls.TagComponent_GetTag(ID);
-            set => InternalCalls.TagComponent_SetTag(ID, value);
+            get => InternalCalls.TagComponent_GetTag(GetHandle());
+            set => InternalCalls.TagComponent_SetTag(GetHandle(), value);
         }
     }
 
@@ -43,14 +43,14 @@ namespace KTN
     {
         public bool Enabled
         {
-            get => InternalCalls.RuntimeComponent_IsEnabled(ID);
-            set => InternalCalls.RuntimeComponent_SetEnabled(ID, value);
+            get => InternalCalls.RuntimeComponent_IsEnabled(GetHandle());
+            set => InternalCalls.RuntimeComponent_SetEnabled(GetHandle(), value);
         }
 
         public bool Active
         {
-            get => InternalCalls.RuntimeComponent_IsActive(ID);
-            set => InternalCalls.RuntimeComponent_SetActive(ID, value);
+            get => InternalCalls.RuntimeComponent_IsActive(GetHandle());
+            set => InternalCalls.RuntimeComponent_SetActive(GetHandle(), value);
         }
     }
 
@@ -66,62 +66,62 @@ namespace KTN
     {
         public string String
         {
-            get => InternalCalls.TextRendererComponent_GetString(ID);
-            set => InternalCalls.TextRendererComponent_SetString(ID, value);
+            get => InternalCalls.TextRendererComponent_GetString(GetHandle());
+            set => InternalCalls.TextRendererComponent_SetString(GetHandle(), value);
         }
 
         public string Font
         {
-            get => InternalCalls.TextRendererComponent_GetFontPath(ID);
-            set => InternalCalls.TextRendererComponent_SetFont(ID, value);
+            get => InternalCalls.TextRendererComponent_GetFontPath(GetHandle());
+            set => InternalCalls.TextRendererComponent_SetFont(GetHandle(), value);
         }
 
         public Vector4 Color
         {
             get
             {
-                InternalCalls.TextRendererComponent_GetColor(ID, out Vector4 color);
+                InternalCalls.TextRendererComponent_GetColor(GetHandle(), out Vector4 color);
                 return color;
             }
-            set => InternalCalls.TextRendererComponent_SetColor(ID, ref value);
+            set => InternalCalls.TextRendererComponent_SetColor(GetHandle(), ref value);
         }
 
         public Vector4 BgColor
         {
             get
             {
-                InternalCalls.TextRendererComponent_GetBgColor(ID, out Vector4 color);
+                InternalCalls.TextRendererComponent_GetBgColor(GetHandle(), out Vector4 color);
                 return color;
             }
-            set => InternalCalls.TextRendererComponent_SetBgColor(ID, ref value);
+            set => InternalCalls.TextRendererComponent_SetBgColor(GetHandle(), ref value);
         }
 
         public Vector4 CharBgColor
         {
             get
             {
-                InternalCalls.TextRendererComponent_GetCharBgColor(ID, out Vector4 color);
+                InternalCalls.TextRendererComponent_GetCharBgColor(GetHandle(), out Vector4 color);
                 return color;
             }
-            set => InternalCalls.TextRendererComponent_SetCharBgColor(ID, ref value);
+            set => InternalCalls.TextRendererComponent_SetCharBgColor(GetHandle(), ref value);
         }
 
         public bool DrawBg
         {
-            get => InternalCalls.TextRendererComponent_GetDrawBg(ID);
-            set => InternalCalls.TextRendererComponent_SetDrawBg(ID, value);
+            get => InternalCalls.TextRendererComponent_GetDrawBg(GetHandle());
+            set => InternalCalls.TextRendererComponent_SetDrawBg(GetHandle(), value);
         }
 
         public float Kerning
         {
-            get => InternalCalls.TextRendererComponent_GetKerning(ID);
-            set => InternalCalls.TextRendererComponent_SetKerning(ID, value);
+            get => InternalCalls.TextRendererComponent_GetKerning(GetHandle());
+            set => InternalCalls.TextRendererComponent_SetKerning(GetHandle(), value);
         }
 
         public float LineSpacing
         {
-            get => InternalCalls.TextRendererComponent_GetLineSpacing(ID);
-            set => InternalCalls.TextRendererComponent_SetLineSpacing(ID, value);
+            get => InternalCalls.TextRendererComponent_GetLineSpacing(GetHandle());
+            set => InternalCalls.TextRendererComponent_SetLineSpacing(GetHandle(), value);
         }
 
     }
@@ -140,7 +140,7 @@ namespace KTN
         {
             get
             {
-                InternalCalls.B2_GetGravity(ID, out Vector2 gravity);
+                InternalCalls.B2_GetGravity(GetHandle(), out Vector2 gravity);
                 return gravity;
             }
         }
@@ -149,50 +149,50 @@ namespace KTN
         {
             get
             {
-                InternalCalls.B2_GetRealGravity(ID, out Vector2 gravity);
+                InternalCalls.B2_GetRealGravity(GetHandle(), out Vector2 gravity);
                 return gravity;
             }
         }
 
         public Vector2 GetLinearVelocity()
         {
-           InternalCalls.B2_GetLinearVelocity(ID, out Vector2 result);
+           InternalCalls.B2_GetLinearVelocity(GetHandle(), out Vector2 result);
            return result;
         }
 
         public void SetLinearVelocity(Vector2 p_Velocity)
         {
-            InternalCalls.B2_SetLinearVelocity(ID, ref p_Velocity);
+            InternalCalls.B2_SetLinearVelocity(GetHandle(), ref p_Velocity);
         }
 
         public float GetAngularVelocity()
         {        
-            return InternalCalls.B2_GetAngularVelocity(ID);
+            return InternalCalls.B2_GetAngularVelocity(GetHandle());
         }
 
         public void SetAngularVelocity(float p_Velocity)
         {
-            InternalCalls.B2_SetAngularVelocity(ID, p_Velocity);
+            InternalCalls.B2_SetAngularVelocity(GetHandle(), p_Velocity);
         }
 
         public void ApplyForce(Vector2 p_Force)
         {
-            InternalCalls.B2_ApplyForce(ID, ref p_Force);
+            InternalCalls.B2_ApplyForce(GetHandle(), ref p_Force);
         }
 
         public void ApplyLinearImpulse(Vector2 p_Impulse)
         {
-            InternalCalls.B2_ApplyLinearImpulse(ID, ref p_Impulse);
+            InternalCalls.B2_ApplyLinearImpulse(GetHandle(), ref p_Impulse);
         }
 
         public void ApplyAngularImpulse(float p_Impulse)
         {
-            InternalCalls.B2_ApplyAngularImpulse(ID, p_Impulse);
+            InternalCalls.B2_ApplyAngularImpulse(GetHandle(), p_Impulse);
         }
 
         public void ApplyTorque(float p_Torque)
         {
-            InternalCalls.B2_ApplyTorque(ID, p_Torque);
+            InternalCalls.B2_ApplyTorque(GetHandle(), p_Torque);
         }
     }
 
@@ -204,25 +204,25 @@ namespace KTN
     {
         public bool OnFloor
         {
-            get => InternalCalls.CharacterBody2DComponent_IsOnFloor(ID);
+            get => InternalCalls.CharacterBody2DComponent_IsOnFloor(GetHandle());
         }
         public bool OnWall
         {
-            get => InternalCalls.CharacterBody2DComponent_IsOnWall(ID);
+            get => InternalCalls.CharacterBody2DComponent_IsOnWall(GetHandle());
         }
         public bool OnCeiling
         {
-            get => InternalCalls.CharacterBody2DComponent_IsOnCeiling(ID);
+            get => InternalCalls.CharacterBody2DComponent_IsOnCeiling(GetHandle());
         }
 
         public void MoveAndSlide()
         {
-            InternalCalls.CharacterBody2DComponent_MoveAndSlide(ID);
+            InternalCalls.CharacterBody2DComponent_MoveAndSlide(GetHandle());
         }
 
         public void MoveAndCollide()
         {
-            InternalCalls.CharacterBody2DComponent_MoveAndCollide(ID);
+            InternalCalls.CharacterBody2DComponent_MoveAndCollide(GetHandle());
         }
     }
 

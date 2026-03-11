@@ -94,8 +94,7 @@ namespace KTN
 
             ExecuteMainThreadQueue();
 
-            // Update
-            if (( m_Window->IsMinimized() && m_UpdateMinimized ) || !m_Window->IsMinimized())
+            if (m_UpdateMinimized || !m_Window->IsMinimized())
             {
                 KTN_PROFILE_SCOPE("Update");
 
@@ -116,7 +115,6 @@ namespace KTN
                     layer->OnUpdate();
             }
 
-            // Render
             if (!m_Window->IsMinimized())
             {
                 KTN_PROFILE_SCOPE("Render");
@@ -140,7 +138,7 @@ namespace KTN
 
             m_Window->OnUpdate();
 
-            //if (!m_Window->IsMinimized())
+            if (!m_Window->IsMinimized())
             {
                 KTN_PROFILE_SCOPE("Deleting Cache");
 

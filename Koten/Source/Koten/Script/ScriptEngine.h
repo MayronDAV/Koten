@@ -90,6 +90,7 @@ namespace KTN
     {
         public:
             ScriptInstance(Ref<ScriptClass> p_ScriptClass, Entity p_Entity);
+            ~ScriptInstance();
 
             void InvokeOnCreate();
             void InvokeOnUpdate();
@@ -123,19 +124,20 @@ namespace KTN
                 SetFieldValueInternal(p_Name, &p_Value);
             }
 
-            MonoObject* GetManagedObject() { return m_Instance; }
+            MonoObject* GetManagedObject();
 
         private:
             bool GetFieldValueInternal(const std::string& p_Name, void* p_Buffer);
             bool SetFieldValueInternal(const std::string& p_Name, const    void* p_Value);
 
         private:
-            Ref<ScriptClass> m_ScriptClass;
+            Ref<ScriptClass> m_ScriptClass = nullptr;
 
-            MonoObject* m_Instance = nullptr;
-            MonoMethod* m_Constructor = nullptr;
-            MonoMethod* m_OnCreateMethod = nullptr;
-            MonoMethod* m_OnUpdateMethod = nullptr;
+            uint32_t m_Handle              = 0;
+
+            MonoMethod* m_Constructor      = nullptr;
+            MonoMethod* m_OnCreateMethod   = nullptr;
+            MonoMethod* m_OnUpdateMethod   = nullptr;
 
             friend class ScriptEngine;
     };
