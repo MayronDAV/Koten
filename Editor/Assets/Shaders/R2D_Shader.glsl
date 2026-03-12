@@ -37,14 +37,22 @@ layout(std430, set = 0, binding = 1) uniform u_Instances
 void main()
 {
     // Get the instance data
-    Output.Position = a_Position;
-    Output.Color = Instances[gl_InstanceIndex].Color;
-    Output.UV = mix(vec2(Instances[gl_InstanceIndex].UV.xy), vec2(Instances[gl_InstanceIndex].UV.zw), a_Position.xy);
-    Output.CircleData = vec2(Instances[gl_InstanceIndex].Others.zw);
-    v_TexIndex = Instances[gl_InstanceIndex].Others.y;
-    v_Type = Instances[gl_InstanceIndex].Others.x;
+    Output.Position   = a_Position;
+    Output.Color      = Instances[gl_InstanceIndex].Color;
 
-    gl_Position = u_ViewProjection * Instances[gl_InstanceIndex].Transform * vec4(a_Position, 1.0f);
+    vec2 uvVertex     = a_Position.xy + vec2(0.5);
+
+    vec2 minUV        = Instances[gl_InstanceIndex].UV.xy;
+    vec2 maxUV        = Instances[gl_InstanceIndex].UV.zw;
+
+    vec2 uvSize       = maxUV - minUV;
+    Output.UV         = minUV + uvVertex * uvSize;
+
+    Output.CircleData = vec2(Instances[gl_InstanceIndex].Others.zw);
+    v_TexIndex        = Instances[gl_InstanceIndex].Others.y;
+    v_Type            = Instances[gl_InstanceIndex].Others.x;
+
+    gl_Position       = u_ViewProjection * Instances[gl_InstanceIndex].Transform * vec4(a_Position, 1.0f);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,21 +79,21 @@ layout(set = 0, binding = 2) uniform sampler2D u_Textures[32];
 
 void main()
 {
-    float circle = 1.0;
+    float circle        = 1.0;
     if (v_Type == 1.0)
     {
         float thickness = Input.CircleData.x;
-        float fade = Input.CircleData.y;
+        float fade      = Input.CircleData.y;
 
         // Calculate distance and fill circle with white
-        float distance = 1.0 - length(Input.Position * 2.0);
-        circle = smoothstep(0.0, fade, distance) * smoothstep(thickness + fade, thickness, distance);
+        float distance  = 1.0 - length(Input.Position * 2.0);
+        circle          = smoothstep(0.0, fade, distance) * smoothstep(thickness + fade, thickness, distance);
 
         if (circle <= 0.1)
             discard;
     }
 
-    vec4 texColor = Input.Color;
+    vec4 texColor       = Input.Color;
 
     #define SAMPLE_TEXTURE(index) case index: texColor *= texture(u_Textures[index], Input.UV); break;
 
@@ -100,6 +108,6 @@ void main()
         SAMPLE_TEXTURE(28) SAMPLE_TEXTURE(29) SAMPLE_TEXTURE(30) SAMPLE_TEXTURE(31)
     }
 
-    o_Color = texColor;
-    o_Color.a *= circle;
+    o_Color             = texColor;
+    o_Color.a          *= circle;
 }

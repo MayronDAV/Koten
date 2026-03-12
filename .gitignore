@@ -20,3 +20,4 @@ Makefile
 /.vscode
 *.slnx
 /Koten-ScriptCore/obj
+*.dll.mdb

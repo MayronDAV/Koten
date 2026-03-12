@@ -688,30 +688,31 @@ namespace KTN
 
             if (p_Command.Render2D.Texture)
             {
-                auto scale  = p_Command.Render2D.Scale;
-                auto offset = p_Command.Render2D.Offset;
-                glm::vec2 size;
-                if (p_Command.Render2D.Size.x == 0.0f && p_Command.Render2D.Size.y == 0.0f)
-                {
-                    size = { p_Command.Render2D.Texture->GetWidth(), p_Command.Render2D.Texture->GetHeight() };
-                }
-                else
-                    size = p_Command.Render2D.Size;
+                auto scale            = p_Command.Render2D.Scale;
+                auto offset           = p_Command.Render2D.Offset;
 
-                float customTileSizeX = (scale.x == 0.0f) ? 1.0f : scale.x;
-                float customTileSizeY = (scale.y == 0.0f) ? 1.0f : scale.y;
+                auto texSize          = glm::vec2(
+                    p_Command.Render2D.Texture->GetWidth(),
+                    p_Command.Render2D.Texture->GetHeight()
+                );
 
-                glm::vec2 min = {
-                    (p_Command.Render2D.BySize ? offset.x * size.x : offset.x) / p_Command.Render2D.Texture->GetWidth(),
-                    (p_Command.Render2D.BySize ? offset.y * size.y : offset.y) / p_Command.Render2D.Texture->GetHeight()
+                glm::vec2 spriteSize  = (p_Command.Render2D.Size == glm::vec2(0)) ? texSize : p_Command.Render2D.Size;
+
+                glm::vec2 tile        = {
+                    scale.x == 0 ? 1.0f : scale.x,
+                    scale.y == 0 ? 1.0f : scale.y
                 };
 
-                glm::vec2 max = {
-                    (p_Command.Render2D.BySize ? (offset.x + customTileSizeX) * size.x : offset.x + (customTileSizeX * size.x)) / p_Command.Render2D.Texture->GetWidth(),
-                    (p_Command.Render2D.BySize ? (offset.y + customTileSizeY) * size.y : offset.y + (customTileSizeY * size.x)) / p_Command.Render2D.Texture->GetHeight()
-                };
+                glm::vec2 pixelOffset = p_Command.Render2D.BySize
+                    ? offset * spriteSize
+                    : offset;
 
-                data.UV       = glm::vec4(min, max);
+                glm::vec2 pixelSize   = tile * spriteSize;
+
+                glm::vec2 min         = pixelOffset / texSize;
+                glm::vec2 max         = (pixelOffset + pixelSize) / texSize;
+
+                data.UV               = glm::vec4(min, max);
             }
 
             entry.Instance = data;
