@@ -46,8 +46,15 @@ void main()
     v_Type = Instances[gl_InstanceIndex].Others.x;
 
     int count = b_EntityBuffer.Count;
-    int isValid = int(gl_InstanceIndex < count);
-    v_EntityID = isValid * b_EntityBuffer.EnttIDs[gl_InstanceIndex] + (1 - isValid) * (-1); // -1 is invalid
+    if (count > 0)
+    {
+        int isValid = int(gl_InstanceIndex < count);
+        v_EntityID = isValid * b_EntityBuffer.EnttIDs[gl_InstanceIndex] + (1 - isValid) * (-1); // -1 is invalid
+    }
+    else
+    {
+        v_EntityID = -1; // No entities, set to invalid
+    }
 
     gl_Position = u_ViewProjection * Instances[gl_InstanceIndex].Transform * vec4(a_Position, 1.0f);
 }

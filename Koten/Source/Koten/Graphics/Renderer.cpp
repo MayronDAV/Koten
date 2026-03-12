@@ -5,12 +5,11 @@
 #include "Koten/Graphics/DescriptorSet.h"
 #include "Koten/Graphics/RendererCommand.h"
 
-// lib
-#include <FontGeometry.h>
-
 // std
 #include <codecvt>
 #include <locale>
+#include <numeric>
+
 
 
 namespace KTN
@@ -90,14 +89,19 @@ namespace KTN
 
             Ref<VertexArray> VAO          = nullptr;
 
-            std::vector<InstanceData> Instances;
+            struct InstanceEntry
+            {
+                InstanceData Instance;
+                int EntityID;
+            };
+
+            std::vector<InstanceEntry> InstanceEntries;
 
             uint32_t TextureSlotIndex     = 1;
             std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
 
             Ref<Shader> PickingShader     = nullptr;
             Ref<DescriptorSet> PickingSet = nullptr;
-            EntityBufferData EntityBuffer = {};
 
             void Init();
             void Begin();
@@ -521,11 +525,8 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            Instances.clear();
+            InstanceEntries.clear();
             TextureSlotIndex = 1;
-
-            EntityBuffer.Count = 0;
-            EntityBuffer.EntityIDS.clear();
         }
 
         void Data::FlushAndReset()
@@ -543,8 +544,37 @@ namespace KTN
             auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
             auto vp            = s_Data->Projection * s_Data->View;
 
-            if (!Instances.empty())
+            if (!InstanceEntries.empty())
             {
+                std::vector<uint32_t> sortedIndices;
+                sortedIndices.resize(InstanceEntries.size());
+                std::iota(sortedIndices.begin(), sortedIndices.end(), 0);
+
+                std::sort(sortedIndices.begin(), sortedIndices.end(),
+                [&](uint32_t a, uint32_t b)
+                {
+                    return InstanceEntries[a].Instance.Transform[3].y > InstanceEntries[b].Instance.Transform[3].y;
+                });
+
+                std::vector<InstanceData> instances;
+                std::vector<int> entityIDs;
+                bool mousePicking = Engine::Get().GetSettings().MousePicking;
+
+                instances.resize(sortedIndices.size());
+
+                if (mousePicking)
+                    entityIDs.resize(sortedIndices.size());
+
+                for (size_t i = 0; i < sortedIndices.size(); i++)
+                {
+                    auto& entry = InstanceEntries[sortedIndices[i]];
+
+                    instances[i] = entry.Instance;
+
+                    if (mousePicking)
+                        entityIDs[i] = entry.EntityID;
+                }
+
                 MainPipeline->Begin(commandBuffer);
 
                 RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
@@ -552,14 +582,14 @@ namespace KTN
                 Set->SetUniform("Camera", "u_ViewProjection", &vp);
                 Set->Upload(commandBuffer);
 
-                Set->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(InstanceData));
+                Set->SetUniform("u_Instances", "Instances", instances.data(), instances.size() * sizeof(InstanceData));
                 Set->Upload(commandBuffer);
 
                 Set->SetTexture("u_Textures", TextureSlots.data(), (uint32_t)TextureSlots.size());
                 Set->Upload(commandBuffer);
 
                 DrawElementsIndirectCommand command = {
-                    6, (uint32_t)Instances.size(), 0, 0, 0
+                    6, (uint32_t)instances.size(), 0, 0, 0
                 };
                 Buffer->SetData(&command, sizeof(command));
 
@@ -567,11 +597,11 @@ namespace KTN
                 RendererCommand::DrawIndexedIndirect(DrawType::TRIANGLES, VAO, Buffer);
 
                 Engine::Get().GetStats().DrawCalls      += 1;
-                Engine::Get().GetStats().TrianglesCount += (uint32_t)Instances.size() * 2;
+                Engine::Get().GetStats().TrianglesCount += (uint32_t)instances.size() * 2;
 
                 MainPipeline->End(commandBuffer);
 
-                if (Engine::Get().GetSettings().MousePicking)
+                if (mousePicking)
                 {
                     PipelineSpecification pspec = {};
                     pspec.pShader               = PickingShader;
@@ -592,13 +622,15 @@ namespace KTN
                     PickingSet->SetUniform("Camera", "u_ViewProjection", &vp);
                     PickingSet->Upload(commandBuffer);
 
-                    PickingSet->SetUniform("u_Instances", "Instances", Instances.data(), Instances.size() * sizeof(InstanceData));
+                    PickingSet->SetUniform("u_Instances", "Instances", instances.data(), instances.size() * sizeof(InstanceData));
                     PickingSet->Upload(commandBuffer);
 
-                    size_t bufferSize = sizeof(int) + sizeof(int) * EntityBuffer.EntityIDS.size();
+                    int count = entityIDs.size();
+
+                    size_t bufferSize = sizeof(int) + sizeof(int) * entityIDs.size();
                     PickingSet->PrepareStorageBuffer("EntityBuffer", bufferSize);
-                    PickingSet->SetStorage("EntityBuffer", "Count", &EntityBuffer.Count, sizeof(int));
-                    PickingSet->SetStorage("EntityBuffer", "EnttIDs", EntityBuffer.EntityIDS.data(), sizeof(int) * EntityBuffer.EntityIDS.size());
+                    PickingSet->SetStorage("EntityBuffer", "Count", &count, sizeof(int));
+                    PickingSet->SetStorage("EntityBuffer", "EnttIDs", entityIDs.data(), sizeof(int) * entityIDs.size());
                     PickingSet->Upload(commandBuffer);
 
                     commandBuffer->BindSets(&PickingSet);
@@ -615,14 +647,11 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            if (Instances.size() >= (size_t)MaxInstances)
+            if (InstanceEntries.size() >= (size_t)MaxInstances)
                 FlushAndReset();
 
-            if (Engine::Get().GetSettings().MousePicking)
-            {
-                EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
-                EntityBuffer.Count++;
-            }
+            auto& entry    = InstanceEntries.emplace_back();
+            entry.EntityID = p_Command.EntityID;
 
             float textureIndex = 0.0f; // White texture
             if (p_Command.Render2D.Texture)
@@ -685,7 +714,7 @@ namespace KTN
                 data.UV       = glm::vec4(min, max);
             }
 
-            Instances.push_back(data);
+            entry.Instance = data;
         }
     
     } // namespace R2D
