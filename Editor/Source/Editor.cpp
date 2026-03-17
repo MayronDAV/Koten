@@ -10,6 +10,7 @@
 #include "Panels/AssetRegistryPanel.h"
 #include "Panels/MaterialPanel.h"
 #include "Panels/SceneEditPanel.h"
+#include "Panels/TextureAtlasPanel.h"
 #include "Shortcuts.h"
 
 // lib
@@ -160,15 +161,16 @@ namespace KTN
         
         KTN_CORE_ASSERT(Project::GetActive(), "No project opened! Please open a project to continue.");
 
-        m_Camera          = CreateRef<EditorCamera>();
+        m_Camera            = CreateRef<EditorCamera>();
 
         ImGuizmo::Init();
 
-        m_Settings        = CreateRef<SettingsPanel>();
-        m_AssetImporter   = CreateRef<AssetImporterPanel>();
-        m_ProjectExporter = CreateRef<ProjectExporterPanel>();
-        m_MaterialPanel   = CreateRef<MaterialPanel>();
-        m_SceneEditPanel  = CreateRef<SceneEditPanel>();
+        m_Settings          = CreateRef<SettingsPanel>();
+        m_AssetImporter     = CreateRef<AssetImporterPanel>();
+        m_ProjectExporter   = CreateRef<ProjectExporterPanel>();
+        m_MaterialPanel     = CreateRef<MaterialPanel>();
+        m_SceneEditPanel    = CreateRef<SceneEditPanel>();
+        m_TextureAtlasPanel = CreateRef<TextureAtlasPanel>();
 
         m_Panels.emplace_back(CreateRef<SceneViewPanel>());
         m_Panels.emplace_back(CreateRef<GameViewPanel>());
@@ -179,6 +181,7 @@ namespace KTN
         m_Panels.emplace_back(m_Settings);
         m_Panels.emplace_back(m_ProjectExporter);
         m_Panels.emplace_back(m_MaterialPanel);
+        m_Panels.emplace_back(m_TextureAtlasPanel);
         m_Panels.emplace_back(CreateRef<AssetRegistryPanel>());
 
         auto contentBrowser = CreateRef<ContentBrowserPanel>(Project::GetAssetDirectory().string());
@@ -705,15 +708,25 @@ namespace KTN
 
             if (ImGui::BeginMenu("Tools"))
             {
-                if (ImGui::MenuItem(ICON_MDI_EXPORT "  Export Project..."))
+                if (ImGui::MenuItem(ICON_MDI_EXPORT " Export Project..."))
                 {
                     m_ProjectExporter->Open();
                 }
 
                 auto shortcut = Shortcuts::GetShortcutStr("Open Settings");
-                if (ImGui::MenuItem(ICON_MDI_COGS "  Settings...", shortcut.c_str()))
+                if (ImGui::MenuItem(ICON_MDI_COGS " Settings...", shortcut.c_str()))
                 {
                     m_Settings->SetActive(!m_Settings->IsActive());
+                }
+
+                if (ImGui::MenuItem(ICON_MDI_IMPORT " Texture Atlas..."))
+                {
+                    m_TextureAtlasPanel->Open();
+                }
+
+                if (ImGui::MenuItem(ICON_MDI_IMPORT " Import Asset..."))
+                {
+                    m_AssetImporter->Open();
                 }
 
                 ImGui::EndMenu();

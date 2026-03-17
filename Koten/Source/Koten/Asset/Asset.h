@@ -18,7 +18,8 @@ namespace KTN
         Texture2D,
         PhysicsMaterial2D,
         Prefab,
-        Material
+        Material,
+        TextureAtlas
     };
 
     KTN_API const char* GetAssetTypeName(AssetType p_Type);

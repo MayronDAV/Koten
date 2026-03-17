@@ -35,6 +35,21 @@ AssetRegistry:
     SerializeAssetData: true
     AssetData:
       {}
+  - Handle: 6596211286994850314
+    FilePath: Textures\RPGpack_sheet_2X.png
+    Type: Texture2D
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      MinFilter: LINEAR
+      MagFilter: LINEAR
+      WrapU: REPEAT
+      WrapV: REPEAT
+      SRGB: true
+      AnisotropyEnable: true
+      GenerateMipmaps: true
+      BorderColor: [0, 0, 0, 1]
+      DebugName: RPGpack_sheet_2X.png
   - Handle: 7835493660212497376
     FilePath: Fonts\Arial\Arial Regular.ttf
     Type: Font
@@ -113,6 +128,13 @@ AssetRegistry:
     SerializeAssetData: true
     AssetData:
       {}
+  - Handle: 16615905129500401459
+    FilePath: Textures\RPGpack_sheet.ktatlas
+    Type: TextureAtlas
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 16735559612679961702
     FilePath: Materials\Red.ktmat
     Type: Material
@@ -120,3 +142,18 @@ AssetRegistry:
     SerializeAssetData: true
     AssetData:
       {}
+  - Handle: 18379360077043330570
+    FilePath: Textures\RPGpack_sheet.png
+    Type: Texture2D
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      MinFilter: LINEAR
+      MagFilter: LINEAR
+      WrapU: REPEAT
+      WrapV: REPEAT
+      SRGB: true
+      AnisotropyEnable: true
+      GenerateMipmaps: true
+      BorderColor: [0, 0, 0, 1]
+      DebugName: RPGpack_sheet.png

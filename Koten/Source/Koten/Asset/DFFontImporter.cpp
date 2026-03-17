@@ -5,7 +5,7 @@
 
 namespace KTN
 {
-    Ref<DFFont> DFFontImporter::ImportFont(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+    Ref<DFFont> DFFontImporter::Import(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
     {
         KTN_PROFILE_FUNCTION();
 

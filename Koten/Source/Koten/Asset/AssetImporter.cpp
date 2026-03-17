@@ -7,26 +7,29 @@
 #include "PhysicsMaterial2DImporter.h"
 #include "PrefabImporter.h"
 #include "MaterialImporter.h"
+#include "TextureAtlasImporter.h"
 
 
 
 namespace KTN
 {
     static std::map<AssetType, std::function<Ref<Asset>(AssetHandle, const AssetMetadata&)>> s_AssetImportFunctions = {
-        { AssetType::Scene, SceneImporter::ImportScene },
-        { AssetType::Font, DFFontImporter::ImportFont },
-        { AssetType::Texture2D, TextureImporter::ImportTexture2D },
-        { AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::ImportMaterial },
-        { AssetType::Prefab, PrefabImporter::ImportPrefab },
-        { AssetType::Material, MaterialImporter::ImportMaterial }
+        { AssetType::Scene, SceneImporter::Import                         },
+        { AssetType::Font, DFFontImporter::Import                         },
+        { AssetType::Texture2D, TextureImporter::ImportTexture2D          },
+        { AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::Import },
+        { AssetType::Prefab, PrefabImporter::Import                       },
+        { AssetType::Material, MaterialImporter::Import                   },
+        { AssetType::TextureAtlas, TextureAtlasImporter::Import           }
     };
 
     static std::map<AssetType, std::function<Ref<Asset>(AssetHandle, const AssetMetadata&, const Buffer&)>> s_ImportAssetFromMemoryFunctions = {
-        { AssetType::Scene, SceneImporter::ImportSceneFromMemory },
-        { AssetType::Texture2D, TextureImporter::ImportTexture2DFromMemory },
-        { AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::ImportMaterialFromMemory },
-        { AssetType::Prefab, PrefabImporter::ImportPrefabFromMemory },
-        { AssetType::Material, MaterialImporter::ImportMaterialFromMemory }
+        { AssetType::Scene, SceneImporter::ImportFromMemory                          },
+        { AssetType::Texture2D, TextureImporter::ImportTexture2DFromMemory           },
+        { AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::ImportFromMemory  },
+        { AssetType::Prefab, PrefabImporter::ImportFromMemory                        },
+        { AssetType::Material, MaterialImporter::ImportFromMemory                    },
+        { AssetType::TextureAtlas, TextureAtlasImporter::ImportFromMemory            }
     };
 
     Ref<Asset> AssetImporter::ImportAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata)

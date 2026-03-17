@@ -7,6 +7,19 @@
 
 namespace KTN
 {
+    inline uint64_t HashString(std::string_view p_Str)
+    {
+        uint64_t hash = 14695981039346656037ull;
+
+        for (char c : p_Str)
+        {
+            hash ^= (uint64_t)c;
+            hash *= 1099511628211ull;
+        }
+
+        return hash;
+    }
+
     template <typename T>
     inline void HashCombine(std::size_t& p_Seed, const T& p_Value)
     {

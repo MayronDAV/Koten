@@ -9,6 +9,7 @@
 #include "Koten/Physics/PhysicsMaterial2D.h"
 #include "Koten/Asset/PrefabImporter.h"
 #include "Koten/Scene/SceneManager.h"
+#include "Koten/Asset/TextureAtlasImporter.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -450,10 +451,10 @@ namespace KTN
 
             if (metadata.Type == AssetType::Prefab)
             {
-                auto prefab = PrefabImporter::LoadPrefab(SceneManager::GetActiveScenes()[0]->Handle, metadata.FilePath);
+                auto prefab = PrefabImporter::Load(SceneManager::GetActiveScenes()[0]->Handle, metadata.FilePath);
                 KTN_CORE_ASSERT(prefab, "Prefab is nullptr!");
 
-                PrefabImporter::SavePrefabBin(out, prefab);
+                PrefabImporter::SaveBin(out, prefab);
 
                 prefab->Entt.Destroy();
             }
@@ -465,6 +466,13 @@ namespace KTN
 
                 material->SerializeBin(out);
             }
+
+            if (metadata.Type == AssetType::TextureAtlas)
+            {
+                auto atlas = GetAsset<TextureAtlas>(handle);
+                KTN_CORE_ASSERT(atlas, "TextureAtlas is nullptr!");
+                TextureAtlasImporter::SaveBin(out, atlas);
+            }
         }
     }
 
@@ -473,8 +481,8 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         const auto cachePath = p_Folder / "AssetPack.ktap";
-        m_IsLoadedAssetPack = true;
-        m_NeedsToUpdate = false;
+        m_IsLoadedAssetPack  = true;
+        m_NeedsToUpdate      = false;
 
         std::ifstream in(cachePath, std::ios::binary);
         if (!in)
@@ -585,7 +593,7 @@ namespace KTN
 
             if (metadata.Type == AssetType::Prefab)
             {
-                PrefabImporter::LoadPrefabBin(in, buffer);
+                PrefabImporter::LoadBin(in, buffer);
             }
 
             if (metadata.Type == AssetType::Material)
@@ -593,7 +601,12 @@ namespace KTN
                 Material::DeserializeBin(in, buffer);
             }
 
-            m_AssetCache[handle] = CreateRef<ScopedBuffer>(buffer);
+            if (metadata.Type == AssetType::TextureAtlas)
+            {
+                TextureAtlasImporter::LoadBin(in, buffer);
+            }
+
+            m_AssetCache[handle]    = CreateRef<ScopedBuffer>(buffer);
             m_AssetRegistry[handle] = metadata;
         }
 

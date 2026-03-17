@@ -7,7 +7,7 @@
 
 namespace KTN
 {
-    Ref<Scene> SceneImporter::ImportScene(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+    Ref<Scene> SceneImporter::Import(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -17,14 +17,14 @@ namespace KTN
             return nullptr;
         }
 
-        auto scene = LoadScene(p_Metadata.FilePath);
+        auto scene = Load(p_Metadata.FilePath);
 
         if (scene) scene->Handle = p_Handle;
 
         return scene;
     }
 
-    Ref<Scene> SceneImporter::ImportSceneFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
+    Ref<Scene> SceneImporter::ImportFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -47,7 +47,7 @@ namespace KTN
         return scene;
     }
 
-    Ref<Scene> SceneImporter::LoadScene(const std::string& p_Path)
+    Ref<Scene> SceneImporter::Load(const std::string& p_Path)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -63,7 +63,7 @@ namespace KTN
         return scene;
     }
 
-    void SceneImporter::SaveScene(Ref<Scene> p_Scene, const std::string& p_Path)
+    void SceneImporter::Save(Ref<Scene> p_Scene, const std::string& p_Path)
     {
         KTN_PROFILE_FUNCTION();
 

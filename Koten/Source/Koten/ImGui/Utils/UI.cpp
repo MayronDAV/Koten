@@ -34,20 +34,20 @@ namespace KTN::UI
         ImGui::Image(AddImage(p_Texture), p_Size, p_UV0, p_UV1, p_TintColor, p_BorderColor);
     }
 
-    KTN_API void ImageButton(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size)
+    KTN_API bool ImageButton(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size)
     {
         KTN_PROFILE_FUNCTION();
 
         std::string id = "##" + p_Texture->GetSpecification().DebugName;
-        ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, {0, 1}, {1, 0});
+        return ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, {0, 1}, {1, 0});
     }
 
-    KTN_API void ImageButton(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec2& p_UV0, const ImVec2& p_UV1)
+    KTN_API bool ImageButton(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec2& p_UV0, const ImVec2& p_UV1)
     {
         KTN_PROFILE_FUNCTION();
 
         std::string id = "##" + p_Texture->GetSpecification().DebugName;
-        ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, p_UV0, p_UV1);
+        return ImGui::ImageButton(id.c_str(), AddImage(p_Texture), p_Size, p_UV0, p_UV1);
     }
 
     KTN_API void ImageCircleMask(const Ref<Texture2D>& p_Texture, const ImVec2& p_Size, const ImVec4& p_TintColor, const ImVec4& p_BgColor, bool p_Border, const ImVec4& p_BorderColor, float p_BorderThickness)

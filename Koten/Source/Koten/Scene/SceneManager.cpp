@@ -711,7 +711,7 @@ namespace KTN
             KTN_CORE_ERROR("Failed to save scene, scene is null");
             return;
         }
-        SceneImporter::SaveScene(scene, p_Path);
+        SceneImporter::Save(scene, p_Path);
     }
 
     bool SceneManager::IsActive(AssetHandle p_Handle)

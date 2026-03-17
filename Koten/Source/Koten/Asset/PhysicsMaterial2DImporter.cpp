@@ -9,7 +9,7 @@
 namespace KTN
 {
 
-    Ref<PhysicsMaterial2D> PhysicsMaterial2DImporter::ImportMaterial(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+    Ref<PhysicsMaterial2D> PhysicsMaterial2DImporter::Import(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -21,7 +21,7 @@ namespace KTN
 
         Ref<PhysicsMaterial2D> material = nullptr;
         if (!p_Metadata.FilePath.empty())
-            material = LoadMaterial(p_Metadata.FilePath);
+            material = Load(p_Metadata.FilePath);
         else
             material = CreateRef<PhysicsMaterial2D>();
 
@@ -29,7 +29,7 @@ namespace KTN
         return material;
     }
 
-    Ref<PhysicsMaterial2D> PhysicsMaterial2DImporter::ImportMaterialFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
+    Ref<PhysicsMaterial2D> PhysicsMaterial2DImporter::ImportFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -49,7 +49,7 @@ namespace KTN
         return material;
     }
 
-    Ref<PhysicsMaterial2D> PhysicsMaterial2DImporter::LoadMaterial(const std::string& p_Path)
+    Ref<PhysicsMaterial2D> PhysicsMaterial2DImporter::Load(const std::string& p_Path)
     {
         KTN_PROFILE_FUNCTION();
 

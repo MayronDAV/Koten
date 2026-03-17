@@ -7,6 +7,6 @@ namespace KTN
     class KTN_API DFFontImporter
     {
         public:
-            static Ref<DFFont> ImportFont(AssetHandle p_Handle, const AssetMetadata& p_Metadata);
+            static Ref<DFFont> Import(AssetHandle p_Handle, const AssetMetadata& p_Metadata);
     };
 }

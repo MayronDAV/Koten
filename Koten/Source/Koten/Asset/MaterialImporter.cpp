@@ -8,7 +8,7 @@
 
 namespace KTN
 {
-    Ref<Material> MaterialImporter::ImportMaterial(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+    Ref<Material> MaterialImporter::Import(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -18,17 +18,17 @@ namespace KTN
             return nullptr;
         }
 
-        Ref<Material> material = nullptr;
+        Ref<Material> material         = nullptr;
         if (!p_Metadata.FilePath.empty())
-            material = LoadMaterial(p_Metadata.FilePath);
+            material                   = Load(p_Metadata.FilePath);
         else
-            material = CreateRef<Material>();
+            material                   = CreateRef<Material>();
 
         if (material) material->Handle = p_Handle;
         return material;
     }
 
-    Ref<Material> MaterialImporter::ImportMaterialFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
+    Ref<Material> MaterialImporter::ImportFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -41,14 +41,14 @@ namespace KTN
         BufferReader reader(p_Data);
 
         Ref<Material> material = CreateRef<Material>();
-        material->Handle = p_Handle;
+        material->Handle       = p_Handle;
 
         material->DeserializeBin(reader);
 
         return material;
     }
 
-    Ref<Material> MaterialImporter::LoadMaterial(const std::string& p_Path)
+    Ref<Material> MaterialImporter::Load(const std::string& p_Path)
     {
         KTN_PROFILE_FUNCTION();
 

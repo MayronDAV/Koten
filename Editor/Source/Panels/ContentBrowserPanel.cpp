@@ -90,7 +90,7 @@ namespace KTN
                         prefab->Entt = entt;
                         prefab->Path = path;
 
-                        PrefabImporter::SavePrefab(prefab);
+                        PrefabImporter::Save(prefab);
                     }
                 }
                 ImGui::EndDragDropTarget();
@@ -480,7 +480,7 @@ namespace KTN
                                     prefab->Entt = entt;
                                     prefab->Path = path;
 
-                                    PrefabImporter::SavePrefab(prefab);
+                                    PrefabImporter::Save(prefab);
                                 }
                             }
                             ImGui::EndDragDropTarget();

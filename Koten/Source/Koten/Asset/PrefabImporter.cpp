@@ -4,7 +4,6 @@
 #include "Koten/Scene/EntitySerializer.h"
 #include "AssetManager.h"
 #include "Koten/Scene/SceneManager.h"
-#include "Koten/Systems/B2Physics.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -205,7 +204,7 @@ namespace KTN
 
     } // namespace
 
-    Ref<Prefab> PrefabImporter::ImportPrefab(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
+    Ref<Prefab> PrefabImporter::Import(AssetHandle p_Handle, const AssetMetadata& p_Metadata)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -219,7 +218,7 @@ namespace KTN
 
         Ref<Prefab> prefab = nullptr;
         if (FileSystem::Exists(p_Metadata.FilePath))
-            prefab = LoadPrefab(ctx->Scene, p_Metadata.FilePath);
+            prefab = Load(ctx->Scene, p_Metadata.FilePath);
         else
         {
             prefab = CreateRef<Prefab>();
@@ -235,7 +234,7 @@ namespace KTN
         return prefab;
     }
 
-    Ref<Prefab> PrefabImporter::ImportPrefabFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
+    Ref<Prefab> PrefabImporter::ImportFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -247,13 +246,13 @@ namespace KTN
 
         auto ctx = static_cast<PrefabContext*>(p_Metadata.AssetData);
 
-        auto prefab = LoadPrefabBin(p_Data, ctx->Scene);
+        auto prefab = LoadBin(p_Data, ctx->Scene);
         prefab->Path = p_Metadata.FilePath;
 
         return prefab;
     }
 
-    Ref<Prefab> PrefabImporter::LoadPrefab(AssetHandle p_SceneHandle, const std::string& p_Path)
+    Ref<Prefab> PrefabImporter::Load(AssetHandle p_SceneHandle, const std::string& p_Path)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -294,7 +293,7 @@ namespace KTN
         return prefab;
     }
 
-    void PrefabImporter::SavePrefab(const Ref<Prefab>& p_Prefab)
+    void PrefabImporter::Save(const Ref<Prefab>& p_Prefab)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -316,7 +315,7 @@ namespace KTN
         KTN_CORE_INFO("Prefab serialized to path: {}", p_Prefab->Path);
     }
 
-    void PrefabImporter::SaveAsPrefab(Entity p_Entt, const std::string& p_Path)
+    void PrefabImporter::SaveAs(Entity p_Entt, const std::string& p_Path)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -325,10 +324,10 @@ namespace KTN
         prefab->Path = p_Path;
         prefab->Entt = p_Entt;
 
-        SavePrefab(prefab);
+        Save(prefab);
     }
 
-    void PrefabImporter::SavePrefabBin(std::ofstream& p_Out, const Ref<Prefab>& p_Prefab)
+    void PrefabImporter::SaveBin(std::ofstream& p_Out, const Ref<Prefab>& p_Prefab)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -337,7 +336,7 @@ namespace KTN
         SerializeEntityRecursive(p_Out, p_Prefab->Entt);
     }
 
-    void PrefabImporter::SaveAsPrefabBin(std::ofstream& p_Out, Entity p_Entt, const std::string& p_Path)
+    void PrefabImporter::SaveAsBin(std::ofstream& p_Out, Entity p_Entt, const std::string& p_Path)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -346,10 +345,10 @@ namespace KTN
         prefab->Path = p_Path;
         prefab->Entt = p_Entt;
 
-        SavePrefabBin(p_Out, prefab);
+        SaveBin(p_Out, prefab);
     }
 
-    Ref<Prefab> PrefabImporter::LoadPrefabBin(std::ifstream& p_In, AssetHandle p_SceneHandle)
+    Ref<Prefab> PrefabImporter::LoadBin(std::ifstream& p_In, AssetHandle p_SceneHandle)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -371,7 +370,7 @@ namespace KTN
         return prefab;
     }
 
-    Ref<Prefab> PrefabImporter::LoadPrefabBin(const Buffer& p_In, AssetHandle p_SceneHandle)
+    Ref<Prefab> PrefabImporter::LoadBin(const Buffer& p_In, AssetHandle p_SceneHandle)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -395,7 +394,7 @@ namespace KTN
         return prefab;
     }
 
-    void PrefabImporter::LoadPrefabBin(std::ifstream& p_In, Buffer& p_Buffer)
+    void PrefabImporter::LoadBin(std::ifstream& p_In, Buffer& p_Buffer)
     {
         KTN_PROFILE_FUNCTION();
 
