@@ -126,7 +126,7 @@ namespace KTN
                 if (ImGui::Button(text.c_str()))
                 {
                     std::string path = "";
-                    if (FileDialog::Open("", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                    if (FileDialog::Open({ { "All", "*.*" } }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
                     {
                         auto filepath = std::filesystem::path(path);
                         if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")

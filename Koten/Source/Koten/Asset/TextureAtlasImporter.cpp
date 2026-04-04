@@ -86,7 +86,7 @@ namespace KTN
                 atlas->Regions.push_back(region);
             }
 
-            atlas->BuildRegionLookup();
+            atlas->BuildRegionMap();
         }
         return atlas;
     }
@@ -169,7 +169,7 @@ namespace KTN
             atlas->Regions.push_back(region);
         }
 
-        atlas->BuildRegionLookup();
+        atlas->BuildRegionMap();
 
         return atlas;
     }
@@ -201,7 +201,7 @@ namespace KTN
             atlas->Regions.push_back(region);
         }
 
-        atlas->BuildRegionLookup();
+        atlas->BuildRegionMap();
 
         return atlas;
     }

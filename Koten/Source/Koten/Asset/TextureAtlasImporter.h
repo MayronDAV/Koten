@@ -25,10 +25,13 @@ namespace KTN
     class KTN_API TextureAtlas : public Asset
     {
         public:
+            TextureAtlas() = default;
+            ~TextureAtlas() = default;
+
             AssetHandle Texture = 0;
             std::vector<AtlasRegion> Regions;
 
-            std::unordered_map<uint64_t, uint32_t> RegionLookup;
+            std::unordered_map<uint64_t, uint32_t> RegionMap;
 
             AtlasRegion& GetRegion(uint32_t p_Index)
             {
@@ -37,11 +40,11 @@ namespace KTN
 
             AtlasRegion* GetRegion(uint64_t p_ID)
             {
-                if (RegionLookup.empty())
-                    BuildRegionLookup();
+                if (RegionMap.empty())
+                    BuildRegionMap();
 
-                auto it = RegionLookup.find(p_ID);
-                if (it == RegionLookup.end())
+                auto it = RegionMap.find(p_ID);
+                if (it == RegionMap.end())
                     return nullptr;
 
                 return &Regions[it->second];
@@ -52,16 +55,16 @@ namespace KTN
                 return (uint32_t)Regions.size();
             }
 
-            void BuildRegionLookup()
+            void BuildRegionMap()
             {
-                //RegionLookup.clear();
-                RegionLookup.reserve(Regions.size());
+                if (Regions.empty()) return;
+
+                //RegionMap.clear();
+                RegionMap.reserve(Regions.size());
                 for (size_t i = 0; i < Regions.size(); i++)
                 {
-                    if (!Regions[i].ID)
-                        Regions[i].ID = HashString(Regions[i].Name);
-    
-                    RegionLookup[Regions[i].ID] = (uint32_t)i;
+                    Regions[i].ID               = HashString(Regions[i].Name);
+                    RegionMap[Regions[i].ID]    = (uint32_t)i;
                 }
             }
 

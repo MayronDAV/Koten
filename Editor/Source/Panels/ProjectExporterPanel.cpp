@@ -107,7 +107,7 @@ namespace KTN
                         if (ImGui::Button(startScenePath.c_str()))
                         {
                             std::string path = "";
-                            if (FileDialog::Open(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                            if (FileDialog::Open({ {"Scene", "*.ktscn"} }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
                             {
                                 m_Config.StartScene = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
                             }
@@ -160,7 +160,7 @@ namespace KTN
                                 if (ImGui::Button("Change", buttonSize))
                                 {
                                     std::string path = "";
-                                    if (FileDialog::Open("", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                                    if (FileDialog::Open({ { "All", "*.*" } }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
                                     {
                                         m_Config.IconPath = path;
                                         m_Icon = TextureImporter::LoadTexture2D(m_Config.IconPath);

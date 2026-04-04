@@ -12,6 +12,7 @@ namespace KTN
     class MaterialPanel;
     class SceneEditPanel;
     class TextureAtlasPanel;
+    class AnimationPanel;
 
     enum class RuntimeState
     {
@@ -46,6 +47,7 @@ namespace KTN
             Ref<MaterialPanel> GetMaterialPanel() { return m_MaterialPanel; }
             Ref<SceneEditPanel> GetSceneEditPanel() { return m_SceneEditPanel; }
             Ref<TextureAtlasPanel> GetTextureAtlasPanel() { return m_TextureAtlasPanel; }
+            Ref<AnimationPanel> GetAnimationPanel() { return m_AnimationPanel; }
 
             const Ref<EditorCamera>& GetCamera() { return m_Camera; }
 
@@ -82,6 +84,7 @@ namespace KTN
             Ref<MaterialPanel> m_MaterialPanel          = nullptr;
             Ref<SceneEditPanel> m_SceneEditPanel        = nullptr;
             Ref<TextureAtlasPanel> m_TextureAtlasPanel  = nullptr;
+            Ref<AnimationPanel> m_AnimationPanel        = nullptr;
 
             Entity m_SelectedEntt                       = {};
             RuntimeState m_State                        = RuntimeState::Edit;

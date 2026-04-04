@@ -11,6 +11,7 @@
 #include "Panels/MaterialPanel.h"
 #include "Panels/SceneEditPanel.h"
 #include "Panels/TextureAtlasPanel.h"
+#include "Panels/AnimationPanel.h"
 #include "Shortcuts.h"
 
 // lib
@@ -171,6 +172,7 @@ namespace KTN
         m_MaterialPanel     = CreateRef<MaterialPanel>();
         m_SceneEditPanel    = CreateRef<SceneEditPanel>();
         m_TextureAtlasPanel = CreateRef<TextureAtlasPanel>();
+        m_AnimationPanel    = CreateRef<AnimationPanel>();
 
         m_Panels.emplace_back(CreateRef<SceneViewPanel>());
         m_Panels.emplace_back(CreateRef<GameViewPanel>());
@@ -182,6 +184,7 @@ namespace KTN
         m_Panels.emplace_back(m_ProjectExporter);
         m_Panels.emplace_back(m_MaterialPanel);
         m_Panels.emplace_back(m_TextureAtlasPanel);
+        m_Panels.emplace_back(m_AnimationPanel);
         m_Panels.emplace_back(CreateRef<AssetRegistryPanel>());
 
         auto contentBrowser = CreateRef<ContentBrowserPanel>(Project::GetAssetDirectory().string());
@@ -266,7 +269,7 @@ namespace KTN
                         if (ImGui::Button(startScene.c_str()))
                         {
                             std::string path = "";
-                            if (FileDialog::Open(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                            if (FileDialog::Open({ {"Scene", "*.ktscn"} }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
                             {
                                 config.StartScene = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
                             }
@@ -596,7 +599,7 @@ namespace KTN
         if (!SceneManager::IsLoaded(p_Scene)) return;
 
         std::string path = "";
-        if (FileDialog::Save(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+        if (FileDialog::Save({ {"Scene", "*.ktscn"} }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
         {
             if (path.find(".ktscn") == std::string::npos)
                 path += ".ktscn";
@@ -615,7 +618,7 @@ namespace KTN
         if (path.empty())
         {
             std::string newPath = "";
-            if (FileDialog::Save(".ktscn", Project::GetAssetDirectory().string(), newPath) == FileDialogResult::SUCCESS)
+            if (FileDialog::Save({ {"Scene", "*.ktscn"} }, Project::GetAssetDirectory().string(), newPath) == FileDialogResult::SUCCESS)
             {
                 if (newPath.find(".ktscn") == std::string::npos)
                     newPath += ".ktscn";
@@ -719,9 +722,14 @@ namespace KTN
                     m_Settings->SetActive(!m_Settings->IsActive());
                 }
 
-                if (ImGui::MenuItem(ICON_MDI_IMPORT " Texture Atlas..."))
+                if (ImGui::MenuItem("Texture Atlas..."))
                 {
                     m_TextureAtlasPanel->Open();
+                }
+
+                if (ImGui::MenuItem("Animation..."))
+                {
+                    m_AnimationPanel->Open();
                 }
 
                 if (ImGui::MenuItem(ICON_MDI_IMPORT " Import Asset..."))
@@ -792,7 +800,7 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         std::string path = "";
-        if (FileDialog::Open(".ktscn", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+        if (FileDialog::Open({ {"Scene", "*.ktscn"} }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
         {
             AssetHandle handle = AssetManager::Get()->ImportAsset(AssetType::Scene, path);
             UnSelectEntt();

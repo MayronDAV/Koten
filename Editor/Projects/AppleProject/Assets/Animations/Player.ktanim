@@ -1,0 +1,29 @@
+AssetHandle: 9998688184161629797
+TextureAtlas: 1962640818065654537
+Clips:
+  - ID: 3920825177732577125
+    Name: Right
+    Mode: 0
+    Speed: 1
+    TotalDuration: 1
+    Frames:
+      - AtlasRegionID: 13554441075589938153
+        Time: 0
+      - AtlasRegionID: 13554439976078309942
+        Time: 0.2
+      - AtlasRegionID: 13554438876566681731
+        Time: 0.4
+      - AtlasRegionID: 13554437777055053520
+        Time: 0.6
+      - AtlasRegionID: 13554454269729476685
+        Time: 0.8
+  - ID: 1627075065389845385
+    Name: Ladder
+    Mode: 0
+    Speed: 1
+    TotalDuration: 0.5
+    Frames:
+      - AtlasRegionID: 13554445473636450997
+        Time: 0.1
+      - AtlasRegionID: 13554444374124822786
+        Time: 0.3

@@ -1,6 +1,10 @@
 #pragma once
 #include "Koten/Core/Base.h"
 #include "Koten/Core/Definitions.h"
+#include "Koten/OS/FileDialog.h"
+
+// lib
+#include <vector>
 
 
 
@@ -18,5 +22,7 @@ namespace KTN::Utils
     KTN_API void WriteString(Buffer& p_Buffer, const std::string& p_String);
     KTN_API std::string ReadString(BufferReader& p_Buffer);
     KTN_API std::string ReadString(std::ifstream& p_In);
+
+    KTN_API std::vector<char> BuildFilter(const FilterList& p_Filters);
 
 } // namespace KTN::Utils

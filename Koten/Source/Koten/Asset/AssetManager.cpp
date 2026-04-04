@@ -10,6 +10,7 @@
 #include "Koten/Asset/PrefabImporter.h"
 #include "Koten/Scene/SceneManager.h"
 #include "Koten/Asset/TextureAtlasImporter.h"
+#include "Koten/Asset/AnimationImporter.h"
 
 // lib
 #include <yaml-cpp/yaml.h>
@@ -473,6 +474,13 @@ namespace KTN
                 KTN_CORE_ASSERT(atlas, "TextureAtlas is nullptr!");
                 TextureAtlasImporter::SaveBin(out, atlas);
             }
+
+            if (metadata.Type == AssetType::Animation)
+            {
+                auto anim = GetAsset<Animation>(handle);
+                KTN_CORE_ASSERT(anim, "Animation is nullptr!");
+                AnimationImporter::SaveBin(out, anim);
+            }
         }
     }
 
@@ -604,6 +612,11 @@ namespace KTN
             if (metadata.Type == AssetType::TextureAtlas)
             {
                 TextureAtlasImporter::LoadBin(in, buffer);
+            }
+
+            if (metadata.Type == AssetType::Animation)
+            {
+                AnimationImporter::LoadBin(in, buffer);
             }
 
             m_AssetCache[handle]    = CreateRef<ScopedBuffer>(buffer);

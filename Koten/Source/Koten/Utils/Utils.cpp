@@ -225,4 +225,27 @@ namespace KTN::Utils
         return str;
     }
 
+    KTN_API std::vector<char> BuildFilter(const FilterList& p_Filters)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
+
+        if (p_Filters.empty())
+            return {};
+
+        std::vector<char> buffer;
+
+        for (const auto& [name, pattern] : p_Filters)
+        {
+            buffer.insert(buffer.end(), name.begin(), name.end());
+            buffer.push_back('\0');
+
+            buffer.insert(buffer.end(), pattern.begin(), pattern.end());
+            buffer.push_back('\0');
+        }
+
+        buffer.push_back('\0'); // double null terminator
+
+        return buffer;
+    }
+
 } // namespace KTN::Utils

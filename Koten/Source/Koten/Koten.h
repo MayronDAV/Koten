@@ -26,6 +26,7 @@
 #include "Koten/Asset/PrefabImporter.h"
 #include "Koten/Asset/MaterialImporter.h"
 #include "Koten/Asset/TextureAtlasImporter.h"
+#include "Koten/Asset/AnimationImporter.h"
 
 // EVENTS
 

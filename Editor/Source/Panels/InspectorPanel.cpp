@@ -314,7 +314,7 @@ namespace KTN
                 if (ImGui::Button(filePath.c_str()))
                 {
                     std::string path = "";
-                    if (FileDialog::Open(".ttf", Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                    if (FileDialog::Open({ { "Font", "*.ttf" } }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
                     {
                         p_Text.Font = AssetManager::Get()->ImportAsset(AssetType::Font, path);
                     }

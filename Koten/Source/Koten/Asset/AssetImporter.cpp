@@ -8,6 +8,7 @@
 #include "PrefabImporter.h"
 #include "MaterialImporter.h"
 #include "TextureAtlasImporter.h"
+#include "AnimationImporter.h"
 
 
 
@@ -20,7 +21,8 @@ namespace KTN
         { AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::Import },
         { AssetType::Prefab, PrefabImporter::Import                       },
         { AssetType::Material, MaterialImporter::Import                   },
-        { AssetType::TextureAtlas, TextureAtlasImporter::Import           }
+        { AssetType::TextureAtlas, TextureAtlasImporter::Import           },
+        { AssetType::Animation, AnimationImporter::Import                 }
     };
 
     static std::map<AssetType, std::function<Ref<Asset>(AssetHandle, const AssetMetadata&, const Buffer&)>> s_ImportAssetFromMemoryFunctions = {
@@ -29,7 +31,8 @@ namespace KTN
         { AssetType::PhysicsMaterial2D, PhysicsMaterial2DImporter::ImportFromMemory  },
         { AssetType::Prefab, PrefabImporter::ImportFromMemory                        },
         { AssetType::Material, MaterialImporter::ImportFromMemory                    },
-        { AssetType::TextureAtlas, TextureAtlasImporter::ImportFromMemory            }
+        { AssetType::TextureAtlas, TextureAtlasImporter::ImportFromMemory            },
+        { AssetType::Animation, AnimationImporter::ImportFromMemory                  }
     };
 
     Ref<Asset> AssetImporter::ImportAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata)

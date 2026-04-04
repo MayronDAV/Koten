@@ -6,6 +6,28 @@ AssetRegistry:
     SerializeAssetData: true
     AssetData:
       {}
+  - Handle: 1820892089324448477
+    FilePath: Textures\spritesheet-characters-default.png
+    Type: Texture2D
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      MinFilter: LINEAR
+      MagFilter: LINEAR
+      WrapU: REPEAT
+      WrapV: REPEAT
+      SRGB: true
+      AnisotropyEnable: true
+      GenerateMipmaps: true
+      BorderColor: [0, 0, 0, 1]
+      DebugName: spritesheet-characters-default.png
+  - Handle: 1962640818065654537
+    FilePath: Textures\spritesheet-characters.ktatlas
+    Type: TextureAtlas
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 2347241170725850122
     FilePath: Materials\Apple.ktmat
     Type: Material
@@ -35,6 +57,21 @@ AssetRegistry:
     SerializeAssetData: true
     AssetData:
       {}
+  - Handle: 5900379554739639342
+    FilePath: Textures\spritesheet-characters.png
+    Type: Texture2D
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      MinFilter: LINEAR
+      MagFilter: LINEAR
+      WrapU: REPEAT
+      WrapV: REPEAT
+      SRGB: true
+      AnisotropyEnable: true
+      GenerateMipmaps: true
+      BorderColor: [0, 0, 0, 1]
+      DebugName: spritesheet-characters.png
   - Handle: 6596211286994850314
     FilePath: Textures\RPGpack_sheet_2X.png
     Type: Texture2D
@@ -138,6 +175,13 @@ AssetRegistry:
   - Handle: 16735559612679961702
     FilePath: Materials\Red.ktmat
     Type: Material
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
+  - Handle: 17058650733050823340
+    FilePath: Animations\Player.ktanim
+    Type: Animation
     Load: true
     SerializeAssetData: true
     AssetData:

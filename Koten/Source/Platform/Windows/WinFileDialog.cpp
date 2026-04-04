@@ -12,66 +12,68 @@
 
 namespace KTN
 {
-    FileDialogResult FileDialog::Open(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
+    FileDialogResult FileDialog::Open(const FilterList& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
     {
         KTN_PROFILE_FUNCTION_LOW();
 
         OPENFILENAMEA ofn;
-        char szFile[260] = { 0 };
+        char szFile[260]    = { 0 };
+
+        auto filterList     = Utils::BuildFilter(p_FilterList);
 
         ZeroMemory(&ofn, sizeof(ofn));
-        ofn.lStructSize = sizeof(ofn);
-        ofn.hwndOwner = nullptr;
-        ofn.lpstrFile = szFile;
-        ofn.nMaxFile = sizeof(szFile);
-        ofn.lpstrFilter = p_FilterList.empty() ? "All Files\0*.*\0" : p_FilterList.c_str();
-        ofn.nFilterIndex = 1;
+        ofn.lStructSize     = sizeof(ofn);
+        ofn.hwndOwner       = nullptr;
+        ofn.lpstrFile       = szFile;
+        ofn.nMaxFile        = sizeof(szFile);
+        ofn.lpstrFilter     = filterList.empty() ? "All Files\0*.*\0\0" : filterList.data();
+        ofn.nFilterIndex    = 1;
         ofn.lpstrInitialDir = p_DefaultPath.empty() ? nullptr : p_DefaultPath.c_str();
-        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+        ofn.Flags           = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
         if (GetOpenFileNameA(&ofn) == TRUE)
         {
-            p_OutPath = ofn.lpstrFile;
+            p_OutPath       = ofn.lpstrFile;
             return FileDialogResult::SUCCESS;
         }
 
         return FileDialogResult::CANCEL;
     }
 
-    FileDialogResult FileDialog::OpenMultiple(const std::string& p_FilterList, const std::string& p_DefaultPath, std::vector<std::string>& p_OutPaths)
+    FileDialogResult FileDialog::OpenMultiple(const FilterList& p_FilterList, const std::string& p_DefaultPath, std::vector<std::string>& p_OutPaths)
     {
         KTN_PROFILE_FUNCTION_LOW();
 
         OPENFILENAMEA ofn;
-        char szFile[1024] = { 0 };
+        char szFile[1024]   = { 0 };
+
+        auto filterList     = Utils::BuildFilter(p_FilterList);
 
         ZeroMemory(&ofn, sizeof(ofn));
-        ofn.lStructSize = sizeof(ofn);
-        ofn.hwndOwner = nullptr;
-        ofn.lpstrFile = szFile;
-        ofn.nMaxFile = sizeof(szFile);
-        ofn.lpstrFilter = p_FilterList.empty() ? "All Files\0*.*\0" : p_FilterList.c_str();
-        ofn.nFilterIndex = 1;
+        ofn.lStructSize     = sizeof(ofn);
+        ofn.hwndOwner       = nullptr;
+        ofn.lpstrFile       = szFile;
+        ofn.nMaxFile        = sizeof(szFile);
+        ofn.lpstrFilter     = filterList.empty() ? "All Files\0*.*\0\0" : filterList.data();
+        ofn.nFilterIndex    = 1;
         ofn.lpstrInitialDir = p_DefaultPath.empty() ? nullptr : p_DefaultPath.c_str();
-        ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR | OFN_ALLOWMULTISELECT | OFN_EXPLORER;
+        ofn.Flags           = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR | OFN_ALLOWMULTISELECT | OFN_EXPLORER;
 
         if (GetOpenFileNameA(&ofn) == TRUE)
         {
-            char* p = szFile;
+            char* p               = szFile;
             std::string directory = p;
-            p += directory.size() + 1;
+            p                    += directory.size() + 1;
 
             while (*p)
             {
                 std::string file = p;
                 p_OutPaths.push_back(directory + "\\" + file);
-                p += file.size() + 1;
+                p               += file.size() + 1;
             }
 
             if (p_OutPaths.empty())
-            {
                 p_OutPaths.push_back(szFile);
-            }
 
             return FileDialogResult::SUCCESS;
         }
@@ -79,26 +81,28 @@ namespace KTN
         return FileDialogResult::CANCEL;
     }
 
-    FileDialogResult FileDialog::Save(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
+    FileDialogResult FileDialog::Save(const FilterList& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
     {
         KTN_PROFILE_FUNCTION_LOW();
 
         OPENFILENAMEA ofn;
-        char szFile[260] = { 0 };
+        char szFile[260]    = { 0 };
+
+        auto filterList     = Utils::BuildFilter(p_FilterList);
 
         ZeroMemory(&ofn, sizeof(ofn));
-        ofn.lStructSize = sizeof(ofn);
-        ofn.hwndOwner = nullptr;
-        ofn.lpstrFile = szFile;
-        ofn.nMaxFile = sizeof(szFile);
-        ofn.lpstrFilter = p_FilterList.empty() ? "All Files\0*.*\0" : p_FilterList.c_str();
-        ofn.nFilterIndex = 1;
+        ofn.lStructSize     = sizeof(ofn);
+        ofn.hwndOwner       = nullptr;
+        ofn.lpstrFile       = szFile;
+        ofn.nMaxFile        = sizeof(szFile);
+        ofn.lpstrFilter     = filterList.empty() ? "All Files\0*.*\0\0" : filterList.data();
+        ofn.nFilterIndex    = 1;
         ofn.lpstrInitialDir = p_DefaultPath.empty() ? nullptr : p_DefaultPath.c_str();
-        ofn.Flags = OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_OVERWRITEPROMPT;
+        ofn.Flags           = OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR | OFN_OVERWRITEPROMPT;
 
         if (GetSaveFileNameA(&ofn) == TRUE)
         {
-            p_OutPath = ofn.lpstrFile;
+            p_OutPath       = ofn.lpstrFile;
             return FileDialogResult::SUCCESS;
         }
 
@@ -111,21 +115,20 @@ namespace KTN
 
         BROWSEINFOA bi;
         ZeroMemory(&bi, sizeof(bi));
-        bi.hwndOwner = nullptr;
+        bi.hwndOwner      = nullptr;
         bi.pszDisplayName = new char[MAX_PATH];
-        bi.lpszTitle = "Select a folder";
-        bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
+        bi.lpszTitle      = "Select a folder";
+        bi.ulFlags        = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
 
         if (!p_DefaultPath.empty())
         {
-            bi.lParam = reinterpret_cast<LPARAM>(p_DefaultPath.c_str());
-            bi.lpfn = [](HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData) -> int {
+            bi.lParam     = reinterpret_cast<LPARAM>(p_DefaultPath.c_str());
+            bi.lpfn       = [](HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData)
+            {
                 if (uMsg == BFFM_INITIALIZED)
-                {
                     SendMessage(hwnd, BFFM_SETSELECTION, TRUE, lpData);
-                }
                 return 0;
-                };
+            };
         }
 
         LPITEMIDLIST pidl = SHBrowseForFolderA(&bi);

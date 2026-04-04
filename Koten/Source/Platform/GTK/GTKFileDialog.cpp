@@ -6,174 +6,222 @@
 
 // std
 #include <iostream>
+#include <sstream>
 
 
 
 namespace KTN
 {
-	FileDialogResult FileDialog::Open(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath) 
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+    namespace
+    {
+        static std::vector<std::string> SplitPatterns(const std::string& p_PatternList)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
 
-		FileDialogResult result = FileDialogResult::CANCEL;
-		
-		if (!gtk_init_check(nullptr, nullptr)) {
-			KTN_CORE_ERROR("GTK initialization failed!");
-			return FileDialogResult::FAILED;
-		}
+            std::vector<std::string> result;
+            std::stringstream ss(p_PatternList);
+            std::string item;
 
-		GtkWidget* dialog = gtk_file_chooser_dialog_new(
-			"Open File",
-			nullptr,
-			GTK_FILE_CHOOSER_ACTION_OPEN,
-			"_Cancel", GTK_RESPONSE_CANCEL,
-			"_Open", GTK_RESPONSE_ACCEPT,
-			nullptr);
+            while (std::getline(ss, item, ';'))
+            {
+                if (!item.empty())
+                    result.push_back(item);
+            }
 
-		if (!p_DefaultPath.empty()) {
-			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
-		}
+            return result;
+        }
 
-		gint response = gtk_dialog_run(GTK_DIALOG(dialog));
-		if (response == GTK_RESPONSE_ACCEPT) {
-			char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-			p_OutPath = filename;
-			g_free(filename);
-			result = FileDialogResult::SUCCESS;
-		}
+        static void ApplyFilters(GtkFileChooser* p_Dialog, const FilterList& p_Filters)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
 
-		gtk_widget_hide_on_delete(dialog);
-		while (g_main_context_pending(nullptr)) {
-			g_main_context_iteration(nullptr, FALSE);
-		}
-		gtk_widget_destroy(dialog);
-		
-		for (int i = 0; i < 5; ++i) {
-			while (g_main_context_pending(nullptr)) {
-				g_main_context_iteration(nullptr, FALSE);
-			}
-		}
+            for (const auto& [name, patternList] : p_Filters)
+            {
+                GtkFileFilter* filter = gtk_file_filter_new();
+                gtk_file_filter_set_name(filter, name.c_str());
 
-		return result;
-	}
+                auto patterns = SplitPatterns(patternList);
 
-	FileDialogResult FileDialog::OpenMultiple(const std::string& p_FilterList, const std::string& p_DefaultPath, std::vector<std::string>& p_OutPaths)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+                for (const auto& pattern : patterns)
+                {
+                    if (pattern == "*.*")
+                        gtk_file_filter_add_pattern(filter, "*");
+                    else
+                        gtk_file_filter_add_pattern(filter, pattern.c_str());
+                }
 
-		FileDialogResult result = FileDialogResult::CANCEL;
+                gtk_file_chooser_add_filter(p_Dialog, filter);
+            }
+        }
 
-		if (!gtk_init_check(nullptr, nullptr))
-		{
-			KTN_CORE_ERROR("Failed to initialize GTK!");
-			return FileDialogResult::FAILED;
-		}
+    } // namespace
 
-		GtkWidget* dialog = gtk_file_chooser_dialog_new(
-			"Open Files",
-			nullptr,
-			GTK_FILE_CHOOSER_ACTION_OPEN,
-			"Cancel", GTK_RESPONSE_CANCEL,
-			"Open", GTK_RESPONSE_ACCEPT,
-			nullptr);
+    FileDialogResult FileDialog::Open(const FilterList& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath) 
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		if (!p_DefaultPath.empty())
-		{
-			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
-		}
+        FileDialogResult result = FileDialogResult::CANCEL;
 
-		gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), TRUE);
+        if (!gtk_init_check(nullptr, nullptr)) {
+            KTN_CORE_ERROR("GTK initialization failed!");
+            return FileDialogResult::FAILED;
+        }
 
-		if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
-		{
-			GSList* filenames = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER(dialog));
-			for (GSList* iter = filenames; iter != nullptr; iter = iter->next)
-			{
-				p_OutPaths.push_back(static_cast<char*>(iter->data));
-				g_free(iter->data);
-			}
-			g_slist_free(filenames);
-			result = FileDialogResult::SUCCESS;
-		}
+        GtkWidget* dialog = gtk_file_chooser_dialog_new(
+            "Open File",
+            nullptr,
+            GTK_FILE_CHOOSER_ACTION_OPEN,
+            "_Cancel", GTK_RESPONSE_CANCEL,
+            "_Open", GTK_RESPONSE_ACCEPT,
+            nullptr);
 
-		gtk_widget_destroy(dialog);
+        ApplyFilters(GTK_FILE_CHOOSER(dialog), p_FilterList);
 
-		return result;
-	}
+        if (!p_DefaultPath.empty())
+            gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
 
-	FileDialogResult FileDialog::Save(const std::string& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
+        gint response      = gtk_dialog_run(GTK_DIALOG(dialog));
+        if (response == GTK_RESPONSE_ACCEPT)
+        {
+            char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+            p_OutPath      = filename;
+            g_free(filename);
+            result         = FileDialogResult::SUCCESS;
+        }
 
-		FileDialogResult result = FileDialogResult::CANCEL;
+        while (g_main_context_pending(nullptr))
+        {
+            g_main_context_iteration(nullptr, FALSE);
+        }
 
-		if (!gtk_init_check(nullptr, nullptr))
-		{
-			KTN_CORE_ERROR("Failed to initialize GTK!");
-			return FileDialogResult::FAILED;
-		}
+        gtk_widget_destroy(dialog);
+        
+        for (int i = 0; i < 5; ++i)
+        {
+            while (g_main_context_pending(nullptr))
+            {
+                g_main_context_iteration(nullptr, FALSE);
+            }
+        }
 
-		GtkWidget* dialog = gtk_file_chooser_dialog_new(
-			"Save File",
-			nullptr,
-			GTK_FILE_CHOOSER_ACTION_SAVE,
-			"Cancel", GTK_RESPONSE_CANCEL,
-			"Save", GTK_RESPONSE_ACCEPT,
-			nullptr);
+        return result;
+    }
 
-		if (!p_DefaultPath.empty())
-		{
-			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
-		}
+    FileDialogResult FileDialog::OpenMultiple(const FilterList& p_FilterList, const std::string& p_DefaultPath, std::vector<std::string>& p_OutPaths)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
 
-		if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
-		{
-			char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-			p_OutPath = filename;
-			g_free(filename);
-			result = FileDialogResult::SUCCESS;
-		}
+        FileDialogResult result = FileDialogResult::CANCEL;
 
-		gtk_widget_destroy(dialog);
+        if (!gtk_init_check(nullptr, nullptr))
+        {
+            KTN_CORE_ERROR("Failed to initialize GTK!");
+            return FileDialogResult::FAILED;
+        }
 
-		return result;
-	}
+        GtkWidget* dialog = gtk_file_chooser_dialog_new(
+            "Open Files",
+            nullptr,
+            GTK_FILE_CHOOSER_ACTION_OPEN,
+            "Cancel", GTK_RESPONSE_CANCEL,
+            "Open", GTK_RESPONSE_ACCEPT,
+            nullptr);
 
-	FileDialogResult FileDialog::PickFolder(const std::string& p_DefaultPath, std::string& p_OutPath)
-	{
-		KTN_PROFILE_FUNCTION_LOW();
-		
-		FileDialogResult result = FileDialogResult::CANCEL;
+        ApplyFilters(GTK_FILE_CHOOSER(dialog), p_FilterList);
 
-		if (!gtk_init_check(nullptr, nullptr))
-		{
-			KTN_CORE_ERROR("Failed to initialize GTK!");
-			return FileDialogResult::FAILED;
-		}
+        if (!p_DefaultPath.empty())
+            gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
 
-		GtkWidget* dialog = gtk_file_chooser_dialog_new(
-			"Select a Folder",
-			nullptr,
-			GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-			"Cancel", GTK_RESPONSE_CANCEL,
-			"Select", GTK_RESPONSE_ACCEPT,
-			nullptr);
+        gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), TRUE);
 
-		if (!p_DefaultPath.empty())
-		{
-			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
-		}
+        if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+        {
+            GSList* filenames = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER(dialog));
+            for (GSList* iter = filenames; iter != nullptr; iter = iter->next)
+            {
+                p_OutPaths.push_back(static_cast<char*>(iter->data));
+                g_free(iter->data);
+            }
+            g_slist_free(filenames);
+            result            = FileDialogResult::SUCCESS;
+        }
 
-		if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
-		{
-			char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-			p_OutPath = filename;
-			g_free(filename);
-			result = FileDialogResult::SUCCESS;
-		}
+        gtk_widget_destroy(dialog);
 
-		gtk_widget_destroy(dialog);
+        return result;
+    }
 
-		return result;
-	}
+    FileDialogResult FileDialog::Save(const FilterList& p_FilterList, const std::string& p_DefaultPath, std::string& p_OutPath)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
+
+        FileDialogResult result = FileDialogResult::CANCEL;
+
+        if (!gtk_init_check(nullptr, nullptr))
+        {
+            KTN_CORE_ERROR("Failed to initialize GTK!");
+            return FileDialogResult::FAILED;
+        }
+
+        GtkWidget* dialog = gtk_file_chooser_dialog_new(
+            "Save File",
+            nullptr,
+            GTK_FILE_CHOOSER_ACTION_SAVE,
+            "Cancel", GTK_RESPONSE_CANCEL,
+            "Save", GTK_RESPONSE_ACCEPT,
+            nullptr);
+
+        ApplyFilters(GTK_FILE_CHOOSER(dialog), p_FilterList);
+
+        if (!p_DefaultPath.empty())
+            gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
+
+        if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+        {
+            char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+            p_OutPath      = filename;
+            g_free(filename);
+            result         = FileDialogResult::SUCCESS;
+        }
+
+        gtk_widget_destroy(dialog);
+
+        return result;
+    }
+
+    FileDialogResult FileDialog::PickFolder(const std::string& p_DefaultPath, std::string& p_OutPath)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
+        
+        FileDialogResult result = FileDialogResult::CANCEL;
+
+        if (!gtk_init_check(nullptr, nullptr))
+        {
+            KTN_CORE_ERROR("Failed to initialize GTK!");
+            return FileDialogResult::FAILED;
+        }
+
+        GtkWidget* dialog = gtk_file_chooser_dialog_new(
+            "Select a Folder",
+            nullptr,
+            GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+            "Cancel", GTK_RESPONSE_CANCEL,
+            "Select", GTK_RESPONSE_ACCEPT,
+            nullptr);
+
+        if (!p_DefaultPath.empty())
+            gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), p_DefaultPath.c_str());
+
+        if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+        {
+            char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+            p_OutPath      = filename;
+            g_free(filename);
+            result         = FileDialogResult::SUCCESS;
+        }
+
+        gtk_widget_destroy(dialog);
+
+        return result;
+    }
 } // namespace KTN

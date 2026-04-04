@@ -107,7 +107,7 @@ namespace KTN
             if (ImGui::Button("Open Project", ImVec2(p_Size.x / 2.1f, 50.0f)))
             {
                 std::string path = "";
-                if (FileDialog::Open(".ktproj", "", path) == FileDialogResult::SUCCESS)
+                if (FileDialog::Open({ { "Project", "*.ktproj" } }, "", path) == FileDialogResult::SUCCESS)
                 {
                     m_ShouldOpenProject = true;
                     m_ProjectPath = path;
