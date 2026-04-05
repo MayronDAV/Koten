@@ -3,9 +3,6 @@
 #include "Asset.h"
 #include "Koten/Utils/HashCombiner.h"
 
-// lib
-#include <glm/glm.hpp>
-
 
 
 namespace KTN
@@ -57,6 +54,8 @@ namespace KTN
 
             AnimationClip* Get(uint64_t p_ID)
             {
+                KTN_PROFILE_FUNCTION_LOW();
+
                 if (ClipMap.empty())
                     BuildClipMap();
 
@@ -74,6 +73,8 @@ namespace KTN
 
             void BuildClipMap()
             {
+                KTN_PROFILE_FUNCTION_LOW();
+
                 if (Clips.empty()) return;
 
                 //ClipMap.clear();
@@ -94,11 +95,10 @@ namespace KTN
             static Ref<Animation> Import(AssetHandle p_Handle, const AssetMetadata& p_Metadata);
             static Ref<Animation> ImportFromMemory(AssetHandle p_Handle, const AssetMetadata& p_Metadata, const Buffer& p_Data);
 
-            static Ref<Animation> Load(const std::string& p_Path);
-
             static void Save(const Ref<Animation>& p_Anim, const std::string& p_Path);
-
             static void SaveBin(std::ofstream& p_Out, const Ref<Animation>& p_Anim);
+
+            static Ref<Animation> Load(const std::string& p_Path);
             static Ref<Animation> LoadBin(std::ifstream& p_In);
             static Ref<Animation> LoadBin(const Buffer& p_In);
 

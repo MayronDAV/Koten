@@ -20,7 +20,8 @@ namespace KTN
         Prefab,
         Material,
         TextureAtlas,
-        Animation
+        Animation,
+        AnimationController
     };
 
     KTN_API const char* GetAssetTypeName(AssetType p_Type);

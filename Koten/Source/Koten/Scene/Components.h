@@ -71,6 +71,33 @@ namespace KTN
         SpriteComponent(const SpriteComponent&) = default;
     };
 
+    struct AnimationComponent
+    {
+        AssetHandle Controller = 0;
+
+        uint32_t CurrentState  = 0;
+        float CurrentTime      = 0.0f;
+        float StartTime        = 0.0f;
+
+        struct Parameter
+        {
+            uint64_t ID;
+            std::string Name;
+            AnimationConditionType Type;
+
+            union
+            {
+                bool Bool;
+                float Float;
+                int Int;
+            } Value;
+        };
+        std::vector<Parameter> Parameters;
+
+        AnimationComponent()                          = default;
+        AnimationComponent(const AnimationComponent&) = default;
+    };
+
     struct LineRendererComponent
     {
         glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -229,6 +256,6 @@ namespace KTN
     };
 
     using PhysicsBody2DTypes = entt::type_list<Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent>;
-    #define ALL_COMPONENTS IDComponent, TagComponent, RuntimeComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent
+    #define ALL_COMPONENTS IDComponent, TagComponent, RuntimeComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent, AnimationComponent
 
 } // namespace KTN

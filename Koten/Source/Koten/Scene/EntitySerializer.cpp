@@ -573,6 +573,49 @@ namespace KTN
             p_Out << YAML::EndMap;
         }
 
+        template<>
+        void ComponentSerializeIfExist<AnimationComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<AnimationComponent>())
+                return;
+
+            p_Out << YAML::Key << "AnimationComponent";
+            p_Out << YAML::BeginMap;
+
+            auto& comp = p_Entity.GetComponent<AnimationComponent>();
+            ADD_KEY_VALUE("Controller", comp.Controller);
+            p_Out << YAML::Key << "Parameters" << YAML::Value;
+            for (const auto& param : comp.Parameters)
+            {
+                p_Out << YAML::BeginMap;
+                ADD_KEY_VALUE("ID", param.ID);
+                ADD_KEY_VALUE("Name", param.Name);
+                ADD_KEY_VALUE("Type", (int)param.Type);
+                switch (param.Type)
+                {
+                    case AnimationConditionType::Bool:
+                    {
+                        ADD_KEY_VALUE("Value", param.Value.Bool);
+                        break;
+                    }
+                    case AnimationConditionType::Float:
+                    {
+                        ADD_KEY_VALUE("Value", param.Value.Float);
+                        break;
+                    }
+                    case AnimationConditionType::Int:
+                    {
+                        ADD_KEY_VALUE("Value", param.Value.Int);
+                        break;
+                    }
+                }
+                p_Out << YAML::EndMap;
+            }
+            p_Out << YAML::EndMap;
+        }
+
     } // namespace
 
     // Serialize BIN
@@ -952,6 +995,46 @@ namespace KTN
             p_Out.write(reinterpret_cast<const char*>(&comp.Active), sizeof(comp.Active));
         }
 
+        template<>
+        void ComponentSerializeBinIfExist<AnimationComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<AnimationComponent>())
+                return;
+
+            Utils::WriteString(p_Out, "AnimationComponent");
+            auto& comp = p_Entity.GetComponent<AnimationComponent>();
+            p_Out.write(reinterpret_cast<const char*>(&comp.Controller), sizeof(comp.Controller));
+
+            size_t size = comp.Parameters.size();
+            p_Out.write(reinterpret_cast<const char*>(&size), sizeof(size));
+            for (const auto& param : comp.Parameters)
+            {
+                p_Out.write(reinterpret_cast<const char*>(&param.ID), sizeof(param.ID));
+                Utils::WriteString(p_Out, param.Name);
+                p_Out.write(reinterpret_cast<const char*>(&param.Type), sizeof(param.Type));
+                switch (param.Type)
+                {
+                    case AnimationConditionType::Bool:
+                    {
+                        p_Out.write(reinterpret_cast<const char*>(&param.Value.Bool), sizeof(param.Value.Bool));
+                        break;
+                    }
+                    case AnimationConditionType::Float:
+                    {
+                        p_Out.write(reinterpret_cast<const char*>(&param.Value.Float), sizeof(param.Value.Float));
+                        break;
+                    }
+                    case AnimationConditionType::Int:
+                    {
+                        p_Out.write(reinterpret_cast<const char*>(&param.Value.Int), sizeof(param.Value.Int));
+                        break;
+                    }
+                }
+            }
+        }
+
     } // namespace
 
     // Deserialize YAML
@@ -1272,6 +1355,42 @@ namespace KTN
             auto& comp = p_Entity.AddOrReplaceComponent<RuntimeComponent>();
             comp.Enabled = data["Enabled"].as<bool>();
             comp.Active = data["Active"].as<bool>();
+        }
+
+        template<>
+        void ComponentDeserializeIfExist<AnimationComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            auto data       = p_Data["AnimationComponent"];
+            if (!data) return;
+
+            auto& comp      = p_Entity.AddOrReplaceComponent<AnimationComponent>();
+            comp.Controller = data["Controller"].as<AssetHandle>();
+            auto parameters = data["Parameters"];
+            if (parameters)
+            {
+                for (auto param : parameters)
+                {
+                    AnimationComponent::Parameter p = {};
+                    p.ID                            = param["ID"].as<uint32_t>();
+                    p.Name                          = param["Name"].as<std::string>();
+                    p.Type                          = (AnimationConditionType)param["Type"].as<int>();
+                    switch (p.Type)
+                    {
+                        case AnimationConditionType::Bool:
+                            p.Value.Bool  = param["Value"].as<bool>();
+                            break;
+                        case AnimationConditionType::Float:
+                            p.Value.Float = param["Value"].as<float>();
+                            break;
+                        case AnimationConditionType::Int:
+                            p.Value.Int   = param["Value"].as<int>();
+                            break;
+                    }
+                    comp.Parameters.push_back(p);
+                }
+            }
         }
 
     } // namespace
@@ -1659,5 +1778,50 @@ namespace KTN
                 p_Entity.AddOrReplaceComponent<RuntimeComponent>() = comp;
         }
 
+        template<>
+        void ComponentDeserializeBinIfExist<AnimationComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (p_Current != "AnimationComponent")
+                return;
+
+            AnimationComponent comp = {};
+            KTN_STREAM(&comp.Controller, sizeof(comp.Controller));
+
+            size_t size             = 0;
+            KTN_STREAM(&size, sizeof(size));
+            if (p_Entity)
+                comp.Parameters.reserve(size);
+
+            for (size_t i = 0; i < size; i++)
+            {
+                AnimationComponent::Parameter p = {};
+                KTN_STREAM(&p.ID, sizeof(p.ID));
+                p.Name                          = ReadString(p_In);
+                WriteString(p_Buffer, p.Name);
+                KTN_STREAM(&p.Type, sizeof(p.Type));
+                switch (p.Type)
+                {
+                    case AnimationConditionType::Bool:
+                        KTN_STREAM(&p.Value.Bool, sizeof(p.Value.Bool));
+                        break;
+                    case AnimationConditionType::Float:
+                        KTN_STREAM(&p.Value.Float, sizeof(p.Value.Float));
+                        break;
+                    case AnimationConditionType::Int:
+                        KTN_STREAM(&p.Value.Int, sizeof(p.Value.Int));
+                        break;
+                }
+
+                if (p_Entity)
+                    comp.Parameters.push_back(p);
+            }
+
+            if (p_Entity)
+                p_Entity.AddOrReplaceComponent<AnimationComponent>() = comp;
+        }
+
     } // namespace
-}
+
+} // namespace KTN
