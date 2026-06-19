@@ -28,4 +28,4 @@
 	url = https://github.com/MayronDAV/msdf-atlas-gen
 [submodule "Thirdparty/imgui-node-editor"]
 	path = Thirdparty/imgui-node-editor
-	url = https://github.com/MayronDAV/imgui-node-editor.git
+	url = https://github.com/MayronDAV/imgui-node-editor
