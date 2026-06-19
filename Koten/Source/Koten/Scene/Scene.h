@@ -120,8 +120,8 @@ namespace KTN
             {
                 KTN_PROFILE_FUNCTION_LOW();
 
-                p_Registry.on_construct<T>().connect<&Scene::OnComponentAdded<T>>();
-                p_Registry.on_destroy<T>().connect<&Scene::OnComponentRemoved<T>>();
+                p_Registry.on_construct<T>().template connect<&Scene::template OnComponentAdded<T>>();
+                p_Registry.on_destroy<T>().template connect<&Scene::template OnComponentRemoved<T>>();
             }
 
             template<typename... Component>
