@@ -204,36 +204,36 @@ namespace KTN
         auto loadState = [&](const auto& p_State)
         {
             AnimationState animState = {};
-            animState.ID             = p_State["ID"].as<uint64_t>();
-            animState.Name           = p_State["Name"].as<std::string>();
-            animState.ClipID         = p_State["ClipID"].as<uint64_t>();
+            animState.ID             = p_State["ID"].template as<uint64_t>();
+            animState.Name           = p_State["Name"].template as<std::string>();
+            animState.ClipID         = p_State["ClipID"].template as<uint64_t>();
             const auto& transitions  = p_State["Transitions"];
             if (transitions)
             {
                 for (auto& transition : transitions)
                 {
                     AnimationTransition animTransition = {};
-                    animTransition.ID                  = transition["ID"].as<uint64_t>();
-                    animTransition.ToState             = transition["ToState"].as<uint64_t>();
-                    animTransition.ToStateIndex        = transition["ToStateIndex"].as<uint32_t>();
-                    animTransition.HasExitTime         = transition["HasExitTime"].as<bool>();
-                    animTransition.ExitTime            = transition["ExitTime"].as<float>();
-                    animTransition.BlendTime           = transition["BlendTime"].as<float>();
+                    animTransition.ID                  = transition["ID"].template as<uint64_t>();
+                    animTransition.ToState             = transition["ToState"].template as<uint64_t>();
+                    animTransition.ToStateIndex        = transition["ToStateIndex"].template as<uint32_t>();
+                    animTransition.HasExitTime         = transition["HasExitTime"].template as<bool>();
+                    animTransition.ExitTime            = transition["ExitTime"].template as<float>();
+                    animTransition.BlendTime           = transition["BlendTime"].template as<float>();
                     const auto& conditions             = transition["Conditions"];
                     if (conditions)
                     {
                         for (auto& condition : conditions)
                         {
                             AnimationCondition animCondition     = {};
-                            animCondition.ParameterID            = condition["ParameterID"].as<uint64_t>();
-                            animCondition.Type                   = (ParameterType)condition["Type"].as<uint32_t>();
-                            animCondition.Operator               = (OperatorType)condition["Operator"].as<uint32_t>();
+                            animCondition.ParameterID            = condition["ParameterID"].template as<uint64_t>();
+                            animCondition.Type                   = (ParameterType)condition["Type"].template as<uint32_t>();
+                            animCondition.Operator               = (OperatorType)condition["Operator"].template as<uint32_t>();
                             if (animCondition.Type == ParameterType::Bool)
-                                animCondition.CompareValue.Bool  = condition["CompareValue"].as<bool>();
+                                animCondition.CompareValue.Bool  = condition["CompareValue"].template as<bool>();
                             else if (animCondition.Type == ParameterType::Float)
-                                animCondition.CompareValue.Float = condition["CompareValue"].as<float>();
+                                animCondition.CompareValue.Float = condition["CompareValue"].template as<float>();
                             else if (animCondition.Type == ParameterType::Int)
-                                animCondition.CompareValue.Int   = condition["CompareValue"].as<int>();
+                                animCondition.CompareValue.Int   = condition["CompareValue"].template as<int>();
 
                             animTransition.Conditions.push_back(animCondition);
                         }
