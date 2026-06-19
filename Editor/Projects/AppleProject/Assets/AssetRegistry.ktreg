@@ -57,6 +57,20 @@ AssetRegistry:
     SerializeAssetData: true
     AssetData:
       {}
+  - Handle: 4510144813053165535
+    FilePath: Animations\Player.ktcontroller
+    Type: AnimationController
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
+  - Handle: 5383814136555796335
+    FilePath: Scenes\MainAnim.ktscn
+    Type: Scene
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 5900379554739639342
     FilePath: Textures\spritesheet-characters.png
     Type: Texture2D

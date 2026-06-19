@@ -17,6 +17,18 @@ namespace KTN
 {
     class KTN_API Entity;
 
+    template<typename T>
+    concept HasOnComponentAdded = requires(T p_Component, Scene* p_Scene, Entity* p_Entity)
+    {
+        { p_Component.OnComponentAdded(p_Scene, p_Entity) };
+    };
+
+    template<typename T>
+    concept HasOnComponentRemoved = requires(T p_Component, Scene* p_Scene, Entity* p_Entity)
+    {
+        { p_Component.OnComponentRemoved(p_Scene, p_Entity) };
+    };
+
     struct SceneConfig
     {
         bool UsePhysics2D = true;
@@ -70,6 +82,55 @@ namespace KTN
         private:
             void RemoveSystems();
             void RenderScene(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor);
+
+            template<typename T>
+            static void OnComponentAdded(entt::registry& p_Registry, entt::entity p_Entity)
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+
+                auto& comp = p_Registry.get<T>(p_Entity);
+
+                if constexpr (HasOnComponentAdded<T>)
+                {
+                    Scene* scene = p_Registry.ctx().get<Scene*>();
+                    Entity e(p_Entity, scene);
+
+                    comp.OnComponentAdded(scene, &e);
+                }
+            }
+
+            template<typename T>
+            static void OnComponentRemoved(entt::registry& p_Registry, entt::entity p_Entity)
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+
+                auto& comp = p_Registry.get<T>(p_Entity);
+
+                if constexpr (HasOnComponentRemoved<T>)
+                {
+                    Scene* scene = p_Registry.ctx().get<Scene*>();
+                    Entity e(p_Entity, scene);
+
+                    comp.OnComponentRemoved(scene, &e);
+                }
+            }
+
+            template<typename T>
+            static void RegisterComponent(entt::registry& p_Registry)
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+
+                p_Registry.on_construct<T>().connect<&Scene::OnComponentAdded<T>>();
+                p_Registry.on_destroy<T>().connect<&Scene::OnComponentRemoved<T>>();
+            }
+
+            template<typename... Component>
+            static void RegisterComponentCallbacks(entt::registry& p_Registry)
+            {
+                KTN_PROFILE_FUNCTION();
+
+                (RegisterComponent<Component>(p_Registry), ...);
+            }
 
         private:
             entt::registry m_Registry;

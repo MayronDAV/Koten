@@ -6,13 +6,14 @@
 
 
 
+
 namespace KTN
 {
     struct AnimationCondition
     {
-        uint64_t ParameterID                = 0;
-        AnimationConditionType Type         = AnimationConditionType::Bool;
-        AnimationConditionOperator Operator = AnimationConditionOperator::None;
+        uint64_t ParameterID  = 0;
+        ParameterType Type    = ParameterType::Bool;
+        OperatorType Operator = OperatorType::None;
 
         union
         {
@@ -24,12 +25,13 @@ namespace KTN
 
     struct AnimationTransition
     {
+        uint64_t ID      = 0;
         uint64_t ToState = 0; // Editor only, runtime will use index
         uint32_t ToStateIndex;
         std::vector<AnimationCondition> Conditions;
 
-        bool HasExitTime = false;
-        float ExitTime   = 0.0f;
+        bool HasExitTime = true;
+        float ExitTime   = 1.0f;
         float BlendTime  = 0.1f;
 
         std::vector<AnimationCondition*> GetConditions(uint64_t p_ParameterID)
@@ -67,13 +69,47 @@ namespace KTN
     class KTN_API AnimationController : public Asset
     {
         public:
-            AnimationController() = default;
-            ~AnimationController() = default;
+            AnimationController()
+            {
+                EntryState.Name         = "Entry";
+                EntryState.ID           = HashString(EntryState.Name);
+            }
+            ~AnimationController()      = default;
+
+            struct Parameter
+            {
+                uint64_t ID;
+                std::string Name;
+                ParameterType Type;
+            };
+            std::vector<Parameter> Parameters; // Name, Type
 
             AssetHandle AnimationHandle = 0;
-            uint64_t EntryState         = 0;
+            AnimationState EntryState   = {};
             std::vector<AnimationState> States;
             std::unordered_map<uint64_t, uint32_t> StateMap;
+
+            AnimationTransition* FindTransition(uint64_t p_ID)
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+
+                for (auto& t : EntryState.Transitions)
+                {
+                    if (t.ID == p_ID)
+                        return &t;
+                }
+
+                for (auto& state : States)
+                {
+                    for (auto& t : state.Transitions)
+                    {
+                        if (t.ID == p_ID)
+                            return &t;
+                    }
+                }
+
+                return nullptr;
+            }
 
             AnimationState& Get(uint32_t p_Index)
             {
@@ -92,6 +128,18 @@ namespace KTN
                     return nullptr;
 
                 return &States[it->second];
+            }
+
+            Parameter* GetParameter(uint64_t p_ID)
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+
+                for (auto& param : Parameters)
+                {
+                    if (param.ID == p_ID)
+                        return &param;
+                }
+                return nullptr;
             }
 
             uint32_t GetCount() const

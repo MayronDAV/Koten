@@ -23,7 +23,7 @@ namespace KTN
 
             void OnAttach() override
             {
-                KTN_PROFILE_FUNCTION();
+                KTN_PROFILE_FUNCTION()
 
                 ScriptEngine::CompileLoadAppAssembly();
 

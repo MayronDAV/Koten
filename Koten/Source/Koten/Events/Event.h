@@ -23,19 +23,19 @@ namespace KTN
 
     enum EventCategory
     {
-        EventNone                    = 0,
-        EventCategoryWindow            = BIT(0),
-        EventCategoryApplication    = BIT(1),
-        EventCategoryInput            = BIT(2),
-        EventCategoryKeyboard        = BIT(3),
-        EventCategoryMouse            = BIT(4),
-        EventCategoryMouseButton    = BIT(5),
-        EventCategoryJoystick        = BIT(6)
+        EventNone                = 0,
+        EventCategoryWindow      = BIT(0),
+        EventCategoryApplication = BIT(1),
+        EventCategoryInput       = BIT(2),
+        EventCategoryKeyboard    = BIT(3),
+        EventCategoryMouse       = BIT(4),
+        EventCategoryMouseButton = BIT(5),
+        EventCategoryJoystick    = BIT(6)
     };
 
-#define EVENT_CLASS_METHODS(type)                                                            \
-            static EventType GetStaticType() { return EventType::type; }                    \
-            virtual EventType GetEventType() const override { return GetStaticType(); }        \
+#define EVENT_CLASS_METHODS(type)                                                       \
+            static EventType GetStaticType() { return EventType::type; }                \
+            virtual EventType GetEventType() const override { return GetStaticType(); } \
             virtual const char* GetName() const override { return #type; }
 
 #define EVENT_CLASS_CATEGORY(category) virtual int GetCategoryFlags() const override { return category; }

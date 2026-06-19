@@ -13,6 +13,7 @@ namespace KTN
     class SceneEditPanel;
     class TextureAtlasPanel;
     class AnimationPanel;
+    class AnimationControllerPanel;
 
     enum class RuntimeState
     {
@@ -48,6 +49,7 @@ namespace KTN
             Ref<SceneEditPanel> GetSceneEditPanel() { return m_SceneEditPanel; }
             Ref<TextureAtlasPanel> GetTextureAtlasPanel() { return m_TextureAtlasPanel; }
             Ref<AnimationPanel> GetAnimationPanel() { return m_AnimationPanel; }
+            Ref<AnimationControllerPanel> GetAnimationControllerPanel() { return m_AnimationControllerPanel; }
 
             const Ref<EditorCamera>& GetCamera() { return m_Camera; }
 
@@ -78,13 +80,14 @@ namespace KTN
 
         private:
             std::vector<Ref<EditorPanel>> m_Panels;
-            Ref<SettingsPanel> m_Settings               = nullptr;
-            Ref<AssetImporterPanel> m_AssetImporter     = nullptr;
-            Ref<ProjectExporterPanel> m_ProjectExporter = nullptr;
-            Ref<MaterialPanel> m_MaterialPanel          = nullptr;
-            Ref<SceneEditPanel> m_SceneEditPanel        = nullptr;
-            Ref<TextureAtlasPanel> m_TextureAtlasPanel  = nullptr;
-            Ref<AnimationPanel> m_AnimationPanel        = nullptr;
+            Ref<SettingsPanel> m_Settings                            = nullptr;
+            Ref<AssetImporterPanel> m_AssetImporter                  = nullptr;
+            Ref<ProjectExporterPanel> m_ProjectExporter              = nullptr;
+            Ref<MaterialPanel> m_MaterialPanel                       = nullptr;
+            Ref<SceneEditPanel> m_SceneEditPanel                     = nullptr;
+            Ref<TextureAtlasPanel> m_TextureAtlasPanel               = nullptr;
+            Ref<AnimationPanel> m_AnimationPanel                     = nullptr;
+            Ref<AnimationControllerPanel> m_AnimationControllerPanel = nullptr;
 
             Entity m_SelectedEntt                       = {};
             RuntimeState m_State                        = RuntimeState::Edit;

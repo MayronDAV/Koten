@@ -9,13 +9,13 @@
 
 namespace KTN
 {
-    using AssetMap = std::map<AssetHandle, Ref<Asset>>;
+    using AssetMap      = std::map<AssetHandle, Ref<Asset>>;
     using AssetRegistry = std::map<AssetHandle, AssetMetadata>;
-    using AssetCache = std::map<AssetHandle, Ref<ScopedBuffer>>;
+    using AssetCache    = std::map<AssetHandle, Ref<ScopedBuffer>>;
 
     struct AssetManagerConfig
     {
-        bool LoadAssetsFromPath = true;
+        bool LoadAssetsFromPath   = true;
         bool LoadAssetsFromMemory = false;
     };
 

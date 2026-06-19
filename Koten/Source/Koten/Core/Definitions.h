@@ -50,6 +50,7 @@ namespace KTN
         };
 
         inline constexpr uint8_t MAX_RENDER_TARGETS = 4;
+        inline constexpr uint32_t InvalidAnimState  = UINT32_MAX;
 
     #pragma endregion
 
@@ -310,20 +311,22 @@ namespace KTN
         HELD
     };
 
-    enum class AnimationConditionType
+    enum class ParameterType : uint8_t
     {
         Bool,
         Float,
         Int
     };
 
-    enum class AnimationConditionOperator
+    enum class OperatorType : uint8_t
     {
         None = 0,
         Equals,
         NotEquals,
         Greater,
-        Less
+        Less,
+        GreaterOrEquals,
+        LessOrEquals
     };
 
     #pragma endregion

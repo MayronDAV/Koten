@@ -1396,6 +1396,80 @@ namespace KTN
 
         #pragma endregion
 
+        #pragma region AnimationComponent
+        static bool AnimationComponent_IsPlaying(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return false;
+            }
+
+            if (!entity.HasComponent<AnimationComponent>())
+                return false;
+
+            return entity.GetComponent<AnimationComponent>().IsPlaying;
+        }
+
+        static bool AnimationComponent_SetBool(ObjectHandle p_Obj, MonoString* p_Name, bool p_Value)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return false;
+            }
+
+            if (!entity.HasComponent<AnimationComponent>())
+                return false;
+
+            auto name = MonoStringToString(p_Name);
+            return entity.GetComponent<AnimationComponent>().SetBool(name, p_Value);
+        }
+
+        static bool AnimationComponent_SetFloat(ObjectHandle p_Obj, MonoString* p_Name, float p_Value)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return false;
+            }
+
+            if (!entity.HasComponent<AnimationComponent>())
+                return false;
+
+            auto name = MonoStringToString(p_Name);
+            return entity.GetComponent<AnimationComponent>().SetFloat(name, p_Value);
+        }
+
+        static bool AnimationComponent_SetInt(ObjectHandle p_Obj, MonoString* p_Name, int p_Value)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return false;
+            }
+
+            if (!entity.HasComponent<AnimationComponent>())
+                return false;
+
+            auto name = MonoStringToString(p_Name);
+            return entity.GetComponent<AnimationComponent>().SetInt(name, p_Value);
+        }
+
+        #pragma endregion
+
         std::string DemangleToKTNClassName(const std::string& p_MangledName) 
         {
             KTN_PROFILE_FUNCTION_LOW();
@@ -1577,6 +1651,11 @@ namespace KTN
         KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_IsOnFloor);
         KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_IsOnWall);
         KTN_ADD_INTERNAL_CALL(CharacterBody2DComponent_IsOnCeiling);
+
+        KTN_ADD_INTERNAL_CALL(AnimationComponent_IsPlaying);
+        KTN_ADD_INTERNAL_CALL(AnimationComponent_SetBool);
+        KTN_ADD_INTERNAL_CALL(AnimationComponent_SetFloat);
+        KTN_ADD_INTERNAL_CALL(AnimationComponent_SetInt);
     }
 
 } // namespace KTN

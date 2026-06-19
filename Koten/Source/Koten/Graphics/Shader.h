@@ -10,10 +10,10 @@
 
 namespace KTN
 {
-    using ShaderSource        = std::unordered_map<ShaderType, std::string>;
-    using SpirvSource        = std::unordered_map<ShaderType, std::vector<uint32_t>>;
-    using DescriptorInfos    = std::unordered_map<uint16_t, std::vector<DescriptorInfo>>;
-    using PushConstants        = std::vector<PushConstant>;
+    using ShaderSource    = std::unordered_map<ShaderType, std::string>;
+    using SpirvSource     = std::unordered_map<ShaderType, std::vector<uint32_t>>;
+    using DescriptorInfos = std::unordered_map<uint16_t, std::vector<DescriptorInfo>>;
+    using PushConstants   = std::vector<PushConstant>;
 
     class KTN_API Shader
     {
@@ -30,13 +30,15 @@ namespace KTN
 
             virtual const std::vector<DescriptorInfo>& GetDescriptorInfos(uint16_t p_Key) = 0;
 
+            static SpirvSource CompileOrGetSpirv(const std::string& p_Path);
+
             static Ref<Shader> Create(const std::string& p_Path);
+            static Ref<Shader> Create(const SpirvSource& p_SpirvSource);
 
         private:
             static std::string ProcessIncludeFiles(const std::string& p_Path, const std::string& p_Code);
             static ShaderSource Process(const std::string& p_Path);
 
-            static SpirvSource CompileOrGetSpirv(const std::string& p_Path);
     };
 
 } // namespace KTN

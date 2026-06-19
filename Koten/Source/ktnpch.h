@@ -31,8 +31,17 @@
 #include <unordered_map>
 #include <sstream>
 #include <cstdint>
+#include <thread>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+#include <future>
+
 #ifdef KTN_WINDOWS
     #include <Windows.h>
+#elif defined(KTN_LINUX)
+    #include <pthread.h>
 #endif
 
 

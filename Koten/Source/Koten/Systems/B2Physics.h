@@ -46,6 +46,9 @@ namespace KTN
 
             bool IsRunning() const { return m_IsRunning; }
 
+            void AddPhysicEntity(Entity p_Entity) { m_PhysicEntities.push_back(p_Entity); }
+            void RemovePhysicEntity(Entity p_Entity) { m_PhysicEntities.erase(std::remove(m_PhysicEntities.begin(), m_PhysicEntities.end(), p_Entity), m_PhysicEntities.end()); }
+
         private:
             void SensorEvents(Scene* p_Scene);
             void ContactEvents(Scene* p_Scene);
@@ -67,6 +70,8 @@ namespace KTN
 
             std::unordered_set<std::pair<UUID, UUID>> m_FrameContactEvents;
             std::unordered_set<std::pair<UUID, UUID>> m_ActiveFrameContactEvents;
+
+            std::vector<Entity> m_PhysicEntities;
     };
 
 } // namespace KTN

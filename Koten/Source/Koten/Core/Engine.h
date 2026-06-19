@@ -14,6 +14,9 @@ namespace KTN
     {
         uint32_t FramesPerSecond = 0;
 
+        float FrameTimeMS        = 0.0f;
+        float RawFrameTimeMS     = 0.0f;
+
         uint32_t TrianglesCount  = 0;
         uint32_t DrawCalls       = 0;
     };

@@ -1,15 +1,11 @@
 #include "ktnpch.h"
 #include "B2Physics.h"
 #include "Koten/Scene/Scene.h"
-#include "Koten/Scene/SystemManager.h"
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Asset/AssetManager.h"
 
 // lib
 #include <box2d/box2d.h>
-
-// std
-#include <functional>
 
 
 
@@ -184,6 +180,7 @@ namespace KTN
 
         b2WorldId world = { .index1 = m_World.Index, .generation = m_World.Generation };
         b2DestroyWorld(world);
+        m_PhysicEntities.clear();
     }
 
     bool B2Physics::DestroyBody(const B2BodyID& p_Body)
@@ -207,32 +204,31 @@ namespace KTN
 
         auto& registry = p_Scene->GetRegistry();
 
-        registry.view<TransformComponent, CharacterBody2DComponent>().each(
-        [&](auto p_Entt, TransformComponent& p_Transform, CharacterBody2DComponent& p_Body)
+        for (auto& entity : m_PhysicEntities)
         {
-            Entity entt{ p_Entt, p_Scene };
-            if (!entt.IsActive()) return;
+            if (!entity.IsActive()) continue;
+            if (!entity.HasComponent<TransformComponent>()) continue;
 
-            CreatePhysicsBody(p_Scene, entt, p_Transform, &p_Body);
-        });
-
-        registry.view<TransformComponent, Rigidbody2DComponent>().each(
-        [&](auto p_Entt, TransformComponent& p_Transform, Rigidbody2DComponent& p_Body)
-        {
-            Entity entt{ p_Entt, p_Scene };
-            if (!entt.IsActive()) return;
-
-            CreatePhysicsBody(p_Scene, entt, p_Transform, &p_Body);
-        });
-
-        registry.view<TransformComponent, StaticBody2DComponent>().each(
-        [&](auto p_Entt, TransformComponent& p_Transform, StaticBody2DComponent& p_Body)
-        {
-            Entity entt{ p_Entt, p_Scene };
-            if (!entt.IsActive()) return;
-
-            CreatePhysicsBody(p_Scene, entt, p_Transform, &p_Body);
-        });
+            auto& transform = entity.GetComponent<TransformComponent>();
+            if (entity.HasComponent<CharacterBody2DComponent>())
+            {
+                auto& body = entity.GetComponent<CharacterBody2DComponent>();
+                body.Body = {};
+                CreatePhysicsBody(p_Scene, entity, transform, &body);
+            }
+            else if (entity.HasComponent<Rigidbody2DComponent>())
+            {
+                auto& body = entity.GetComponent<Rigidbody2DComponent>();
+                body.Body = {};
+                CreatePhysicsBody(p_Scene, entity, transform, &body);
+            }
+            else if (entity.HasComponent<StaticBody2DComponent>())
+            {
+                auto& body = entity.GetComponent<StaticBody2DComponent>();
+                body.Body = {};
+                CreatePhysicsBody(p_Scene, entity, transform, &body);
+            }
+        }
 
         m_IsRunning = true;
         return true;

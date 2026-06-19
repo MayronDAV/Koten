@@ -8,6 +8,8 @@
 #include "Koten/Graphics/DFFont.h"
 #include "Koten/Project/Project.h"
 #include "Koten/Graphics/Material.h"
+#include <Koten/Systems/AnimSystem.h>
+
 
 
 
@@ -106,6 +108,8 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
+        m_Registry.ctx().emplace<Scene*>(this);
+
         AddDependency<SpriteComponent, TransformComponent>(m_Registry);
         AddDependency<LineRendererComponent, TransformComponent>(m_Registry);
         AddDependency<TextRendererComponent, TransformComponent>(m_Registry);
@@ -117,9 +121,12 @@ namespace KTN
         AddDependency<StaticBody2DComponent, TransformComponent>(m_Registry);
         AddDependency<StaticBody2DComponent, BodyShape2DComponent>(m_Registry);
 
+        RegisterComponentCallbacks<ALL_COMPONENTS>(m_Registry);
+
         m_SystemManager = CreateUnique<SystemManager>();
         if (m_Config.UsePhysics2D)
             m_SystemManager->RegisterSystem<B2Physics>();
+        m_SystemManager->RegisterSystem<AnimSystem>();
 
         m_SceneGraph = CreateUnique<SceneGraph>();
         m_SceneGraph->Init(m_Registry);
@@ -249,7 +256,7 @@ namespace KTN
                 m_Projection = p_Camera.Camera.GetProjection();
                 m_View       = glm::inverse(p_Transform.GetWorldMatrix());
                 m_ClearColor = p_Camera.ClearColor;
-                m_HaveCamera = true;
+            m_HaveCamera = true;
                 first        = false;
             }
         });
@@ -440,13 +447,23 @@ namespace KTN
                     command.Render2D.Fade      = sprite->Fade;
 
                     auto mat                   = AssetManager::Get()->GetAsset<Material>(sprite->Material);
-
                     command.Render2D.Color     = mat->AlbedoColor;
-                    command.Render2D.Texture   = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
-                    command.Render2D.Size      = sprite->Size;
-                    command.Render2D.BySize    = sprite->BySize;
-                    command.Render2D.Offset    = sprite->Offset;
-                    command.Render2D.Scale     = sprite->Scale;
+
+                    auto animComp                     = m_Registry.try_get<AnimationComponent>(p_Entity);
+                    if (animComp)
+                    {
+                        command.Render2D.Texture      = AssetManager::Get()->GetAsset<Texture2D>(animComp->Texture);
+                        command.Render2D.UseDirectUVs = true;
+                        command.Render2D.UV           = animComp->CurrentAnim.UV;
+                    }
+                    else
+                    {
+                        command.Render2D.Texture      = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
+                        command.Render2D.Size         = sprite->Size;
+                        command.Render2D.BySize       = sprite->BySize;
+                        command.Render2D.Offset       = sprite->Offset;
+                        command.Render2D.Scale        = sprite->Scale;
+                    }
 
                     Renderer::Submit(command);
                 }

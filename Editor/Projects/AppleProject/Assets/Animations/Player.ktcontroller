@@ -1,0 +1,56 @@
+AssetHandle: 16223089111486890349
+AnimationHandle: 17058650733050823340
+Parameters:
+  - ID: 8927515797463173212
+    Name: IsRunning
+    Type: 0
+  - ID: 16050986523567992301
+    Name: FloatType
+    Type: 1
+  - ID: 12029213321981705854
+    Name: IntType
+    Type: 2
+EntryState:
+  - ID: 9073184408162401139
+    Name: Entry
+    ClipID: 0
+    Transitions:
+      - ID: 1076592212279778533
+        ToState: 3920825177732577125
+        ToStateIndex: 0
+        HasExitTime: false
+        ExitTime: 0
+        BlendTime: 0.1
+        Conditions:
+          []
+States:
+  - ID: 3920825177732577125
+    Name: Right
+    ClipID: 3920825177732577125
+    Transitions:
+      - ID: 1515528795912155530
+        ToState: 1627075065389845385
+        ToStateIndex: 1
+        HasExitTime: false
+        ExitTime: 0
+        BlendTime: 0.1
+        Conditions:
+          - ParameterID: 8927515797463173212
+            Type: 0
+            Operator: 1
+            CompareValue: true
+  - ID: 1627075065389845385
+    Name: Ladder
+    ClipID: 1627075065389845385
+    Transitions:
+      - ID: 3357977239270491527
+        ToState: 3920825177732577125
+        ToStateIndex: 0
+        HasExitTime: false
+        ExitTime: 0
+        BlendTime: 0.1
+        Conditions:
+          - ParameterID: 8927515797463173212
+            Type: 0
+            Operator: 1
+            CompareValue: false

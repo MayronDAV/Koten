@@ -344,5 +344,19 @@ namespace KTN
 
         #endregion
 
+        #region AnimationComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool AnimationComponent_IsPlaying(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool AnimationComponent_SetBool(ObjectHandle p_Handle, string p_Name, bool p_Value);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool AnimationComponent_SetFloat(ObjectHandle p_Handle, string p_Name, float p_Value);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool AnimationComponent_SetInt(ObjectHandle p_Handle, string p_Name, int p_Value);
+
+        #endregion
     }
 } // namespace KTN

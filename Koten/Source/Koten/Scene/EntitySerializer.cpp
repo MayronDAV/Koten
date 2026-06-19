@@ -586,7 +586,8 @@ namespace KTN
 
             auto& comp = p_Entity.GetComponent<AnimationComponent>();
             ADD_KEY_VALUE("Controller", comp.Controller);
-            p_Out << YAML::Key << "Parameters" << YAML::Value;
+            ADD_KEY_VALUE("Texture", comp.Texture);
+            p_Out << YAML::Key << "Parameters" << YAML::BeginSeq;
             for (const auto& param : comp.Parameters)
             {
                 p_Out << YAML::BeginMap;
@@ -595,17 +596,17 @@ namespace KTN
                 ADD_KEY_VALUE("Type", (int)param.Type);
                 switch (param.Type)
                 {
-                    case AnimationConditionType::Bool:
+                    case ParameterType::Bool:
                     {
                         ADD_KEY_VALUE("Value", param.Value.Bool);
                         break;
                     }
-                    case AnimationConditionType::Float:
+                    case ParameterType::Float:
                     {
                         ADD_KEY_VALUE("Value", param.Value.Float);
                         break;
                     }
-                    case AnimationConditionType::Int:
+                    case ParameterType::Int:
                     {
                         ADD_KEY_VALUE("Value", param.Value.Int);
                         break;
@@ -613,6 +614,7 @@ namespace KTN
                 }
                 p_Out << YAML::EndMap;
             }
+            p_Out << YAML::EndSeq;
             p_Out << YAML::EndMap;
         }
 
@@ -1006,6 +1008,7 @@ namespace KTN
             Utils::WriteString(p_Out, "AnimationComponent");
             auto& comp = p_Entity.GetComponent<AnimationComponent>();
             p_Out.write(reinterpret_cast<const char*>(&comp.Controller), sizeof(comp.Controller));
+            p_Out.write(reinterpret_cast<const char*>(&comp.Texture), sizeof(comp.Texture));
 
             size_t size = comp.Parameters.size();
             p_Out.write(reinterpret_cast<const char*>(&size), sizeof(size));
@@ -1016,17 +1019,17 @@ namespace KTN
                 p_Out.write(reinterpret_cast<const char*>(&param.Type), sizeof(param.Type));
                 switch (param.Type)
                 {
-                    case AnimationConditionType::Bool:
+                    case ParameterType::Bool:
                     {
                         p_Out.write(reinterpret_cast<const char*>(&param.Value.Bool), sizeof(param.Value.Bool));
                         break;
                     }
-                    case AnimationConditionType::Float:
+                    case ParameterType::Float:
                     {
                         p_Out.write(reinterpret_cast<const char*>(&param.Value.Float), sizeof(param.Value.Float));
                         break;
                     }
-                    case AnimationConditionType::Int:
+                    case ParameterType::Int:
                     {
                         p_Out.write(reinterpret_cast<const char*>(&param.Value.Int), sizeof(param.Value.Int));
                         break;
@@ -1367,24 +1370,25 @@ namespace KTN
 
             auto& comp      = p_Entity.AddOrReplaceComponent<AnimationComponent>();
             comp.Controller = data["Controller"].as<AssetHandle>();
+            comp.Texture    = data["Texture"].as<AssetHandle>();
             auto parameters = data["Parameters"];
             if (parameters)
             {
                 for (auto param : parameters)
                 {
                     AnimationComponent::Parameter p = {};
-                    p.ID                            = param["ID"].as<uint32_t>();
+                    p.ID                            = param["ID"].as<uint64_t>();
                     p.Name                          = param["Name"].as<std::string>();
-                    p.Type                          = (AnimationConditionType)param["Type"].as<int>();
+                    p.Type                          = (ParameterType)param["Type"].as<int>();
                     switch (p.Type)
                     {
-                        case AnimationConditionType::Bool:
+                        case ParameterType::Bool:
                             p.Value.Bool  = param["Value"].as<bool>();
                             break;
-                        case AnimationConditionType::Float:
+                        case ParameterType::Float:
                             p.Value.Float = param["Value"].as<float>();
                             break;
-                        case AnimationConditionType::Int:
+                        case ParameterType::Int:
                             p.Value.Int   = param["Value"].as<int>();
                             break;
                     }
@@ -1788,6 +1792,7 @@ namespace KTN
 
             AnimationComponent comp = {};
             KTN_STREAM(&comp.Controller, sizeof(comp.Controller));
+            KTN_STREAM(&comp.Texture, sizeof(comp.Texture));
 
             size_t size             = 0;
             KTN_STREAM(&size, sizeof(size));
@@ -1803,13 +1808,13 @@ namespace KTN
                 KTN_STREAM(&p.Type, sizeof(p.Type));
                 switch (p.Type)
                 {
-                    case AnimationConditionType::Bool:
+                    case ParameterType::Bool:
                         KTN_STREAM(&p.Value.Bool, sizeof(p.Value.Bool));
                         break;
-                    case AnimationConditionType::Float:
+                    case ParameterType::Float:
                         KTN_STREAM(&p.Value.Float, sizeof(p.Value.Float));
                         break;
-                    case AnimationConditionType::Int:
+                    case ParameterType::Int:
                         KTN_STREAM(&p.Value.Int, sizeof(p.Value.Int));
                         break;
                 }

@@ -12,6 +12,7 @@
 #include "Panels/SceneEditPanel.h"
 #include "Panels/TextureAtlasPanel.h"
 #include "Panels/AnimationPanel.h"
+#include "Panels/AnimationControllerPanel.h"
 #include "Shortcuts.h"
 
 // lib
@@ -162,17 +163,18 @@ namespace KTN
         
         KTN_CORE_ASSERT(Project::GetActive(), "No project opened! Please open a project to continue.");
 
-        m_Camera            = CreateRef<EditorCamera>();
+        m_Camera                   = CreateRef<EditorCamera>();
 
         ImGuizmo::Init();
 
-        m_Settings          = CreateRef<SettingsPanel>();
-        m_AssetImporter     = CreateRef<AssetImporterPanel>();
-        m_ProjectExporter   = CreateRef<ProjectExporterPanel>();
-        m_MaterialPanel     = CreateRef<MaterialPanel>();
-        m_SceneEditPanel    = CreateRef<SceneEditPanel>();
-        m_TextureAtlasPanel = CreateRef<TextureAtlasPanel>();
-        m_AnimationPanel    = CreateRef<AnimationPanel>();
+        m_Settings                 = CreateRef<SettingsPanel>();
+        m_AssetImporter            = CreateRef<AssetImporterPanel>();
+        m_ProjectExporter          = CreateRef<ProjectExporterPanel>();
+        m_MaterialPanel            = CreateRef<MaterialPanel>();
+        m_SceneEditPanel           = CreateRef<SceneEditPanel>();
+        m_TextureAtlasPanel        = CreateRef<TextureAtlasPanel>();
+        m_AnimationPanel           = CreateRef<AnimationPanel>();
+        m_AnimationControllerPanel = CreateRef<AnimationControllerPanel>();
 
         m_Panels.emplace_back(CreateRef<SceneViewPanel>());
         m_Panels.emplace_back(CreateRef<GameViewPanel>());
@@ -185,6 +187,7 @@ namespace KTN
         m_Panels.emplace_back(m_MaterialPanel);
         m_Panels.emplace_back(m_TextureAtlasPanel);
         m_Panels.emplace_back(m_AnimationPanel);
+        m_Panels.emplace_back(m_AnimationControllerPanel);
         m_Panels.emplace_back(CreateRef<AssetRegistryPanel>());
 
         auto contentBrowser = CreateRef<ContentBrowserPanel>(Project::GetAssetDirectory().string());
@@ -318,6 +321,12 @@ namespace KTN
                     ImGui::BeginChild("##DebugChild", { size.x, size.y - (lineHeight * 1.5f) }, false);
                     ImGui::PopStyleVar();
                     {
+                        auto& stats = Engine::Get().GetStats();
+                        ImGui::Text("FPS: %d", stats.FramesPerSecond);
+                        ImGui::Text("Frame Time: %.2f ms", stats.FrameTimeMS);
+                        ImGui::Text("Raw Frame Time: %.2f ms", stats.RawFrameTimeMS);
+                        ImGui::Separator();
+
                         ImGui::Checkbox("Update Minimized", &settings.UpdateMinimized);
                         ImGui::Checkbox("Auto Recompile Scripts", &settings.AutoRecompile);
                         ImGui::Checkbox("Mouse Picking", &settings.MousePicking);
@@ -730,6 +739,11 @@ namespace KTN
                 if (ImGui::MenuItem("Animation..."))
                 {
                     m_AnimationPanel->Open();
+                }
+
+                if (ImGui::MenuItem("AnimationController..."))
+                {
+                    m_AnimationControllerPanel->Open();
                 }
 
                 if (ImGui::MenuItem(ICON_MDI_IMPORT " Import Asset..."))

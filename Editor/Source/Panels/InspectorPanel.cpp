@@ -2,6 +2,8 @@
 #include "Editor.h"
 #include "AssetImporterPanel.h"
 #include "MaterialPanel.h"
+#include "Koten/Asset/AssetManager.h"
+#include "Koten/Asset/AnimationControllerImporter.h"
 
 // lib
 #include <imgui.h>
@@ -17,7 +19,8 @@ namespace KTN
 {
     namespace
     {
-        #define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CharacterBody2DComponent, Rigidbody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent
+        #define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent,\
+            CharacterBody2DComponent, Rigidbody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, AnimationComponent
 
         template <typename Component>
         void ComponentDrawView(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity) {}
@@ -65,7 +68,7 @@ namespace KTN
                 }
             }
         }
-
+ 
         template<typename Component, typename Function>
         static void DrawComponent(const std::string& p_Name, Entity p_Entity, Function p_Function, bool p_Settings = true)
         {
@@ -652,6 +655,98 @@ namespace KTN
             });
         }
 
+        template <>
+        void ComponentDrawView<AnimationComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+        {
+            DrawComponent<AnimationComponent>("Animation", p_Entity,
+            [&](AnimationComponent& p_Anim)
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+                if (ImGui::Button(ICON_MDI_RESTART))
+                {
+                    p_Anim.Controller = 0;
+                    p_Anim.Parameters.clear();
+                }
+                ImGui::SameLine();
+                auto filePath             = GetRelative(AssetManager::Get()->GetMetadata(p_Anim.Controller).FilePath);
+                filePath                  = filePath.empty() ? "None" : filePath;
+                if (ImGui::Button(filePath.c_str()))
+                {
+                    std::string path      = "";
+                    if (FileDialog::Open({ { "Animation Controller", "*.ktcontroller" } }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                    {
+                        p_Anim.Controller = AssetManager::Get()->ImportAsset(AssetType::AnimationController, path);
+                        auto controller   = AssetManager::Get()->GetAsset<AnimationController>(p_Anim.Controller);
+                        auto anim         = AssetManager::Get()->GetAsset<Animation>(controller->AnimationHandle);
+                        auto atlas        = AssetManager::Get()->GetAsset<TextureAtlas>(anim->TextureAtlas);
+                        p_Anim.Texture    = atlas->Texture;
+
+                        p_Anim.Parameters.clear();
+                        p_Anim.Parameters.reserve(controller->Parameters.size());
+                        for (const auto& param : controller->Parameters)
+                        {
+                            AnimationComponent::Parameter parameter = {};
+                            parameter.ID                            = param.ID;
+                            parameter.Name                          = param.Name;
+                            parameter.Type                          = param.Type;
+
+                            p_Anim.Parameters.push_back(parameter);
+                        }
+                    }
+                }
+                ImGui::PopStyleVar();
+
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        const wchar_t* path   = (const wchar_t*)payload->Data;
+                        auto filepath         = std::filesystem::path(path);
+                        if (filepath.extension() == ".ktcontroller")
+                        {
+                            p_Anim.Controller = AssetManager::Get()->ImportAsset(AssetType::AnimationController, filepath.string());
+                            auto controller   = AssetManager::Get()->GetAsset<AnimationController>(p_Anim.Controller);
+                            auto anim         = AssetManager::Get()->GetAsset<Animation>(controller->AnimationHandle);
+                            auto atlas        = AssetManager::Get()->GetAsset<TextureAtlas>(anim->TextureAtlas);
+                            p_Anim.Texture    = atlas->Texture;
+
+                            p_Anim.Parameters.clear();
+                            p_Anim.Parameters.reserve(controller->Parameters.size());
+                            for (const auto& param : controller->Parameters)
+                            {
+                                AnimationComponent::Parameter parameter = {};
+                                parameter.ID                            = param.ID;
+                                parameter.Name                          = param.Name;
+                                parameter.Type                          = param.Type;
+
+                                p_Anim.Parameters.push_back(parameter);
+                            }
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+
+                ImGui::Spacing();
+                
+                ImGui::BeginChild("Parameters", ImVec2(0.0f, 0.0f), true);
+
+                for (auto& param : p_Anim.Parameters)
+                {
+                    ImGui::Text(param.Name.c_str());
+                    ImGui::SameLine();
+                    if (param.Type == ParameterType::Float)
+                        ImGui::DragFloat(std::string("##Param" + std::to_string(param.ID)).c_str(), &param.Value.Float);
+                    if (param.Type == ParameterType::Bool)
+                        ImGui::Checkbox(std::string("##Param" + std::to_string(param.ID)).c_str(), &param.Value.Bool);
+                    if (param.Type == ParameterType::Int)
+                        ImGui::DragInt(std::string("##Param" + std::to_string(param.ID)).c_str(), &param.Value.Int);
+                }
+
+                ImGui::EndChild();
+            });
+        }
+
+
     } // namespace
 
     InspectorPanel::InspectorPanel()
@@ -727,6 +822,7 @@ namespace KTN
                     DisplayComponentEntry<BodyShape2DComponent>("CircleShape2D", selectedEntt,
                         [](BodyShape2DComponent& p_Comp) { p_Comp.Shape = Shape2D::Circle; });
                     DisplayComponentEntry<ScriptComponent>("ScriptComponent", selectedEntt);
+                    DisplayComponentEntry<AnimationComponent>("AnimationComponent", selectedEntt);
 
                     ImGui::EndPopup();
                 }

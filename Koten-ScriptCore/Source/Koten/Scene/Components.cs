@@ -242,4 +242,27 @@ namespace KTN
     {
     }
 
+    public class AnimationComponent : Component
+    {
+        public bool IsPlaying
+        {
+            get => InternalCalls.AnimationComponent_IsPlaying(GetHandle());
+        }
+
+        public bool SetBool(string p_Name, bool p_Value)
+        {
+            return InternalCalls.AnimationComponent_SetBool(GetHandle(), p_Name, p_Value);
+        }
+
+        public bool SetFloat(string p_Name, float p_Value)
+        {
+            return InternalCalls.AnimationComponent_SetFloat(GetHandle(), p_Name, p_Value);
+        }
+
+        public bool SetInt(string p_Name, int p_Value)
+        {
+            return InternalCalls.AnimationComponent_SetInt(GetHandle(), p_Name, p_Value);
+        }
+    }
+
 } // namespace KTN

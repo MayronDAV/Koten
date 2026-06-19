@@ -24,6 +24,7 @@ project "Editor"
 		"%{IncludeDir.entt}",
 		"%{IncludeDir.yamlcpp}",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.imgui_node_editor}",
 		"%{IncludeDir.optick}"
 	}
 
@@ -33,10 +34,11 @@ project "Editor"
 		"imgui",
 		"spdlog",
 		"yaml-cpp",
-		"ImGuizmo"
+		"ImGuizmo",
+		"imgui-node-editor"
 	}
 
-	defines "KTN_PROFILE_ENABLED"
+	defines { "KTN_PROFILE_ENABLED", "IMGUI_DEFINE_MATH_OPERATORS" }
 
 	filter "system:windows"
 		systemversion "latest"

@@ -4,11 +4,14 @@
 #include "Koten/Graphics/Shader.h"
 #include "Koten/Graphics/DescriptorSet.h"
 #include "Koten/Graphics/RendererCommand.h"
+#include "Koten/Core/Application.h"
+#include "Koten/Core/TaskManager.h"
 
 // std
 #include <codecvt>
 #include <locale>
 #include <numeric>
+#include <mutex>
 
 
 
@@ -97,11 +100,16 @@ namespace KTN
 
             std::vector<InstanceEntry> InstanceEntries;
 
+            std::vector<InstanceData> SortedInstances;
+            std::vector<int> SortedEntityIDs;
+
             uint32_t TextureSlotIndex     = 1;
             std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
 
             Ref<Shader> PickingShader     = nullptr;
             Ref<DescriptorSet> PickingSet = nullptr;
+
+            std::mutex InstanceMutex;
 
             void Init();
             void Begin();
@@ -197,8 +205,22 @@ namespace KTN
         uint32_t whiteTextureData = 0xffffffff;
         s_Data->WhiteTexture      = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
 
-        s_Data->FinalPassShader = Shader::Create("Assets/Shaders/FinalPass.glsl");
-        s_Data->FinalPassSet    = DescriptorSet::Create({ 0, s_Data->FinalPassShader });
+        TaskManager::Get().AddTask({
+            "Renderer::Init",
+            TaskManager::Phase::Init,
+            0,
+            []()
+            {
+                auto spirvSource = Shader::CompileOrGetSpirv("Assets/Shaders/FinalPass.glsl");
+                Application::Get().SubmitToMainThread([source = std::move(spirvSource)]()
+                {
+                    s_Data->FinalPassShader = Shader::Create(source);
+                    s_Data->FinalPassSet    = DescriptorSet::Create({ 0, s_Data->FinalPassShader });
+                });
+            },
+            true,
+            TaskManager::SyncPoint::None
+         });
 
         // R2D
         {
@@ -297,11 +319,15 @@ namespace KTN
         s_R2DData->Begin();
         s_LineData->Begin();
         s_TextData->Begin();
+
+        TaskManager::Get().ExecutePhase(TaskManager::Phase::Render);
     }
 
     void Renderer::End()
     {
         KTN_PROFILE_FUNCTION();
+
+        TaskManager::Get().WaitForSyncPoint(TaskManager::SyncPoint::FrameRender);
 
         auto commandBuffer = RendererCommand::GetCurrentCommandBuffer();
 
@@ -465,10 +491,107 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            MainShader = Shader::Create("Assets/Shaders/R2D_Shader.glsl");
-            Set = DescriptorSet::Create({ 0, MainShader });
+            TaskManager::Get().AddTask({
+                "R2D::Init",
+                TaskManager::Phase::Init,
+                1,
+                [this]()
+                {
+                    auto spirvSource = Shader::CompileOrGetSpirv("Assets/Shaders/R2D_Shader.glsl");
+                    KTN_CORE_INFO("Compiled R2D_Shader shader!");
+                    Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
+                    {
+                        MainShader   = Shader::Create(source);
+                        Set          = DescriptorSet::Create({ 0, MainShader });
+                    });
+                },
+                true,
+                TaskManager::SyncPoint::None
+            });
 
-            VAO = VertexArray::Create();
+            if (Engine::Get().GetSettings().MousePicking)
+            {
+                TaskManager::Get().AddTask({
+                    "R2D::Init MousePicking",
+                    TaskManager::Phase::Init,
+                    2,
+                    [this]()
+                    {
+                        auto spirvSource = Shader::CompileOrGetSpirv("Assets/Shaders/R2D_Picking.glsl");
+                        KTN_CORE_INFO("Compiled R2D_Picking shader!");
+                        Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
+                        {
+                            PickingShader = Shader::Create(source);
+                            PickingSet = DescriptorSet::Create({ 0, PickingShader });
+                        });
+                    },
+                    true,
+                    TaskManager::SyncPoint::None
+                });
+            }
+
+            TaskManager::Get().AddTask({
+                "R2D::SortInstances",
+                TaskManager::Phase::Render,
+                0,
+                [this]()
+                {
+                    while (true)
+                    {
+                        auto syncPoint = TaskManager::Get().CurrentSyncPoint();
+
+                        if (InstanceEntries.empty())
+                        {
+                            if (syncPoint == TaskManager::SyncPoint::None) continue;
+                            else if (syncPoint == TaskManager::SyncPoint::FrameRender) break;
+                        }
+
+                        std::vector<InstanceEntry> entriesCopy;
+                        {
+                            std::scoped_lock lock(InstanceMutex);
+                            entriesCopy = InstanceEntries;
+                        }
+
+                        std::vector<uint32_t> sortedIndices(entriesCopy.size());
+                        std::iota(sortedIndices.begin(), sortedIndices.end(), 0);
+
+                        std::sort(sortedIndices.begin(), sortedIndices.end(),
+                        [&](uint32_t a, uint32_t b)
+                        {
+                            return entriesCopy[a].Instance.Transform[3].y > entriesCopy[b].Instance.Transform[3].y;
+                        });
+
+                        bool mousePicking = Engine::Get().GetSettings().MousePicking;
+
+                        std::vector<InstanceData> localSortedInstances;
+                        std::vector<int> localSortedEntityIDs;
+
+                        localSortedInstances.resize(sortedIndices.size());
+                        if (mousePicking)
+                            localSortedEntityIDs.resize(sortedIndices.size());
+
+                        for (size_t i = 0; i < sortedIndices.size(); i++)
+                        {
+                            auto& entry = entriesCopy[sortedIndices[i]];
+                            localSortedInstances[i] = entry.Instance;
+                            if (mousePicking)
+                                localSortedEntityIDs[i] = entry.EntityID;
+                        }
+
+                        {
+                            std::scoped_lock lock(InstanceMutex);
+                            SortedInstances = std::move(localSortedInstances);
+                            SortedEntityIDs = std::move(localSortedEntityIDs);
+                        }
+
+                        if (syncPoint == TaskManager::SyncPoint::FrameRender) break;
+                    }
+                },
+                true,
+                TaskManager::SyncPoint::FrameRender
+            });
+
+            VAO              = VertexArray::Create();
 
             float vertices[] = {
                 // positions
@@ -478,7 +601,7 @@ namespace KTN
                 -0.5f,  0.5f, 0.0f
             };
 
-            auto vbo = VertexBuffer::Create(vertices, sizeof(vertices));
+            auto vbo         = VertexBuffer::Create(vertices, sizeof(vertices));
             vbo->SetLayout({
                 { DataType::Float3 , "a_Position"    }
             });
@@ -488,18 +611,12 @@ namespace KTN
                 0, 1, 3, // first triangle
                 1, 2, 3  // second triangle
             };
-            auto ebo = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
+            auto ebo           = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
             VAO->SetIndexBuffer(ebo);
 
             TextureSlots.fill(s_Data->WhiteTexture);
 
-            Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
-
-            if (Engine::Get().GetSettings().MousePicking)
-            {
-                PickingShader = Shader::Create("Assets/Shaders/R2D_Picking.glsl");
-                PickingSet = DescriptorSet::Create({ 0, PickingShader });
-            }
+            Buffer             = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
         }
 
         void Data::Begin()
@@ -525,8 +642,12 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
+            std::scoped_lock lock(InstanceMutex);
+
             InstanceEntries.clear();
             TextureSlotIndex = 1;
+            SortedInstances.clear();
+            SortedEntityIDs.clear();
         }
 
         void Data::FlushAndReset()
@@ -546,35 +667,6 @@ namespace KTN
 
             if (!InstanceEntries.empty())
             {
-                std::vector<uint32_t> sortedIndices;
-                sortedIndices.resize(InstanceEntries.size());
-                std::iota(sortedIndices.begin(), sortedIndices.end(), 0);
-
-                std::sort(sortedIndices.begin(), sortedIndices.end(),
-                [&](uint32_t a, uint32_t b)
-                {
-                    return InstanceEntries[a].Instance.Transform[3].y > InstanceEntries[b].Instance.Transform[3].y;
-                });
-
-                std::vector<InstanceData> instances;
-                std::vector<int> entityIDs;
-                bool mousePicking = Engine::Get().GetSettings().MousePicking;
-
-                instances.resize(sortedIndices.size());
-
-                if (mousePicking)
-                    entityIDs.resize(sortedIndices.size());
-
-                for (size_t i = 0; i < sortedIndices.size(); i++)
-                {
-                    auto& entry = InstanceEntries[sortedIndices[i]];
-
-                    instances[i] = entry.Instance;
-
-                    if (mousePicking)
-                        entityIDs[i] = entry.EntityID;
-                }
-
                 MainPipeline->Begin(commandBuffer);
 
                 RendererCommand::SetViewport(0.0f, 0.0f, s_Data->Width, s_Data->Height);
@@ -582,14 +674,14 @@ namespace KTN
                 Set->SetUniform("Camera", "u_ViewProjection", &vp);
                 Set->Upload(commandBuffer);
 
-                Set->SetUniform("u_Instances", "Instances", instances.data(), instances.size() * sizeof(InstanceData));
+                Set->SetUniform("u_Instances", "Instances", SortedInstances.data(), SortedInstances.size() * sizeof(InstanceData));
                 Set->Upload(commandBuffer);
 
-                Set->SetTexture("u_Textures", TextureSlots.data(), (uint32_t)TextureSlots.size());
+                Set->SetTexture("u_Textures", TextureSlots.data(), TextureSlotIndex);
                 Set->Upload(commandBuffer);
 
                 DrawElementsIndirectCommand command = {
-                    6, (uint32_t)instances.size(), 0, 0, 0
+                    6, (uint32_t)SortedInstances.size(), 0, 0, 0
                 };
                 Buffer->SetData(&command, sizeof(command));
 
@@ -597,11 +689,11 @@ namespace KTN
                 RendererCommand::DrawIndexedIndirect(DrawType::TRIANGLES, VAO, Buffer);
 
                 Engine::Get().GetStats().DrawCalls      += 1;
-                Engine::Get().GetStats().TrianglesCount += (uint32_t)instances.size() * 2;
+                Engine::Get().GetStats().TrianglesCount += (uint32_t)SortedInstances.size() * 2;
 
                 MainPipeline->End(commandBuffer);
 
-                if (mousePicking)
+                if (Engine::Get().GetSettings().MousePicking)
                 {
                     PipelineSpecification pspec = {};
                     pspec.pShader               = PickingShader;
@@ -622,15 +714,15 @@ namespace KTN
                     PickingSet->SetUniform("Camera", "u_ViewProjection", &vp);
                     PickingSet->Upload(commandBuffer);
 
-                    PickingSet->SetUniform("u_Instances", "Instances", instances.data(), instances.size() * sizeof(InstanceData));
+                    PickingSet->SetUniform("u_Instances", "Instances", SortedInstances.data(), SortedInstances.size() * sizeof(InstanceData));
                     PickingSet->Upload(commandBuffer);
 
-                    int count = entityIDs.size();
+                    int count = SortedEntityIDs.size();
 
-                    size_t bufferSize = sizeof(int) + sizeof(int) * entityIDs.size();
+                    size_t bufferSize = sizeof(int) + sizeof(int) * SortedEntityIDs.size();
                     PickingSet->PrepareStorageBuffer("EntityBuffer", bufferSize);
                     PickingSet->SetStorage("EntityBuffer", "Count", &count, sizeof(int));
-                    PickingSet->SetStorage("EntityBuffer", "EnttIDs", entityIDs.data(), sizeof(int) * entityIDs.size());
+                    PickingSet->SetStorage("EntityBuffer", "EnttIDs", SortedEntityIDs.data(), sizeof(int) * SortedEntityIDs.size());
                     PickingSet->Upload(commandBuffer);
 
                     commandBuffer->BindSets(&PickingSet);
@@ -650,6 +742,8 @@ namespace KTN
             if (InstanceEntries.size() >= (size_t)MaxInstances)
                 FlushAndReset();
 
+            std::scoped_lock lock(InstanceMutex);
+
             auto& entry    = InstanceEntries.emplace_back();
             entry.EntityID = p_Command.EntityID;
 
@@ -658,7 +752,6 @@ namespace KTN
             {
                 for (uint32_t i = 1; i < TextureSlotIndex; i++)
                 {
-                    // TODO: compare texture UUIDs
                     if (TextureSlots[i]->Handle == p_Command.Render2D.Texture->Handle)
                     {
                         textureIndex = (float)i;
@@ -688,31 +781,38 @@ namespace KTN
 
             if (p_Command.Render2D.Texture)
             {
-                auto scale            = p_Command.Render2D.Scale;
-                auto offset           = p_Command.Render2D.Offset;
+                if (p_Command.Render2D.UseDirectUVs)
+                    data.UV               = p_Command.Render2D.UV;
+                else
+                {
+                    auto scale            = p_Command.Render2D.Scale;
+                    auto offset           = p_Command.Render2D.Offset;
 
-                auto texSize          = glm::vec2(
-                    p_Command.Render2D.Texture->GetWidth(),
-                    p_Command.Render2D.Texture->GetHeight()
-                );
+                    auto texSize          = glm::vec2(
+                        p_Command.Render2D.Texture->GetWidth(),
+                        p_Command.Render2D.Texture->GetHeight()
+                    );
 
-                glm::vec2 spriteSize  = (p_Command.Render2D.Size == glm::vec2(0)) ? texSize : p_Command.Render2D.Size;
+                    glm::vec2 spriteSize  = (p_Command.Render2D.Size == glm::vec2(0))
+                        ? texSize
+                        : p_Command.Render2D.Size;
 
-                glm::vec2 tile        = {
-                    scale.x == 0 ? 1.0f : scale.x,
-                    scale.y == 0 ? 1.0f : scale.y
-                };
+                    glm::vec2 tile        = {
+                        scale.x == 0 ? 1.0f : scale.x,
+                        scale.y == 0 ? 1.0f : scale.y
+                    };
 
-                glm::vec2 pixelOffset = p_Command.Render2D.BySize
-                    ? offset * spriteSize
-                    : offset;
+                    glm::vec2 pixelOffset = p_Command.Render2D.BySize
+                        ? offset * spriteSize
+                        : offset;
 
-                glm::vec2 pixelSize   = tile * spriteSize;
+                    glm::vec2 pixelSize   = tile * spriteSize;
 
-                glm::vec2 min         = pixelOffset / texSize;
-                glm::vec2 max         = (pixelOffset + pixelSize) / texSize;
+                    glm::vec2 min         = pixelOffset / texSize;
+                    glm::vec2 max         = (pixelOffset + pixelSize) / texSize;
 
-                data.UV               = glm::vec4(min, max);
+                    data.UV               = glm::vec4(min, max);
+                }
             }
 
             entry.Instance = data;
@@ -726,11 +826,48 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            PrimitiveShader    = Shader::Create("Assets/Shaders/PrimitiveLine.glsl");
-            PrimitiveSet       = DescriptorSet::Create({ 0, PrimitiveShader });
+            TaskManager::Get().AddTask({
+                "Line::Init",
+                TaskManager::Phase::Init,
+                3,
+                [this]()
+                {
+                    auto spirvSource    = Shader::CompileOrGetSpirv("Assets/Shaders/PrimitiveLine.glsl");
+                    KTN_CORE_INFO("Compiled PrimitiveLine shader!");
+                    Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
+                    {
+                        PrimitiveShader = Shader::Create(source);
+                        PrimitiveSet    = DescriptorSet::Create({ 0, PrimitiveShader });
+                    });
+                },
+                true,
+                TaskManager::SyncPoint::None
+            });
 
-            NonPrimitiveShader = Shader::Create("Assets/Shaders/NonPrimitiveLine.glsl");
-            NonPrimitiveSet    = DescriptorSet::Create({ 0, NonPrimitiveShader });
+            TaskManager::Get().AddTask({
+                "Line::Init MousePicking",
+                TaskManager::Phase::Init,
+                4,
+                [this]()
+                {
+                    auto spirvSource       = Shader::CompileOrGetSpirv("Assets/Shaders/NonPrimitiveLine.glsl");
+                    KTN_CORE_INFO("Compiled NonPrimitiveLine shader!");
+                    Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
+                    {
+                        NonPrimitiveShader = Shader::Create(source);
+                        NonPrimitiveSet    = DescriptorSet::Create({ 0, PrimitiveShader });
+                    });
+                },
+                true,
+                TaskManager::SyncPoint::None
+            });
+
+
+            //PrimitiveShader    = Shader::Create("Assets/Shaders/PrimitiveLine.glsl");
+            //PrimitiveSet       = DescriptorSet::Create({ 0, PrimitiveShader });
+
+            //NonPrimitiveShader = Shader::Create("Assets/Shaders/NonPrimitiveLine.glsl");
+            //NonPrimitiveSet    = DescriptorSet::Create({ 0, NonPrimitiveShader });
 
             Buffer             = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
         }
@@ -840,18 +977,48 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            MainShader = Shader::Create("Assets/Shaders/RenderText.glsl");
-            Set        = DescriptorSet::Create({ 0, MainShader });
+            TaskManager::Get().AddTask({
+                "Text::Init",
+                TaskManager::Phase::Init,
+                5,
+                [this]()
+                {
+                    auto spirvSource = Shader::CompileOrGetSpirv("Assets/Shaders/RenderText.glsl");
+                    KTN_CORE_INFO("Compiled RenderText shader!");
+                    Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
+                    {
+                        MainShader   = Shader::Create(source);
+                        Set          = DescriptorSet::Create({ 0, MainShader });
+                    });
+                },
+                true,
+                TaskManager::SyncPoint::None
+            });
+
+            if (Engine::Get().GetSettings().MousePicking)
+            {
+                TaskManager::Get().AddTask({
+                    "Text::Init MousePicking",
+                    TaskManager::Phase::Init,
+                    6,
+                    [this]()
+                    {
+                        auto spirvSource  = Shader::CompileOrGetSpirv("Assets/Shaders/PickingText.glsl");
+                        KTN_CORE_INFO("Compiled PickingText shader!");
+                        Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
+                        {
+                            PickingShader = Shader::Create(source);
+                            PickingSet    = DescriptorSet::Create({ 0, PickingShader });
+                        });
+                    },
+                    true,
+                    TaskManager::SyncPoint::None
+                });
+            }
 
             FontAtlasTextures.fill(s_Data->WhiteTexture);
 
             Buffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
-
-            if (Engine::Get().GetSettings().MousePicking)
-            {
-                PickingShader = Shader::Create("Assets/Shaders/PickingText.glsl");
-                PickingSet = DescriptorSet::Create({ 0, PickingShader });
-            }
         }
 
         void Data::Begin()

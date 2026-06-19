@@ -43,6 +43,9 @@ namespace KTN
 
             // UV Options
 
+            bool UseDirectUVs      = false;
+            glm::vec4 UV           = { 0.0f, 0.0f, 1.0f, 1.0f };
+
             glm::vec2 Size         = { 0.0f, 0.0f };
             // [true] if you want to pass the tile coord as a multiplier of the tile size
             // [false] if you want to pass the actual coord directly

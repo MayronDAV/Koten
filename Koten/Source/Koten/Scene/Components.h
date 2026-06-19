@@ -19,6 +19,9 @@
 
 namespace KTN
 {
+    class Scene;
+    class Entity;
+
     using SceneCamera = Camera;
     using TransformComponent = Math::Transform;
 
@@ -74,16 +77,27 @@ namespace KTN
     struct AnimationComponent
     {
         AssetHandle Controller = 0;
+        AssetHandle Texture    = 0;
 
-        uint32_t CurrentState  = 0;
+        uint32_t CurrentState  = InvalidAnimState;
+        uint32_t CurrentFrame  = 0;
         float CurrentTime      = 0.0f;
-        float StartTime        = 0.0f;
+        float StateTime        = 0.0f;
+        int32_t Direction      = 1;
+        bool IsPlaying         = true;
+
+        struct CurrentAnimation
+        {
+            glm::vec4 UV;
+            glm::vec2 Pivot;
+        };
+        CurrentAnimation CurrentAnim;
 
         struct Parameter
         {
             uint64_t ID;
             std::string Name;
-            AnimationConditionType Type;
+            ParameterType Type;
 
             union
             {
@@ -93,6 +107,12 @@ namespace KTN
             } Value;
         };
         std::vector<Parameter> Parameters;
+
+        int GetParameter(const std::string& p_Name) const;
+
+        bool SetBool(const std::string& p_Name, bool p_Value);
+        bool SetFloat(const std::string& p_Name, float p_Value);
+        bool SetInt(const std::string& p_Name, int p_Value);
 
         AnimationComponent()                          = default;
         AnimationComponent(const AnimationComponent&) = default;
@@ -142,9 +162,9 @@ namespace KTN
     struct KTN_API HierarchyComponent
     {
         entt::entity Parent = entt::null;
-        entt::entity First = entt::null;
-        entt::entity Next = entt::null;
-        entt::entity Prev = entt::null;
+        entt::entity First  = entt::null;
+        entt::entity Next   = entt::null;
+        entt::entity Prev   = entt::null;
         uint32_t ChildCount = 0;
 
         // update hierarchy components when hierarchy component is added
@@ -171,6 +191,9 @@ namespace KTN
         bool IsTrigger = false;
 
         B2BodyID Body = {}; // Physics body id
+
+        void OnComponentAdded(Scene* p_Scene, Entity* p_Entity);
+        void OnComponentRemoved(Scene* p_Scene, Entity* p_Entity);
 
         PhysicsBody2D(bool p_GetDefault = true) : PhysicsMaterial2D(p_GetDefault ? PhysicsMaterial2D::GetDefault() : (AssetHandle)0) {}
     };

@@ -12,6 +12,9 @@
 #include "Koten/Graphics/Renderer.h"
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Scene/SceneManager.h"
+#include "ThreadManager.h"
+#include "TaskManager.h"
+#include "Koten/Systems/AnimSystemManager.h"
 
 
 
@@ -31,6 +34,9 @@ namespace KTN
         Engine::Get().LoadSettings();
 
         auto& settings           = Engine::Get().GetSettings();
+
+        ThreadManager::Create();
+        TaskManager::Create();
 
         m_UpdateMinimized        = settings.UpdateMinimized;
 
@@ -59,67 +65,106 @@ namespace KTN
 
         Renderer::Init();
         ScriptEngine::Init();
+
+        TaskManager::Get().AddTask(
+        {
+            "Application Shutdown",
+            TaskManager::Phase::Destroy,
+            9999,
+            [this]()
+            {
+                m_LayerStack.Clear();
+
+                SceneManager::Shutdown();
+
+                Renderer::Shutdown();
+
+                Pipeline::ClearCache();
+                Framebuffer::ClearCache();
+                Renderpass::ClearCache();
+                Texture::ClearCache();
+
+                ScriptEngine::Shutdown();
+                RendererCommand::Release();
+
+                Engine::Shutdown();
+            },
+            false,
+            TaskManager::SyncPoint::None
+        });
+
+        TaskManager::Get().ExecuteInit();
+        ExecuteMainThreadQueue();
+
+        AnimSystemManager::Init();
     }
 
     Application::~Application()
     {
         KTN_PROFILE_FUNCTION();
 
-        m_LayerStack.Clear();
+        AnimSystemManager::Shutdown();
 
-        SceneManager::Shutdown();
+        TaskManager::Get().ExecuteDestroy();
+        ExecuteMainThreadQueue();
 
-        Renderer::Shutdown();
+        TaskManager::Destroy();
 
-        Pipeline::ClearCache();
-        Framebuffer::ClearCache();
-        Renderpass::ClearCache();
-        Texture::ClearCache();
+        ThreadManager::Destroy();
 
         KTN_PROFILE_SHUTDOWN();
-
-        ScriptEngine::Shutdown();
-        RendererCommand::Release();
-
-        Engine::Shutdown();
-
         s_Instance = nullptr;
     }
 
     void Application::Run()
     {
+        KTN_PROFILE_FUNCTION();
+
         while (m_Running)
         {
             KTN_PROFILE_FRAME("MainThread");
 
+            Time::OnUpdate();
+            auto& stats          = Engine::Get().GetStats();
+            stats.RawFrameTimeMS = static_cast<float>(Time::GetDeltaTime() * 1000.0);
+            stats.FrameTimeMS    = stats.FrameTimeMS == 0 ? stats.RawFrameTimeMS : stats.FrameTimeMS * 0.9f + stats.RawFrameTimeMS * 0.1f;
+
+            if (auto currentTime = Time::GetTime();
+                currentTime - m_LastTime >= 1.0)
+            {
+                stats.FramesPerSecond = uint32_t(m_Counter / (currentTime - m_LastTime));
+                m_LastTime = currentTime;
+                m_Counter = 0;
+            }
+            m_Counter++;
+
+            TaskManager::Get().ExecutePhase(TaskManager::Phase::PreUpdate);
             ExecuteMainThreadQueue();
 
             if (m_UpdateMinimized || !m_Window->IsMinimized())
             {
                 KTN_PROFILE_SCOPE("Update");
 
-                Time::OnUpdate();
-
                 Engine::Get().ResetStats();
 
-                if (auto currentTime = Time::GetTime();
-                    currentTime - m_LastTime >= 1.0)
-                {
-                    Engine::Get().GetStats().FramesPerSecond = uint32_t(m_Counter / (currentTime - m_LastTime));
-                    m_LastTime = currentTime;
-                    m_Counter = 0;
-                }
-                m_Counter++;
+                TaskManager::Get().ExecutePhase(TaskManager::Phase::Update);
 
                 for (auto& layer : m_LayerStack)
                     layer->OnUpdate();
+            
+                TaskManager::Get().ExecutePhase(TaskManager::Phase::LateUpdate);
+                TaskManager::Get().WaitForSyncPoint(TaskManager::SyncPoint::FramePostUpdate);
             }
+
 
             if (!m_Window->IsMinimized())
             {
                 KTN_PROFILE_SCOPE("Render");
 
                 RendererCommand::Begin();
+
+                TaskManager::Get().ExecutePhase(TaskManager::Phase::PreRender);
+                TaskManager::Get().WaitForSyncPoint(TaskManager::SyncPoint::FramePreRender);
 
                 for (auto& layer : m_LayerStack)
                     layer->OnRender();
@@ -135,6 +180,9 @@ namespace KTN
 
                 m_Window->SwapBuffer();
             }
+
+            TaskManager::Get().ExecutePhase(TaskManager::Phase::PostRender);
+            TaskManager::Get().WaitForSyncPoint(TaskManager::SyncPoint::FrameEnd);
 
             m_Window->OnUpdate();
 

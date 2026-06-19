@@ -166,27 +166,27 @@ namespace KTN
 
             shader.setPreamble(preamble.c_str());
 
-            int ClientInputSemanticsVersion                    = 130;
-            glslang::EShTargetClientVersion ClientVersion    = glslang::EShTargetVulkan_1_3;
+            int ClientInputSemanticsVersion                 = 130;
+            glslang::EShTargetClientVersion ClientVersion   = glslang::EShTargetVulkan_1_3;
             glslang::EShTargetLanguageVersion TargetVersion = glslang::EShTargetSpv_1_5;
-            glslang::EShClient Client                        = glslang::EShClientVulkan;
+            glslang::EShClient Client                       = glslang::EShClientVulkan;
             if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
             {
-                ClientInputSemanticsVersion                    = 450;
-                Client                                        = glslang::EShClientOpenGL;
-                ClientVersion                                = glslang::EShTargetOpenGL_450;
+                ClientInputSemanticsVersion                 = 450;
+                Client                                      = glslang::EShClientOpenGL;
+                ClientVersion                               = glslang::EShTargetOpenGL_450;
             }
 
             shader.setEnvInput(glslang::EShSourceGlsl, stage, Client, ClientInputSemanticsVersion);
             shader.setEnvClient(Client, ClientVersion);
             shader.setEnvTarget(glslang::EShTargetSpv, TargetVersion);
 
-            TBuiltInResource Resources                        = DefaultTBuiltInResource;
-            Resources.limits.generalUniformIndexing            = true;
-            Resources.limits.generalVariableIndexing        = true;
-            Resources.limits.generalSamplerIndexing            = true;
-            Resources.limits.whileLoops                        = true;
-            Resources.limits.nonInductiveForLoops            = true;
+            TBuiltInResource Resources               = DefaultTBuiltInResource;
+            Resources.limits.generalUniformIndexing  = true;
+            Resources.limits.generalVariableIndexing = true;
+            Resources.limits.generalSamplerIndexing  = true;
+            Resources.limits.whileLoops              = true;
+            Resources.limits.nonInductiveForLoops    = true;
 
             if (auto messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
                 !shader.parse(&Resources, ClientInputSemanticsVersion, false, messages))
@@ -222,8 +222,15 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
+        return Create(CompileOrGetSpirv(p_Path));
+    }
+
+    Ref<Shader> Shader::Create(const SpirvSource& p_SpirvSource)
+    {
+        KTN_PROFILE_FUNCTION();
+
         if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-            return CreateRef<GLShader>(CompileOrGetSpirv(p_Path));
+            return CreateRef<GLShader>(p_SpirvSource);
 
         KTN_CORE_ERROR("Unsupported API!");
         return nullptr;
