@@ -14,6 +14,9 @@
 #include "Koten/Core/Time.h"
 #include "Koten/Core/UUID.h"
 #include "Koten/Core/Buffer.h"
+#include "Koten/Core/ThreadManager.h"
+#include "Koten/Core/TaskManager.h"
+#include "Koten/Core/JobGroup.h"
 
 // ASSET
 
@@ -27,6 +30,8 @@
 #include "Koten/Asset/MaterialImporter.h"
 #include "Koten/Asset/TextureAtlasImporter.h"
 #include "Koten/Asset/AnimationImporter.h"
+#include "Koten/Asset/AnimationControllerImporter.h"
+#include "Koten/Asset/DFFontImporter.h"
 
 // EVENTS
 
@@ -57,6 +62,8 @@
 #include "Koten/Graphics/StorageBuffer.h"
 #include "Koten/Graphics/IndirectBuffer.h"
 #include "Koten/Graphics/DFFont.h"
+#include "Koten/Graphics/DebugRenderer.h"
+#include "Koten/Graphics/Material.h"
 
 // DEBUG
 
@@ -73,6 +80,7 @@
 #include "Koten/OS/FileDialog.h"
 #include "Koten/OS/KeyCodes.h"
 #include "Koten/OS/MouseCodes.h"
+#include "Koten/OS/GamepadCodes.h"
 #include "Koten/OS/Input.h"
 #include "Koten/OS/Window.h"
 
@@ -89,10 +97,13 @@
 
 #include "Koten/Script/ScriptEngine.h"
 #include "Koten/Script/ScriptGlue.h"
+#include "Koten/Script/Utils.h"
 
 // SYSTEMS
 
 #include "Koten/Systems/B2Physics.h"
+#include "Koten/Systems/AnimSystem.h"
+#include "Koten/Systems/AnimSystemManager.h"
 
 // SCENE
 

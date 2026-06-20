@@ -6,19 +6,19 @@
 
 A cross-platform C++ game engine, currently only supports OpenGL
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Git
 - Mono
 - OpenGL 4.5+
 - C++17 compatible compiler
-  - **Windows**: Visual Studio 2022
+  - **Windows**: Visual Studio 2022 or later
   - **Linux**: GCC 11+ or Clang
 
 ---
 
-### 📥 Installation
+### Installation
 
 #### Clone the Repository
 ```bash
@@ -33,10 +33,10 @@ to clone the necessary submodules
 
 ---
 
-### 🔧 Dependencies
+### Dependencies
 
 - Windows:
-  - Run the [GenVS22.bat](https://github.com/MayronDAV/Koten/blob/main/GenVS22.bat) file found in the root dir.
+  - Run the [GenVS22.bat](https://github.com/MayronDAV/Koten/blob/main/GenVS22.bat) or [GenVS26.bat](https://github.com/MayronDAV/Koten/blob/main/GenVS26.bat) file found in the root dir.
   - Or run the [GenVSProject.bat](https://github.com/MayronDAV/Koten/blob/main/Scripts/Windows/GenVSProject.bat) with Visual Studio version. Ex:
     ```shell
     Scripts\Windows\GenVSProject.bat vs2022
@@ -52,11 +52,11 @@ to clone the necessary submodules
 
 ---
 
-### 🛠️ Building
+### Building
 
 - Windows:
   - Option 1: Run the [Build.bat](https://github.com/MayronDAV/Koten/blob/main/Build.bat) file found in the root dir.
-  - Option 2: Open the `Koten.sln` in Visual Studio.
+  - Option 2: Open the `Koten.sln` or `Koten.slnx` in Visual Studio.
 
 - Linux:
      ```bash
@@ -65,7 +65,7 @@ to clone the necessary submodules
 
 ---
 
-### 🤝 Contributing
+### Contributing
 
   1. Fork the project
 
@@ -79,7 +79,7 @@ to clone the necessary submodules
 
 ---
 
-### 📜 License
+### License
 
 Distributed under the [Apache-2.0 License](https://github.com/MayronDAV/Koten/blob/master/LICENSE). See LICENSE for more information.
 
