@@ -86,7 +86,7 @@ namespace KTN
             float Kerning          = 0.0f;
         };
 
-        std::variant<Render2DParams, LineParams, TextParams> Params;
+        std::variant<std::monostate, Render2DParams, LineParams, TextParams> Params;
     };
 
     struct RenderBeginInfo
