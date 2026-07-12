@@ -146,7 +146,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION_LOW();
 
-        if (p_AnimComp.CurrentState == InvalidAnimState)
+        if (p_AnimComp.CurrentState == INVALID_ANIM_STATE)
         {
             const AnimationTransition* entry = FindEntryTransition(p_AnimComp, p_Controller);
 

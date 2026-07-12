@@ -30,7 +30,7 @@ namespace KTN
             if (!entt.IsActive() || !entt.IsEnabled())
                 return;
     
-            p_AnimComp.CurrentState = InvalidAnimState;
+            p_AnimComp.CurrentState = INVALID_ANIM_STATE;
             p_AnimComp.CurrentFrame = 0;
             p_AnimComp.Direction    = 1;
             p_AnimComp.StateTime    = 0.0f;

@@ -49,8 +49,10 @@ namespace KTN
             }
         };
 
-        inline constexpr uint8_t MAX_RENDER_TARGETS = 4;
-        inline constexpr uint32_t InvalidAnimState  = UINT32_MAX;
+        inline constexpr uint8_t  MAX_RENDER_TARGETS = 4;
+        inline constexpr uint32_t INVALID_ANIM_STATE = UINT32_MAX;
+        inline constexpr uint16_t MAX_INSTANCES      = 5000;
+        inline constexpr uint8_t  MAX_TEXTURE_SLOTS  = 32;
 
     #pragma endregion
 

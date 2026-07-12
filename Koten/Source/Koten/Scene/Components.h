@@ -79,7 +79,7 @@ namespace KTN
         AssetHandle Controller = 0;
         AssetHandle Texture    = 0;
 
-        uint32_t CurrentState  = InvalidAnimState;
+        uint32_t CurrentState  = INVALID_ANIM_STATE;
         uint32_t CurrentFrame  = 0;
         float CurrentTime      = 0.0f;
         float StateTime        = 0.0f;

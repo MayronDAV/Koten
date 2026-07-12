@@ -13,15 +13,18 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        RenderCommand command = {};
-        command.Type = RenderType::Line;
-        command.EntityID = p_Entity;
-        command.Line.Primitive = true;
-        command.Line.Color = p_Color;
-        command.Line.Width = 2.0f;
-        command.Line.Start = p_Start;
-        command.Line.End = p_End;
+        RenderCommand command            = {};
+        command.Type                     = RenderType::Line;
+        command.EntityID                 = p_Entity;
 
+        RenderCommand::LineParams params = {};
+        params.Primitive                 = true;
+        params.Color                     = p_Color;
+        params.Width                     = 2.0f;
+        params.Start                     = p_Start;
+        params.End                       = p_End;
+
+        command.Params                   = params;
         Renderer::Submit(command);
     }
 
@@ -90,20 +93,23 @@ namespace KTN
             { -0.5f,  0.5f, 0.0f }
         };
 
-        auto& settings = Engine::Get().GetSettings();
+        auto& settings        = Engine::Get().GetSettings();
 
         RenderCommand command = {};
-        command.EntityID = p_Entity;
-        command.Transform = p_Transform;
-        command.Type = RenderType::Line;
-        command.Line.Primitive = true;
-        command.Line.Color = p_Color;
-        command.Line.Width = settings.DebugLineWidth;
+        command.EntityID      = p_Entity;
+        command.Transform     = p_Transform;
+        command.Type          = RenderType::Line;
+
+        RenderCommand::LineParams params = {};
+        params.Primitive      = true;
+        params.Color          = p_Color;
+        params.Width          = settings.DebugLineWidth;
         for (int i = 0; i < 4; ++i)
         {
-            command.Line.Start = vertices[i];
-            command.Line.End = vertices[i < 3 ? i + 1 : 0];
+            params.Start      = vertices[i];
+            params.End        = vertices[i < 3 ? i + 1 : 0];
 
+            command.Params    = params;
             Renderer::Submit(command);
         }
     }
@@ -114,15 +120,18 @@ namespace KTN
 
         auto& settings = Engine::Get().GetSettings();
 
-        RenderCommand command = {};
-        command.EntityID = p_Entity;
-        command.Type = RenderType::R2D;
-        command.Transform = p_Transform;
-        command.Render2D.Type = RenderType2D::Circle;
-        command.Render2D.Color = p_Color;
-        command.Render2D.Thickness = settings.DebugCircleThickness;
-        command.Render2D.Fade = 0.005f;
+        RenderCommand command                = {};
+        command.EntityID                     = p_Entity;
+        command.Type                         = RenderType::R2D;
+        command.Transform                    = p_Transform;
 
+        RenderCommand::Render2DParams params = {};
+        params.Type                          = RenderType2D::Circle;
+        params.Color                         = p_Color;
+        params.Thickness                     = settings.DebugCircleThickness;
+        params.Fade                          = 0.005f;
+
+        command.Params                       = params;
         Renderer::Submit(command);
     }
 

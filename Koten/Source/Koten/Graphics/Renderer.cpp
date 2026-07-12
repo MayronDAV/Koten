@@ -19,9 +19,6 @@ namespace KTN
 {
     namespace
     {
-        static constexpr uint16_t MaxInstances = 5000;
-        static constexpr uint8_t MaxTextureSlots = 32;
-
         struct DrawElementsIndirectCommand
         {
             uint32_t Count;
@@ -65,10 +62,10 @@ namespace KTN
             Ref<DescriptorSet> FinalPassSet   = nullptr;
         };
 
-        std::u32string UTF8ToUTF32(const std::string& p_UTF8)
+        static std::u32string UTF8ToUTF32(const std::string_view& p_UTF8)
         {
             std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
-            return converter.from_bytes(p_UTF8);
+            return converter.from_bytes(p_UTF8.data());
         }
 
     } // namespace
@@ -104,7 +101,7 @@ namespace KTN
             std::vector<int> SortedEntityIDs;
 
             uint32_t TextureSlotIndex     = 1;
-            std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
+            std::array<Ref<Texture2D>, MAX_TEXTURE_SLOTS> TextureSlots;
 
             Ref<Shader> PickingShader     = nullptr;
             Ref<DescriptorSet> PickingSet = nullptr;
@@ -176,7 +173,7 @@ namespace KTN
             std::vector<InstanceData> Instances;
 
             uint32_t TextureIndex = 1;
-            std::array<Ref<Texture2D>, MaxTextureSlots> FontAtlasTextures;
+            std::array<Ref<Texture2D>, MAX_TEXTURE_SLOTS> FontAtlasTextures;
 
             Ref<Shader> PickingShader     = nullptr;
             Ref<DescriptorSet> PickingSet = nullptr;
@@ -187,6 +184,7 @@ namespace KTN
             void StartBatch();
             void FlushAndReset();
             void Flush();
+            void Submit(const RenderCommand& p_Command);
         };
         
     } // Text
@@ -371,113 +369,10 @@ namespace KTN
             s_R2DData->Submit(p_Command);
         else if (p_Command.Type == RenderType::Line)
             s_LineData->Submit(p_Command);
+        else if (p_Command.Type == RenderType::Text)
+            s_TextData->Submit(p_Command);
         else
             KTN_CORE_ERROR("Unknown render type!");
-    }
-
-    void Renderer::SubmitString(const std::string& p_String, const Ref<DFFont>& p_Font, const glm::mat4& p_Transform, const TextParams& p_Params, int p_EntityID)
-    {
-        KTN_PROFILE_FUNCTION();
-
-        if (!s_TextData)
-        {
-            KTN_CORE_ERROR("Something wrong! s_TextData is nullptr");
-            return;
-        }
-
-        if (s_TextData->Instances.size() >= (size_t)MaxInstances)
-            s_TextData->FlushAndReset();
-
-        if (p_Font == nullptr)
-        {
-            KTN_CORE_ERROR("Font is null!");
-            return;
-        }
-
-        auto utf32String = UTF8ToUTF32(p_String);
-        auto positions   = p_Font->CalculatePositions(utf32String, p_Params.LineSpacing, p_Params.Kerning);
-
-        if (p_Params.DrawBg && p_Params.BgColor.a > 0.0f)
-        {
-            glm::vec2 minPos{0.0f}, maxPos{0.0f};
-            for (size_t i = 0; i < positions.size(); i++)
-            {
-                const auto& pos   = positions[i].first;
-
-                glm::vec2 quadMin = { pos.x, pos.y };
-                glm::vec2 quadMax = { pos.z, pos.w };
-
-                minPos            = i == 0 ? quadMin : glm::min(minPos, quadMin);
-                maxPos            = glm::max(maxPos, quadMax);
-            }
-
-            Text::InstanceData bgData = {};
-            bgData.Transform          = p_Transform;
-            bgData.Positions          = { minPos, maxPos };
-            bgData.Color              = p_Params.BgColor;
-            bgData.BgColor            = p_Params.BgColor;
-            bgData.UV                 = { glm::vec2(0.0f), glm::vec2(1.0f) };
-            bgData.TexIndex           = 0.0f;
-
-            s_TextData->Instances.push_back(bgData);
-
-            if (Engine::Get().GetSettings().MousePicking)
-            {
-                s_TextData->EntityBuffer.EntityIDS.push_back(p_EntityID);
-                s_TextData->EntityBuffer.Count++;
-            }
-        }
-
-        auto texture = p_Font->GetAtlasTexture();
-        float textureIndex = 0.0f; // White texture
-        if (texture)
-        {
-            for (uint32_t i = 1; i < s_TextData->TextureIndex; i++)
-            {
-                if (s_TextData->FontAtlasTextures[i]->Handle == texture->Handle)
-                {
-                    textureIndex = (float)i;
-                    break;
-                }
-            }
-
-            if (textureIndex == 0.0f)
-            {
-                if (s_TextData->TextureIndex >= MaxTextureSlots)
-                    s_TextData->FlushAndReset();
-
-                textureIndex = (float)s_TextData->TextureIndex;
-                s_TextData->FontAtlasTextures[s_TextData->TextureIndex] = texture;
-                s_TextData->TextureIndex++;
-            }
-        }
-
-        for (const auto& [ pos, uvs ] : positions)
-        {
-            glm::vec2 texCoordMin( uvs.x, uvs.y );
-            glm::vec2 texCoordMax( uvs.z, uvs.w );
-
-            float texelWidth   = 1.0f / texture->GetWidth();
-            float texelHeight  = 1.0f / texture->GetHeight();
-            texCoordMin       *= glm::vec2(texelWidth, texelHeight);
-            texCoordMax       *= glm::vec2(texelWidth, texelHeight);
-            
-            if (Engine::Get().GetSettings().MousePicking)
-            {
-                s_TextData->EntityBuffer.EntityIDS.push_back(p_EntityID);
-                s_TextData->EntityBuffer.Count++;
-            }
-
-            Text::InstanceData data = {};
-            data.Transform          = p_Transform;
-            data.Positions          = pos;
-            data.Color              = p_Params.Color;
-            data.BgColor            = p_Params.CharBgColor;
-            data.UV                 = { texCoordMin, texCoordMax };
-            data.TexIndex           = textureIndex;
-
-            s_TextData->Instances.push_back(data);
-        }
     }
 
     Ref<Texture2D> Renderer::GetPickingTexture()
@@ -739,7 +634,7 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            if (InstanceEntries.size() >= (size_t)MaxInstances)
+            if (InstanceEntries.size() >= (size_t)MAX_INSTANCES)
                 FlushAndReset();
 
             std::scoped_lock lock(InstanceMutex);
@@ -747,12 +642,14 @@ namespace KTN
             auto& entry    = InstanceEntries.emplace_back();
             entry.EntityID = p_Command.EntityID;
 
+            auto& params   = std::get<RenderCommand::Render2DParams>(p_Command.Params);
+
             float textureIndex = 0.0f; // White texture
-            if (p_Command.Render2D.Texture)
+            if (params.Texture)
             {
                 for (uint32_t i = 1; i < TextureSlotIndex; i++)
                 {
-                    if (TextureSlots[i]->Handle == p_Command.Render2D.Texture->Handle)
+                    if (TextureSlots[i]->Handle == params.Texture->Handle)
                     {
                         textureIndex = (float)i;
                         break;
@@ -761,48 +658,48 @@ namespace KTN
 
                 if (textureIndex == 0.0f)
                 {
-                    if (TextureSlotIndex >= MaxTextureSlots)
+                    if (TextureSlotIndex >= MAX_TEXTURE_SLOTS)
                         FlushAndReset();
 
                     textureIndex = (float)TextureSlotIndex;
-                    TextureSlots[TextureSlotIndex] = p_Command.Render2D.Texture;
+                    TextureSlots[TextureSlotIndex] = params.Texture;
                     TextureSlotIndex++;
                 }
             }
 
             InstanceData data = {};
             data.Transform    = p_Command.Transform;
-            data.Color        = p_Command.Render2D.Color;
+            data.Color        = params.Color;
             data.UV           = { 0.0f, 0.0f, 1.0f, 1.0f };
-            data.Others.x     = p_Command.Render2D.Type == RenderType2D::Quad ? 0.0f : 1.0f; // Type
+            data.Others.x     = params.Type == RenderType2D::Quad ? 0.0f : 1.0f; // Type
             data.Others.y     = textureIndex; // Texture Index
-            data.Others.z     = p_Command.Render2D.Thickness; // Thickness
-            data.Others.w     = p_Command.Render2D.Fade; // Fade
+            data.Others.z     = params.Thickness; // Thickness
+            data.Others.w     = params.Fade; // Fade
 
-            if (p_Command.Render2D.Texture)
+            if (params.Texture)
             {
-                if (p_Command.Render2D.UseDirectUVs)
-                    data.UV               = p_Command.Render2D.UV;
+                if (params.UseDirectUVs)
+                    data.UV               = params.UV;
                 else
                 {
-                    auto scale            = p_Command.Render2D.Scale;
-                    auto offset           = p_Command.Render2D.Offset;
+                    auto scale            = params.Scale;
+                    auto offset           = params.Offset;
 
                     auto texSize          = glm::vec2(
-                        p_Command.Render2D.Texture->GetWidth(),
-                        p_Command.Render2D.Texture->GetHeight()
+                        params.Texture->GetWidth(),
+                        params.Texture->GetHeight()
                     );
 
-                    glm::vec2 spriteSize  = (p_Command.Render2D.Size == glm::vec2(0))
+                    glm::vec2 spriteSize  = (params.Size == glm::vec2(0))
                         ? texSize
-                        : p_Command.Render2D.Size;
+                        : params.Size;
 
                     glm::vec2 tile        = {
                         scale.x == 0 ? 1.0f : scale.x,
                         scale.y == 0 ? 1.0f : scale.y
                     };
 
-                    glm::vec2 pixelOffset = p_Command.Render2D.BySize
+                    glm::vec2 pixelOffset = params.BySize
                         ? offset * spriteSize
                         : offset;
 
@@ -955,18 +852,20 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            if (Instances.size() >= (size_t)MaxInstances)
+            if (Instances.size() >= (size_t)MAX_INSTANCES)
                 FlushAndReset();
 
-            InstanceData data = {};
-            data.Transform    = p_Command.Transform;
-            data.Start        = glm::vec4(p_Command.Line.Start, 1.0f);
-            data.End          = glm::vec4(p_Command.Line.End, 1.0f);
-            data.Color        = p_Command.Line.Color;
-            data.Width        = p_Command.Line.Width;
+            auto& params = std::get<RenderCommand::LineParams>(p_Command.Params);
 
-            Instances[p_Command.Line.Width].first = p_Command.Line.Primitive;
-            Instances[p_Command.Line.Width].second.push_back(data);
+            InstanceData data             = {};
+            data.Transform                = p_Command.Transform;
+            data.Start                    = glm::vec4(params.Start, 1.0f);
+            data.End                      = glm::vec4(params.End, 1.0f);
+            data.Color                    = params.Color;
+            data.Width                    = params.Width;
+
+            Instances[params.Width].first = params.Primitive;
+            Instances[params.Width].second.push_back(data);
         }
 
     } // namespace Line
@@ -1132,6 +1031,113 @@ namespace KTN
 
                     pipeline->End(commandBuffer);
                 }
+            }
+        }
+
+        void Data::Submit(const RenderCommand& p_Command)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!s_TextData)
+            {
+                KTN_CORE_ERROR("Something wrong! s_TextData is nullptr");
+                return;
+            }
+
+            if (s_TextData->Instances.size() >= (size_t)MAX_INSTANCES)
+                s_TextData->FlushAndReset();
+
+            auto& params = std::get<RenderCommand::TextParams>(p_Command.Params);
+
+            if (params.Font == nullptr)
+            {
+                KTN_CORE_ERROR("Font is null!");
+                return;
+            }
+
+            auto utf32String = UTF8ToUTF32(params.Text);
+            auto positions   = params.Font->CalculatePositions(utf32String, params.LineSpacing, params.Kerning);
+
+            if (params.DrawBg && params.BgColor.a > 0.0f)
+            {
+                glm::vec2 minPos{ 0.0f }, maxPos{ 0.0f };
+                for (size_t i = 0; i < positions.size(); i++)
+                {
+                    const auto& pos   = positions[i].first;
+
+                    glm::vec2 quadMin = { pos.x, pos.y };
+                    glm::vec2 quadMax = { pos.z, pos.w };
+
+                    minPos            = i == 0 ? quadMin : glm::min(minPos, quadMin);
+                    maxPos            = glm::max(maxPos, quadMax);
+                }
+
+                Text::InstanceData bgData = {};
+                bgData.Transform          = p_Command.Transform;
+                bgData.Positions          = { minPos, maxPos };
+                bgData.Color              = params.BgColor;
+                bgData.BgColor            = params.BgColor;
+                bgData.UV                 = { glm::vec2(0.0f), glm::vec2(1.0f) };
+                bgData.TexIndex           = 0.0f;
+
+                s_TextData->Instances.push_back(bgData);
+
+                if (Engine::Get().GetSettings().MousePicking)
+                {
+                    s_TextData->EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
+                    s_TextData->EntityBuffer.Count++;
+                }
+            }
+
+            auto texture = params.Font->GetAtlasTexture();
+            float textureIndex = 0.0f; // White texture
+            if (texture)
+            {
+                for (uint32_t i = 1; i < s_TextData->TextureIndex; i++)
+                {
+                    if (s_TextData->FontAtlasTextures[i]->Handle == texture->Handle)
+                    {
+                        textureIndex = (float)i;
+                        break;
+                    }
+                }
+
+                if (textureIndex == 0.0f)
+                {
+                    if (s_TextData->TextureIndex >= MAX_TEXTURE_SLOTS)
+                        s_TextData->FlushAndReset();
+
+                    textureIndex = (float)s_TextData->TextureIndex;
+                    s_TextData->FontAtlasTextures[s_TextData->TextureIndex] = texture;
+                    s_TextData->TextureIndex++;
+                }
+            }
+
+            for (const auto& [pos, uvs] : positions)
+            {
+                glm::vec2 texCoordMin(uvs.x, uvs.y);
+                glm::vec2 texCoordMax(uvs.z, uvs.w);
+
+                float texelWidth  = 1.0f / texture->GetWidth();
+                float texelHeight = 1.0f / texture->GetHeight();
+                texCoordMin      *= glm::vec2(texelWidth, texelHeight);
+                texCoordMax      *= glm::vec2(texelWidth, texelHeight);
+
+                if (Engine::Get().GetSettings().MousePicking)
+                {
+                    s_TextData->EntityBuffer.EntityIDS.push_back(p_Command.EntityID);
+                    s_TextData->EntityBuffer.Count++;
+                }
+
+                Text::InstanceData data = {};
+                data.Transform          = p_Command.Transform;
+                data.Positions          = pos;
+                data.Color              = params.Color;
+                data.BgColor            = params.CharBgColor;
+                data.UV                 = { texCoordMin, texCoordMax };
+                data.TexIndex           = textureIndex;
+
+                s_TextData->Instances.push_back(data);
             }
         }
 

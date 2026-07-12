@@ -429,8 +429,8 @@ namespace KTN
             {
                 if (!p_Runtime.Active) return;
 
-                auto& settings = Engine::Get().GetSettings();
-                auto shape2d   = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
+                auto& settings        = Engine::Get().GetSettings();
+                auto shape2d          = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
                 if (shape2d && settings.ShowDebugPhysicsCollider)
                     DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
 
@@ -438,61 +438,72 @@ namespace KTN
                 command.EntityID      = (int)p_Entity;
                 command.Transform     = p_Transform.GetWorldMatrix();
 
-                auto sprite                    = m_Registry.try_get<SpriteComponent>(p_Entity);
+                auto sprite                              = m_Registry.try_get<SpriteComponent>(p_Entity);
                 if (sprite)
                 {
-                    command.Type               = RenderType::R2D;
-                    command.Render2D.Type      = sprite->Type;
-                    command.Render2D.Thickness = sprite->Thickness;
-                    command.Render2D.Fade      = sprite->Fade;
+                    command.Type                         = RenderType::R2D;
+                    RenderCommand::Render2DParams params = {};
+                    params.Type                          = sprite->Type;
+                    params.Thickness                     = sprite->Thickness;
+                    params.Fade                          = sprite->Fade;
 
-                    auto mat                   = AssetManager::Get()->GetAsset<Material>(sprite->Material);
-                    command.Render2D.Color     = mat->AlbedoColor;
+                    auto mat                             = AssetManager::Get()->GetAsset<Material>(sprite->Material);
+                    params.Color                         = mat->AlbedoColor;
 
-                    auto animComp                     = m_Registry.try_get<AnimationComponent>(p_Entity);
+                    auto animComp                        = m_Registry.try_get<AnimationComponent>(p_Entity);
                     if (animComp)
                     {
-                        command.Render2D.Texture      = AssetManager::Get()->GetAsset<Texture2D>(animComp->Texture);
-                        command.Render2D.UseDirectUVs = true;
-                        command.Render2D.UV           = animComp->CurrentAnim.UV;
+                        params.Texture                   = AssetManager::Get()->GetAsset<Texture2D>(animComp->Texture);
+                        params.UseDirectUVs              = true;
+                        params.UV                        = animComp->CurrentAnim.UV;
                     }
                     else
                     {
-                        command.Render2D.Texture      = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
-                        command.Render2D.Size         = sprite->Size;
-                        command.Render2D.BySize       = sprite->BySize;
-                        command.Render2D.Offset       = sprite->Offset;
-                        command.Render2D.Scale        = sprite->Scale;
+                        params.Texture                  = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
+                        params.Size                     = sprite->Size;
+                        params.BySize                   = sprite->BySize;
+                        params.Offset                   = sprite->Offset;
+                        params.Scale                    = sprite->Scale;
                     }
 
+                    command.Params = params;
+
                     Renderer::Submit(command);
                 }
 
-                auto line                  = m_Registry.try_get<LineRendererComponent>(p_Entity);
+                auto line                            = m_Registry.try_get<LineRendererComponent>(p_Entity);
                 if (line)
                 {
-                    command.Type           = RenderType::Line;
-                    command.Line.Primitive = line->Primitive;
-                    command.Line.Color     = line->Color;
-                    command.Line.Width     = line->Width;
-                    command.Line.Start     = line->Start;
-                    command.Line.End       = line->End;
+                    command.Type                     = RenderType::Line;
+                    RenderCommand::LineParams params = {};
+                    params.Primitive                 = line->Primitive;
+                    params.Color                     = line->Color;
+                    params.Width                     = line->Width;
+                    params.Start                     = line->Start;
+                    params.End                       = line->End;
+
+                    command.Params                   = params;
 
                     Renderer::Submit(command);
                 }
 
-                auto text              = m_Registry.try_get<TextRendererComponent>(p_Entity);
+                auto text                             = m_Registry.try_get<TextRendererComponent>(p_Entity);
                 if (text)
                 {
-                    TextParams params  = {};
-                    params.Color       = text->Color;
-                    params.BgColor     = text->BgColor;
-                    params.CharBgColor = text->CharBgColor;
-                    params.DrawBg      = text->DrawBg;
-                    params.LineSpacing = text->LineSpacing;
-                    params.Kerning     = text->Kerning;
+                    command.Type                      = RenderType::Text;
+                    RenderCommand::TextParams params  = {};
+                    params.Font                       = AssetManager::Get()->GetAsset<DFFont>(text->Font);
+                    params.Text                       = text->String;
+                    params.Color                      = text->Color;
+                    params.BgColor                    = text->BgColor;
+                    params.CharBgColor                = text->CharBgColor;
+                    params.DrawBg                     = text->DrawBg;
+                    params.LineSpacing                = text->LineSpacing;
+                    params.Kerning                    = text->Kerning;
 
-                    Renderer::SubmitString(text->String, AssetManager::Get()->GetAsset<DFFont>(text->Font), p_Transform.GetWorldMatrix(), params, (int)p_Entity);
+                    command.Params                    = params;
+
+                    Renderer::Submit(command);
                 }
             });
         }
