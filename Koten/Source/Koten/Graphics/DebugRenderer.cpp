@@ -14,28 +14,26 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         RenderCommand command            = {};
-        command.Type                     = RenderType::Line;
         command.EntityID                 = p_Entity;
 
-        RenderCommand::LineParams params = {};
-        params.Primitive                 = true;
-        params.Color                     = p_Color;
-        params.Width                     = 2.0f;
-        params.Start                     = p_Start;
-        params.End                       = p_End;
+        LineCommand line                 = {};
+        line.Primitive                   = true;
+        line.Color                       = p_Color;
+        line.Width                       = 2.0f;
+        line.Start                       = p_Start;
+        line.End                         = p_End;
 
-        command.Params                   = params;
-        Renderer::Submit(command);
+        s_RenderList->Submit(command);
     }
 
     void DebugRenderer::DrawCollider2D(Entity p_Entity, const glm::vec4& p_Color)
     {
         KTN_PROFILE_FUNCTION();
 
-        auto& tc = p_Entity.GetComponent<TransformComponent>();
-        glm::vec3 tpos = tc.GetWorldTranslation();
+        auto& tc         = p_Entity.GetComponent<TransformComponent>();
+        glm::vec3 tpos   = tc.GetWorldTranslation();
         glm::vec3 tscale = tc.GetWorldScale();
-        glm::vec3 trot = tc.GetWorldRotation();
+        glm::vec3 trot   = tc.GetWorldRotation();
 
         if (p_Entity.HasComponent<BodyShape2DComponent>())
         {
@@ -44,9 +42,9 @@ namespace KTN
             if (collider.Shape == Shape2D::Rect)
             {
                 glm::vec3 translation = tpos + glm::vec3(collider.Offset, 0.0f);
-                glm::vec3 scale = tscale * glm::vec3(collider.Size * 2.0f, 1.0f);
+                glm::vec3 scale       = tscale * glm::vec3(collider.Size * 2.0f, 1.0f);
 
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), tpos)
+                glm::mat4 transform   = glm::translate(glm::mat4(1.0f), tpos)
                     * glm::rotate(glm::mat4(1.0f), trot.z, glm::vec3(0.0f, 0.0f, 1.0f))
                     * glm::translate(glm::mat4(1.0f), glm::vec3(collider.Offset, 0.001f))
                     * glm::scale(glm::mat4(1.0f), scale);
@@ -73,7 +71,7 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         glm::vec2 center = (p_Min + p_Max) * 0.5f;
-        glm::vec2 size = (p_Max - p_Min);
+        glm::vec2 size   = (p_Max - p_Min);
 
         glm::mat4 transform =
             glm::translate(glm::mat4(1.0f), glm::vec3(center, 0.001f)) *
@@ -98,19 +96,18 @@ namespace KTN
         RenderCommand command = {};
         command.EntityID      = p_Entity;
         command.Transform     = p_Transform;
-        command.Type          = RenderType::Line;
 
-        RenderCommand::LineParams params = {};
-        params.Primitive      = true;
-        params.Color          = p_Color;
-        params.Width          = settings.DebugLineWidth;
+        LineCommand line      = {};
+        line.Primitive        = true;
+        line.Color            = p_Color;
+        line.Width            = settings.DebugLineWidth;
         for (int i = 0; i < 4; ++i)
         {
-            params.Start      = vertices[i];
-            params.End        = vertices[i < 3 ? i + 1 : 0];
+            line.Start        = vertices[i];
+            line.End          = vertices[i < 3 ? i + 1 : 0];
 
-            command.Params    = params;
-            Renderer::Submit(command);
+            command.Command   = line;
+            s_RenderList->Submit(command);
         }
     }
 
@@ -118,21 +115,35 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        auto& settings = Engine::Get().GetSettings();
+        auto& settings                       = Engine::Get().GetSettings();
 
         RenderCommand command                = {};
         command.EntityID                     = p_Entity;
-        command.Type                         = RenderType::R2D;
         command.Transform                    = p_Transform;
 
-        RenderCommand::Render2DParams params = {};
-        params.Type                          = RenderType2D::Circle;
-        params.Color                         = p_Color;
-        params.Thickness                     = settings.DebugCircleThickness;
-        params.Fade                          = 0.005f;
+        SpriteCommand sprite                 = {};
+        sprite.Type                          = RenderType2D::Circle;
+        sprite.Color                         = p_Color;
+        sprite.Thickness                     = settings.DebugCircleThickness;
+        sprite.Fade                          = 0.005f;
 
-        command.Params                       = params;
-        Renderer::Submit(command);
+        command.Command                      = sprite;
+        s_RenderList->Submit(command);
+    }
+
+    void DebugRenderer::Begin(RenderList* p_RenderList)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        KTN_CORE_ASSERT(p_RenderList, "RenderList is null!");
+        s_RenderList = p_RenderList;
+    }
+
+    void DebugRenderer::End()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        s_RenderList = nullptr;
     }
 
 } // namespace KTN

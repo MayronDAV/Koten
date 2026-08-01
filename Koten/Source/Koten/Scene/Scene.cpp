@@ -230,6 +230,94 @@ namespace KTN
         return entt;
     }
 
+    void Scene::UpdateRenderList()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        m_RenderList.Clear();
+
+        DebugRenderer::Begin(&m_RenderList);
+        m_Registry.view<RuntimeComponent, TransformComponent>().each(
+        [&](auto p_Entity, const RuntimeComponent& p_Runtime, const TransformComponent& p_Transform)
+        {
+            if (!p_Runtime.Active) return;
+
+            auto& settings = Engine::Get().GetSettings();
+            auto shape2d   = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
+            if (shape2d && settings.ShowDebugPhysicsCollider)
+                DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
+
+            RenderCommand command = {};
+            command.EntityID      = (int)p_Entity;
+            command.Transform     = p_Transform.GetWorldMatrix();
+
+            auto sprite = m_Registry.try_get<SpriteComponent>(p_Entity);
+            if (sprite)
+            {
+                SpriteCommand spriteCommand    = {};
+                spriteCommand.Type             = sprite->Type;
+                spriteCommand.Thickness        = sprite->Thickness;
+                spriteCommand.Fade             = sprite->Fade;
+
+                auto mat                       = AssetManager::Get()->GetAsset<Material>(sprite->Material);
+                spriteCommand.Color            = mat->AlbedoColor;
+
+                auto animComp                  = m_Registry.try_get<AnimationComponent>(p_Entity);
+                if (animComp)
+                {
+                    spriteCommand.Texture      = AssetManager::Get()->GetAsset<Texture2D>(animComp->Texture);
+                    spriteCommand.UseDirectUVs = true;
+                    spriteCommand.UV           = animComp->CurrentAnim.UV;
+                }
+                else
+                {
+                    spriteCommand.Texture      = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
+                    spriteCommand.Size         = sprite->Size;
+                    spriteCommand.BySize       = sprite->BySize;
+                    spriteCommand.Offset       = sprite->Offset;
+                    spriteCommand.Scale        = sprite->Scale;
+                }
+
+                command.Command                = spriteCommand;
+                m_RenderList.Submit(command);
+            }
+
+            auto line                   = m_Registry.try_get<LineRendererComponent>(p_Entity);
+            if (line)
+            {
+                LineCommand lineCommand = {};
+                lineCommand.Primitive   = line->Primitive;
+                lineCommand.Color       = line->Color;
+                lineCommand.Width       = line->Width;
+                lineCommand.Start       = line->Start;
+                lineCommand.End         = line->End;
+
+                command.Command         = lineCommand;
+
+                m_RenderList.Submit(command);
+            }
+
+            auto text                   = m_Registry.try_get<TextRendererComponent>(p_Entity);
+            if (text)
+            {
+                TextCommand textCommand = {};
+                textCommand.Font        = AssetManager::Get()->GetAsset<DFFont>(text->Font);
+                textCommand.Text        = text->String;
+                textCommand.Color       = text->Color;
+                textCommand.BgColor     = text->BgColor;
+                textCommand.CharBgColor = text->CharBgColor;
+                textCommand.DrawBg      = text->DrawBg;
+                textCommand.LineSpacing = text->LineSpacing;
+                textCommand.Kerning     = text->Kerning;
+
+                command.Command         = textCommand;
+
+                m_RenderList.Submit(command);
+            }
+        });
+        DebugRenderer::End();
+    }
+
     void Scene::OnUpdate()
     {
         KTN_PROFILE_FUNCTION();
@@ -256,31 +344,12 @@ namespace KTN
                 m_Projection = p_Camera.Camera.GetProjection();
                 m_View       = glm::inverse(p_Transform.GetWorldMatrix());
                 m_ClearColor = p_Camera.ClearColor;
-            m_HaveCamera = true;
+                m_HaveCamera = true;
                 first        = false;
             }
         });
-    }
 
-    void Scene::OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
-    {
-        KTN_PROFILE_FUNCTION();
-
-        RenderScene(p_Projection, p_View, p_ClearColor);
-    }
-
-    void Scene::OnSimulationStart()
-    {
-        KTN_PROFILE_FUNCTION();
-
-        m_SystemManager->OnStart(this);
-    }
-
-    void Scene::OnSimulationStop()
-    {
-        KTN_PROFILE_FUNCTION();
-
-        m_SystemManager->OnStop(this);
+        UpdateRenderList();
     }
 
     void Scene::OnUpdateSimulation()
@@ -318,6 +387,70 @@ namespace KTN
                 first        = false;
             }
         });
+
+        UpdateRenderList();
+    }
+
+    void Scene::OnUpdateRuntime()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        RemoveSystems();
+
+        if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
+        {
+            m_SystemManager->OnUpdate(this);
+
+            ScriptEngine::OnRuntimeUpdate(this);
+
+            m_SceneGraph->Update(m_Registry);
+        }
+
+        bool first = true;
+        m_Registry.view<TransformComponent, CameraComponent>().each(
+        [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
+        {
+            p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+            p_Camera.Camera.OnUpdate();
+
+            if (p_Camera.Primary)
+            {
+                if (!first)
+                {
+                    KTN_CORE_ERROR("there can only be one primary camera!");
+                    return;
+                }
+
+                m_Projection = p_Camera.Camera.GetProjection();
+                m_View       = glm::inverse(p_Transform.GetWorldMatrix());
+                m_ClearColor = p_Camera.ClearColor;
+                m_HaveCamera = true;
+                first        = false;
+            }
+        });
+
+        UpdateRenderList();
+    }
+
+    void Scene::OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        RenderScene(p_Projection, p_View, p_ClearColor);
+    }
+
+    void Scene::OnSimulationStart()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        m_SystemManager->OnStart(this);
+    }
+
+    void Scene::OnSimulationStop()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        m_SystemManager->OnStop(this);
     }
 
     void Scene::OnRuntimeStart()
@@ -413,140 +546,20 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        RenderBeginInfo info = {};
+        RenderPassInfo info  = {};
         info.RenderTarget    = m_RenderTarget;
         info.Width           = m_Width;
         info.Height          = m_Height;
         info.Projection      = p_Projection;
         info.View            = p_View;
-        info.Clear           = false;
+        info.Clear           = true;
         info.ClearColor      = p_ClearColor;
 
-        Renderer::Begin(info);
+        Renderer::BeginPass(info);
         {
-            m_Registry.view<RuntimeComponent, TransformComponent>().each(
-            [&](auto p_Entity, const RuntimeComponent& p_Runtime, const TransformComponent& p_Transform)
-            {
-                if (!p_Runtime.Active) return;
-
-                auto& settings        = Engine::Get().GetSettings();
-                auto shape2d          = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
-                if (shape2d && settings.ShowDebugPhysicsCollider)
-                    DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
-
-                RenderCommand command = {};
-                command.EntityID      = (int)p_Entity;
-                command.Transform     = p_Transform.GetWorldMatrix();
-
-                auto sprite                              = m_Registry.try_get<SpriteComponent>(p_Entity);
-                if (sprite)
-                {
-                    command.Type                         = RenderType::R2D;
-                    RenderCommand::Render2DParams params = {};
-                    params.Type                          = sprite->Type;
-                    params.Thickness                     = sprite->Thickness;
-                    params.Fade                          = sprite->Fade;
-
-                    auto mat                             = AssetManager::Get()->GetAsset<Material>(sprite->Material);
-                    params.Color                         = mat->AlbedoColor;
-
-                    auto animComp                        = m_Registry.try_get<AnimationComponent>(p_Entity);
-                    if (animComp)
-                    {
-                        params.Texture                   = AssetManager::Get()->GetAsset<Texture2D>(animComp->Texture);
-                        params.UseDirectUVs              = true;
-                        params.UV                        = animComp->CurrentAnim.UV;
-                    }
-                    else
-                    {
-                        params.Texture                  = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
-                        params.Size                     = sprite->Size;
-                        params.BySize                   = sprite->BySize;
-                        params.Offset                   = sprite->Offset;
-                        params.Scale                    = sprite->Scale;
-                    }
-
-                    command.Params = params;
-
-                    Renderer::Submit(command);
-                }
-
-                auto line                            = m_Registry.try_get<LineRendererComponent>(p_Entity);
-                if (line)
-                {
-                    command.Type                     = RenderType::Line;
-                    RenderCommand::LineParams params = {};
-                    params.Primitive                 = line->Primitive;
-                    params.Color                     = line->Color;
-                    params.Width                     = line->Width;
-                    params.Start                     = line->Start;
-                    params.End                       = line->End;
-
-                    command.Params                   = params;
-
-                    Renderer::Submit(command);
-                }
-
-                auto text                             = m_Registry.try_get<TextRendererComponent>(p_Entity);
-                if (text)
-                {
-                    command.Type                      = RenderType::Text;
-                    RenderCommand::TextParams params  = {};
-                    params.Font                       = AssetManager::Get()->GetAsset<DFFont>(text->Font);
-                    params.Text                       = text->String;
-                    params.Color                      = text->Color;
-                    params.BgColor                    = text->BgColor;
-                    params.CharBgColor                = text->CharBgColor;
-                    params.DrawBg                     = text->DrawBg;
-                    params.LineSpacing                = text->LineSpacing;
-                    params.Kerning                    = text->Kerning;
-
-                    command.Params                    = params;
-
-                    Renderer::Submit(command);
-                }
-            });
+            Renderer::Submit(m_RenderList);
         }
-        Renderer::End();
-    }
-
-    void Scene::OnUpdateRuntime()
-    {
-        KTN_PROFILE_FUNCTION();
-
-        RemoveSystems();
-
-        if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
-        {
-            m_SystemManager->OnUpdate(this);
-            
-            ScriptEngine::OnRuntimeUpdate(this);
-
-            m_SceneGraph->Update(m_Registry);
-        }
-
-        bool first = true;
-        m_Registry.view<TransformComponent, CameraComponent>().each(
-        [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
-        {
-            p_Camera.Camera.SetViewportSize(m_Width, m_Height);
-            p_Camera.Camera.OnUpdate();
-
-            if (p_Camera.Primary)
-            {
-                if (!first)
-                {
-                    KTN_CORE_ERROR("there can only be one primary camera!");
-                    return;
-                }
-
-                m_Projection = p_Camera.Camera.GetProjection();
-                m_View       = glm::inverse(p_Transform.GetWorldMatrix());
-                m_ClearColor = p_Camera.ClearColor;
-                m_HaveCamera = true;
-                first        = false;
-            }
-        });
+        Renderer::EndPass();
     }
 
     void Scene::OnRenderRuntime()

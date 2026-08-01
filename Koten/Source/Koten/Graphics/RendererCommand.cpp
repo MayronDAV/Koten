@@ -54,7 +54,7 @@ namespace KTN
         s_API->ClearColor(p_Color);
     }
 
-    void RendererCommand::ClearRenderTarget(const Ref<Texture2D>& p_Texture, uint32_t p_Value)
+    void RendererCommand::ClearRenderTarget(const Ref<Texture2D>& p_Texture, int p_Value)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -70,6 +70,15 @@ namespace KTN
         KTN_CORE_ASSERT(s_API);
 
         s_API->ClearRenderTarget(p_Texture, p_Value);
+    }
+
+    bool RendererCommand::SaveTextureToFile(const Ref<Texture2D>& p_Texture, const std::string& p_Path, bool p_Async)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        KTN_CORE_ASSERT(s_API);
+
+        return s_API->SaveTextureToFile(p_Texture, p_Path, p_Async);
     }
 
     void* RendererCommand::ReadPixel(const Ref<Texture2D>& p_Texture, uint32_t p_X, uint32_t p_Y)

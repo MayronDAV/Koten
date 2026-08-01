@@ -11,16 +11,16 @@ namespace KTN
 {
     struct Capabilities
     {
-        int MaxSamples                        = 4;
-        float MaxAnisotropy                    = 4.0f;
-        int MaxTextureUnits                    = 32;
-        float MaxLineWidth                    = 1.0f;
-        bool WideLines                        = true;
-        bool SupportCompute                    = true;
-        bool FillModeNonSolid                = true;
-        bool SupportTesselation                = true;
-        bool SupportGeometry                = true;
-        bool SamplerAnisotropy                = true;
+        int MaxSamples          = 4;
+        float MaxAnisotropy     = 4.0f;
+        int MaxTextureUnits     = 32;
+        float MaxLineWidth      = 1.0f;
+        bool WideLines          = true;
+        bool SupportCompute     = true;
+        bool FillModeNonSolid   = true;
+        bool SupportTesselation = true;
+        bool SupportGeometry    = true;
+        bool SamplerAnisotropy  = true;
     };
 
     class KTN_API RendererAPI
@@ -34,6 +34,8 @@ namespace KTN
             virtual void ClearColor(const glm::vec4& p_Color) = 0;
             virtual void ClearRenderTarget(const Ref<Texture2D>& p_Texture, int p_Value) = 0;
             virtual void ClearRenderTarget(const Ref<Texture2D>& p_Texture, const glm::vec4& p_Value) = 0;
+
+            virtual bool SaveTextureToFile(const Ref<Texture2D>& p_Texture, const std::string& p_Path, bool p_Async = true) = 0;
 
             virtual void* ReadPixel(const Ref<Texture2D>& p_Texture, uint32_t p_X, uint32_t p_Y) = 0;
 

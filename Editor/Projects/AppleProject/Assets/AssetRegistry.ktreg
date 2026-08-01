@@ -35,6 +35,20 @@ AssetRegistry:
     SerializeAssetData: true
     AssetData:
       {}
+  - Handle: 3184655586556433690
+    FilePath: Scenes\teste.ktscn
+    Type: Scene
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
+  - Handle: 3851349682833951057
+    FilePath: Scenes\teste.ktscn
+    Type: Scene
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 3912666485704849466
     FilePath: Textures\can.png
     Type: Texture2D

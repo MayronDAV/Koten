@@ -1,6 +1,8 @@
 #pragma once
 #include "Koten/Core/Base.h"
 #include "Koten/Scene/Entity.h"
+#include "RenderList.h"
+
 
 
 namespace KTN
@@ -13,6 +15,12 @@ namespace KTN
             static void DrawAABB(Entity p_Entity, const glm::vec2& p_Min, const glm::vec2& p_Max, const glm::vec4& p_Color);
             static void DrawSquare(const glm::mat4& p_Transform, const glm::vec4& p_Color, int p_Entity = -1);
             static void DrawCircle(const glm::mat4& p_Transform, const glm::vec4& p_Color, int p_Entity = -1);
+
+            static void Begin(RenderList* p_RenderList);
+            static void End();
+
+        private:
+            inline static RenderList* s_RenderList = nullptr;
     };
 
 } // namespace KTN

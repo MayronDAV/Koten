@@ -4,6 +4,7 @@
 #include "SceneGraph.h"
 #include "SystemManager.h"
 #include "Koten/Asset/Asset.h"
+#include "Koten/Graphics/RenderList.h"
 
 // lib
 #include <entt/entt.hpp>
@@ -47,6 +48,8 @@ namespace KTN
 
             Entity CreateEntity(const std::string& p_Tag = std::string());
             Entity CreateEntity(UUID p_UUID, const std::string& p_Tag = std::string());
+
+            void UpdateRenderList();
 
             void OnUpdate();
             void OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
@@ -150,6 +153,7 @@ namespace KTN
             Unique<SceneGraph> m_SceneGraph       = nullptr;
 
             SceneConfig m_Config                  = {};
+            RenderList m_RenderList               = {};
 
             friend class Entity;
     };

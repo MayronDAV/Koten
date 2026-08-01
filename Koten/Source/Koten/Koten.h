@@ -64,6 +64,7 @@
 #include "Koten/Graphics/DFFont.h"
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Graphics/Material.h"
+#include "Koten/Graphics/RenderList.h"
 
 // DEBUG
 

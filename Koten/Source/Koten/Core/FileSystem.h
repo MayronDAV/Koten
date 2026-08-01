@@ -34,6 +34,7 @@ namespace KTN
             static void Copy(const std::string& p_Src, const std::string& p_Dest);
             static void Rename(const std::string& p_Path, const std::string& p_Name);
             static void Remove(const std::string& p_Path);
+            static std::string ReplaceExtension(const std::string& p_Path, const std::string& p_Extension);
     };
 
 } // namespace KTN

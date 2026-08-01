@@ -15,6 +15,8 @@ namespace KTN
             void ClearRenderTarget(const Ref<Texture2D>& p_Texture, int p_Value) override;
             void ClearRenderTarget(const Ref<Texture2D>& p_Texture, const glm::vec4& p_Value) override;
 
+            bool SaveTextureToFile(const Ref<Texture2D>& p_Texture, const std::string& p_Path, bool p_Async = true) override;
+
             void* ReadPixel(const Ref<Texture2D>& p_Texture, uint32_t p_X, uint32_t p_Y) override;
 
             void Begin() override;

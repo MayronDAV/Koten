@@ -200,8 +200,6 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        Renderer::Clear();
-
         for (size_t i = 0; i < s_Data->Scenes.size(); i++)
         {
             Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
@@ -212,8 +210,6 @@ namespace KTN
     void SceneManager::OnRender(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
     {
         KTN_PROFILE_FUNCTION();
-
-        Renderer::Clear();
 
         for (size_t i = 0; i < s_Data->Scenes.size(); i++)
         {
@@ -228,8 +224,6 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        Renderer::Clear();
-
         for (size_t i = 0; i < s_Data->Scenes.size(); i++)
         {
             Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
@@ -240,8 +234,6 @@ namespace KTN
     void SceneManager::OnRenderRuntime(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height)
     {
         KTN_PROFILE_FUNCTION();
-
-        Renderer::Clear();
 
         for (size_t i = 0; i < s_Data->Scenes.size(); i++)
         {

@@ -17,8 +17,10 @@ namespace KTN
             static void OnResize(uint32_t p_Width, uint32_t p_Height);
 
             static void ClearColor(const glm::vec4& p_Color);
-            static void ClearRenderTarget(const Ref<Texture2D>& p_Texture, uint32_t p_Value);
+            static void ClearRenderTarget(const Ref<Texture2D>& p_Texture, int p_Value);
             static void ClearRenderTarget(const Ref<Texture2D>& p_Texture, const glm::vec4& p_Value);
+
+            static bool SaveTextureToFile(const Ref<Texture2D>& p_Texture, const std::string& p_Path, bool p_Async = true);
 
             static void* ReadPixel(const Ref<Texture2D>& p_Texture, uint32_t p_X, uint32_t p_Y);
 

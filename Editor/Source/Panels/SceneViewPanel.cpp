@@ -173,7 +173,7 @@ namespace KTN
 
         m_MainTexture              = Texture2D::Get(tspec);
 
-        auto& camera = m_Editor->GetCamera();
+        auto& camera               = m_Editor->GetCamera();
         camera->SetViewportSize(m_Width, m_Height);
         Application::Get().GetImGui()->BlockEvents(m_HandleCameraEvents);
         camera->SetHandleEvents(m_HandleCameraEvents);
@@ -186,5 +186,5 @@ namespace KTN
         auto& camera = m_Editor->GetCamera();
         SceneManager::OnRender(m_MainTexture, m_Width, m_Height, camera->GetProjection(), camera->GetView());
     }
-    
+
 } // namespace KTN

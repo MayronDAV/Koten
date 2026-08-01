@@ -1,0 +1,45 @@
+Scene: 3184655586556433690
+Configs:
+  - UsePhysics2D: false
+Entities:
+  - Entity: 18067295643312412843
+    TagComponent:
+      Tag: camera
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 2]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Primary: true
+      ClearColor: [0, 0, 0, 1]
+      Width: 384
+      Height: 288
+      IsOrthographic: false
+      IsAspectRatioFixed: false
+      FOV: 90
+      Far: 1000
+      Near: 0.001
+      Scale: 10
+      Zoom: 1
+  - Entity: 13668065462505782150
+    TagComponent:
+      Tag: quad
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Material: 14323510693760139011
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]

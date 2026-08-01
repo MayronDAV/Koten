@@ -18,10 +18,6 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        auto& camera               = m_Editor->GetCamera();
-        glm::mat4 cameraProjection = camera->GetProjection();
-        glm::mat4 cameraView       = camera->GetView();
-
         auto& config = Project::GetActive()->GetConfig(); // Width, Height this size is used for rendering just in the editor, not the viewport size
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
@@ -30,25 +26,25 @@ namespace KTN
         ImGui::PopStyleVar();
         ImGui::PopStyleColor();
         {
-            ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+            ImVec2 viewportSize  = ImGui::GetContentRegionAvail();
 
-            float targetAspect = (float)config.Width / (float)config.Height;
+            float targetAspect   = (float)config.Width / (float)config.Height;
             float viewportAspect = viewportSize.x / viewportSize.y;
 
             ImVec2 imageSize;
 
             if (viewportAspect > targetAspect)
             {
-                imageSize.y = viewportSize.y;
-                imageSize.x = imageSize.y * targetAspect;
+                imageSize.y      = viewportSize.y;
+                imageSize.x      = imageSize.y * targetAspect;
             }
             else
             {
-                imageSize.x = viewportSize.x;
-                imageSize.y = imageSize.x / targetAspect;
+                imageSize.x      = viewportSize.x;
+                imageSize.y      = imageSize.x / targetAspect;
             }
 
-            ImVec2 cursorPos = ImGui::GetCursorPos();
+            ImVec2 cursorPos     = ImGui::GetCursorPos();
             ImGui::SetCursorPos({
                 cursorPos.x + (viewportSize.x - imageSize.x) * 0.5f,
                 cursorPos.y + (viewportSize.y - imageSize.y) * 0.5f
@@ -56,14 +52,14 @@ namespace KTN
 
             UI::Image(m_MainTexture, imageSize);
 
-            auto* drawList = ImGui::GetWindowDrawList();
-            ImVec2 min = ImGui::GetItemRectMin();
-            ImVec2 max = ImGui::GetItemRectMax();
+            auto* drawList       = ImGui::GetWindowDrawList();
+            ImVec2 min           = ImGui::GetItemRectMin();
+            ImVec2 max           = ImGui::GetItemRectMax();
 
             drawList->AddRect(min, max, IM_COL32(255, 255, 255, 80));
 
-            m_ViewportWidth     = (uint32_t)imageSize.x;
-            m_ViewportHeight    = (uint32_t)imageSize.y;
+            m_ViewportWidth      = (uint32_t)imageSize.x;
+            m_ViewportHeight     = (uint32_t)imageSize.y;
         }
         ImGui::End();
     }

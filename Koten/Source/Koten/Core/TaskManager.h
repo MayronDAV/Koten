@@ -22,7 +22,7 @@ namespace KTN
                 Update,
                 LateUpdate,
                 PreRender,
-                Render,
+                RenderPass,
                 PostRender,
                 PreDestroy,
                 Destroy

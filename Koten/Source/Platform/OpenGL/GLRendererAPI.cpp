@@ -3,11 +3,41 @@
 #include "GLUtils.h"
 #include "GLRendererAPI.h"
 #include "GLTexture.h"
+#include "Koten/Graphics/Renderer.h"
+#include "Koten/Graphics/RendererCommand.h"
+#include "Koten/Graphics/Pipeline.h"
+#include "Koten/Core/TaskManager.h"
+
+// lib
+#include <stb/stb_image_write.h>
+
 
 
 
 namespace KTN
 {
+    namespace
+    {
+        static void FlipVertical(uint8_t* p_Data, uint32_t p_Width, uint32_t p_Height, uint32_t p_Channels)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            size_t stride       = p_Width * p_Channels;
+
+            std::vector<uint8_t> temp(stride);
+
+            for (uint32_t y = 0; y < p_Height / 2; y++)
+            {
+                uint8_t* top    = p_Data + y * stride;
+                uint8_t* bottom = p_Data + (p_Height - 1 - y) * stride;
+
+                memcpy(temp.data(), top, stride);
+                memcpy(top, bottom, stride);
+                memcpy(bottom, temp.data(), stride);
+            }
+        }
+    }
+
     GLRendererAPI::GLRendererAPI()
     {
         KTN_PROFILE_FUNCTION_LOW();
@@ -16,18 +46,18 @@ namespace KTN
         m_CommandBuffer->Init();
 
         // MaxSamples
-        glGetIntegerv(GL_MAX_SAMPLES, &m_Capabilities.MaxSamples);
+        GLCall(glGetIntegerv(GL_MAX_SAMPLES, &m_Capabilities.MaxSamples));
 
         // SamplerAnisotropy
-        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_Capabilities.MaxAnisotropy);
+        GLCall(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &m_Capabilities.MaxAnisotropy));
         m_Capabilities.SamplerAnisotropy = (m_Capabilities.MaxAnisotropy > 1.0f);
 
         // MaxTextureUnits
-        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &m_Capabilities.MaxTextureUnits);
+        GLCall(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &m_Capabilities.MaxTextureUnits));
 
         // WideLines
         GLfloat lineWidthRange[2];
-        glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidthRange);
+        GLCall(glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidthRange));
         m_Capabilities.WideLines = (lineWidthRange[1] > 1.0f);
         m_Capabilities.MaxLineWidth = lineWidthRange[1];
 
@@ -43,7 +73,7 @@ namespace KTN
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         GLCall(glBlendEquation(GL_FUNC_ADD));
 
-        glGenFramebuffers(1, &m_FBO);
+        GLCall(glGenFramebuffers(1, &m_FBO));
     }
 
     void GLRendererAPI::ClearColor(const glm::vec4& p_Color)
@@ -65,17 +95,17 @@ namespace KTN
         auto format = p_Texture->GetSpecification().Format;
         if (p_Texture->IsColorAttachment())
         {
-            glClearTexImage(id, 0, GLUtils::TextureFormatToGLFormat(format), GLUtils::TextureFormatToGLType(format), &p_Value);
+            GLCall(glClearTexImage(id, 0, GLUtils::TextureFormatToGLFormat(format), GLUtils::TextureFormatToGLType(format), &p_Value));
         }
         else if (p_Texture->IsDepthStencilAttachment())
         {
             float value = 1.0f;
-            glClearTexImage(id, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &value);
+            GLCall(glClearTexImage(id, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &value));
 
             if (p_Texture->IsStencil())
             {
                 GLint clearStencil = 0;
-                glClearTexImage(id, 0, GL_STENCIL_INDEX, GL_INT, &clearStencil);
+                GLCall(glClearTexImage(id, 0, GL_STENCIL_INDEX, GL_INT, &clearStencil));
             }
         }
     }
@@ -91,41 +121,105 @@ namespace KTN
         auto format = p_Texture->GetSpecification().Format;
         if (p_Texture->IsColorAttachment())
         {
-            glClearTexImage(id, 0, GLUtils::TextureFormatToGLFormat(format), GLUtils::TextureFormatToGLType(format), &p_Value[0]);
+            GLCall(glClearTexImage(id, 0, GLUtils::TextureFormatToGLFormat(format), GLUtils::TextureFormatToGLType(format), &p_Value[0]));
         }
         else if (p_Texture->IsDepthStencilAttachment())
         {
             float value = 1.0f;
-            glClearTexImage(id, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &value);
+            GLCall(glClearTexImage(id, 0, GL_DEPTH_COMPONENT, GL_FLOAT, &value));
 
             if (p_Texture->IsStencil())
             {
                 GLint clearStencil = 0;
-                glClearTexImage(id, 0, GL_STENCIL_INDEX, GL_INT, &clearStencil);
+                GLCall(glClearTexImage(id, 0, GL_STENCIL_INDEX, GL_INT, &clearStencil));
             }
         }
+    }
+
+    bool GLRendererAPI::SaveTextureToFile(const Ref<Texture2D>& p_Texture, const std::string& p_Path, bool p_Async)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
+
+        if (!p_Texture)
+        {
+            KTN_CORE_ERROR(KTN_GLLOG "Texture is null!");
+            return false;
+        }
+
+        auto spec        = p_Texture->GetSpecification();
+        auto format      = GLUtils::TextureFormatToGLFormat(spec.Format);
+        auto width       = p_Texture->GetWidth();
+        auto height      = p_Texture->GetHeight();
+        auto channels    = p_Texture->GetChannels();
+
+        std::vector<uint8_t> pixels(width * height * channels);
+        auto glTexture   = As<Texture2D, GLTexture2D>(p_Texture);
+
+        GLCall(glGetTextureImage(glTexture->GetID(), 0, format, GL_UNSIGNED_BYTE, static_cast<GLsizei>(pixels.size()), pixels.data()));
+
+        auto path        = FileSystem::ReplaceExtension(p_Path, ".png");
+        //FileSystem::CreateDirectories(path);
+
+        if (p_Async)
+        {
+            ThreadManager::Get().ScheduleJob([tempData = std::move(pixels), path, width, height, channels]() mutable
+            {
+                FlipVertical(tempData.data(), width, height, channels);
+
+                int32_t resWrite = stbi_write_png(
+                    path.c_str(),
+                    width, height, channels,
+                    tempData.data(), width * channels);
+
+                if (!resWrite)
+                {
+                    KTN_CORE_ERROR(KTN_GLLOG "Failed to save texture to path: {}!", path);
+                    return;
+                }
+
+                KTN_CORE_INFO(KTN_GLLOG "Texture saved to path: {}", path);
+            });
+
+            return true;
+        }
+
+        FlipVertical(pixels.data(), width, height, channels);
+
+        int32_t resWrite = stbi_write_png(
+            path.c_str(),
+            width, height, channels,
+            pixels.data(), width * channels);
+
+        if (!resWrite)
+        {
+            KTN_CORE_ERROR(KTN_GLLOG "Failed to save texture to path: {}!", path);
+            return false;
+        }
+
+        KTN_CORE_INFO(KTN_GLLOG "Texture saved to path: {}", path);
+        return true;
     }
 
     void* GLRendererAPI::ReadPixel(const Ref<Texture2D>& p_Texture, uint32_t p_X, uint32_t p_Y)
     {
         KTN_PROFILE_FUNCTION_LOW();
 
-        glBindFramebuffer(GL_FRAMEBUFFER, m_FBO);
+        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_FBO));
 
         uint32_t id = As<Texture2D, GLTexture2D>(p_Texture)->GetID();
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
+        GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0));
 
         static const GLenum buffers = GL_COLOR_ATTACHMENT0;
-        glDrawBuffers(1, &buffers);
+        GLCall(glDrawBuffers(1, &buffers));
 
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
+        GLCall(glReadBuffer(GL_COLOR_ATTACHMENT0));
 
         void* pixel;
-        glReadPixels(p_X, p_Y, 1, 1, 
-            GLUtils::TextureFormatToGLFormat(p_Texture->GetSpecification().Format), 
-            GLUtils::TextureFormatToGLType(p_Texture->GetSpecification().Format), &pixel);
+        GLCall(glReadPixels(p_X, p_Y, 1, 1,
+            GLUtils::TextureFormatToGLFormat(p_Texture->GetSpecification().Format),
+            GLUtils::TextureFormatToGLType(p_Texture->GetSpecification().Format), &pixel));
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
         return pixel;
     }

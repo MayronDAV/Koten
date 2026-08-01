@@ -161,7 +161,7 @@ namespace KTN
             {
                 KTN_PROFILE_SCOPE("Render");
 
-                RendererCommand::Begin();
+                Renderer::BeginFrame();
 
                 TaskManager::Get().ExecutePhase(TaskManager::Phase::PreRender);
                 TaskManager::Get().WaitForSyncPoint(TaskManager::SyncPoint::FramePreRender);
@@ -169,7 +169,7 @@ namespace KTN
                 for (auto& layer : m_LayerStack)
                     layer->OnRender();
 
-                RendererCommand::End();
+                Renderer::EndFrame();
 
                 m_ImGui->Begin();
                 {

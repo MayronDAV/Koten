@@ -157,4 +157,12 @@ namespace KTN
         std::filesystem::remove_all(std::filesystem::absolute(p_Path));
     }
 
+    std::string FileSystem::ReplaceExtension(const std::string& p_Path, const std::string& p_Extension)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        std::filesystem::path path = p_Path;
+        return path.replace_extension(p_Extension).string();
+    }
+
 } // namespace KTN

@@ -41,16 +41,17 @@ namespace KTN::GLUtils
     {
         switch (p_Format)
         {
-            case TextureFormat::R8:                 return GL_R8;
-            case TextureFormat::R32_INT:            return GL_R32I;
-            case TextureFormat::RG32_UINT:            return GL_RG32UI;
-            case TextureFormat::RGBA32_FLOAT:        return GL_RGBA32F;
-            case TextureFormat::RGB8:               return GL_RGB8;
-            case TextureFormat::RGB32_FLOAT:        return GL_RGB32F;
-            case TextureFormat::RGBA8:              return GL_RGBA8;
-            case TextureFormat::D16:                return GL_DEPTH_COMPONENT16;
-            case TextureFormat::D32_FLOAT:            return GL_DEPTH_COMPONENT32F;
-            case TextureFormat::D32_FLOAT_S8_UINT:    return GL_DEPTH32F_STENCIL8;
+            case TextureFormat::R8:                return GL_R8;
+            case TextureFormat::R32_INT:           return GL_R32I;
+            case TextureFormat::RG32_UINT:         return GL_RG32UI;
+            case TextureFormat::RGBA32_FLOAT:      return GL_RGBA32F;
+            case TextureFormat::RGB8:              return GL_RGB8;
+            case TextureFormat::RGB32_FLOAT:       return GL_RGB32F;
+            case TextureFormat::RGBA8:             return GL_RGBA8;
+
+            case TextureFormat::D16:               return GL_DEPTH_COMPONENT16;
+            case TextureFormat::D32_FLOAT:         return GL_DEPTH_COMPONENT32F;
+            case TextureFormat::D32_FLOAT_S8_UINT: return GL_DEPTH32F_STENCIL8;
             case TextureFormat::D16_S8_UINT:
             case TextureFormat::D24_S8_UINT:
                 return GL_DEPTH24_STENCIL8;

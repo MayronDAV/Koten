@@ -4,6 +4,9 @@
 #include "GLUtils.h"
 #include "Koten/Graphics/RendererCommand.h"
 
+// lib
+#include <stb/stb_image_write.h>
+
 
 
 
@@ -103,9 +106,9 @@ namespace KTN
 
         GLCall(glDeleteTextures(1, &m_RendererID));
 
-        m_RendererID    = newTexID;
-        m_Width            = p_Width;
-        m_Height        = p_Height;
+        m_RendererID = newTexID;
+        m_Width      = p_Width;
+        m_Height     = p_Height;
     }
 
     void GLTexture2D::GenerateMipmap(CommandBuffer* p_CommandBuffer)
@@ -153,7 +156,7 @@ namespace KTN
 
         GLCall(glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_Format, GL_UNSIGNED_BYTE, p_Data));
     }
-
+        
     std::vector<uint8_t> GLTexture2D::GetData() const
     {
         KTN_PROFILE_FUNCTION_LOW();
@@ -168,18 +171,18 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION_LOW();
 
-        const auto& cap            = RendererCommand::GetCapabilities();
+        const auto& cap         = RendererCommand::GetCapabilities();
 
-        m_Specification            = p_Spec;
+        m_Specification         = p_Spec;
         m_Specification.Samples = std::min(cap.MaxSamples, p_Spec.Samples);
         m_Format                = GLUtils::TextureFormatToGLFormat(p_Spec.Format);
         m_InternalFormat        = GLUtils::TextureFormatToGLInternalFormat(p_Spec.Format);
-        m_Width                    = p_Spec.Width;
+        m_Width                 = p_Spec.Width;
         m_Height                = p_Spec.Height;
         if (!IsDepthStencilAttachment())
         {
-            m_Channels                = Utils::TextureFormatToChannels(p_Spec.Format);
-            m_BytesPerChannels        = Utils::TextureFormatToBytesPerChannels(p_Spec.Format);
+            m_Channels          = Utils::TextureFormatToChannels(p_Spec.Format);
+            m_BytesPerChannels  = Utils::TextureFormatToBytesPerChannels(p_Spec.Format);
         }
 
         if (IsStorage())
