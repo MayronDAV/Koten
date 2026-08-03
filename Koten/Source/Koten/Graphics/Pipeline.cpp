@@ -92,10 +92,19 @@ namespace KTN
 
         for (int i = 0; i < MAX_RENDER_TARGETS; i++)
         {
-            HashCombine(hash, p_Spec.ColorTargets[i].get(), p_Spec.BlendModes[i]);
+            auto& texture = p_Spec.ColorTargets[i];
+            if (texture)
+                HashCombine(hash, texture->Handle, texture->GetWidth(), texture->GetHeight());
+            HashCombine(hash, p_Spec.BlendModes[i]);
         }
 
-        HashCombine(hash, p_Spec.pShader.get(), p_Spec.ResolveTexture.get(), p_Spec.DepthTarget.get());
+        HashCombine(hash, p_Spec.pShader.get());
+
+        if (p_Spec.ResolveTexture)
+            HashCombine(hash, p_Spec.ResolveTexture->Handle, p_Spec.ResolveTexture->GetWidth(), p_Spec.ResolveTexture->GetHeight());
+
+        if (p_Spec.DepthTarget)
+            HashCombine(hash, p_Spec.DepthTarget->Handle, p_Spec.DepthTarget->GetWidth(), p_Spec.DepthTarget->GetHeight());
 
         HashCombine(hash, p_Spec.pCullMode, p_Spec.pFrontFace, p_Spec.pDrawType, p_Spec.LineWidth,
             p_Spec.pPolygonMode);

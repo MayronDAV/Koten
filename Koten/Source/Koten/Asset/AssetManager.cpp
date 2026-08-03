@@ -423,11 +423,18 @@ namespace KTN
 
             if (metadata.Type == AssetType::Texture2D)
             {
-                auto texture = GetAsset<Texture2D>(handle);
-                if (texture)
+                auto texture      = GetAsset<Texture2D>(handle);
+
+                bool renderTarget = texture->IsColorAttachment();
+                out.write(reinterpret_cast<const char*>(&renderTarget), sizeof(renderTarget));
+
+                bool hasData      = !renderTarget && texture;
+                out.write(reinterpret_cast<const char*>(&hasData), sizeof(hasData));
+
+                if (hasData)
                 {
                     std::vector<uint8_t> textureData = texture->GetData();
-                    size_t dataSize = textureData.size();
+                    size_t dataSize                  = textureData.size();
 
                     out.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
                     out.write(reinterpret_cast<const char*>(textureData.data()), dataSize);
@@ -590,11 +597,20 @@ namespace KTN
 
             if (metadata.Type == AssetType::Texture2D)
             {
-                size_t dataSize = 0;
-                READ_WRITE(&dataSize, sizeof(dataSize));
+                bool renderTarget   = false;
+                READ_WRITE(&renderTarget, sizeof(renderTarget));
 
-                std::vector<uint8_t> textureData(dataSize);
-                READ_WRITE(textureData.data(), dataSize);
+                bool hasData        = false;
+                READ_WRITE(&hasData, sizeof(hasData));
+
+                if (hasData)
+                {
+                    size_t dataSize = 0;
+                    READ_WRITE(&dataSize, sizeof(dataSize));
+
+                    std::vector<uint8_t> textureData(dataSize);
+                    READ_WRITE(textureData.data(), dataSize);
+                }
             }
 
             if (metadata.Type == AssetType::Scene)

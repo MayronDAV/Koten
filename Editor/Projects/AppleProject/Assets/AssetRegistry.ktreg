@@ -1,4 +1,11 @@
 AssetRegistry:
+  - Handle: 182505715530947095
+    FilePath: Materials\Camera.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      {}
   - Handle: 1349744040832645468
     FilePath: Materials\Orange.ktmat
     Type: Material
@@ -149,6 +156,21 @@ AssetRegistry:
     SerializeAssetData: true
     AssetData:
       {}
+  - Handle: 9948754108870760214
+    FilePath: Textures\Camera.ktrt
+    Type: Texture2D
+    Load: true
+    SerializeAssetData: true
+    AssetData:
+      MinFilter: LINEAR
+      MagFilter: LINEAR
+      WrapU: REPEAT
+      WrapV: REPEAT
+      SRGB: true
+      AnisotropyEnable: true
+      GenerateMipmaps: true
+      BorderColor: [0, 0, 0, 1]
+      DebugName: RenderTarget_5456760245990778848
   - Handle: 11804150252124444193
     FilePath: DefaultTexture2D
     Type: Texture2D

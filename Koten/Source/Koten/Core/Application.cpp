@@ -257,11 +257,11 @@ namespace KTN
             return false;
         });
 
-        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
+        for (auto& layer : m_LayerStack)
         {
             KTN_PROFILE_SCOPE("Layers OnEvent");
 
-            (*--it)->OnEvent(p_Event);
+            layer->OnEvent(p_Event);
             if (p_Event.Handled)
                 break;
         }

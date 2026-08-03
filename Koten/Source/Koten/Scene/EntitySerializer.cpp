@@ -293,7 +293,7 @@ namespace KTN
             p_Out << YAML::BeginMap;
 
             auto& comp = p_Entity.GetComponent<CameraComponent>();
-            ADD_KEY_VALUE("Primary", comp.Primary);
+            ADD_KEY_VALUE("RenderTarget", comp.RenderTarget);
             ADD_KEY_VALUE("ClearColor", comp.ClearColor);
             ADD_KEY_VALUE("Width", comp.Camera.GetViewportWidth());
             ADD_KEY_VALUE("Height", comp.Camera.GetViewportHeight());
@@ -721,7 +721,7 @@ namespace KTN
 
             auto& comp = p_Entity.GetComponent<CameraComponent>();
 
-            p_Out.write(reinterpret_cast<const char*>(&comp.Primary), sizeof(comp.Primary));
+            p_Out.write(reinterpret_cast<const char*>(&comp.RenderTarget), sizeof(comp.RenderTarget));
             p_Out.write(reinterpret_cast<const char*>(&comp.ClearColor), sizeof(comp.ClearColor));
             uint32_t width = comp.Camera.GetViewportWidth();
             p_Out.write(reinterpret_cast<const char*>(&width), sizeof(width));
@@ -1103,21 +1103,20 @@ namespace KTN
             auto cameraComp = p_Data["CameraComponent"];
             if (cameraComp)
             {
-                auto primary = cameraComp["Primary"].as<bool>();
-                auto clearColor = cameraComp["ClearColor"].as<glm::vec4>();
-                auto width = cameraComp["Width"].as<uint32_t>();
-                auto height = cameraComp["Height"].as<uint32_t>();
-                auto isOrthographic = cameraComp["IsOrthographic"].as<bool>();
-                auto isAspectRatioFixed = cameraComp["IsAspectRatioFixed"].as<bool>();
-                auto fov = cameraComp["FOV"].as<float>();
-                auto farz = cameraComp["Far"].as<float>();
-                auto nearz = cameraComp["Near"].as<float>();
-                auto scale = cameraComp["Scale"].as<float>();
-                auto zoom = cameraComp["Zoom"].as<float>();
+                auto& comp              = p_Entity.AddOrReplaceComponent<CameraComponent>();
 
-                auto& comp = p_Entity.AddOrReplaceComponent<CameraComponent>();
-                comp.Primary = primary;
-                comp.ClearColor = clearColor;
+                comp.RenderTarget       = cameraComp["RenderTarget"].as<AssetHandle>();
+                comp.ClearColor         = cameraComp["ClearColor"].as<glm::vec4>();
+                auto width              = cameraComp["Width"].as<uint32_t>();
+                auto height             = cameraComp["Height"].as<uint32_t>();
+                auto isOrthographic     = cameraComp["IsOrthographic"].as<bool>();
+                auto isAspectRatioFixed = cameraComp["IsAspectRatioFixed"].as<bool>();
+                auto fov                = cameraComp["FOV"].as<float>();
+                auto farz               = cameraComp["Far"].as<float>();
+                auto nearz              = cameraComp["Near"].as<float>();
+                auto scale              = cameraComp["Scale"].as<float>();
+                auto zoom               = cameraComp["Zoom"].as<float>();
+
                 comp.Camera.SetViewportSize(width, height);
                 comp.Camera.SetIsOrthographic(isOrthographic);
                 comp.Camera.SetFixAspectRatio(isAspectRatioFixed);
@@ -1479,9 +1478,9 @@ namespace KTN
             if (p_Current != "CameraComponent")
                 return;
 
-            bool primary;
+            AssetHandle renderTarget;
             glm::vec4 clearColor;
-            KTN_STREAM(&primary, sizeof(primary));
+            KTN_STREAM(&renderTarget, sizeof(renderTarget));
             KTN_STREAM(&clearColor, sizeof(clearColor));
 
             uint32_t width, height;
@@ -1501,9 +1500,9 @@ namespace KTN
 
             if (p_Entity)
             {
-                auto& comp = p_Entity.AddOrReplaceComponent<CameraComponent>();
-                comp.Primary = primary;
-                comp.ClearColor = clearColor;
+                auto& comp        = p_Entity.AddOrReplaceComponent<CameraComponent>();
+                comp.RenderTarget = renderTarget;
+                comp.ClearColor   = clearColor;
                 comp.Camera.SetViewportSize(width, height);
                 comp.Camera.SetIsOrthographic(isOrthographic);
                 comp.Camera.SetFixAspectRatio(isAspectRatioFixed);

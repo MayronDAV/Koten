@@ -330,10 +330,12 @@ namespace KTN
         m_Registry.view<TransformComponent, CameraComponent>().each(
         [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
         {
-            p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+            if (!p_Camera.RenderTarget)
+                p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+
             p_Camera.Camera.OnUpdate();
 
-            if (p_Camera.Primary)
+            if (!p_Camera.RenderTarget)
             {
                 if (!first)
                 {
@@ -346,6 +348,15 @@ namespace KTN
                 m_ClearColor = p_Camera.ClearColor;
                 m_HaveCamera = true;
                 first        = false;
+            }
+
+            if (p_Camera.RenderTarget)
+            {
+                auto renderTarget = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
+                if (renderTarget)
+                {
+                    renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
+                }
             }
         });
 
@@ -369,10 +380,12 @@ namespace KTN
         m_Registry.view<TransformComponent, CameraComponent>().each(
         [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
         {
-            p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+            if (!p_Camera.RenderTarget)
+                p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+
             p_Camera.Camera.OnUpdate();
 
-            if (p_Camera.Primary)
+            if (!p_Camera.RenderTarget)
             {
                 if (!first)
                 {
@@ -385,6 +398,15 @@ namespace KTN
                 m_ClearColor = p_Camera.ClearColor;
                 m_HaveCamera = true;
                 first        = false;
+            }
+
+            if (p_Camera.RenderTarget)
+            {
+                auto renderTarget = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
+                if (renderTarget)
+                {
+                    renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
+                }
             }
         });
 
@@ -410,10 +432,12 @@ namespace KTN
         m_Registry.view<TransformComponent, CameraComponent>().each(
         [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
         {
-            p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+            if (!p_Camera.RenderTarget)
+                p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+
             p_Camera.Camera.OnUpdate();
 
-            if (p_Camera.Primary)
+            if (!p_Camera.RenderTarget)
             {
                 if (!first)
                 {
@@ -426,6 +450,15 @@ namespace KTN
                 m_ClearColor = p_Camera.ClearColor;
                 m_HaveCamera = true;
                 first        = false;
+            }
+
+            if (p_Camera.RenderTarget)
+            {
+                auto renderTarget = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
+                if (renderTarget)
+                {
+                    renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
+                }
             }
         });
 
@@ -475,7 +508,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        m_Width = p_Width;
+        m_Width  = p_Width;
         m_Height = p_Height;
     }
 
@@ -546,20 +579,49 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        RenderPassInfo info  = {};
-        info.RenderTarget    = m_RenderTarget;
-        info.Width           = m_Width;
-        info.Height          = m_Height;
-        info.Projection      = p_Projection;
-        info.View            = p_View;
-        info.Clear           = true;
-        info.ClearColor      = p_ClearColor;
-
-        Renderer::BeginPass(info);
+        m_Registry.view<TransformComponent, CameraComponent>().each(
+        [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
         {
-            Renderer::Submit(m_RenderList);
+            if (!p_Camera.RenderTarget)
+                return;
+
+            auto renderTarget   = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
+            if (!renderTarget)
+                return;
+
+            RenderPassInfo info = {};
+            info.RenderTarget   = renderTarget;
+            info.Width          = renderTarget->GetWidth();
+            info.Height         = renderTarget->GetHeight();
+            info.Projection     = p_Camera.Camera.GetProjection();
+            info.View           = glm::inverse(p_Transform.GetWorldMatrix());
+            info.Clear          = true;
+            info.ClearColor     = p_Camera.ClearColor;
+
+            Renderer::BeginPass(info);
+            {
+                Renderer::Submit(m_RenderList);
+            }
+            Renderer::EndPass();
+        });
+
+        if (m_HaveCamera)
+        {
+            RenderPassInfo info  = {};
+            info.RenderTarget    = m_RenderTarget;
+            info.Width           = m_Width;
+            info.Height          = m_Height;
+            info.Projection      = p_Projection;
+            info.View            = p_View;
+            info.Clear           = true;
+            info.ClearColor      = p_ClearColor;
+
+            Renderer::BeginPass(info);
+            {
+                Renderer::Submit(m_RenderList);
+            }
+            Renderer::EndPass();
         }
-        Renderer::EndPass();
     }
 
     void Scene::OnRenderRuntime()

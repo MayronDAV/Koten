@@ -41,7 +41,7 @@ namespace KTN
             auto& texture = p_Spec.Attachments[i];
             if (texture)
             {
-                HashCombine(hash, texture.get());
+                HashCombine(hash, texture->Handle, texture->GetWidth(), texture->GetHeight());
             }
         }
 

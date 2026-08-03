@@ -18,10 +18,10 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        m_CurrentDir = m_BaseDir;
+        m_CurrentDir    = m_BaseDir;
 
         m_DirectoryIcon = TextureImporter::LoadTexture2D("Resources/Icons/DirectoryIcon.png");
-        m_FileIcon = TextureImporter::LoadTexture2D("Resources/Icons/FileIcon.png");
+        m_FileIcon      = TextureImporter::LoadTexture2D("Resources/Icons/FileIcon.png");
     }
 
     ContentBrowserPanel::ContentBrowserPanel(const std::string& p_BaseDir)
@@ -29,10 +29,10 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        m_CurrentDir = m_BaseDir;
+        m_CurrentDir    = m_BaseDir;
 
         m_DirectoryIcon = TextureImporter::LoadTexture2D("Resources/Icons/DirectoryIcon.png");
-        m_FileIcon = TextureImporter::LoadTexture2D("Resources/Icons/FileIcon.png");
+        m_FileIcon      = TextureImporter::LoadTexture2D("Resources/Icons/FileIcon.png");
     }
 
     void ContentBrowserPanel::OnImgui()
@@ -43,10 +43,10 @@ namespace KTN
         {
             DrawContentTopPanel();
 
-            ImGuiStyle& style = ImGui::GetStyle();
-            const float padding = style.WindowPadding.x;
+            ImGuiStyle& style          = ImGui::GetStyle();
+            const float padding        = style.WindowPadding.x;
             const ImVec2 availableSize = ImGui::GetContentRegionAvail();
-            const float treeWidth = availableSize.x * 0.35f;
+            const float treeWidth      = availableSize.x * 0.35f;
 
             ImGui::BeginChild("##Tree", ImVec2(treeWidth, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
             {
@@ -292,21 +292,26 @@ namespace KTN
 
         if (std::filesystem::is_directory(p_Path))
         {
-            if (ImGui::MenuItem(ICON_MDI_ARROW_EXPAND " Open"))
+            if (m_ContentTreeFocused && ImGui::MenuItem(ICON_MDI_ARROW_EXPAND " Expand"))
             {
-                m_CurrentDir = p_Path;
+                m_CurrentDir               = p_Path;
             }
+
             if (ImGui::MenuItem(ICON_MDI_FOLDER_PLUS " Folder"))
             {
-                m_OpenPopupCreateFileDir = true;
+                m_OpenPopupCreateFileDir   = true;
                 m_IsDirectoryCreateFileDir = true;
-                m_CreateFileDirPath = p_Path;
+                m_CreateFileDirPath        = p_Path;
             }
             if (ImGui::MenuItem(ICON_MDI_FILE_PLUS " File"))
             {
-                m_OpenPopupCreateFileDir = true;
+                m_OpenPopupCreateFileDir   = true;
                 m_IsDirectoryCreateFileDir = false;
-                m_CreateFileDirPath = p_Path;
+                m_CreateFileDirPath        = p_Path;
+            }
+            if (ImGui::MenuItem(ICON_MDI_FILE_PLUS " Render Target"))
+            {
+                TextureImporter::CreateRenderTarget(p_Path.string());
             }
 
             ImGui::Spacing();
@@ -549,6 +554,14 @@ namespace KTN
                 }
             }
             ImGui::EndTable();
+
+            if (ImGui::BeginPopupContextWindow("##ContentBrowserContext",
+                ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+            {
+                m_ContentTreeFocused = false;
+                PopupContextMenuItems(m_CurrentDir);
+                ImGui::EndPopup();
+            }
         }
     }
 

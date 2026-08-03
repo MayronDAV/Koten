@@ -39,13 +39,13 @@ namespace KTN
             auto& texture = p_Spec.Attachments[i];
             if (texture)
             {
-                HashCombine(hash, texture.get());
+                HashCombine(hash, texture->Handle, texture->GetWidth(), texture->GetHeight());
             }
         }
 
         if (p_Spec.ResolveTexture)
         {
-            HashCombine(hash, p_Spec.ResolveTexture.get());
+            HashCombine(hash, p_Spec.ResolveTexture->Handle, p_Spec.ResolveTexture->GetWidth(), p_Spec.ResolveTexture->GetHeight());
         }
 
         auto found = s_RenderPassCache.find(hash);

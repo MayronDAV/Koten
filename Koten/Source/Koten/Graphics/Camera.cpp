@@ -18,13 +18,13 @@ namespace KTN
 
     void Camera::SetViewportSize(uint32_t p_Width, uint32_t p_Height)
     {
-        if (m_FixAspectRatio && (m_ViewportWidth > 0 && m_ViewportHeight > 0))
+        if ((p_Width <= 0 || p_Height <= 0))
             return;
 
-        if ((p_Width > 0 && p_Height > 0) && (m_ViewportWidth != p_Width || m_ViewportHeight != p_Height))
+        if (m_ViewportWidth != p_Width || m_ViewportHeight != p_Height)
         {
-            m_ViewportWidth = p_Width;
-            m_ViewportHeight = p_Height;
+            m_ViewportWidth   = p_Width;
+            m_ViewportHeight  = p_Height;
             m_ProjectionDirty = true;
         }
     }
@@ -69,6 +69,11 @@ namespace KTN
         _KTN_SET_VALUE(m_FixAspectRatio)
     }
 
+    void Camera::SetAspectRatio(float p_Value)
+    {
+        _KTN_SET_VALUE(m_AspectRatio)
+    }
+
     void Camera::OnUpdate()
     {
         KTN_PROFILE_FUNCTION();
@@ -76,20 +81,22 @@ namespace KTN
         if (!m_ProjectionDirty || (m_ViewportWidth <= 0 || m_ViewportHeight <= 0))
             return;
 
-        float aspect = float(m_ViewportWidth) / float(m_ViewportHeight);
+        if (!m_FixAspectRatio)
+            m_AspectRatio     = float(m_ViewportWidth) / float(m_ViewportHeight);
+
         if (m_Orthographic)
         {
-            float scale            =  m_Scale * m_Zoom;
-            float orthoLeft        = -scale * aspect * 0.5f;
-            float orthoRight    =  scale * aspect * 0.5f;
-            float orthoBottom    = -scale * 0.5f;
-            float orthoTop        =  scale * 0.5f;
+            float scale       =  m_Scale * m_Zoom;
+            float orthoLeft   = -scale * m_AspectRatio * 0.5f;
+            float orthoRight  =  scale * m_AspectRatio * 0.5f;
+            float orthoBottom = -scale * 0.5f;
+            float orthoTop    =  scale * 0.5f;
 
-            m_Projection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, m_NearZ, m_FarZ);
+            m_Projection      = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, m_NearZ, m_FarZ);
         }
         else
-            m_Projection = glm::perspective(glm::radians(m_Fov * m_Zoom), aspect, m_NearZ, m_FarZ);
+            m_Projection      = glm::perspective(glm::radians(m_Fov * m_Zoom), m_AspectRatio, m_NearZ, m_FarZ);
 
-        m_ProjectionDirty = false;
+        m_ProjectionDirty     = false;
     }
 } // namespace KTN

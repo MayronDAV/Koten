@@ -42,6 +42,9 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION_LOW();
 
+        if (m_Width == p_Width && m_Height == p_Height)
+            return;
+
         const auto& cap = RendererCommand::GetCapabilities();
 
         uint32_t newTexID;
@@ -56,9 +59,9 @@ namespace KTN
             GLCall(glTextureParameteri(newTexID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
             GLCall(glDeleteTextures(1, &m_RendererID));
-            m_RendererID    = newTexID;
-            m_Width            = p_Width;
-            m_Height        = p_Height;
+            m_RendererID = newTexID;
+            m_Width      = p_Width;
+            m_Height     = p_Height;
             return;
         }
 

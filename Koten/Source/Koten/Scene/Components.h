@@ -151,8 +151,9 @@ namespace KTN
     struct CameraComponent
     {
         SceneCamera Camera;
-        bool Primary = true;
-        glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+        AssetHandle RenderTarget = 0;
+
+        glm::vec4 ClearColor     = { 0.0f, 0.0f, 0.0f, 1.0f };
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent&) = default;

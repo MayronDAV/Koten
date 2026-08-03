@@ -28,6 +28,7 @@ namespace KTN
             void SetFOV(float p_Value);
             void SetZoom(float p_Value);
             void SetFixAspectRatio(bool p_Value);
+            void SetAspectRatio(float p_Value);
 
             float GetFar() const { return m_FarZ; }
             float GetNear() const { return m_NearZ; }
@@ -35,6 +36,7 @@ namespace KTN
             float GetScale() const { return m_Scale; }
             bool IsOrthographic() const { return m_Orthographic; }
             bool IsAspectRatioFixed() const { return m_FixAspectRatio; }
+            float GetAspectRatio() const { return m_AspectRatio; }
             uint32_t GetViewportWidth() const { return m_ViewportWidth; }
             uint32_t GetViewportHeight() const { return m_ViewportHeight; }
             float GetZoom() const { return m_Zoom; }
@@ -43,16 +45,17 @@ namespace KTN
             void OnUpdate();
 
         private:
-            glm::mat4 m_Projection    = glm::mat4(1.0f);
-            bool m_ProjectionDirty    = true;
+            glm::mat4 m_Projection   = glm::mat4(1.0f);
+            bool m_ProjectionDirty   = true;
 
             uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
             float m_Scale            = 10.0f;
-            float m_Zoom            = 1.0f;
+            float m_Zoom             = 1.0f;
 
             float m_Fov = 90.0f, m_NearZ = 0.001f, m_FarZ = 1000.0f;
 
-            bool m_Orthographic        = false;
+            float m_AspectRatio      = 1.0f;
+            bool m_Orthographic      = false;
             bool m_FixAspectRatio    = false;
     };
 

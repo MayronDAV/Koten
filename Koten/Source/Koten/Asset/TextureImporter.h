@@ -13,6 +13,9 @@ namespace KTN
 
         static Ref<Texture2D> LoadTexture2D(const std::string& p_Path);
         static Ref<Texture2D> LoadTexture2D(const std::string& p_Path, const TextureSpecification& p_Spec);
+
+        static void CreateRenderTarget(const std::string& p_Folder, const TextureSpecification& p_Spec = {});
+        static Ref<Texture2D> LoadRenderTarget(const std::string& p_Path, const TextureSpecification& p_Spec = {});
     };
 
 } // namespace KTN

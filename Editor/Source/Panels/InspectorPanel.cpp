@@ -153,7 +153,36 @@ namespace KTN
             {
                 Camera& camera = p_Component.Camera;
 
-                ImGui::Checkbox("Primary", &p_Component.Primary);
+                ImGui::BeginGroup();
+                {
+                    ImGui::Text("Render Target");
+                    ImGui::SameLine();
+                    auto path = p_Component.RenderTarget ? GetRelative(AssetManager::Get()->GetMetadata(p_Component.RenderTarget).FilePath) : "Default";
+                    auto size = ImGui::GetContentRegionAvail().x;
+                    if (ImGui::Button(path.c_str(), { size, 0.0f }))
+                    {
+                        std::string path = "";
+                        if (FileDialog::Open({ { "RenderTarget", "*.ktrt" } }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                        {
+                            p_Component.RenderTarget = AssetManager::Get()->ImportAsset(AssetType::Texture2D, path);
+                        }
+                    }
+                }
+                ImGui::EndGroup();
+
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        const wchar_t* path = (const wchar_t*)payload->Data;
+                        auto filepath = std::filesystem::path(path);
+                        if (filepath.extension() == ".ktrt")
+                        {
+                            p_Component.RenderTarget = AssetManager::Get()->ImportAsset(AssetType::Texture2D, filepath.string());
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
 
                 int currentItem = (int)camera.IsOrthographic();
                 static const char* items[] = { "Perspective", "Orthographic" };
@@ -162,6 +191,16 @@ namespace KTN
                 if (UI::Combo("Type", items[currentItem], items, itemsCount, &currentItem, -1))
                 {
                     camera.SetIsOrthographic(currentItem == 1);
+                }
+
+                if (p_Component.RenderTarget)
+                {
+                    int width  = camera.GetViewportWidth();
+                    int height = camera.GetViewportHeight();
+                    if (ImGui::InputInt("Width", &width))
+                        camera.SetViewportSize(width, height);
+                    if (ImGui::InputInt("Height", &height))
+                        camera.SetViewportSize(width, height);
                 }
 
                 if (!camera.IsOrthographic())
@@ -190,8 +229,15 @@ namespace KTN
                     camera.SetFar(farz);
 
                 bool fixed = camera.IsAspectRatioFixed();
-                ImGui::Checkbox("Fixed Aspect Ratio", &fixed);
-                camera.SetFixAspectRatio(fixed);
+                if (ImGui::Checkbox("Fixed Aspect Ratio", &fixed))
+                    camera.SetFixAspectRatio(fixed);
+
+                if (camera.IsAspectRatioFixed())
+                {
+                    float aspect = camera.GetAspectRatio();
+                    if (ImGui::InputFloat("Aspect Ratio", &aspect))
+                        camera.SetAspectRatio(aspect);
+                }
             });
         }
 

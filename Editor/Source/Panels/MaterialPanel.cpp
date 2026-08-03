@@ -129,7 +129,7 @@ namespace KTN
                     if (FileDialog::Open({ { "All", "*.*" } }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
                     {
                         auto filepath = std::filesystem::path(path);
-                        if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
+                        if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg" || filepath.extension() == ".ktrt")
                             material->Texture = AssetManager::Get()->ImportAsset(AssetType::Texture2D, path);
                     }
                 }
@@ -142,7 +142,7 @@ namespace KTN
                     {
                         const wchar_t* path = (const wchar_t*)payload->Data;
                         auto filepath = std::filesystem::path(path);
-                        if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg")
+                        if (filepath.extension() == ".png" || filepath.extension() == ".jpg" || filepath.extension() == ".jpeg" || filepath.extension() == ".ktrt")
                             material->Texture = AssetManager::Get()->ImportAsset(AssetType::Texture2D, filepath.string());
                     }
                     ImGui::EndDragDropTarget();
