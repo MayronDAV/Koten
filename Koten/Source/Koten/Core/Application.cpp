@@ -15,6 +15,7 @@
 #include "ThreadManager.h"
 #include "TaskManager.h"
 #include "Koten/Systems/AnimSystemManager.h"
+#include "Koten/Graphics/PickingManager.h"
 
 
 
@@ -97,11 +98,17 @@ namespace KTN
         ExecuteMainThreadQueue();
 
         AnimSystemManager::Init();
+
+        if (settings.MousePicking)
+            PickingManager::Init();
     }
 
     Application::~Application()
     {
         KTN_PROFILE_FUNCTION();
+
+        if (Engine::Get().GetSettings().MousePicking)
+            PickingManager::Shutdown();
 
         AnimSystemManager::Shutdown();
 
@@ -148,6 +155,8 @@ namespace KTN
                 Engine::Get().ResetStats();
 
                 TaskManager::Get().ExecutePhase(TaskManager::Phase::Update);
+
+                PickingManager::Begin();
 
                 for (auto& layer : m_LayerStack)
                     layer->OnUpdate();

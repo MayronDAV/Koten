@@ -9,12 +9,11 @@
 
 namespace KTN
 {
-    void DebugRenderer::DrawHairLine(const glm::vec3& p_Start, const glm::vec3& p_End, const glm::vec4& p_Color, int p_Entity)
+    void DebugRenderer::DrawHairLine(const glm::vec3& p_Start, const glm::vec3& p_End, const glm::vec4& p_Color)
     {
         KTN_PROFILE_FUNCTION();
 
         RenderCommand command            = {};
-        command.EntityID                 = p_Entity;
 
         LineCommand line                 = {};
         line.Primitive                   = true;
@@ -60,13 +59,13 @@ namespace KTN
                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), translation)
                     * glm::scale(glm::mat4(1.0f), scale);
 
-                DebugRenderer::DrawCircle(transform, p_Color, (int)p_Entity.GetHandle());
+                DebugRenderer::DrawCircle(transform, p_Color);
             }
         
         }
     }
 
-    void DebugRenderer::DrawAABB(Entity p_Entity, const glm::vec2& p_Min, const glm::vec2& p_Max, const glm::vec4& p_Color)
+    void DebugRenderer::DrawAABB(const glm::vec2& p_Min, const glm::vec2& p_Max, const glm::vec4& p_Color)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -77,10 +76,10 @@ namespace KTN
             glm::translate(glm::mat4(1.0f), glm::vec3(center, 0.001f)) *
             glm::scale(glm::mat4(1.0f), glm::vec3(size, 1.0f));
 
-        DebugRenderer::DrawSquare(transform, p_Color, (int)p_Entity.GetHandle());
+        DebugRenderer::DrawSquare(transform, p_Color);
     }
 
-    void DebugRenderer::DrawSquare(const glm::mat4& p_Transform, const glm::vec4& p_Color, int p_Entity)
+    void DebugRenderer::DrawSquare(const glm::mat4& p_Transform, const glm::vec4& p_Color)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -94,7 +93,7 @@ namespace KTN
         auto& settings        = Engine::Get().GetSettings();
 
         RenderCommand command = {};
-        command.EntityID      = p_Entity;
+        command.ID            = INVALID_PICKING_ID;
         command.Transform     = p_Transform;
 
         LineCommand line      = {};
@@ -111,14 +110,14 @@ namespace KTN
         }
     }
 
-    void DebugRenderer::DrawCircle(const glm::mat4& p_Transform, const glm::vec4& p_Color, int p_Entity)
+    void DebugRenderer::DrawCircle(const glm::mat4& p_Transform, const glm::vec4& p_Color)
     {
         KTN_PROFILE_FUNCTION();
 
         auto& settings                       = Engine::Get().GetSettings();
 
         RenderCommand command                = {};
-        command.EntityID                     = p_Entity;
+        command.ID                           = INVALID_PICKING_ID;
         command.Transform                    = p_Transform;
 
         SpriteCommand sprite                 = {};

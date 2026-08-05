@@ -45,10 +45,13 @@ namespace KTN
 
         struct RendererResources
         {
-            Ref<Texture2D> WhiteTexture = nullptr;
+            Ref<Texture2D> WhiteTexture        = nullptr;
 
-            Ref<Shader> FinalShader     = nullptr;
-            Ref<DescriptorSet> FinalSet = nullptr;
+            Ref<Shader> FinalShader            = nullptr;
+            Ref<DescriptorSet> FinalSet        = nullptr;
+
+            Ref<Shader> FinalPickingShader     = nullptr;
+            Ref<DescriptorSet> FinalPickingSet = nullptr;
         };
 
         struct RenderTargets
@@ -165,7 +168,7 @@ namespace KTN
             private:
                 std::unordered_map<std::type_index, std::unique_ptr<IRenderPassData>> m_Data;
         };
-        
+
         struct FrameData
         {
             std::vector<RenderPass> Passes;
@@ -211,14 +214,14 @@ namespace KTN
                 struct Batch
                 {
                     std::vector<InstanceData> Instances;
-                    std::vector<int> EntityIDs;
+                    std::vector<PickingID> PickingIDs;
                     uint32_t TextureSlot = 1;
                     std::array<Ref<Texture2D>, MAX_TEXTURE_SLOTS> Textures;
 
                     void Reset(const Ref<Texture2D>& p_WhiteTexture)
                     {
                         Instances.clear();
-                        EntityIDs.clear();
+                        PickingIDs.clear();
                         TextureSlot = 1;
                         Textures.fill(nullptr);
                         Textures[0] = p_WhiteTexture;
@@ -317,14 +320,14 @@ namespace KTN
                 struct Batch
                 {
                     std::vector<InstanceData> Instances;
-                    std::vector<int> EntityIDs;
+                    std::vector<PickingID> PickingIDs;
                     uint32_t TextureSlot = 1;
                     std::array<Ref<Texture2D>, MAX_TEXTURE_SLOTS> FontAtlasTextures;
 
                     void Reset(const Ref<Texture2D>& p_WhiteTexture)
                     {
                         Instances.clear();
-                        EntityIDs.clear();
+                        PickingIDs.clear();
                         TextureSlot = 1;
                         FontAtlasTextures.fill(p_WhiteTexture);
                     }
@@ -356,7 +359,7 @@ namespace KTN
             if (p_Pass.Targets->Color)
                 RendererCommand::ClearRenderTarget(p_Pass.Targets->Color, p_Pass.Info.ClearColor);
             if (p_Pass.Targets->Picking)
-                RendererCommand::ClearRenderTarget(p_Pass.Targets->Picking, p_Pass.Info.ClearColor);
+                RendererCommand::ClearRenderTarget(p_Pass.Targets->Picking, INVALID_PICKING_ID);
             if (p_Pass.Targets->Resolve)
                 RendererCommand::ClearRenderTarget(p_Pass.Targets->Resolve, p_Pass.Info.ClearColor);
             if (p_Pass.Targets->Depth)
@@ -393,6 +396,24 @@ namespace KTN
                 {
                     s_Renderer->Resources.FinalShader = Shader::Create(source);
                     s_Renderer->Resources.FinalSet    = DescriptorSet::Create({ 0, s_Renderer->Resources.FinalShader });
+                });
+            },
+            true,
+            TaskManager::SyncPoint::None
+        });
+
+        TaskManager::Get().AddTask({
+            "FinalPickingShader",
+            TaskManager::Phase::Init,
+            0,
+            []()
+            {
+                auto spirvSource                             = Shader::CompileOrGetSpirv("Assets/Shaders/FinalPickingPass.glsl");
+                KTN_CORE_INFO("Compiled FinalPickingPass shader!");
+                Application::Get().SubmitToMainThread([source = std::move(spirvSource)]()
+                {
+                    s_Renderer->Resources.FinalPickingShader = Shader::Create(source);
+                    s_Renderer->Resources.FinalPickingSet    = DescriptorSet::Create({ 0, s_Renderer->Resources.FinalPickingShader });
                 });
             },
             true,
@@ -438,6 +459,7 @@ namespace KTN
         TaskManager::Get().WaitForSyncPoint(TaskManager::SyncPoint::FrameRender);
 
         std::unordered_map<uint64_t, std::pair<RenderPassInfo, Ref<RenderTargets>>> mapTargets;
+        std::unordered_map<uint64_t, std::pair<RenderPassInfo, Ref<RenderTargets>>> pickingTargets;
 
         for (auto& pass : s_Renderer->Frame.Passes)
         {
@@ -452,20 +474,23 @@ namespace KTN
             if (s_Text) s_Text->Render(pass);
 
             mapTargets[pass.Info.RenderTarget ? pass.Info.RenderTarget->Handle : (AssetHandle)0] = { pass.Info, pass.Targets };
+
+            if (pass.Info.PickingTarget)
+                pickingTargets[pass.Info.PickingTarget->Handle] = { pass.Info, pass.Targets };
         }
+
+        auto commandBuffer              = RendererCommand::GetCurrentCommandBuffer();
 
         for (auto& [key, targets] : mapTargets )
         {
-            auto commandBuffer          = RendererCommand::GetCurrentCommandBuffer();
-
             PipelineSpecification pspec = {};
-            pspec.ColorTargets[0]       = targets.first.RenderTarget;
             pspec.pShader               = s_Renderer->Resources.FinalShader;
-            pspec.SwapchainTarget       = targets.first.RenderTarget == nullptr;
             pspec.ClearTargets          = true;
             pspec.DepthTest             = false;
             pspec.DepthWrite            = false;
             pspec.ClearColor            = targets.first.ClearColor;
+            pspec.ColorTargets[0]       = targets.first.RenderTarget;
+            pspec.SwapchainTarget       = targets.first.RenderTarget == nullptr;
             pspec.DebugName             = "FinalPassPipeline - " + (targets.first.RenderTarget ? std::to_string(targets.first.RenderTarget->Handle) : "Swapchain Target");
 
             auto pipeline               = Pipeline::Get(pspec);
@@ -478,6 +503,33 @@ namespace KTN
             s_Renderer->Resources.FinalSet->Upload(commandBuffer);
 
             commandBuffer->BindSets(&s_Renderer->Resources.FinalSet);
+            RendererCommand::Draw(DrawType::TRIANGLES, nullptr, 6);
+
+            pipeline->End(commandBuffer);
+        }
+
+        for (auto& [key, targets] : pickingTargets)
+        {
+            PipelineSpecification pspec = {};
+            pspec.pShader               = s_Renderer->Resources.FinalPickingShader;
+            pspec.ClearTargets          = true;
+            pspec.DepthTest             = false;
+            pspec.DepthWrite            = false;
+            pspec.ClearColor            = targets.first.ClearColor;
+            pspec.ColorTargets[0]       = targets.first.PickingTarget;
+            pspec.SwapchainTarget       = false;
+            pspec.DebugName             = "FinalPassPipeline - Picking - " + std::to_string(targets.first.PickingTarget->Handle);
+
+            auto pipeline               = Pipeline::Get(pspec);
+
+            pipeline->Begin(commandBuffer);
+
+            commandBuffer->SetViewport(0.0f, 0.0f, targets.first.Width, targets.first.Height);
+
+            s_Renderer->Resources.FinalPickingSet->SetTexture("u_Texture", targets.second->Picking);
+            s_Renderer->Resources.FinalPickingSet->Upload(commandBuffer);
+
+            commandBuffer->BindSets(&s_Renderer->Resources.FinalPickingSet);
             RendererCommand::Draw(DrawType::TRIANGLES, nullptr, 6);
 
             pipeline->End(commandBuffer);
@@ -524,9 +576,9 @@ namespace KTN
         targets->Color                = Texture2D::Get(tspec);
 
         tspec.Samples                 = 1;
-        if (Engine::Get().GetSettings().MousePicking)
+        if (p_PassInfo.Picking)
         {
-            tspec.Format              = TextureFormat::R32_INT;
+            tspec.Format              = TextureFormat::R32_UINT;
             tspec.DebugName           = "Pass - PickingTarget " + text;
 
             targets->Picking          = Texture2D::Get(tspec);
@@ -547,7 +599,7 @@ namespace KTN
 
         targets->Depth                = Texture2D::Get(tspec);
 
-        if (Engine::Get().GetSettings().MousePicking)
+        if (p_PassInfo.Picking)
         {
             tspec.Format              = TextureFormat::D32_FLOAT;
             tspec.DebugName           = "Pass - PickingDepthTarget " + text;
@@ -736,7 +788,9 @@ namespace KTN
                     }
 
                     currentBatch.Instances.push_back(data);
-                    currentBatch.EntityIDs.push_back(renderCommand.EntityID);
+
+                    if (p_Pass.Info.Picking)
+                        currentBatch.PickingIDs.push_back(renderCommand.ID);
                 }
             }
         }
@@ -793,7 +847,7 @@ namespace KTN
             pipeline->End(commandBuffer);
 
 
-            if (Engine::Get().GetSettings().MousePicking)
+            if (p_Pass.Info.Picking)
             {
                 PipelineSpecification pspec = {};
                 pspec.pShader               = m_Resources.PickingShader;
@@ -820,11 +874,11 @@ namespace KTN
                     m_Resources.PickingSet->SetUniform("u_Instances", "Instances", batch.Instances.data(), batch.Instances.size() * sizeof(InstanceData));
                     m_Resources.PickingSet->Upload(commandBuffer);
 
-                    int count         = batch.EntityIDs.size();
-                    size_t bufferSize = sizeof(int) + sizeof(int) * batch.EntityIDs.size();
-                    m_Resources.PickingSet->PrepareStorageBuffer("EntityBuffer", bufferSize);
-                    m_Resources.PickingSet->SetStorage("EntityBuffer", "Count", &count, sizeof(int));
-                    m_Resources.PickingSet->SetStorage("EntityBuffer", "EnttIDs", batch.EntityIDs.data(), sizeof(int) * batch.EntityIDs.size());
+                    PickingID count         = static_cast<PickingID>(batch.PickingIDs.size());
+                    size_t bufferSize       = sizeof(PickingID) + sizeof(PickingID) * batch.PickingIDs.size();
+                    m_Resources.PickingSet->PrepareStorageBuffer("PickingBuffer", bufferSize);
+                    m_Resources.PickingSet->SetStorage("PickingBuffer", "Count", &count, sizeof(PickingID));
+                    m_Resources.PickingSet->SetStorage("PickingBuffer", "PickingIDs", batch.PickingIDs.data(), sizeof(PickingID) * batch.PickingIDs.size());
                     m_Resources.PickingSet->Upload(commandBuffer);
 
                     commandBuffer->BindSets(&m_Resources.PickingSet);
@@ -1132,8 +1186,8 @@ namespace KTN
 
                         currentBatch.Instances.push_back(bgData);
 
-                        if (Engine::Get().GetSettings().MousePicking)
-                            currentBatch.EntityIDs.push_back(renderCommand.EntityID);
+                        if (p_Pass.Info.Picking)
+                            currentBatch.PickingIDs.push_back(renderCommand.ID);
                     }
 
                     auto texture       = command.Font->GetAtlasTexture();
@@ -1177,8 +1231,8 @@ namespace KTN
 
                         currentBatch.Instances.push_back(data);
 
-                        if (Engine::Get().GetSettings().MousePicking)
-                            currentBatch.EntityIDs.push_back(renderCommand.EntityID);
+                        if (p_Pass.Info.Picking)
+                            currentBatch.PickingIDs.push_back(renderCommand.ID);
                     }
                 }
             }
@@ -1235,7 +1289,7 @@ namespace KTN
 
             pipeline->End(commandBuffer);
 
-            if (Engine::Get().GetSettings().MousePicking)
+            if (p_Pass.Info.Picking)
             {
                 PipelineSpecification pspec = {};
                 pspec.pShader               = m_Resources.PickingShader;
@@ -1261,11 +1315,11 @@ namespace KTN
                     m_Resources.PickingSet->SetUniform("u_Instances", "Instances", batch.Instances.data(), batch.Instances.size() * sizeof(InstanceData));
                     m_Resources.PickingSet->Upload(commandBuffer);
 
-                    int count               = batch.EntityIDs.size();
-                    size_t bufferSize       = sizeof(int) + sizeof(int) * batch.EntityIDs.size();
-                    m_Resources.PickingSet->PrepareStorageBuffer("EntityBuffer", bufferSize);
-                    m_Resources.PickingSet->SetStorage("EntityBuffer", "Count", &count, sizeof(int));
-                    m_Resources.PickingSet->SetStorage("EntityBuffer", "EnttIDs", batch.EntityIDs.data(), sizeof(int) * batch.EntityIDs.size());
+                    PickingID count         = static_cast<PickingID>(batch.PickingIDs.size());
+                    size_t bufferSize       = sizeof(PickingID) + sizeof(PickingID) * batch.PickingIDs.size();
+                    m_Resources.PickingSet->PrepareStorageBuffer("PickingBuffer", bufferSize);
+                    m_Resources.PickingSet->SetStorage("PickingBuffer", "Count", &count, sizeof(PickingID));
+                    m_Resources.PickingSet->SetStorage("PickingBuffer", "PickingIDs", batch.PickingIDs.data(), sizeof(PickingID) * batch.PickingIDs.size());
                     m_Resources.PickingSet->Upload(commandBuffer);
 
                     commandBuffer->BindSets(&m_Resources.PickingSet);

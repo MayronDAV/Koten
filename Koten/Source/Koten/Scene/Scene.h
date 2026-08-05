@@ -65,6 +65,7 @@ namespace KTN
             void OnRenderRuntime();
 
             void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
+            void SetPickingTarget(const Ref<Texture2D>& p_Target) { m_PickingTarget = p_Target; }
             void SetViewportSize(uint32_t p_Width, uint32_t p_Height);
             void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
 
@@ -138,6 +139,7 @@ namespace KTN
         private:
             entt::registry m_Registry;
             Ref<Texture2D> m_RenderTarget         = nullptr;
+            Ref<Texture2D> m_PickingTarget        = nullptr;
             uint32_t m_Width                      = 0;
             uint32_t m_Height                     = 0;
             glm::mat4 m_Projection                = { 1.0f };

@@ -13,6 +13,7 @@ namespace KTN::GLUtils
             case TextureFormat::R8:
                 return GL_RED;
             case TextureFormat::R32_INT:
+            case TextureFormat::R32_UINT:
                 return GL_RED_INTEGER;
             case TextureFormat::RG32_UINT:
                 return GL_RG;
@@ -43,6 +44,7 @@ namespace KTN::GLUtils
         {
             case TextureFormat::R8:                return GL_R8;
             case TextureFormat::R32_INT:           return GL_R32I;
+            case TextureFormat::R32_UINT:          return GL_R32UI;
             case TextureFormat::RG32_UINT:         return GL_RG32UI;
             case TextureFormat::RGBA32_FLOAT:      return GL_RGBA32F;
             case TextureFormat::RGB8:              return GL_RGB8;
@@ -68,6 +70,7 @@ namespace KTN::GLUtils
             case TextureFormat::R32_INT:
                 return GL_INT;
             case TextureFormat::RG32_UINT:
+            case TextureFormat::R32_UINT:
                 return GL_UNSIGNED_INT;
             case TextureFormat::D32_FLOAT:
             case TextureFormat::RGBA32_FLOAT:

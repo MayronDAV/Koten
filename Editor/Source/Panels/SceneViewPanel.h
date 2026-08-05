@@ -21,15 +21,19 @@ namespace KTN
 
         private:
             Ref<Texture2D> m_MainTexture = nullptr;
-            uint32_t m_Width             = 800;
-            uint32_t m_Height            = 600;
 
-            ImVec2 m_ViewportMinRegion;
-            ImVec2 m_ViewportMaxRegion;
-            ImVec2 m_ViewportOffset;
-            float m_TitlebarHeight       = 0.0f;
+            struct ViewportData
+            {
+                ImVec2 Position       = { 0.0f, 0.0f };
+                ImVec2 Size           = { 0.0f, 0.0f };
+
+                uint32_t RenderWidth  = 800;
+                uint32_t RenderHeight = 600;
+            };
+            ViewportData m_Viewport;
 
             bool m_HandleCameraEvents    = false;
+            uint32_t m_PickingTextureID  = 0;
     };
 
 } // namespace KTN

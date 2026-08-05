@@ -14,6 +14,9 @@
 
 namespace KTN
 {
+    using PickingID = uint32_t;
+    inline constexpr PickingID INVALID_PICKING_ID = 0;
+
     struct SpriteCommand
     {
         Ref<Texture2D> Texture = nullptr;
@@ -66,8 +69,8 @@ namespace KTN
 
     struct RenderCommand
     {
-        int EntityID           = -1;
-        glm::mat4 Transform    = { 1.0f };
+        PickingID ID          = INVALID_PICKING_ID;
+        glm::mat4 Transform   = { 1.0f };
 
         std::variant<LineCommand, TextCommand, SpriteCommand> Command;
     };

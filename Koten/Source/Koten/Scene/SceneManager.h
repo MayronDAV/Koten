@@ -24,6 +24,7 @@ namespace KTN
             static void Shutdown();
 
             static void SetRenderTarget(const Ref<Texture2D>& p_Target);
+            static void SetPickingTarget(const Ref<Texture2D>& p_Target);
             static void SetViewportSize(uint32_t p_Width, uint32_t p_Height);
 
             static void Play();

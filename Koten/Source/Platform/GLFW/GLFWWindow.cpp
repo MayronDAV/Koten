@@ -343,10 +343,13 @@ namespace KTN
         {
             WindowData& data = *(WindowData*)glfwGetWindowUserPointer(p_Window);
 
+            if (p_Key < 0 || p_Key >= GLFW_KEY_LAST)
+                return;
+
             KeyStateData& keyData = data.Keys[p_Key];
-            keyData.Key = p_Key;
-            keyData.PrevState = keyData.State;
-            keyData.State = KeyState::NONE;
+            keyData.Key           = p_Key;
+            keyData.PrevState     = keyData.State;
+            keyData.State         = KeyState::NONE;
 
             switch (p_Action)
             {

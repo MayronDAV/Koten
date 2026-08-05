@@ -17,6 +17,7 @@ namespace KTN
     SceneViewPanel::SceneViewPanel()
         : EditorPanel("Scene View")
     {
+        m_PickingTextureID = PickingManager::CreatePickingTarget(m_Viewport.RenderWidth, m_Viewport.RenderHeight);
     }
 
     void SceneViewPanel::OnImgui()
@@ -34,11 +35,6 @@ namespace KTN
         ImGui::PopStyleColor();
         {
             ImVec2 viewportSize  = ImGui::GetContentRegionAvail();
-            m_TitlebarHeight     = ImGui::GetFrameHeight();
-            m_ViewportMinRegion  = ImGui::GetWindowContentRegionMin();
-            m_ViewportMaxRegion  = ImGui::GetWindowContentRegionMax();
-            m_ViewportOffset     = ImGui::GetWindowPos();
-
             m_HandleCameraEvents = ImGui::IsWindowFocused();
 
             float targetAspect   = 2.33f;
@@ -65,11 +61,16 @@ namespace KTN
 
             UI::Image(m_MainTexture, imageSize);
 
-            auto* drawList = ImGui::GetWindowDrawList();
-            ImVec2 min     = ImGui::GetItemRectMin();
-            ImVec2 max     = ImGui::GetItemRectMax();
+            auto* drawList          = ImGui::GetWindowDrawList();
+            ImVec2 imageMin         = ImGui::GetItemRectMin();
+            ImVec2 imageMax         = ImGui::GetItemRectMax();
 
-            drawList->AddRect(min, max, IM_COL32(255, 255, 255, 80));
+            m_Viewport.Position     = imageMin;
+            m_Viewport.Size         = imageSize;
+            m_Viewport.RenderWidth  = (uint32_t)imageSize.x;
+            m_Viewport.RenderHeight = (uint32_t)imageSize.y;
+
+            drawList->AddRect(imageMin, imageMax, IM_COL32(255, 255, 255, 80));
 
             if (ImGui::BeginDragDropTarget())
             {
@@ -87,52 +88,43 @@ namespace KTN
                 ImGui::EndDragDropTarget();
             }
 
-            m_Width  = (uint32_t)imageSize.x;
-            m_Height = (uint32_t)imageSize.y;
-
-            glm::vec2 viewportBounds[2] = {
-                { m_ViewportMinRegion.x + m_ViewportOffset.x, m_ViewportMinRegion.y + m_ViewportOffset.y },
-                { m_ViewportMaxRegion.x + m_ViewportOffset.x, m_ViewportMaxRegion.y + m_ViewportOffset.y }
-            };
-
             auto guizmoType = m_Editor->GetGuizmoType();
 
-            //bool imguizmo = (guizmoType != 0 && ImGuizmo::IsOver()) || ImGuizmo::IsUsing();
-            //if (Engine::Get().GetSettings().MousePicking && !ImGui::IsDragDropActive() && !imguizmo)
-            //{
-            //    auto [mx, my] = ImGui::GetMousePos();
-            //    mx -= viewportBounds[0].x;
-            //    my -= viewportBounds[0].y;
-            //    if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-            //        my = m_Height - my;
+            bool imguizmo = (guizmoType != 0 && ImGuizmo::IsOver()) || ImGuizmo::IsUsing();
+            if (Engine::Get().GetSettings().MousePicking && !ImGui::IsDragDropActive() && !imguizmo)
+            {
+                ImVec2 mousePos  = ImGui::GetMousePos();
 
-            //    glm::ivec2 mouse = { (int)mx, (int)my };
+                bool inside      =
+                    mousePos.x >= imageMin.x &&
+                    mousePos.x <  imageMax.x &&
+                    mousePos.y >= imageMin.y &&
+                    mousePos.y <  imageMax.y;
 
-            //    if ((mouse.x >= 0 && mouse.x < (int)m_Width) &&
-            //        (mouse.y >= 0 && mouse.y < (int)m_Height))
-            //    {
-            //        if (Input::IsMouseButtonPressed(Mouse::Button_Left))
-            //        {
-            //            auto texture = Renderer::GetPickingTexture();
-            //            int id = static_cast<int>((intptr_t)RendererCommand::ReadPixel(texture, mouse.x, mouse.y));
-            //            if (id >= 0)
-            //                m_Editor->SetSelectedEntt({ (entt::entity)id, m_Context.get() });
-            //            else
-            //                m_Editor->UnSelectEntt();
-            //        }
-            //    }
-            //}
+                if (inside && Input::IsMouseButtonPressed(Mouse::Button_Left))
+                {
+                    float localX = mousePos.x - imageMin.x;
+                    float localY = mousePos.y - imageMin.y;
 
+                    int pixelX   = (int)localX;
+                    int pixelY   = (int)localY;
+
+                    if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
+                        pixelY   = m_Viewport.RenderHeight - 1 - pixelY;
+
+                    auto entity  = PickingManager::ReadPixel(m_PickingTextureID, pixelX, pixelY);
+                    m_Editor->SetSelectedEntt(entity);
+                }
+            }
 
             // Gizmos
             Entity selectedEntity = m_Editor->GetSelected();
             if (selectedEntity && guizmoType != 0)
             {
-
                 ImGuizmo::SetOrthographic(camera->GetMode() == EditorCameraMode::TWODIM);
                 ImGuizmo::SetDrawlist();
 
-                ImGuizmo::SetRect(viewportBounds[0].x, viewportBounds[0].y, viewportBounds[1].x - viewportBounds[0].x, viewportBounds[1].y - viewportBounds[0].y);
+                ImGuizmo::SetRect(imageMin.x, imageMin.y, imageMax.x - imageMin.x, imageMax.y - imageMin.y);
 
                 auto tc = selectedEntity.TryGetComponent<TransformComponent>();
                 if (tc)
@@ -162,8 +154,8 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         TextureSpecification tspec = {};
-        tspec.Width                = m_Width;
-        tspec.Height               = m_Height;
+        tspec.Width                = m_Viewport.RenderWidth;
+        tspec.Height               = m_Viewport.RenderHeight;
         tspec.Format               = TextureFormat::RGBA32_FLOAT;
         tspec.Usage                = TextureUsage::TEXTURE_COLOR_ATTACHMENT;
         tspec.Samples              = 1;
@@ -173,8 +165,10 @@ namespace KTN
 
         m_MainTexture              = Texture2D::Get(tspec);
 
+        PickingManager::Update(m_PickingTextureID, m_Viewport.RenderWidth, m_Viewport.RenderHeight);
+
         auto& camera               = m_Editor->GetCamera();
-        camera->SetViewportSize(m_Width, m_Height);
+        camera->SetViewportSize(m_Viewport.RenderWidth, m_Viewport.RenderHeight);
         Application::Get().GetImGui()->BlockEvents(m_HandleCameraEvents);
         camera->SetHandleEvents(m_HandleCameraEvents);
     }
@@ -183,8 +177,10 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        auto& camera = m_Editor->GetCamera();
-        SceneManager::OnRender(m_MainTexture, m_Width, m_Height, camera->GetProjection(), camera->GetView());
+        auto& camera               = m_Editor->GetCamera();
+        SceneManager::SetPickingTarget(PickingManager::GetPickingTarget(m_PickingTextureID));
+        SceneManager::OnRender(m_MainTexture, m_Viewport.RenderWidth, m_Viewport.RenderHeight, camera->GetProjection(), camera->GetView());
+        SceneManager::SetPickingTarget(nullptr);
     }
 
 } // namespace KTN

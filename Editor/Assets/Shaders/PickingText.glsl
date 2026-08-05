@@ -1,7 +1,7 @@
 @type vertex
 #version 450 core
 
-layout(location = 0) out flat int v_EntityID;
+layout(location = 0) out flat uint v_PickingID;
 
 layout(std430, set = 0, binding = 0) uniform Camera
 {
@@ -23,33 +23,40 @@ layout(std430, set = 0, binding = 1) uniform u_Instances
     InstanceData Instances[MAX_INSTANCES];
 };
 
-layout(std430, set = 0, binding = 2) buffer EntityBuffer 
+layout(std430, set = 0, binding = 2) buffer PickingBuffer 
 {
-    int Count;
-    int[] EnttIDs;
-} b_EntityBuffer;
+    uint Count;
+    uint[] PickingIDs;
+} b_PickingBuffer;
 
 
 
 void main()
 {
-    vec2 posMin = Instances[gl_InstanceIndex].Positions.xy;
-    vec2 posMax = Instances[gl_InstanceIndex].Positions.zw;
+    vec2 posMin         = Instances[gl_InstanceIndex].Positions.xy;
+    vec2 posMax         = Instances[gl_InstanceIndex].Positions.zw;
     vec2 relativePos[4] = vec2[](
         vec2(0.0, 1.0),  // Top Left
         vec2(0.0, 0.0),  // Bottom Left
         vec2(1.0, 1.0),  // Top Right
         vec2(1.0, 0.0)   // Bottom Right
     );
-    vec2 rel = relativePos[gl_VertexIndex % 4];
-    vec2 position = posMin + rel * (posMax - posMin);
+    vec2 rel            = relativePos[gl_VertexIndex % 4];
+    vec2 position       = posMin + rel * (posMax - posMin);
 
-    int count = b_EntityBuffer.Count;
-    int isValid = int(gl_InstanceIndex < count);
-    v_EntityID = isValid * b_EntityBuffer.EnttIDs[gl_InstanceIndex] + (1 - isValid) * (-1); // -1 is invalid
+    uint count          = b_PickingBuffer.Count;
+    int isValid         = int(gl_InstanceIndex < count);
+    if (count == 0u || isValid == 0)
+    {
+        v_PickingID     = 0u; // set to invalid
+    }
+    else
+    {
+        v_PickingID     = b_PickingBuffer.PickingIDs[gl_InstanceIndex];
+    }
 
-    float zPos = Instances[gl_InstanceIndex].TexIndex == 0.0 ? -0.001 : 0.0;
-    gl_Position = u_ViewProjection  * Instances[gl_InstanceIndex].Transform * vec4(position, zPos, 1.0);
+    float zPos          = Instances[gl_InstanceIndex].TexIndex == 0.0 ? -0.001 : 0.0;
+    gl_Position         = u_ViewProjection  * Instances[gl_InstanceIndex].Transform * vec4(position, zPos, 1.0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -57,13 +64,13 @@ void main()
 @type fragment
 #version 450 core
 
-layout(location = 0) out int o_Color;
+layout(location = 0) out uint o_Color;
 
-layout(location = 0) in flat int v_EntityID;
+layout(location = 0) in flat uint v_PickingID;
 
 
 
 void main()
 {
-    o_Color = v_EntityID;
+    o_Color = v_PickingID;
 }

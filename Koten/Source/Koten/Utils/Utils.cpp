@@ -37,6 +37,7 @@ namespace KTN::Utils
         {
             case TextureFormat::R8:
             case TextureFormat::R32_INT:
+            case TextureFormat::R32_UINT:
                 return 1;
 
             case TextureFormat::RG32_UINT:
@@ -65,6 +66,7 @@ namespace KTN::Utils
                 return 1;
 
             case TextureFormat::R32_INT:
+            case TextureFormat::R32_UINT:
             case TextureFormat::RG32_UINT:
             case TextureFormat::RGBA32_FLOAT:
             case TextureFormat::RGB32_FLOAT:

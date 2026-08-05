@@ -71,6 +71,17 @@ namespace KTN
         }
     }
 
+    void SceneManager::SetPickingTarget(const Ref<Texture2D>& p_Target)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        for (size_t i = 0; i < s_Data->Scenes.size(); i++)
+        {
+            Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
+            scene->SetPickingTarget(p_Target);
+        }
+    }
+
     void SceneManager::SetViewportSize(uint32_t p_Width, uint32_t p_Height)
     {
         KTN_PROFILE_FUNCTION();

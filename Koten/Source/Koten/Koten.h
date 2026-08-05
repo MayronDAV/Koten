@@ -65,6 +65,7 @@
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Graphics/Material.h"
 #include "Koten/Graphics/RenderList.h"
+#include "Koten/Graphics/PickingManager.h"
 
 // DEBUG
 

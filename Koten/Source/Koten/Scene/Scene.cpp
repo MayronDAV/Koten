@@ -8,7 +8,8 @@
 #include "Koten/Graphics/DFFont.h"
 #include "Koten/Project/Project.h"
 #include "Koten/Graphics/Material.h"
-#include <Koten/Systems/AnimSystem.h>
+#include "Koten/Systems/AnimSystem.h"
+#include "Koten/Graphics/PickingManager.h"
 
 
 
@@ -248,7 +249,7 @@ namespace KTN
                 DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
 
             RenderCommand command = {};
-            command.EntityID      = (int)p_Entity;
+            command.ID            = PickingManager::RegisterEntity({ p_Entity, this });
             command.Transform     = p_Transform.GetWorldMatrix();
 
             auto sprite = m_Registry.try_get<SpriteComponent>(p_Entity);
@@ -609,12 +610,14 @@ namespace KTN
         {
             RenderPassInfo info  = {};
             info.RenderTarget    = m_RenderTarget;
+            info.PickingTarget   = m_PickingTarget;
             info.Width           = m_Width;
             info.Height          = m_Height;
             info.Projection      = p_Projection;
             info.View            = p_View;
             info.Clear           = true;
             info.ClearColor      = p_ClearColor;
+            info.Picking         = Engine::Get().GetSettings().MousePicking && m_PickingTarget;
 
             Renderer::BeginPass(info);
             {
