@@ -22,7 +22,7 @@ namespace Apple
 
         void OnCreate()
         {
-            SceneManager.LoadScene("Scenes\\UI.ktscn", LoadMode.Additive); 
+            SceneManager.LoadScene("Scenes/UI.ktscn", LoadMode.Additive); 
 
             m_Component = GetComponent<CharacterBody2DComponent>();
             m_AnimationComponent = GetComponent<AnimationComponent>();

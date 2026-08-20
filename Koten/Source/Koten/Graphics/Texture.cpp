@@ -117,6 +117,7 @@ namespace KTN
             metadata.FilePath           = path;
             metadata.Load               = false;
             metadata.SerializeAssetData = false;
+            metadata.Scope              = AssetScope::Global;
 
             AssetManager::Get()->ImportAsset(handle, metadata, texture);
         }
@@ -144,6 +145,7 @@ namespace KTN
             metadata.FilePath           = path;
             metadata.Load               = false;
             metadata.SerializeAssetData = false;
+            metadata.Scope              = AssetScope::Global;
 
             AssetManager::Get()->ImportAsset(handle, metadata, texture);
         }

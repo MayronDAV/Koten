@@ -21,11 +21,22 @@ namespace KTN
         Material,
         TextureAtlas,
         Animation,
-        AnimationController
+        AnimationController,
+        ShaderStage,
+        Shader
+    };
+
+    enum class AssetScope : uint8_t
+    {
+        Project = 0,
+        Global
     };
 
     KTN_API const char* GetAssetTypeName(AssetType p_Type);
     KTN_API AssetType GetAssetTypeFromName(const char* p_Name);
+
+    KTN_API const char* GetAssetScopeName(AssetScope p_Scope);
+    KTN_API AssetScope GetAssetScopeFromName(const char* p_Name);
 
     #define ASSET_CLASS_METHODS(type)                                                            \
             static AssetType GetStaticType() { return AssetType::type; }                        \
@@ -46,6 +57,7 @@ namespace KTN
         void* AssetData         = nullptr; // Pointer to the actual asset data (e.g., for fonts, textures, etc.)
         bool SerializeAssetData = true;
         bool Load               = true;
+        AssetScope Scope        = AssetScope::Project;
 
         operator bool() const { return Type != AssetType::None; }
     };

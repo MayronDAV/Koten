@@ -280,16 +280,16 @@ namespace KTN
         else if (existsScriptFiles)
             ScriptEngine::CompileScripts(Project::GetAssetFileSystemPath("Scripts"), folder / m_Config.AssetDirectory);
 
-        FileSystem::Copy(FileSystem::GetAbsolute("Assets/Shaders"), (folder / m_Config.AssetDirectory / "Shaders").string());
+        //FileSystem::Copy(FileSystem::GetAbsolute("Assets/Shaders/Stages.ktbin"), (folder / m_Config.AssetDirectory / "Shaders").string());
         FileSystem::Copy(Project::GetAssetFileSystemPath("Fonts").string(), (folder / m_Config.AssetDirectory / "Fonts").string());
         FileSystem::Copy(FileSystem::GetAbsolute("Assets/Fonts"), (folder / m_Config.AssetDirectory / "Fonts").string());
-        FileSystem::Copy(Project::GetAssetFileSystemPath("Textures").string(), (folder / m_Config.AssetDirectory / "Textures").string());
 
         auto proj = CreateRef<Project>(m_Config);
         ProjectSerializer serializer(proj);
         serializer.SerializeRuntime(folder / "Data.ktdt");
 
         Engine eng{};
+        m_Settings.ReadGlobalFiles = false;
         eng.GetSettings() = m_Settings;
         eng.SaveSettings(folder / "Resources");
 
@@ -298,13 +298,14 @@ namespace KTN
 
     void ProjectExporterPanel::Clean()
     {
-        m_Settings               = {};
-        auto& config             = Project::GetActive()->GetConfig();
-        m_Settings.Width         = config.Width;
-        m_Settings.Height        = config.Height;
-        m_Settings.AutoRecompile = false;
-        m_Config                 = {};
-        m_First                  = true;
-        m_ChangedTab             = false;
+        m_Settings                      = {};
+        m_Settings.ReadGlobalFiles      = false;
+        auto& config                    = Project::GetActive()->GetConfig();
+        m_Settings.Width                = config.Width;
+        m_Settings.Height               = config.Height;
+        m_Settings.AutoRecompile        = false;
+        m_Config                        = {};
+        m_First                         = true;
+        m_ChangedTab                    = false;
     }
 }

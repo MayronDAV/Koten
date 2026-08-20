@@ -1,0 +1,10 @@
+Handle: 1375833669833430202
+Stages:
+  - Handle: 3921092641822077795
+    Stage: 1
+    Path: Assets/Shaders\Stages\Screen.vert
+    Scope: Global
+  - Handle: 825244684077254221
+    Stage: 2
+    Path: Assets/Shaders\Stages\ScreenRGBA.frag
+    Scope: Global

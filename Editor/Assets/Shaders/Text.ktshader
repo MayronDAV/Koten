@@ -1,0 +1,10 @@
+Handle: 7464614074817355455
+Stages:
+  - Handle: 11684794231020296857
+    Stage: 1
+    Path: Assets/Shaders\Stages\Text.vert
+    Scope: Global
+  - Handle: 7371488797235678916
+    Stage: 2
+    Path: Assets/Shaders\Stages\Text.frag
+    Scope: Global

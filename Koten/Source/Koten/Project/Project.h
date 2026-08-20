@@ -45,14 +45,12 @@ namespace KTN
             Project();
             Project(const ProjectConfig& p_Config) : m_Config(p_Config) {}
 
-            Ref<AssetManager> GetAssetManager() { return m_AssetManager; }
             ProjectConfig& GetConfig() { return m_Config; }
             bool IsRuntime() const { return m_IsRuntime; }
 
         private:
             ProjectConfig m_Config;
             std::filesystem::path m_ProjectDirectory;
-            Ref<AssetManager> m_AssetManager;
             bool m_IsRuntime = false;
 
             inline static Ref<Project> s_ActiveProject = nullptr;

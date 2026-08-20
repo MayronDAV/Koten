@@ -8,14 +8,13 @@ namespace KTN
     class RuntimeLayer : public Layer
     {
         private:
-            Ref<AssetManager> m_AssetManager = nullptr;
-            Ref<Project> m_Project           = nullptr;
+            Ref<Project> m_Project              = nullptr;
 
         public:
             RuntimeLayer() : Layer("RuntimeLayer")
             {
-                m_Project      = Project::GetActive();
-                m_AssetManager = AssetManager::Get();
+                m_Project                       = Project::GetActive();
+
                 SceneManager::Init();
             }
 
@@ -24,11 +23,6 @@ namespace KTN
             void OnAttach() override
             {
                 KTN_PROFILE_FUNCTION()
-
-                ScriptEngine::CompileLoadAppAssembly();
-
-                bool success = m_AssetManager->DeserializeAssetPack();
-                KTN_VERIFY(success, "Failed to load asset pack!");
 
                 if (m_Project->GetConfig().StartScene != 0)
                 {
@@ -69,15 +63,22 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        auto project                = Project::LoadRuntime("Data.ktdt");
+        auto project                          = Project::LoadRuntime("Data.ktdt");
         KTN_VERIFY(project, "Failed to load Data.ktdt!");
-        auto& config                = project->GetConfig();
+        auto& config                          = project->GetConfig();
 
-        ApplicationConfig appConfig = {};
-        appConfig.Title             = config.Name;
-        appConfig.IconPath          = config.IconPath;
+        ApplicationConfig appConfig           = {};
+        appConfig.Title                       = config.Name;
+        appConfig.IconPath                    = config.IconPath;
 
-        auto app                    = new Application(appConfig);
+        AssetManagerConfig assetsConfig       = {};
+        assetsConfig.LoadAssetsFromMemory     = true;
+        assetsConfig.LoadAssetsFromPath       = false;
+        assetsConfig.LoadGlobalAssetRegistry  = false;
+        assetsConfig.LoadProjectAssetRegistry = false;
+        appConfig.AssetsConfig                = assetsConfig;
+
+        auto app                              = new Application(appConfig);
         app->PushLayer(CreateRef<RuntimeLayer>());
         return app;
     }

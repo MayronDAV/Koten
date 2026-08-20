@@ -166,6 +166,7 @@ namespace KTN
     B2Physics::B2Physics()
     {
         KTN_PROFILE_FUNCTION();
+
     }
 
     B2Physics::~B2Physics()

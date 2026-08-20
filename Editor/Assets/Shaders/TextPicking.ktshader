@@ -1,0 +1,10 @@
+Handle: 11150232731269131938
+Stages:
+  - Handle: 670048809538840162
+    Stage: 1
+    Path: Assets/Shaders\Stages\TextPicking.vert
+    Scope: Global
+  - Handle: 4620932237579503273
+    Stage: 2
+    Path: Assets/Shaders\Stages\CommonPicking.frag
+    Scope: Global

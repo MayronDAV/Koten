@@ -15,14 +15,17 @@ namespace KTN
 
     struct AssetManagerConfig
     {
-        bool LoadAssetsFromPath   = true;
-        bool LoadAssetsFromMemory = false;
+        bool LoadGlobalAssetRegistry  = false;
+        bool LoadProjectAssetRegistry = true;
+        bool LoadAssetsFromPath       = true;
+        bool LoadAssetsFromMemory     = false;
     };
 
     class KTN_API AssetManager
     {
         public:
-            static Ref<AssetManager> Create(const AssetManagerConfig& p_Config = {});
+            static void Init(const AssetManagerConfig& p_Config = {});
+            static void SetConfig(const AssetManagerConfig& p_Config = {});
 
             static Ref<AssetManager> Get() { return s_Instance; }
 
@@ -77,6 +80,7 @@ namespace KTN
 
         private:
             AssetRegistry m_AssetRegistry;
+            AssetRegistry m_GlobalAssetRegistry;
             AssetMap m_LoadedAssets;
             AssetCache m_AssetCache;
 

@@ -656,8 +656,6 @@ namespace KTN
                 UnSelectEntt();
                 SceneManager::Load(config.StartScene, LoadMode::Single);
             }
-
-            Texture2D::LoadDefault();
         }
     }
 

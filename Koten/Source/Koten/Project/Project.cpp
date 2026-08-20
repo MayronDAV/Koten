@@ -50,7 +50,7 @@ namespace KTN
         FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Scripts").string());
         FileSystem::CreateDirectories((p_FolderPath / p_Config.AssetDirectory / "Textures").string());
 
-        project->m_AssetManager = AssetManager::Create();
+        AssetManager::Get()->SetConfig();
         return project;
     }
 
@@ -64,9 +64,9 @@ namespace KTN
         if (serializer.Deserialize(p_Path))
         {
             project->m_ProjectDirectory = p_Path.parent_path();
-            project->m_AssetManager = AssetManager::Create();
-            s_ActiveProject = project;
-            s_ActiveProject->m_AssetManager->DeserializeAssetRegistry();
+            s_ActiveProject             = project;
+            AssetManager::Get()->SetConfig();
+            AssetManager::Get()->DeserializeAssetRegistry();
             return s_ActiveProject;
         }
 
@@ -95,12 +95,8 @@ namespace KTN
         if (serializer.DeserializeRuntime(p_Path))
         {
             project->m_ProjectDirectory = p_Path.parent_path();
-            project->m_IsRuntime = true;
-            AssetManagerConfig config = {};
-            config.LoadAssetsFromMemory = true;
-            config.LoadAssetsFromPath = false;
-            project->m_AssetManager = AssetManager::Create(config);
-            s_ActiveProject = project;
+            project->m_IsRuntime        = true;
+            s_ActiveProject             = project;
             return s_ActiveProject;
         }
 

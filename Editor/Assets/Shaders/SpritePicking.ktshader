@@ -1,0 +1,10 @@
+Handle: 9726280965026128660
+Stages:
+  - Handle: 580074182121535691
+    Stage: 1
+    Path: Assets/Shaders\Stages\SpritePicking.vert
+    Scope: Global
+  - Handle: 206703388245497517
+    Stage: 2
+    Path: Assets/Shaders\Stages\SpritePicking.frag
+    Scope: Global

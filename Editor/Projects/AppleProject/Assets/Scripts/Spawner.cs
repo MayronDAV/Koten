@@ -18,8 +18,8 @@ namespace Apple
 
 		void OnCreate()
 		{
-			m_Apple = AssetManager.FindWithPath("Prefabs\\Apple.ktprefab");
-			m_Can = AssetManager.FindWithPath("Prefabs\\Can.ktprefab");
+			m_Apple = AssetManager.FindWithPath("Prefabs/Apple.ktprefab");
+			m_Can = AssetManager.FindWithPath("Prefabs/Can.ktprefab");
 
 			m_Local = GetComponent<Transform>();
 		}

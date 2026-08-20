@@ -77,7 +77,8 @@ namespace KTN
 
     enum class ShaderType : uint8_t
     {
-        Vertex = 0,
+        None = 0,
+        Vertex,
         Fragment,
         Compute,
         Geometry,

@@ -146,7 +146,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        std::filesystem::path path = p_Path;
+        std::filesystem::path path(p_Path);
         std::filesystem::rename(path, path.parent_path() / p_Name);
     }
 
@@ -161,8 +161,14 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        std::filesystem::path path = p_Path;
-        return path.replace_extension(p_Extension).string();
+        std::filesystem::path path(p_Path);
+        return path.replace_extension(p_Extension).generic_string();
+    }
+
+    std::string FileSystem::NormalizePath(const std::string& p_Path)
+    {
+        std::filesystem::path path(p_Path);
+        return path.lexically_normal().generic_string();
     }
 
 } // namespace KTN

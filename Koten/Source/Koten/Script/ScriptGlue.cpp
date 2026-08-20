@@ -14,8 +14,6 @@
 // lib
 #include <mono/metadata/object.h>
 #include <mono/metadata/reflection.h>
-#include <mono/jit/jit.h>
-#include <mono/metadata/assembly.h>
 #include <box2d/box2d.h>
 
 
@@ -358,7 +356,7 @@ namespace KTN
 
             auto path = MonoStringToString(p_Path);
             path = Project::GetAssetFileSystemPath(path).string();
-            auto handle = AssetManager::Get()->GetHandleByPath(path);
+            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
             auto type = AssetManager::Get()->GetAssetType(handle);
             return { handle, 0, (int32_t)type };
         }
@@ -500,7 +498,7 @@ namespace KTN
 
             auto str = MonoStringToString(p_ScenePath);
             auto path = Project::GetAssetFileSystemPath(str).string();
-            auto handle = SceneManager::Import(path, true);
+            auto handle = SceneManager::Import(FileSystem::NormalizePath(path), true);
 
             return ReturnSceneHandle(handle);
         }
@@ -511,7 +509,7 @@ namespace KTN
 
             auto str = MonoStringToString(p_ScenePath);
             auto path = Project::GetAssetFileSystemPath(str).string();
-            auto handle = SceneManager::ImportAsync(path);
+            auto handle = SceneManager::ImportAsync(FileSystem::NormalizePath(path));
 
             return ReturnSceneHandle(handle);
         }
@@ -523,7 +521,7 @@ namespace KTN
             auto str = MonoStringToString(p_ScenePath);
             auto path = Project::GetAssetFileSystemPath(str).string();
 
-            auto handle = AssetManager::Get()->GetHandleByPath(path);
+            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
 
             if (!SceneManager::Load(handle, (LoadMode)p_Mode, true))
             {
@@ -551,7 +549,7 @@ namespace KTN
 
             auto str = MonoStringToString(p_ScenePath);
             auto path = Project::GetAssetFileSystemPath(str).string();
-            auto handle = AssetManager::Get()->GetHandleByPath(path);
+            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
 
             SceneManager::LoadAsync(handle, (LoadMode)p_Mode);
 
@@ -574,7 +572,7 @@ namespace KTN
             auto str = MonoStringToString(p_ScenePath);
             auto path = Project::GetAssetFileSystemPath(str).string();
 
-            auto handle = AssetManager::Get()->GetHandleByPath(path);
+            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
             SceneManager::Unload(handle, true);
         }
 

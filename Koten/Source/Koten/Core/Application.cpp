@@ -16,6 +16,8 @@
 #include "TaskManager.h"
 #include "Koten/Systems/AnimSystemManager.h"
 #include "Koten/Graphics/PickingManager.h"
+#include "ShaderModuleLibrary.h"
+#include "Koten/Project/Project.h"
 
 
 
@@ -61,11 +63,24 @@ namespace KTN
 
         RendererCommand::Init();
 
+        ShaderModuleLibrary::Create();
+
+        ScriptEngine::Init();
+
+        if (Project::GetActive())
+            ScriptEngine::CompileLoadAppAssembly();
+
+        AssetManagerConfig config       = p_Config.AssetsConfig;
+        config.LoadProjectAssetRegistry = false;
+        config.LoadGlobalAssetRegistry  = true;
+        config.LoadAssetsFromPath       = settings.ReadGlobalFiles;
+        AssetManager::Init(config);
+        Texture2D::LoadDefault();
+        
         m_ImGui = ImGuiLayer::Create();
         PushOverlay(m_ImGui);
 
         Renderer::Init();
-        ScriptEngine::Init();
 
         TaskManager::Get().AddTask(
         {

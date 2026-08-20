@@ -3,6 +3,8 @@
 #include "Layer.h"
 #include "LayerStack.h"
 #include "Koten/ImGui/ImGuiLayer.h"
+#include "Koten/Asset/AssetManager.h"
+
 
 
 namespace KTN
@@ -11,6 +13,8 @@ namespace KTN
     {
         std::string Title = "Koten";
         std::string IconPath = "";
+
+        AssetManagerConfig AssetsConfig = {};
     };
 
     class KTN_API Application

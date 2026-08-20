@@ -311,11 +311,10 @@ namespace KTN
                     return;
                 }
 
-                auto assetManager = Project::GetActive()->GetAssetManager();
                 m_Metadata.FilePath = m_Path;
                 m_Metadata.Type = m_Type;
-                auto asset = assetManager->ImportAsset(m_Metadata, forceImport);
-                if (assetManager->IsAssetHandleValid(asset))
+                auto asset = AssetManager::Get()->ImportAsset(m_Metadata, forceImport);
+                if (AssetManager::Get()->IsAssetHandleValid(asset))
                 {
                     KTN_CORE_INFO("Successfully imported asset: {}", m_Path);
                     if (useAssetData)

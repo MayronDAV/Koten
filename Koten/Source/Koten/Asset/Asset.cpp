@@ -20,4 +20,16 @@ namespace KTN
         return type.has_value() ? type.value() : AssetType::None;
     }
 
+    const char* GetAssetScopeName(AssetScope p_Scope)
+    {
+        auto ret = magic_enum::enum_name(p_Scope);
+        return ret.data();
+    }
+
+    AssetScope GetAssetScopeFromName(const char* p_Name)
+    {
+        auto type = magic_enum::enum_cast<AssetScope>(p_Name);
+        return type.has_value() ? type.value() : AssetScope::Project;
+    }
+
 } // namespace KTN

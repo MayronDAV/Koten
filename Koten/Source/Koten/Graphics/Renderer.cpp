@@ -4,14 +4,13 @@
 #include "Koten/Graphics/Shader.h"
 #include "Koten/Graphics/DescriptorSet.h"
 #include "Koten/Graphics/RendererCommand.h"
-#include "Koten/Core/Application.h"
 #include "Koten/Core/TaskManager.h"
+#include "Koten/Asset/AssetManager.h"
+#include "Koten/Core/ShaderModuleLibrary.h"
 
 // std
 #include <codecvt>
 #include <locale>
-#include <numeric>
-#include <mutex>
 #include <typeindex>
 
 
@@ -368,6 +367,11 @@ namespace KTN
                 RendererCommand::ClearRenderTarget(p_Pass.Targets->PickingDepth, -1);
         }
 
+        static Ref<Shader> GetShader(const std::string& p_Path)
+        {
+            return AssetManager::Get()->GetAsset<Shader>(AssetManager::Get()->GetHandleByPath(p_Path));
+        }
+
     } // namespace
 
     static RendererState* s_Renderer = nullptr;
@@ -379,50 +383,22 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        s_Renderer                         = new RendererState();
+        ShaderModuleLibrary::Get()->CompileStages();
 
-        uint32_t whiteTextureData          = 0xffffffff;
-        s_Renderer->Resources.WhiteTexture = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
+        s_Renderer                               = new RendererState();
 
-        TaskManager::Get().AddTask({
-            "FinalPassShader",
-            TaskManager::Phase::Init,
-            0,
-            []()
-            {
-                auto spirvSource                      = Shader::CompileOrGetSpirv("Assets/Shaders/FinalPass.glsl");
-                KTN_CORE_INFO("Compiled FinalPass shader!");
-                Application::Get().SubmitToMainThread([source = std::move(spirvSource)]()
-                {
-                    s_Renderer->Resources.FinalShader = Shader::Create(source);
-                    s_Renderer->Resources.FinalSet    = DescriptorSet::Create({ 0, s_Renderer->Resources.FinalShader });
-                });
-            },
-            true,
-            TaskManager::SyncPoint::None
-        });
+        uint32_t whiteTextureData                = 0xffffffff;
+        s_Renderer->Resources.WhiteTexture       = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
 
-        TaskManager::Get().AddTask({
-            "FinalPickingShader",
-            TaskManager::Phase::Init,
-            0,
-            []()
-            {
-                auto spirvSource                             = Shader::CompileOrGetSpirv("Assets/Shaders/FinalPickingPass.glsl");
-                KTN_CORE_INFO("Compiled FinalPickingPass shader!");
-                Application::Get().SubmitToMainThread([source = std::move(spirvSource)]()
-                {
-                    s_Renderer->Resources.FinalPickingShader = Shader::Create(source);
-                    s_Renderer->Resources.FinalPickingSet    = DescriptorSet::Create({ 0, s_Renderer->Resources.FinalPickingShader });
-                });
-            },
-            true,
-            TaskManager::SyncPoint::None
-        });
+        s_Renderer->Resources.FinalShader        = GetShader("Assets/Shaders/FinalPass.ktshader");
+        s_Renderer->Resources.FinalSet           = DescriptorSet::Create({ 0, s_Renderer->Resources.FinalShader });
 
-        s_Sprite = new SpriteRenderer();
-        s_Line   = new LineRenderer();
-        s_Text   = new TextRenderer();
+        s_Renderer->Resources.FinalPickingShader = GetShader("Assets/Shaders/FinalPickingPass.ktshader");
+        s_Renderer->Resources.FinalPickingSet    = DescriptorSet::Create({ 0, s_Renderer->Resources.FinalPickingShader });
+
+        s_Sprite                                 = new SpriteRenderer();
+        s_Line                                   = new LineRenderer();
+        s_Text                                   = new TextRenderer();
     }
 
     void Renderer::Shutdown()
@@ -632,43 +608,13 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            TaskManager::Get().AddTask({
-                "SpriteRenderer::Init",
-                TaskManager::Phase::Init,
-                1,
-                [this]()
-                {
-                    auto spirvSource           = Shader::CompileOrGetSpirv("Assets/Shaders/R2D_Shader.glsl");
-                    KTN_CORE_INFO("Compiled R2D_Shader shader!");
-                    Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
-                    {
-                        m_Resources.MainShader = Shader::Create(source);
-                        m_Resources.MainSet    = DescriptorSet::Create({ 0, m_Resources.MainShader });
-                    });
-                },
-                true,
-                TaskManager::SyncPoint::None
-            });
+            m_Resources.MainShader        = GetShader("Assets/Shaders/Sprite.ktshader");
+            m_Resources.MainSet           = DescriptorSet::Create({ 0, m_Resources.MainShader });
 
             if (Engine::Get().GetSettings().MousePicking)
             {
-                TaskManager::Get().AddTask({
-                    "SpriteRenderer::Init MousePicking",
-                    TaskManager::Phase::Init,
-                    2,
-                    [this]()
-                    {
-                        auto spirvSource              = Shader::CompileOrGetSpirv("Assets/Shaders/R2D_Picking.glsl");
-                        KTN_CORE_INFO("Compiled R2D_Picking shader!");
-                        Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
-                        {
-                            m_Resources.PickingShader = Shader::Create(source);
-                            m_Resources.PickingSet    = DescriptorSet::Create({ 0, m_Resources.PickingShader });
-                        });
-                    },
-                    true,
-                    TaskManager::SyncPoint::None
-                });
+                m_Resources.PickingShader = GetShader("Assets/Shaders/SpritePicking.ktshader");
+                m_Resources.PickingSet    = DescriptorSet::Create({ 0, m_Resources.PickingShader });
             }
 
             m_Resources.VAO = VertexArray::Create();
@@ -898,43 +844,13 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            TaskManager::Get().AddTask({
-                "Line::Init Primitive",
-                TaskManager::Phase::Init,
-                3,
-                [this]()
-                {
-                    auto spirvSource = Shader::CompileOrGetSpirv("Assets/Shaders/PrimitiveLine.glsl");
-                    KTN_CORE_INFO("Compiled PrimitiveLine shader!");
-                    Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
-                    {
-                        m_Resources.PrimitiveShader = Shader::Create(source);
-                        m_Resources.PrimitiveSet = DescriptorSet::Create({ 0, m_Resources.PrimitiveShader });
-                    });
-                },
-                true,
-                TaskManager::SyncPoint::None
-            });
+            m_Resources.PrimitiveShader    = GetShader("Assets/Shaders/PrimitiveLine.ktshader");
+            m_Resources.PrimitiveSet       = DescriptorSet::Create({ 0, m_Resources.PrimitiveShader });
 
-            TaskManager::Get().AddTask({
-                "Line::Init NonPrimitive",
-                TaskManager::Phase::Init,
-                4,
-                [this]()
-                {
-                    auto spirvSource = Shader::CompileOrGetSpirv("Assets/Shaders/NonPrimitiveLine.glsl");
-                    KTN_CORE_INFO("Compiled NonPrimitiveLine shader!");
-                    Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
-                    {
-                        m_Resources.NonPrimitiveShader = Shader::Create(source);
-                        m_Resources.NonPrimitiveSet = DescriptorSet::Create({ 0, m_Resources.NonPrimitiveShader });
-                    });
-                },
-                true,
-                TaskManager::SyncPoint::None
-            });
+            m_Resources.NonPrimitiveShader = GetShader("Assets/Shaders/NonPrimitiveLine.ktshader");
+            m_Resources.NonPrimitiveSet    = DescriptorSet::Create({ 0, m_Resources.NonPrimitiveShader });
 
-            m_Resources.IndirectBuffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
+            m_Resources.IndirectBuffer     = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));
         }
 
         void LineRenderer::Begin()
@@ -1074,43 +990,13 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION();
 
-            TaskManager::Get().AddTask({
-                "Text::Init",
-                TaskManager::Phase::Init,
-                5,
-                [this]()
-                {
-                    auto spirvSource           = Shader::CompileOrGetSpirv("Assets/Shaders/RenderText.glsl");
-                    KTN_CORE_INFO("Compiled RenderText shader!");
-                    Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
-                    {
-                        m_Resources.MainShader = Shader::Create(source);
-                        m_Resources.MainSet    = DescriptorSet::Create({ 0, m_Resources.MainShader });
-                    });
-                },
-                true,
-                TaskManager::SyncPoint::None
-            });
+            m_Resources.MainShader = GetShader("Assets/Shaders/Text.ktshader");
+            m_Resources.MainSet = DescriptorSet::Create({ 0, m_Resources.MainShader });
 
             if (Engine::Get().GetSettings().MousePicking)
             {
-                TaskManager::Get().AddTask({
-                    "Text::Init MousePicking",
-                    TaskManager::Phase::Init,
-                    6,
-                    [this]()
-                    {
-                        auto spirvSource              = Shader::CompileOrGetSpirv("Assets/Shaders/PickingText.glsl");
-                        KTN_CORE_INFO("Compiled PickingText shader!");
-                        Application::Get().SubmitToMainThread([this, source = std::move(spirvSource)]()
-                        {
-                            m_Resources.PickingShader = Shader::Create(source);
-                            m_Resources.PickingSet    = DescriptorSet::Create({ 0, m_Resources.PickingShader });
-                        });
-                    },
-                    true,
-                    TaskManager::SyncPoint::None
-                    });
+                m_Resources.PickingShader = GetShader("Assets/Shaders/TextPicking.ktshader");
+                m_Resources.PickingSet = DescriptorSet::Create({ 0, m_Resources.PickingShader });
             }
 
             m_Resources.IndirectBuffer = IndirectBuffer::Create(sizeof(DrawElementsIndirectCommand));

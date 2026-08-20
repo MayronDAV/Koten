@@ -1,4 +1,3 @@
-@type vertex
 #version 450 core
 
 layout(location = 0) out flat uint v_PickingID;
@@ -57,20 +56,4 @@ void main()
 
     float zPos          = Instances[gl_InstanceIndex].TexIndex == 0.0 ? -0.001 : 0.0;
     gl_Position         = u_ViewProjection  * Instances[gl_InstanceIndex].Transform * vec4(position, zPos, 1.0);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-@type fragment
-#version 450 core
-
-layout(location = 0) out uint o_Color;
-
-layout(location = 0) in flat uint v_PickingID;
-
-
-
-void main()
-{
-    o_Color = v_PickingID;
 }

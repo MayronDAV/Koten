@@ -1,0 +1,10 @@
+Handle: 13774407470323807054
+Stages:
+  - Handle: 5879780697578564957
+    Stage: 1
+    Path: Assets/Shaders\Stages\Sprite.vert
+    Scope: Global
+  - Handle: 1301657397486189747
+    Stage: 2
+    Path: Assets/Shaders\Stages\Sprite.frag
+    Scope: Global

@@ -74,13 +74,14 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        static auto path           = (Project::GetAssetFileSystemPath("Materials") / "Default.ktmat").string();
-        FileSystem::CreateDirectories(Project::GetAssetFileSystemPath("Materials").string());
-        if (!AssetManager::Get()->HasAsset(AssetType::Material, path))
+        static auto path                = "Assets/Materials/Default.ktmat";
+        auto handle                     = AssetManager::Get()->GetHandleByPath(path);
+
+        if (!handle || !AssetManager::Get()->IsAssetLoaded(handle))
         {
             if (FileSystem::Exists(path))
             {
-                auto material      = AssetManager::Get()->ImportAsset(AssetType::Material, path);
+                auto material           = AssetManager::Get()->ImportAsset(AssetType::Material, path);
                 if (!material)
                 {
                     KTN_CORE_ERROR("Failed to import default Material: {}", path);
@@ -89,15 +90,21 @@ namespace KTN
                 return material;
             }
 
-            auto material          = CreateRef<Material>();
-            material->Name         = "Default";
-            material->Serialize(path);
+            auto material               = CreateRef<Material>();
+            material->Name              = "Default";
+            if (!AssetManager::Get()->IsAssetHandleValid(handle))
+            {
+                FileSystem::CreateDirectories("Assets/Materials");
+                material->Serialize(path);
+            }
 
-            AssetHandle handle     = {};
-            AssetMetadata metadata = {};
-            metadata.FilePath      = path;
-            metadata.Type          = AssetType::Material;
-            auto success           = AssetManager::Get()->ImportAsset(handle, metadata, material);
+            handle                      = AssetHandle();
+            AssetMetadata metadata      = {};
+            metadata.FilePath           = path;
+            metadata.Type               = AssetType::Material;
+            metadata.Scope              = AssetScope::Global;
+            metadata.SerializeAssetData = false;
+            auto success                = AssetManager::Get()->ImportAsset(handle, metadata, material);
             if (!success)
             {
                 KTN_CORE_ERROR("Failed to import default Material: {}", path);
@@ -107,7 +114,7 @@ namespace KTN
             return handle;
         }
 
-        return AssetManager::Get()->GetHandleByPath(path);
+        return handle;
     }
 
 } // namespace KTN

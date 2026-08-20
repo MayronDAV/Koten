@@ -1,0 +1,14 @@
+Handle: 4274933499458929278
+Stages:
+  - Handle: 11159598746073126447
+    Stage: 1
+    Path: Assets/Shaders\Stages\Line.vert
+    Scope: Global
+  - Handle: 11779551063759469932
+    Stage: 4
+    Path: Assets/Shaders\Stages\Line.geom
+    Scope: Global
+  - Handle: 8451752681102608141
+    Stage: 2
+    Path: Assets/Shaders\Stages\Common.frag
+    Scope: Global

@@ -10,6 +10,8 @@
 #include "TextureAtlasImporter.h"
 #include "AnimationImporter.h"
 #include "AnimationControllerImporter.h"
+#include "ShaderStage.h"
+#include "ShaderImporter.h"
 
 
 
@@ -25,6 +27,8 @@ namespace KTN
         { AssetType::TextureAtlas, TextureAtlasImporter::Import               },
         { AssetType::Animation, AnimationImporter::Import                     },
         { AssetType::AnimationController, AnimationControllerImporter::Import },
+        { AssetType::ShaderStage, ShaderStageImporter::Import                 },
+        { AssetType::Shader, ShaderImporter::Import                           },
     };
 
     static std::map<AssetType, std::function<Ref<Asset>(AssetHandle, const AssetMetadata&, const Buffer&)>> s_ImportAssetFromMemoryFunctions = {
@@ -36,6 +40,8 @@ namespace KTN
         { AssetType::TextureAtlas, TextureAtlasImporter::ImportFromMemory               },
         { AssetType::Animation, AnimationImporter::ImportFromMemory                     },
         { AssetType::AnimationController, AnimationControllerImporter::ImportFromMemory },
+        { AssetType::ShaderStage, ShaderStageImporter::ImportFromMemory                 },
+        { AssetType::Shader, ShaderImporter::ImportFromMemory                           }
     };
 
     Ref<Asset> AssetImporter::ImportAsset(AssetHandle p_Handle, const AssetMetadata& p_Metadata)

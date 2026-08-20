@@ -43,13 +43,20 @@ namespace KTN
             return false;
         }
 
-        static std::string GetRelative(const std::string& p_Path)
+        static std::string GetRelative(const std::string& p_Path, bool p_IsProject = true, bool p_Load = true)
         {
-            auto relativePath = FileSystem::GetRelative(p_Path, Project::GetActive()->GetAssetDirectory().string());
+            if (!p_Load) return p_Path;
+
+            auto relativePath = FileSystem::GetRelative(p_Path, p_IsProject ? Project::GetActive()->GetAssetDirectory().string() : "Assets");
             if (relativePath.empty())
                 return p_Path;
 
             return relativePath;
+        }
+
+        static std::string GetRelative(const AssetMetadata& p_Metadata)
+        {
+            return GetRelative(p_Metadata.FilePath, p_Metadata.Scope == AssetScope::Project, p_Metadata.Load);
         }
 
         template<typename Component>
@@ -157,7 +164,7 @@ namespace KTN
                 {
                     ImGui::Text("Render Target");
                     ImGui::SameLine();
-                    auto path = p_Component.RenderTarget ? GetRelative(AssetManager::Get()->GetMetadata(p_Component.RenderTarget).FilePath) : "Default";
+                    auto path = p_Component.RenderTarget ? GetRelative(AssetManager::Get()->GetMetadata(p_Component.RenderTarget)) : "Default";
                     auto size = ImGui::GetContentRegionAvail().x;
                     if (ImGui::Button(path.c_str(), { size, 0.0f }))
                     {
@@ -247,8 +254,6 @@ namespace KTN
             DrawComponent<SpriteComponent>("Sprite", p_Entity,
             [&](SpriteComponent& p_Sprite)
             {
-                auto assetManager = Project::GetActive()->GetAssetManager();
-
                 int currentItem = (int)p_Sprite.Type;
                 static const char* items[] = { "Quad", "Circle" };
                 static const int itemsCount = IM_ARRAYSIZE(items);
@@ -269,15 +274,15 @@ namespace KTN
                 {
                     ImGui::BeginGroup();
                     {
-                        auto material = assetManager->GetAsset<Material>(p_Sprite.Material);
+                        auto material = AssetManager::Get()->GetAsset<Material>(p_Sprite.Material);
                         ImVec2 imageSize = { 100.0f, 100.0f };
 
                         auto color = ImVec4{ material->AlbedoColor.x, material->AlbedoColor.y, material->AlbedoColor.z, material->AlbedoColor.w };
-                        auto texture = assetManager->GetAsset<Texture2D>(material->Texture);
+                        auto texture = AssetManager::Get()->GetAsset<Texture2D>(material->Texture);
 
                         UI::ImageCircleMask(texture, imageSize, color);
                         ImGui::SameLine();
-                        std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Sprite.Material).FilePath);
+                        std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Sprite.Material));
                         ImGui::Text(path.c_str());
 
                         if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
@@ -359,7 +364,7 @@ namespace KTN
                     p_Text.Font = DFFont::GetDefault();
                 }
                 ImGui::SameLine();
-                const auto& filePath = GetRelative(AssetManager::Get()->GetMetadata(p_Text.Font).FilePath);
+                const auto& filePath = GetRelative(AssetManager::Get()->GetMetadata(p_Text.Font));
                 if (ImGui::Button(filePath.c_str()))
                 {
                     std::string path = "";
@@ -415,7 +420,7 @@ namespace KTN
 
                     UI::ImageCircleMask(texture, imageSize);
                     ImGui::SameLine();
-                    std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D).FilePath);
+                    std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D));
                     ImGui::Text(path.c_str());
 
                     if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
@@ -472,7 +477,7 @@ namespace KTN
 
                     UI::ImageCircleMask(texture, imageSize);
                     ImGui::SameLine();
-                    std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D).FilePath);
+                    std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D));
                     ImGui::Text(path.c_str());
 
                     if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
@@ -521,7 +526,7 @@ namespace KTN
 
                     UI::ImageCircleMask(texture, imageSize);
                     ImGui::SameLine();
-                    std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D).FilePath);
+                    std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.PhysicsMaterial2D));
                     ImGui::Text(path.c_str());
 
                     if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
@@ -714,7 +719,7 @@ namespace KTN
                     p_Anim.Parameters.clear();
                 }
                 ImGui::SameLine();
-                auto filePath             = GetRelative(AssetManager::Get()->GetMetadata(p_Anim.Controller).FilePath);
+                auto filePath             = GetRelative(AssetManager::Get()->GetMetadata(p_Anim.Controller));
                 filePath                  = filePath.empty() ? "None" : filePath;
                 if (ImGui::Button(filePath.c_str()))
                 {

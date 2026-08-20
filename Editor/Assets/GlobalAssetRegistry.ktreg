@@ -1,0 +1,151 @@
+GlobalAssetRegistry:
+  - Handle: 206703388245497517
+    FilePath: Shaders/Stages/SpritePicking.frag
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 234941291297320326
+    FilePath: Assets/Shaders/TextPicking.ktshader
+    Type: Shader
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 580074182121535691
+    FilePath: Shaders/Stages/SpritePicking.vert
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 670048809538840162
+    FilePath: Shaders/Stages/TextPicking.vert
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 784684104700878257
+    FilePath: Assets/Shaders/Sprite.ktshader
+    Type: Shader
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 825244684077254221
+    FilePath: Shaders/Stages/ScreenRGBA.frag
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 1174555778226226796
+    FilePath: DefaultTexture2D
+    Type: Texture2D
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 1301657397486189747
+    FilePath: Shaders/Stages/Sprite.frag
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 1649022875016401915
+    FilePath: Assets/Shaders/PrimitiveLine.ktshader
+    Type: Shader
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 2086055548766730785
+    FilePath: Assets/Shaders/Text.ktshader
+    Type: Shader
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 3334366952281325931
+    FilePath: Shaders/Stages/ScreenRUINT.frag
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 3912952198140555007
+    FilePath: Assets/Shaders/SpritePicking.ktshader
+    Type: Shader
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 3921092641822077795
+    FilePath: Shaders/Stages/Screen.vert
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 4620932237579503273
+    FilePath: Shaders/Stages/CommonPicking.frag
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 5879780697578564957
+    FilePath: Shaders/Stages/Sprite.vert
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 7371488797235678916
+    FilePath: Shaders/Stages/Text.frag
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 7980078156861383348
+    FilePath: Materials/Default.ktasset
+    Type: PhysicsMaterial2D
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 8451752681102608141
+    FilePath: Shaders/Stages/Common.frag
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 8828193152524101711
+    FilePath: Assets/Shaders/FinalPass.ktshader
+    Type: Shader
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 10122008612601614727
+    FilePath: Assets/Shaders/FinalPickingPass.ktshader
+    Type: Shader
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 11159598746073126447
+    FilePath: Shaders/Stages/Line.vert
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 11684794231020296857
+    FilePath: Shaders/Stages/Text.vert
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 11779551063759469932
+    FilePath: Shaders/Stages/Line.geom
+    Type: ShaderStage
+    Load: true
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 13029409808021717318
+    FilePath: Assets/Shaders/NonPrimitiveLine.ktshader
+    Type: Shader
+    Load: false
+    SerializeAssetData: false
+    Scope: Global
+  - Handle: 14323510693760139011
+    FilePath: Materials/Default.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: false
+    Scope: Global

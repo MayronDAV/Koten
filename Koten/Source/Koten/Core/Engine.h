@@ -23,6 +23,8 @@ namespace KTN
 
     struct Settings
     {
+        bool ReadGlobalFiles          = true;
+
         bool AutoRecompile            = true;
         bool MousePicking             = true;
 
