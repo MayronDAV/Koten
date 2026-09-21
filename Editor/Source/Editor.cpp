@@ -1,4 +1,5 @@
 #include "Editor.h"
+#include "Panels/ToolbarPanel.h"
 #include "Panels/HierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
 #include "Panels/SceneViewPanel.h"
@@ -30,43 +31,6 @@
 
 namespace KTN
 {
-    namespace
-    {
-        static bool DrawSelectableIconButton(const char* p_Icon, bool p_Selected)
-        {
-            if (p_Selected)
-                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_FrameBgActive]);
-
-            bool pressed = ImGui::Button(p_Icon);
-
-            if (p_Selected)
-                ImGui::PopStyleColor();
-
-            return pressed;
-        }
-
-        static float GetFPSWidth()
-        {
-            std::string text = std::format("FPS: {}", Engine::Get().GetStats().FramesPerSecond);
-            float textWidth  = ImGui::CalcTextSize(text.c_str()).x;
-            float padding    = ImGui::GetStyle().CellPadding.x * 2.0f;
-
-            return textWidth + padding;
-        }
-
-        float GetGuizmoWidth()
-        {
-            float width             = 0.0f;
-            const float buttonWidth = ImGui::CalcTextSize(ICON_MDI_CURSOR_DEFAULT).x + ImGui::GetStyle().FramePadding.x * 2.0f;
-            const float spacing     = ImGui::GetStyle().ItemSpacing.x;
-            int buttonCount         = 5; // select, move, rotate, scale, universal
-            width                   = buttonCount * buttonWidth + (buttonCount - 1) * spacing;
-
-            return width + 20.0f; // + extra padding
-        }
-
-    } // namespace
-
     void Editor::BeginDockspace(std::string p_ID, std::string p_Dockspace, bool p_MenuBar, ImGuiDockNodeFlags p_DockFlags)
     {
         KTN_PROFILE_FUNCTION();
@@ -175,11 +139,14 @@ namespace KTN
         m_TextureAtlasPanel        = CreateRef<TextureAtlasPanel>();
         m_AnimationPanel           = CreateRef<AnimationPanel>();
         m_AnimationControllerPanel = CreateRef<AnimationControllerPanel>();
+        auto contentBrowser        = CreateRef<ContentBrowserPanel>(Project::GetAssetDirectory().string());
 
-        m_Panels.emplace_back(CreateRef<SceneViewPanel>());
-        m_Panels.emplace_back(CreateRef<GameViewPanel>());
+        m_Panels.emplace_back(CreateRef<ToolbarPanel>());
         m_Panels.emplace_back(CreateRef<HierarchyPanel>());
+        m_Panels.emplace_back(CreateRef<SceneViewPanel>());
         m_Panels.emplace_back(CreateRef<InspectorPanel>());
+        m_Panels.emplace_back(CreateRef<GameViewPanel>());
+        m_Panels.emplace_back(contentBrowser);
         m_Panels.emplace_back(m_SceneEditPanel);
         m_Panels.emplace_back(m_AssetImporter);
         m_Panels.emplace_back(m_Settings);
@@ -190,8 +157,6 @@ namespace KTN
         m_Panels.emplace_back(m_AnimationControllerPanel);
         m_Panels.emplace_back(CreateRef<AssetRegistryPanel>());
 
-        auto contentBrowser = CreateRef<ContentBrowserPanel>(Project::GetAssetDirectory().string());
-        m_Panels.emplace_back(contentBrowser);
 
         for (auto& panel : m_Panels)
         {
@@ -514,6 +479,12 @@ namespace KTN
         }
 
         #pragma endregion
+    
+        const char* iniFilename = ImGui::GetIO().IniFilename;
+        if (iniFilename)
+        {
+            m_LayoutInitialized = std::filesystem::exists(iniFilename);
+        }
     }
     
     void Editor::OnDetach()
@@ -559,11 +530,15 @@ namespace KTN
 
         BeginDockspace("MyDockspace", "EditorDockspace", true);
 
+        if (!m_LayoutInitialized)
+        {
+            BuildDefaultLayout();
+            m_LayoutInitialized = true;
+        }
+
         ImGuizmo::BeginFrame();
 
         DrawMenuBar();
-
-        UIToolBar();
 
         for (auto& panel : m_Panels)
         {
@@ -862,229 +837,159 @@ namespace KTN
         SaveScene(scene);
     }
 
-    void Editor::DrawGuizmoToolbar()
+    void Editor::BuildDefaultLayout()
     {
-        KTN_PROFILE_FUNCTION_LOW();
+        ImGuiID dockspaceID = ImGui::GetID("MyDockspace");
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-        bool selected = false;
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
 
+        // ============================================================
+        // Reset DockSpace
+        // ============================================================
+
+        ImGui::DockBuilderRemoveNode(dockspaceID);
+
+        ImGui::DockBuilderAddNode(
+            dockspaceID,
+            ImGuiDockNodeFlags_DockSpace
+        );
+
+        ImGui::DockBuilderSetNodeSize(
+            dockspaceID,
+            viewport->WorkSize
+        );
+
+
+        // ============================================================
+        // TOP
+        //
+        // ┌──────────────────────────────────────────────┐
+        // │                    TOP                       │
+        // ├──────────────────────────────────────────────┤
+        // │                 REMAINING                    │
+        // └──────────────────────────────────────────────┘
+        // ============================================================
+
+        ImGuiID topNode = 0;
+        ImGuiID mainNode = 0;
+
+        ImGui::DockBuilderSplitNode(
+            dockspaceID,
+            ImGuiDir_Up,
+            m_LayoutConfig.TopRatio,
+            &topNode,
+            &mainNode
+        );
+
+
+        // ============================================================
+        // LEFT
+        //
+        // ┌────────┬─────────────────────────────────────┐
+        // │  LEFT  │              REMAINING              │
+        // └────────┴─────────────────────────────────────┘
+        // ============================================================
+
+        ImGuiID leftNode = 0;
+        ImGuiID centerRightNode = 0;
+
+        ImGui::DockBuilderSplitNode(
+            mainNode,
+            ImGuiDir_Left,
+            m_LayoutConfig.LeftRatio,
+            &leftNode,
+            &centerRightNode
+        );
+
+
+        // ============================================================
+        // RIGHT
+        //
+        // ┌────────┬──────────────────────────┬─────────┐
+        // │  LEFT  │          CENTER          │  RIGHT  │
+        // └────────┴──────────────────────────┴─────────┘
+        // ============================================================
+
+        ImGuiID rightNode = 0;
+        ImGuiID centerNode = 0;
+
+        ImGui::DockBuilderSplitNode(
+            centerRightNode,
+            ImGuiDir_Right,
+            m_LayoutConfig.RightRatio,
+            &rightNode,
+            &centerNode
+        );
+
+
+        // ============================================================
+        // DOWN
+        //
+        // ┌────────┬──────────────────────────┬─────────┐
+        // │        │                          │         │
+        // │  LEFT  │          CENTER          │  RIGHT  │
+        // │        │                          │         │
+        // ├────────┴──────────────────────────┴─────────┤
+        // │                    DOWN                     │
+        // └─────────────────────────────────────────────┘
+        // ============================================================
+
+        ImGuiID downNode = 0;
+        ImGuiID centerTopNode = 0;
+
+        ImGui::DockBuilderSplitNode(
+            centerNode,
+            ImGuiDir_Down,
+            m_LayoutConfig.DownRatio,
+            &downNode,
+            &centerTopNode
+        );
+
+
+        // ============================================================
+        // Store nodes
+        // ============================================================
+
+        m_DockNodes.clear();
+
+        m_DockNodes[EditorPanelDock::Top] = topNode;
+        m_DockNodes[EditorPanelDock::Left] = leftNode;
+        m_DockNodes[EditorPanelDock::Center] = centerTopNode;
+        m_DockNodes[EditorPanelDock::Right] = rightNode;
+        m_DockNodes[EditorPanelDock::Down] = downNode;
+
+
+        // ============================================================
+        // Dock panels
+        // ============================================================
+
+        for (const auto& panel : m_Panels)
         {
-            selected         = m_GuizmoType == 0;
-            if (DrawSelectableIconButton(ICON_MDI_CURSOR_DEFAULT, selected))
-                m_GuizmoType = 0;
+            if (!panel)
+                continue;
 
-            UI::Tooltip("Select");
-        }
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
+            const auto& config = panel->GetConfig();
 
-        {
-            selected         = m_GuizmoType == ImGuizmo::TRANSLATE;
-            if (DrawSelectableIconButton(ICON_MDI_ARROW_ALL, selected))
-                m_GuizmoType = ImGuizmo::TRANSLATE;
+            if (config.Dock == EditorPanelDock::None)
+                continue;
 
-            UI::Tooltip("Translate");
-        }
+            auto it = m_DockNodes.find(config.Dock);
 
-        ImGui::SameLine();
+            if (it == m_DockNodes.end())
+                continue;
 
-        {
-            selected         = m_GuizmoType == ImGuizmo::ROTATE;
-            if (DrawSelectableIconButton(ICON_MDI_ROTATE_ORBIT, selected))
-                m_GuizmoType = ImGuizmo::ROTATE;
-
-            UI::Tooltip("Rotate");
-        }
-
-        ImGui::SameLine();
-
-        {
-            selected         = m_GuizmoType == ImGuizmo::SCALE;
-            if (DrawSelectableIconButton(ICON_MDI_ARROW_EXPAND_ALL, selected))
-                m_GuizmoType = ImGuizmo::SCALE;
-
-            UI::Tooltip("Scale");
-        }
-
-        ImGui::SameLine();
-        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine();
-
-        {
-            selected         = m_GuizmoType == ImGuizmo::UNIVERSAL;
-            if (DrawSelectableIconButton(ICON_MDI_CROP_ROTATE, selected))
-                m_GuizmoType = ImGuizmo::UNIVERSAL;
-
-            UI::Tooltip("Universal");
-        }
-
-        ImGui::PopStyleColor();
-    }
-
-    void Editor::DrawPlayControls()
-    {
-        KTN_PROFILE_FUNCTION_LOW();
-
-        float totalWidth       = 0.0f;
-        float spacing          = ImGui::GetStyle().ItemSpacing.x;
-
-        auto calcButtonWidth   = [](const char* icon)
-        {
-            return ImGui::CalcTextSize(icon).x + ImGui::GetStyle().FramePadding.x * 2.0f;
-        };
-
-        bool hasPlayButton     = m_State == RuntimeState::Edit || m_State == RuntimeState::Play;
-        bool hasSimulateButton = m_State == RuntimeState::Edit || m_State == RuntimeState::Simulate;
-        bool hasPauseButton    = m_State != RuntimeState::Edit;
-        bool isPaused          = SceneManager::IsPaused();
-
-        if (hasPlayButton)
-            totalWidth        += calcButtonWidth(m_State != RuntimeState::Play ? ICON_MDI_PLAY : ICON_MDI_STOP);
-
-        if (hasSimulateButton)
-        {
-            if (totalWidth > 0) totalWidth += spacing;
-            totalWidth        += calcButtonWidth(m_State != RuntimeState::Simulate ? ICON_MDI_PLAY_BOX_OUTLINE : ICON_MDI_STOP);
-        }
-
-        if (hasPauseButton)
-        {
-            if (totalWidth > 0) totalWidth += spacing;
-            totalWidth        += calcButtonWidth(ICON_MDI_PAUSE);
-        }
-
-        if (isPaused)
-        {
-            if (totalWidth > 0) totalWidth += spacing;
-            totalWidth        += calcButtonWidth(ICON_MDI_STEP_FORWARD);
-        }
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
-
-        //float columnWidth = ImGui::GetColumnWidth();
-        //ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (columnWidth - totalWidth) * 0.5f);
-
-        float windowWidth      = ImGui::GetWindowSize().x;
-        float windowCenter     = windowWidth * 0.5f;
-        float windowPosX       = ImGui::GetWindowPos().x;
-        float cursorScreenX    = ImGui::GetCursorScreenPos().x;
-        float desiredScreenX   = windowPosX + windowCenter - totalWidth * 0.5f;
-        float offset           = desiredScreenX - cursorScreenX;
-
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
-
-
-        if (hasPlayButton)
-        {
-            std::string icon   = m_State != RuntimeState::Play ? ICON_MDI_PLAY : ICON_MDI_STOP;
-
-            if (ImGui::Button(icon.c_str()))
-            {
-                UnSelectEntt();
-                if (m_State != RuntimeState::Play)
-                    SceneManager::Play();
-                else
-                    SceneManager::Stop();
-
-                m_State       = m_State != RuntimeState::Play ? RuntimeState::Play : RuntimeState::Edit;
-            }
-
-            UI::Tooltip(m_State != RuntimeState::Play ? "Play" : "Stop");
-        }
-
-        if (hasSimulateButton)
-        {
-            if (hasPlayButton)
-                ImGui::SameLine();
-
-            // TODO: find an icon for simulate button
-            std::string icon   = m_State != RuntimeState::Simulate ? ICON_MDI_PLAY_BOX_OUTLINE : ICON_MDI_STOP;
-
-            if (ImGui::Button(icon.c_str()))
-            {
-                if (m_State != RuntimeState::Simulate)
-                    SceneManager::Simulate();
-                else
-                    SceneManager::Stop();
-                m_State        = m_State != RuntimeState::Simulate ? RuntimeState::Simulate : RuntimeState::Edit;
-            }
-
-            UI::Tooltip(m_State != RuntimeState::Simulate ? "Simulate" : "Stop");
-        }
-
-        if (hasPauseButton)
-        {
-            ImGui::SameLine();
-
-            std::string icon = ICON_MDI_PAUSE;
-            if (ImGui::Button(icon.c_str()))
-            {
-                SceneManager::Pause(!isPaused);
-            }
-
-            UI::Tooltip("Pause");
-        }
-
-        if (isPaused)
-        {
-            ImGui::SameLine();
-
-            std::string icon = ICON_MDI_STEP_FORWARD;
-            if (ImGui::Button(icon.c_str()))
-            {
-                SceneManager::Step();
-            }
-
-            UI::Tooltip("Step");
-        }
-
-        ImGui::PopStyleColor();
-    }
-
-    void Editor::UIToolBar()
-    {
-        KTN_PROFILE_FUNCTION();
-
-        ImGuiWindowClass window_class;
-        window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
-        ImGui::SetNextWindowClass(&window_class);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-        auto flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
-        ImGui::Begin("##UIToolbar", nullptr, flags);
-        ImGui::PopStyleVar(3);
-
-        ImVec2 size = ImGui::GetContentRegionAvail();
-
-        if (ImGui::BeginTable("##ToolbarTable", 3, /*ImGuiTableFlags_NoBordersInBody*/ ImGuiTableFlags_BordersInner | ImGuiTableFlags_SizingStretchProp))
-        {
-            float leftWidth  = std::max(GetGuizmoWidth(), 100.0f);
-            float rightWidth = std::max(GetFPSWidth(),    100.0f);
-
-            ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthFixed, leftWidth);
-            ImGui::TableSetupColumn("Center", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed, rightWidth);
-
-            ImGui::TableNextRow();
-
-            ImGui::TableSetColumnIndex(0);
-            DrawGuizmoToolbar();
-
-            ImGui::TableSetColumnIndex(1);
-            DrawPlayControls();
-
-            ImGui::TableSetColumnIndex(2);
-            ImGui::Text("FPS: %u", Engine::Get().GetStats().FramesPerSecond);
-
-            ImGui::EndTable();
+            ImGui::DockBuilderDockWindow(
+                panel->GetName().c_str(),
+                it->second
+            );
         }
 
 
-        ImGui::End();
+        // ============================================================
+        // Finish
+        // ============================================================
+
+        ImGui::DockBuilderFinish(dockspaceID);
     }
 
 } // namespace KTN

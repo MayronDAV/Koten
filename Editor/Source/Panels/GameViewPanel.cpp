@@ -12,6 +12,7 @@ namespace KTN
     GameViewPanel::GameViewPanel()
         : EditorPanel("Game View")
     {
+        m_Config.Dock = EditorPanelDock::Down;
     }
 
     void GameViewPanel::OnImgui()

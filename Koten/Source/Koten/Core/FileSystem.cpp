@@ -27,19 +27,19 @@ namespace KTN
     std::string FileSystem::GetParent(const std::string& p_Path)
     {
         auto path = std::filesystem::path(p_Path).parent_path();
-        return path.string();
+        return path.lexically_normal().generic_string();
     }
 
     std::string FileSystem::GetAbsolute(const std::string& p_Path)
     {
         auto path = std::filesystem::absolute(p_Path);
-        return path.string();
+        return path.lexically_normal().generic_string();
     }
 
     std::string FileSystem::GetRelative(const std::string& p_Path, const std::string& p_BasePath)
     {
         auto path = std::filesystem::relative(p_Path, p_BasePath);
-        return path.string();
+        return path.lexically_normal().generic_string();
     }
 
     bool FileSystem::WriteFile(const std::string& p_Path, uint8_t* p_Buffer, uint32_t p_Size)
@@ -162,7 +162,7 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         std::filesystem::path path(p_Path);
-        return path.replace_extension(p_Extension).generic_string();
+        return path.replace_extension(p_Extension).lexically_normal().generic_string();
     }
 
     std::string FileSystem::NormalizePath(const std::string& p_Path)

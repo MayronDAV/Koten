@@ -11,6 +11,7 @@ namespace KTN
     HierarchyPanel::HierarchyPanel()
         : EditorPanel("Hierarchy")
     {
+        m_Config.Dock = EditorPanelDock::Left;
     }
 
     void HierarchyPanel::OnImgui()
@@ -26,7 +27,7 @@ namespace KTN
             auto selectedScene = m_Editor->GetSelected().GetScene();
             ImGui::PushID((void*)(uint64_t)scene->Handle);
 
-            ImGuiTreeNodeFlags flags = (selectedScene != nullptr && scene->Handle == selectedScene->Handle ? ImGuiTreeNodeFlags_Selected : 0)
+            ImGuiTreeNodeFlags flags = (selectedScene && scene->Handle == selectedScene->Handle ? ImGuiTreeNodeFlags_Selected : 0)
                 | ImGuiTreeNodeFlags_OpenOnArrow;
             flags |= ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_DefaultOpen;
 
@@ -144,6 +145,7 @@ namespace KTN
 
         if (ImGui::BeginDragDropSource())
         {
+            m_PendingSelection = {};
             auto uuid = p_Entt.GetUUID();
             ImGui::SetDragDropPayload("HIERARCHY_ENTITY_ITEM", &uuid, sizeof(UUID));
             ImGui::EndDragDropSource();
@@ -154,7 +156,7 @@ namespace KTN
 
         if (ImGui::IsItemClicked())
         {
-            m_Editor->SetSelectedEntt(p_Entt);
+            m_PendingSelection = p_Entt;
         }
 
         bool entityDeleted = false;
@@ -190,6 +192,12 @@ namespace KTN
             }
 
             ImGui::TreePop();
+        }
+
+        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && m_PendingSelection)
+        {
+            m_Editor->SetSelectedEntt(m_PendingSelection);
+            m_PendingSelection = {};
         }
 
         if (entityDeleted)

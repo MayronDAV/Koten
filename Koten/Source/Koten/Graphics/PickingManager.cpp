@@ -31,9 +31,6 @@ namespace KTN
     {
                 KTN_PROFILE_FUNCTION();
 
-        if (!Engine::Get().GetSettings().MousePicking)
-            return;
-
         if (s_PickingData->PickingTargets.find(p_ID) == s_PickingData->PickingTargets.end())
             return;
 
@@ -50,12 +47,18 @@ namespace KTN
         s_PickingData->PickingTargets[p_ID] = Texture2D::Get(tspec);
     }
 
-    PickingID PickingManager::RegisterEntity(Entity p_Entity)
+    PickingID PickingManager::RegisterEntity(Entity p_Entity, bool p_Force)
     {
         KTN_PROFILE_FUNCTION();
 
-        if (!Engine::Get().GetSettings().MousePicking)
-            return INVALID_PICKING_ID;
+        if (!p_Force)
+        {
+            for (const auto& [id, entity] : s_PickingData->PickingMap)
+            {
+                if (entity == p_Entity)
+                    return id;
+            }
+        }
 
         PickingID id                  = s_PickingData->NextID++;
         s_PickingData->PickingMap[id] = p_Entity;
@@ -66,9 +69,6 @@ namespace KTN
     uint32_t PickingManager::CreatePickingTarget(uint32_t p_Width, uint32_t p_Height)
     {
         KTN_PROFILE_FUNCTION();
-
-        if (!Engine::Get().GetSettings().MousePicking)
-            return 0;
 
         uint32_t id                       = s_PickingData->NextPickingTargetID++;
 
@@ -90,7 +90,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        if (!Engine::Get().GetSettings().MousePicking || !s_PickingData->PickingTargets[p_ID])
+        if (!s_PickingData->PickingTargets[p_ID])
             return {};
 
         void* pixelData  = RendererCommand::ReadPixel(s_PickingData->PickingTargets[p_ID], p_X, p_Y);
@@ -105,12 +105,20 @@ namespace KTN
         return {};
     }
 
-    Ref<Texture2D> PickingManager::GetPickingTarget(uint32_t p_ID)
+    Entity PickingManager::GetEntityByPickingID(PickingID p_ID)
     {
         KTN_PROFILE_FUNCTION();
 
-        if (!Engine::Get().GetSettings().MousePicking)
-            return nullptr;
+        auto it = s_PickingData->PickingMap.find(p_ID);
+        if (it != s_PickingData->PickingMap.end())
+            return it->second;
+
+        return {};
+    }
+
+    Ref<Texture2D> PickingManager::GetPickingTarget(uint32_t p_ID)
+    {
+        KTN_PROFILE_FUNCTION();
 
         auto it = s_PickingData->PickingTargets.find(p_ID);
         if (it != s_PickingData->PickingTargets.end())

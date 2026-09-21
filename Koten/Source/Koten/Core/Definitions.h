@@ -332,6 +332,19 @@ namespace KTN
         LessOrEquals
     };
 
+    enum class UIRenderMode : uint8_t
+    {
+        ScreenSpace,
+        ScreenSpaceCamera
+    };
+
+    enum class UIScaleMode : uint8_t
+    {
+        Fit = 0,
+        Stretch,
+        Fill
+    };
+
     #pragma endregion
 
     #pragma region Structs

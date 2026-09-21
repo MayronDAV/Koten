@@ -20,7 +20,8 @@ namespace KTN
     namespace
     {
         #define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent,\
-            CharacterBody2DComponent, Rigidbody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, AnimationComponent
+            CharacterBody2DComponent, Rigidbody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, AnimationComponent, \
+            UIComponent, UIInputComponent, UICanvasComponent, UIImageComponent
 
         template <typename Component>
         void ComponentDrawView(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity) {}
@@ -797,12 +798,189 @@ namespace KTN
             });
         }
 
+        template <>
+        void ComponentDrawView<UIComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            DrawComponent<UIComponent>("UIContext", p_Entity,
+            [](UIComponent& p_Comp)
+            {
+                ImGui::Checkbox("Active", &p_Comp.Active);
+
+                UI::DragFloat2("Anchor", p_Comp.Anchor, 0.0f, 0.01f, 0.0f, 1.0f);
+                UI::DragFloat2("Size", p_Comp.Size, 1.0f, 1.0f);
+
+                ImGui::InputInt("SortOrder", &p_Comp.SortOrder);
+            });
+        }
+
+        template <>
+        void ComponentDrawView<UIInputComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            DrawComponent<UIInputComponent>("UIInput", p_Entity,
+            [](UIInputComponent& p_Comp)
+            {
+                //ImGui::BeginDisabled();
+                ImGui::Checkbox("Hovered", &p_Comp.Hovered);
+                ImGui::Checkbox("Pressed", &p_Comp.Pressed);
+                //ImGui::EndDisabled();
+            });
+        }
+
+        template <>
+        void ComponentDrawView<UICanvasComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            DrawComponent<UICanvasComponent>("UICanvas", p_Entity,
+            [](UICanvasComponent& p_Comp)
+            {
+                {
+                    int currentItem = (int)p_Comp.RenderMode;
+                    static const char* items[] = { "ScreenSpace", "ScreenSpaceCamera" };
+                    static const int itemsCount = IM_ARRAYSIZE(items);
+
+                    if (UI::Combo("Mode", items[currentItem], items, itemsCount, &currentItem, -1))
+                    {
+                        p_Comp.RenderMode = (UIRenderMode)currentItem;
+                    }
+                }
+
+                {
+                    int currentItem = (int)p_Comp.ScaleMode;
+                    static const char* items[] = { "Fit", "Stretch", "Fill" };
+                    static const int itemsCount = IM_ARRAYSIZE(items);
+
+                    if (UI::Combo("Scale Mode", items[currentItem], items, itemsCount, &currentItem, -1))
+                    {
+                        p_Comp.ScaleMode = (UIScaleMode)currentItem;
+                    }
+                }
+
+                if (p_Comp.RenderMode == UIRenderMode::ScreenSpaceCamera)
+                {
+                    ImGui::BeginGroup();
+                    ImGui::Text("Camera");
+                    ImGui::SameLine();
+                    std::string camera = "Default";
+                    if (p_Comp.Camera)
+                    {
+                        auto entt = SceneManager::GetEntityByUUID(p_Comp.Camera);
+                        if (entt)
+                            camera = entt.GetTag();
+                    }
+                    ImGui::Text(camera.c_str());
+                    ImGui::SameLine();
+                    if (ImGui::Button(ICON_MDI_RESTART))
+                    {
+                        p_Comp.Camera       = 0;
+                        p_Comp.RenderTarget = 0;
+                    }
+                    ImGui::EndGroup();
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY_ITEM"))
+                        {
+                            UUID enttID                 = *(UUID*)payload->Data;
+                            if (enttID != 0)
+                            {
+                                auto entt = SceneManager::GetEntityByUUID(enttID);
+                                if (entt.HasComponent<CameraComponent>())
+                                {
+                                    p_Comp.Camera       = enttID;
+                                    auto& cam           = entt.GetComponent<CameraComponent>();
+                                    p_Comp.RenderTarget = cam.RenderTarget;
+                                }
+                            }
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+                }
+
+                UI::InputFloat2("Ref Resolution", p_Comp.ReferenceResolution);
+
+                ImGui::Checkbox("Receive Input", &p_Comp.ReceiveInput);
+                ImGui::InputInt("SortOrder", &p_Comp.SortOrder);
+            });
+        }
+
+        template <>
+        void ComponentDrawView<UIImageComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            DrawComponent<UIImageComponent>("UIImage", p_Entity,
+            [&](UIImageComponent& p_Comp)
+            {
+                ImGui::BeginGroup();
+                {
+                    bool isMaterial = p_Comp.Type == UIImageComponent::ImageType::Material;
+                    if (isMaterial)
+                    {
+                        auto material = AssetManager::Get()->GetAsset<Material>(p_Comp.Handle);
+                        ImVec2 imageSize = { 100.0f, 100.0f };
+
+                        auto color = ImVec4{ material->AlbedoColor.x, material->AlbedoColor.y, material->AlbedoColor.z, material->AlbedoColor.w };
+                        auto texture = AssetManager::Get()->GetAsset<Texture2D>(material->Texture);
+
+                        UI::ImageCircleMask(texture, imageSize, color);
+                    }
+                    else
+                    {
+                        auto texture     = AssetManager::Get()->GetAsset<Texture2D>(p_Comp.Handle);
+                        ImVec2 imageSize = { 100.0f, 100.0f };
+
+                        UI::ImageCircleMask(texture, imageSize, { 1.0f, 1.0f, 1.0f, 1.0f });
+                    }
+
+                    ImGui::SameLine();
+                    std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.Handle));
+                    ImGui::Text(path.c_str());
+
+                    if (isMaterial)
+                    {
+                        if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
+                        {
+                            p_This->GetEditor()->GetMaterialPanel()->Open(p_Comp.Handle);
+                        }
+                    }
+                }
+                ImGui::EndGroup();
+
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        const wchar_t* path = (const wchar_t*)payload->Data;
+                        auto filepath       = std::filesystem::path(path);
+                        if (filepath.extension() == ".ktmat")
+                        {
+                            p_Comp.Handle   = AssetManager::Get()->ImportAsset(AssetType::Material, filepath.string());
+                            p_Comp.Type     = UIImageComponent::ImageType::Material;
+                        }
+                        else
+                        {
+                            p_Comp.Handle   = AssetManager::Get()->ImportAsset(AssetType::Texture2D, filepath.string());
+                            p_Comp.Type     = UIImageComponent::ImageType::Texture;
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+            });
+        }
+
 
     } // namespace
 
     InspectorPanel::InspectorPanel()
         : EditorPanel("Inspector")
     {
+        m_Config.Dock = EditorPanelDock::Right;
     }
 
     void InspectorPanel::OnImgui()
@@ -862,9 +1040,16 @@ namespace KTN
                 {
                     DisplayComponentEntry<TransformComponent>("Transform", selectedEntt);
                     DisplayComponentEntry<CameraComponent>("Camera", selectedEntt);
+                    DisplayComponentEntry<ScriptComponent>("ScriptComponent", selectedEntt);
+
+                    ImGui::Separator();
+
                     DisplayComponentEntry<SpriteComponent>("Sprite", selectedEntt);
                     DisplayComponentEntry<LineRendererComponent>("LineRenderer", selectedEntt);
                     DisplayComponentEntry<TextRendererComponent>("TextRenderer", selectedEntt);
+
+                    ImGui::Separator();
+
                     DisplayComponentEntry<CharacterBody2DComponent>("CharacterBody2D", selectedEntt);
                     DisplayComponentEntry<Rigidbody2DComponent>("Rigidbody2D", selectedEntt);
                     DisplayComponentEntry<StaticBody2DComponent>("StaticBody2D", selectedEntt);
@@ -872,8 +1057,17 @@ namespace KTN
                         [](BodyShape2DComponent& p_Comp) { p_Comp.Shape = Shape2D::Rect; });
                     DisplayComponentEntry<BodyShape2DComponent>("CircleShape2D", selectedEntt,
                         [](BodyShape2DComponent& p_Comp) { p_Comp.Shape = Shape2D::Circle; });
-                    DisplayComponentEntry<ScriptComponent>("ScriptComponent", selectedEntt);
-                    DisplayComponentEntry<AnimationComponent>("AnimationComponent", selectedEntt);
+
+                    ImGui::Separator();
+
+                    DisplayComponentEntry<AnimationComponent>("Animation", selectedEntt);
+
+                    ImGui::Separator();
+
+                    DisplayComponentEntry<UIComponent>("UIContext", selectedEntt);
+                    DisplayComponentEntry<UIInputComponent>("UIInput", selectedEntt);
+                    DisplayComponentEntry<UICanvasComponent>("UICanvas", selectedEntt);
+                    DisplayComponentEntry<UIImageComponent>("UIImage", selectedEntt);
 
                     ImGui::EndPopup();
                 }

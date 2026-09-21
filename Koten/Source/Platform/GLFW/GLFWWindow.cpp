@@ -222,8 +222,8 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION_LOW();
 
-        #define SET_EVENT(event)             \
-        if (data.EventCallback)                \
+        #define SET_EVENT(event)              \
+        if (data.EventCallback)               \
             data.EventCallback(event);        \
 
         m_Data.Title     = p_Spec.Title;
@@ -299,6 +299,12 @@ namespace KTN
             s_UserPointerMap[jid] = { &m_Data, ""}; // Store user pointer for joystick callbacks
 
         glfwSetWindowUserPointer(m_Window, &m_Data);
+
+        glfwSetCursorEnterCallback(m_Window, [](GLFWwindow* p_Window, int p_Entered)
+        {
+            WindowData& data = *(WindowData*)glfwGetWindowUserPointer(p_Window);
+            Input::SetMouseInsideWindow(p_Entered != 0);
+        });
 
         glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* p_Window, int p_Width, int p_Height)
         {

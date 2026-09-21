@@ -17,10 +17,11 @@ namespace KTN
 
             static void Update(uint32_t p_ID, uint32_t p_Width, uint32_t p_Height);
 
-            static PickingID RegisterEntity(Entity p_Entity);
+            static PickingID RegisterEntity(Entity p_Entity, bool p_Force = true);
 
             static uint32_t CreatePickingTarget(uint32_t p_Width, uint32_t p_Height);
             static Entity ReadPixel(uint32_t p_ID, uint32_t p_X, uint32_t p_Y);
+            static Entity GetEntityByPickingID(PickingID p_ID);
             static Ref<Texture2D> GetPickingTarget(uint32_t p_ID);
 
         private:

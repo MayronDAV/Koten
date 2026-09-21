@@ -188,6 +188,67 @@ namespace KTN::UI
         return result;
     }
 
+    bool DragFloat2(const std::string& p_Label, glm::vec2& p_Values, float p_ResetValue, float p_Step, float p_Min, float p_Max)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        ImGuiIO& io = ImGui::GetIO();
+
+        ImGui::PushID(p_Label.c_str());
+
+        ImGui::Columns(2);
+        ImGui::SetColumnWidth(0, 100.0f); // TODO: Maybe change this?
+        ImGui::Text(p_Label.c_str());
+        ImGui::NextColumn();
+
+        ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+        float lineHeight = ImGui::GetFontSize() + GImGui->Style.FramePadding.y * 2.0f;
+        ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+        bool changed = false;
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+        if (ImGui::Button("X", buttonSize))
+        {
+            p_Values.x = p_ResetValue;
+            changed = true;
+        }
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        if (ImGui::DragFloat("##X", &p_Values.x, p_Step, p_Min, p_Max, "%.2f"))
+            changed = true;
+        ImGui::PopItemWidth();
+        ImGui::SameLine();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+        if (ImGui::Button("Y", buttonSize))
+        {
+            p_Values.y = p_ResetValue;
+            changed = true;
+        }
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine();
+        if (ImGui::DragFloat("##Y", &p_Values.y, p_Step, p_Min, p_Max, "%.2f"))
+            changed = true;
+        ImGui::PopItemWidth();
+
+        ImGui::PopStyleVar();
+
+        ImGui::Columns(1);
+
+        ImGui::PopID();
+
+        return changed;
+    }
+
     KTN_API bool DragFloat3(const std::string& p_Label, glm::vec3& p_Values, float p_ResetValue)
     {
         KTN_PROFILE_FUNCTION();

@@ -17,6 +17,7 @@ namespace KTN
     SceneViewPanel::SceneViewPanel()
         : EditorPanel("Scene View")
     {
+        m_Config.Dock      = EditorPanelDock::Center;
         m_PickingTextureID = PickingManager::CreatePickingTarget(m_Viewport.RenderWidth, m_Viewport.RenderHeight);
     }
 
@@ -37,7 +38,7 @@ namespace KTN
             ImVec2 viewportSize  = ImGui::GetContentRegionAvail();
             m_HandleCameraEvents = ImGui::IsWindowFocused();
 
-            float targetAspect   = 2.33f;
+            float targetAspect   = 1920.0f / 1080.0f;
             float viewportAspect = viewportSize.x / viewportSize.y;
 
             ImVec2 imageSize;
@@ -179,7 +180,7 @@ namespace KTN
 
         auto& camera               = m_Editor->GetCamera();
         SceneManager::SetPickingTarget(PickingManager::GetPickingTarget(m_PickingTextureID));
-        SceneManager::OnRender(m_MainTexture, m_Viewport.RenderWidth, m_Viewport.RenderHeight, camera->GetProjection(), camera->GetView());
+        SceneManager::OnRender(m_MainTexture, m_Viewport.RenderWidth, m_Viewport.RenderHeight, { m_Viewport.Position.x, m_Viewport.Position.y }, camera->GetProjection(), camera->GetView());
         SceneManager::SetPickingTarget(nullptr);
     }
 

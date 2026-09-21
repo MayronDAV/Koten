@@ -18,6 +18,7 @@
 #include "Koten/Graphics/PickingManager.h"
 #include "ShaderModuleLibrary.h"
 #include "Koten/Project/Project.h"
+#include "Koten/Graphics/UISystem.h"
 
 
 
@@ -114,16 +115,14 @@ namespace KTN
 
         AnimSystemManager::Init();
 
-        if (settings.MousePicking)
-            PickingManager::Init();
+        PickingManager::Init();
     }
 
     Application::~Application()
     {
         KTN_PROFILE_FUNCTION();
 
-        if (Engine::Get().GetSettings().MousePicking)
-            PickingManager::Shutdown();
+        PickingManager::Shutdown();
 
         AnimSystemManager::Shutdown();
 

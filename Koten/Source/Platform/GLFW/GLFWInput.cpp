@@ -4,6 +4,12 @@
 #include "Koten/Core/Application.h"
 #include "Koten/OS/KeyCodes.h"
 
+#if KTN_LINUX
+#define GLFW_EXPOSE_NATIVE_X11
+#include <GLFW/glfw3native.h>
+#include <X11/Xlib.h>
+#endif
+
 
 
 namespace KTN
@@ -86,7 +92,7 @@ namespace KTN
         return state == GLFW_RELEASE;
     }
 
-    glm::vec2 Input::GetMousePosition()
+    glm::vec2 Input::GetCursorPosition()
     {
         KTN_PROFILE_FUNCTION_LOW();
 
@@ -96,21 +102,55 @@ namespace KTN
         return { (float)x, (float)y };
     }
 
-    float Input::GetMouseX()
+#if KTN_LINUX
+
+    glm::vec2 Input::GetMousePosition()
     {
         KTN_PROFILE_FUNCTION_LOW();
 
         auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
-        return GetMousePosition().x;
-    }
 
-    float Input::GetMouseY()
+        Display* display = glfwGetX11Display();
+        if (!display)
+            return { 0.0f, 0.0f };
+
+        Window root;
+        Window child;
+
+        int rootX = 0;
+        int rootY = 0;
+        int winX  = 0;
+        int winY  = 0;
+
+        unsigned int mask = 0;
+
+        if (!XQueryPointer(
+            display,
+            DefaultRootWindow(display),
+            &root,
+            &child,
+            &rootX,
+            &rootY,
+            &winX,
+            &winY,
+            &mask))
+        {
+            return { 0.0f, 0.0f };
+        }
+
+        return {
+            static_cast<float>(rootX),
+            static_cast<float>(rootY)
+        };
+    }
+#else
+#if !KTN_WINDOWS
+    glm::vec2 Input::GetMousePosition()
     {
-        KTN_PROFILE_FUNCTION_LOW();
-
-        auto window = (GLFWwindow*)Application::Get().GetWindow()->GetNative();
-        return GetMousePosition().y;
+        return Input::GetCursorPosition();
     }
+#endif
+#endif
 
     int Input::GetKeyPressed()
     {

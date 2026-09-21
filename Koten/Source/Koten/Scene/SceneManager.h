@@ -37,8 +37,8 @@ namespace KTN
             static void OnRender(const glm::mat4& p_Projection = glm::mat4(1.0f), const glm::mat4& p_View = glm::mat4(1.0f), const glm::vec4& p_ClearColor = {0.0f, 0.0f, 0.0f, 1.0f});
             static void OnRenderRuntime();
 
-            static void OnRender(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::mat4& p_Projection = glm::mat4(1.0f), const glm::mat4& p_View = glm::mat4(1.0f), const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
-            static void OnRenderRuntime(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height);
+            static void OnRender(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop = glm::vec2(0.0f), const glm::mat4& p_Projection = glm::mat4(1.0f), const glm::mat4& p_View = glm::mat4(1.0f), const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
+            static void OnRenderRuntime(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop = glm::vec2(0.0f));
 
             static AssetHandle Import(const std::string& p_Path, bool p_ThreadSafe = false);
             static AssetHandle ImportAsync(const std::string& p_Path);

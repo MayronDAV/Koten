@@ -19,6 +19,7 @@ namespace KTN::UI
     KTN_API bool InputText(const std::string& p_Label, std::string& p_Text, bool p_DrawLabel = false, ImGuiInputTextFlags p_Flags = 0, float p_OutlineRouding = 2.0f, bool p_DrawOutlineWhenInactive = false, ImColor p_OutlineColor = ImColor(80, 80, 80));
     KTN_API void DrawItemOutline(float p_Rounding, float p_Thickness, bool p_DrawWhenInactive, ImColor p_Color = ImColor(50, 50, 50), ImColor p_ColorHovered = ImColor(60, 60, 60), ImColor p_ColorActived = ImColor(80, 80, 80));
     KTN_API bool ColorEdit4(const std::string& p_Label, glm::vec4& p_Values, float p_ResetValue);
+    KTN_API bool DragFloat2(const std::string& p_Label, glm::vec2& p_Values, float p_ResetValue = 0.0f, float p_Step = 0.1f, float p_Min = 0.0f, float p_Max = 0.0f);
     KTN_API bool DragFloat3(const std::string& p_Label, glm::vec3& p_Values, float p_ResetValue = 0.0f);
     KTN_API bool InputFloat2(const std::string& p_Label, glm::vec2& p_Values, float p_ResetValue = 0.0f);
     KTN_API void Tooltip(const char* p_Text);

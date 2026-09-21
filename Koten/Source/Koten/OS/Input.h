@@ -43,6 +43,8 @@ namespace KTN
         public:
             static void SetCursorMode(CursorMode p_Mode);
 
+            static bool IsMouseInsideWindow() { return s_IsMouseInsideWindow; }
+
             static bool IsKeyPressed(int p_Key);
 
             static bool IsKeyJustPressed(int p_Key);
@@ -52,9 +54,10 @@ namespace KTN
             static bool IsMouseButtonPressed(int p_Button);
             static bool IsMouseButtonReleased(int p_Button);
 
+            static glm::vec2 GetCursorPosition();
             static glm::vec2 GetMousePosition();
-            static float GetMouseX();
-            static float GetMouseY();
+            static float GetMouseX() { return GetMousePosition().x; }
+            static float GetMouseY() { return GetMousePosition().y; }
 
             static int GetKeyPressed();
 
@@ -68,7 +71,10 @@ namespace KTN
             static Controller* GetController(int p_ID);
             static std::vector<int> GetConnectedControllerIDs();
 
+            static void SetMouseInsideWindow(bool p_Inside) { s_IsMouseInsideWindow = p_Inside; }
+
         private:
+            inline static bool s_IsMouseInsideWindow = false;
             static std::array<Controller, MAX_CONTROLLER_COUNT> s_Controllers;
     };
 

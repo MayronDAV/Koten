@@ -18,6 +18,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
+        m_Config.Dock   = EditorPanelDock::Down;
         m_CurrentDir    = m_BaseDir;
 
         m_DirectoryIcon = TextureImporter::LoadTexture2D("Resources/Icons/DirectoryIcon.png");
@@ -29,6 +30,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
+        m_Config.Dock   = EditorPanelDock::Down;
         m_CurrentDir    = m_BaseDir;
 
         m_DirectoryIcon = TextureImporter::LoadTexture2D("Resources/Icons/DirectoryIcon.png");
@@ -46,9 +48,10 @@ namespace KTN
             ImGuiStyle& style          = ImGui::GetStyle();
             const float padding        = style.WindowPadding.x;
             const ImVec2 availableSize = ImGui::GetContentRegionAvail();
-            const float treeWidth      = availableSize.x * 0.35f;
+            const float treeWidth      = availableSize.x * 0.25f;
 
-            ImGui::BeginChild("##Tree", ImVec2(treeWidth, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
+            ImGui::SetNextWindowSizeConstraints({ treeWidth, -FLT_MAX }, { availableSize.x * 0.5f, FLT_MAX });
+            ImGui::BeginChild("##Tree", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
             {
                 DrawContentTreeNode(m_BaseDir);
             }
@@ -656,6 +659,14 @@ namespace KTN
                     ImGui::SameLine();
                 }
 
+                auto relPath = FileSystem::GetRelative(m_CurrentDir.lexically_normal().generic_string(), m_BaseDir.lexically_normal().generic_string());
+                relPath      = relPath.empty() || relPath == "." ? m_BaseDir.filename().string() : m_BaseDir.filename().string() + "/" + relPath;
+                if (relPath == segment.lexically_normal().generic_string())
+                {
+                    ImGui::Text(" %s", filenameStr.c_str());
+                    continue;
+                }
+
                 ImGui::PushStyleColor(ImGuiCol_Button, { 0, 0, 0, 0 });
                 ImGui::PushStyleColor(ImGuiCol_ButtonHovered, { 0.3f, 0.3f, 0.35f, 0.5f });
                 ImGui::PushStyleColor(ImGuiCol_ButtonActive, { 0.3f, 0.3f, 0.35f, 0.5f });
@@ -674,7 +685,7 @@ namespace KTN
                     else
                     {
                         // Clicked on a subdirectory
-                        auto fullPath = m_BaseDir / segment.relative_path();
+                        auto fullPath = m_BaseDir / segment.lexically_relative(m_BaseDir.filename());
                         if (m_CurrentDir != fullPath)
                         {
                             ClearStack();

@@ -22,6 +22,14 @@ namespace KTN
         Simulate
     };
 
+    struct LayoutConfig
+    {
+        float TopRatio   = 0.05f;
+        float LeftRatio  = 0.25f;
+        float RightRatio = 0.60f;
+        float DownRatio  = 0.50f;
+    };
+
     class Editor : public Layer
     {
         public:
@@ -58,6 +66,7 @@ namespace KTN
 
             void OpenProject(const std::filesystem::path& p_Path);
 
+            void SetGuizmoType(int p_Type) { m_GuizmoType = p_Type; }
             int GetGuizmoType() const { return m_GuizmoType; }
 
             static void BeginDockspace(std::string p_ID, std::string p_Dockspace, bool p_MenuBar, ImGuiDockNodeFlags p_DockFlags = 0);
@@ -73,10 +82,7 @@ namespace KTN
             void SaveSceneAs();
             void SaveScene();
 
-            void DrawGuizmoToolbar();
-            void DrawPlayControls();
-
-            void UIToolBar();
+            void BuildDefaultLayout();
 
         private:
             std::vector<Ref<EditorPanel>> m_Panels;
@@ -89,15 +95,19 @@ namespace KTN
             Ref<AnimationPanel> m_AnimationPanel                     = nullptr;
             Ref<AnimationControllerPanel> m_AnimationControllerPanel = nullptr;
 
-            Entity m_SelectedEntt                       = {};
-            RuntimeState m_State                        = RuntimeState::Edit;
+            std::unordered_map<EditorPanelDock, ImGuiID> m_DockNodes;
+            LayoutConfig m_LayoutConfig                              = {};
+            bool m_LayoutInitialized                                 = false;
 
-            Ref<EditorCamera> m_Camera                  = nullptr;
-            bool m_CaptureShortcuts                     = true;
+            Entity m_SelectedEntt                                    = {};
+            RuntimeState m_State                                     = RuntimeState::Edit;
 
-            std::filesystem::path m_ProjectPath         = "";
+            Ref<EditorCamera> m_Camera                               = nullptr;
+            bool m_CaptureShortcuts                                  = true;
 
-            int m_GuizmoType                            = 0;
+            std::filesystem::path m_ProjectPath                      = "";
+            int m_GuizmoType                                         = 0;
+
     };
 
 } // namespace KTN

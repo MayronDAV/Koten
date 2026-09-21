@@ -218,7 +218,7 @@ namespace KTN
         }
     }
 
-    void SceneManager::OnRender(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
+    void SceneManager::OnRender(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop, const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -226,8 +226,9 @@ namespace KTN
         {
             Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
             scene->SetRenderTarget(p_Target);
-            scene->SetViewportSize(p_Width, p_Height);
+            scene->SetViewportSize(p_Width, p_Height, p_LeftTop);
             scene->OnRender(p_Projection, p_View, p_ClearColor);
+            scene->SetRenderTarget(nullptr);
         }
     }
 
@@ -242,7 +243,7 @@ namespace KTN
         }
     }
 
-    void SceneManager::OnRenderRuntime(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height)
+    void SceneManager::OnRenderRuntime(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -250,8 +251,9 @@ namespace KTN
         {
             Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
             scene->SetRenderTarget(p_Target);
-            scene->SetViewportSize(p_Width, p_Height);
+            scene->SetViewportSize(p_Width, p_Height, p_LeftTop);
             scene->OnRenderRuntime();
+            scene->SetRenderTarget(nullptr);
         }
     }
 

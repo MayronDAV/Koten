@@ -520,68 +520,81 @@ namespace KTN
 
         TaskManager::Get().ExecutePhase(TaskManager::Phase::RenderPass);
 
-        auto hash                     = p_PassInfo.RenderTarget ? (uint64_t)p_PassInfo.RenderTarget->Handle : (uint64_t)0;
+        uint64_t hash                 = p_PassInfo.RenderTarget ? (uint64_t)p_PassInfo.RenderTarget->Handle : 0ul;
         HashCombine(hash, p_PassInfo.Width, p_PassInfo.Height, p_PassInfo.Samples);
 
         auto& pass                    = s_Renderer->Frame.Passes.emplace_back();
         pass.Info                     = p_PassInfo;
         s_Renderer->Frame.CurrentPass = &pass;
 
+        auto getOrCreateTargets = [&](Ref<RenderTargets>& p_Targets)
+        {
+            std::string text            = std::to_string(hash);
+
+            TextureSpecification tspec  = {};
+            tspec.Usage                 = TextureUsage::TEXTURE_COLOR_ATTACHMENT;
+            tspec.Width                 = p_PassInfo.Width;
+            tspec.Height                = p_PassInfo.Height;
+            tspec.GenerateMips          = false;
+            tspec.AnisotropyEnable      = false;
+
+            if (!p_Targets->Color)
+            {
+                tspec.Samples           = p_PassInfo.Samples;
+                tspec.Format            = TextureFormat::RGBA32_FLOAT;
+                tspec.DebugName         = "Pass - ColorTarget " + text;
+
+                p_Targets->Color        = Texture2D::Get(tspec);
+            }
+
+            tspec.Samples               = 1;
+            if (p_PassInfo.Picking && !p_Targets->Picking)
+            {
+                tspec.Format            = TextureFormat::R32_UINT;
+                tspec.DebugName         = "Pass - PickingTarget " + text;
+
+                p_Targets->Picking      = Texture2D::Get(tspec);
+            }
+
+
+            if (p_PassInfo.Samples > 1 && !p_Targets->Resolve)
+            {
+                tspec.Format            = TextureFormat::RGBA32_FLOAT;
+                tspec.DebugName         = "Pass - ResolveTarget " + text;
+
+                p_Targets->Resolve      = Texture2D::Get(tspec);
+            }
+
+            if (!p_Targets->Depth)
+            {
+                tspec.Format            = TextureFormat::D32_FLOAT;
+                tspec.Usage             = TextureUsage::TEXTURE_DEPTH_STENCIL_ATTACHMENT;
+                tspec.DebugName         = "Pass - DepthTarget " + text;
+
+                p_Targets->Depth        = Texture2D::Get(tspec);
+            }
+
+            if (p_PassInfo.Picking && !p_Targets->PickingDepth)
+            {
+                tspec.Usage             = TextureUsage::TEXTURE_DEPTH_STENCIL_ATTACHMENT;
+                tspec.Format            = TextureFormat::D32_FLOAT;
+                tspec.DebugName         = "Pass - PickingDepthTarget " + text;
+
+                p_Targets->PickingDepth = Texture2D::Get(tspec);
+            }
+        };
+
         auto it = s_Renderer->TargetsCache.find(hash);
         if (it != s_Renderer->TargetsCache.end())
         {
             pass.Targets              = it->second;
+            getOrCreateTargets(pass.Targets);
             return;
         }
 
         auto targets                  = CreateRef<RenderTargets>();
         s_Renderer->TargetsCache.emplace(hash, targets);
-
-        std::string text              = std::to_string(hash);
-
-        TextureSpecification tspec    = {};
-        tspec.Usage                   = TextureUsage::TEXTURE_COLOR_ATTACHMENT;
-        tspec.Width                   = p_PassInfo.Width;
-        tspec.Height                  = p_PassInfo.Height;
-        tspec.GenerateMips            = false;
-        tspec.AnisotropyEnable        = false;
-        tspec.Samples                 = p_PassInfo.Samples;
-        tspec.Format                  = TextureFormat::RGBA32_FLOAT;
-        tspec.DebugName               = "Pass - ColorTarget " + text;
-
-        targets->Color                = Texture2D::Get(tspec);
-
-        tspec.Samples                 = 1;
-        if (p_PassInfo.Picking)
-        {
-            tspec.Format              = TextureFormat::R32_UINT;
-            tspec.DebugName           = "Pass - PickingTarget " + text;
-
-            targets->Picking          = Texture2D::Get(tspec);
-        }
-
-
-        if (p_PassInfo.Samples > 1)
-        {
-            tspec.Format              = TextureFormat::RGBA32_FLOAT;
-            tspec.DebugName           = "Pass - ResolveTarget " + text;
-
-            targets->Resolve          = Texture2D::Get(tspec);
-        }
-
-        tspec.Format                  = TextureFormat::D32_FLOAT;
-        tspec.Usage                   = TextureUsage::TEXTURE_DEPTH_STENCIL_ATTACHMENT;
-        tspec.DebugName               = "Pass - DepthTarget " + text;
-
-        targets->Depth                = Texture2D::Get(tspec);
-
-        if (p_PassInfo.Picking)
-        {
-            tspec.Format              = TextureFormat::D32_FLOAT;
-            tspec.DebugName           = "Pass - PickingDepthTarget " + text;
-
-            targets->PickingDepth     = Texture2D::Get(tspec);
-        }
+        getOrCreateTargets(targets);
 
         pass.Targets                  = targets;
     }

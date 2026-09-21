@@ -10,6 +10,7 @@
 #include "Koten/Graphics/Material.h"
 #include "Koten/Systems/AnimSystem.h"
 #include "Koten/Graphics/PickingManager.h"
+#include "Koten/Graphics/UISystem.h"
 
 
 
@@ -121,6 +122,8 @@ namespace KTN
         AddDependency<CharacterBody2DComponent, BodyShape2DComponent>(m_Registry);
         AddDependency<StaticBody2DComponent, TransformComponent>(m_Registry);
         AddDependency<StaticBody2DComponent, BodyShape2DComponent>(m_Registry);
+        AddDependency<UIInputComponent, UIComponent>(m_Registry);
+        AddDependency<UIImageComponent, UIComponent>(m_Registry);
 
         RegisterComponentCallbacks<ALL_COMPONENTS>(m_Registry);
 
@@ -131,6 +134,9 @@ namespace KTN
 
         m_SceneGraph = CreateUnique<SceneGraph>();
         m_SceneGraph->Init(m_Registry);
+
+        m_UISystem = CreateRef<UISystem>();
+        m_UISystem->Init(this);
     }
 
     Scene::~Scene()
@@ -243,16 +249,20 @@ namespace KTN
         {
             if (!p_Runtime.Active) return;
 
+            auto entt = Entity(p_Entity, this);
+            if (entt.HasComponent<UIComponent>() || entt.HasComponent<UICanvasComponent>())
+                return;
+
             auto& settings = Engine::Get().GetSettings();
-            auto shape2d   = m_Registry.try_get<BodyShape2DComponent>(p_Entity);
+            auto shape2d   = entt.TryGetComponent<BodyShape2DComponent>();
             if (shape2d && settings.ShowDebugPhysicsCollider)
-                DebugRenderer::DrawCollider2D({ p_Entity, this }, { 1.0f, 0.65f, 0.0f, 1.0f });
+                DebugRenderer::DrawCollider2D(entt, { 1.0f, 0.65f, 0.0f, 1.0f });
 
             RenderCommand command = {};
-            command.ID            = PickingManager::RegisterEntity({ p_Entity, this });
+            command.ID            = PickingManager::RegisterEntity(entt);
             command.Transform     = p_Transform.GetWorldMatrix();
 
-            auto sprite = m_Registry.try_get<SpriteComponent>(p_Entity);
+            auto sprite = entt.TryGetComponent<SpriteComponent>();
             if (sprite)
             {
                 SpriteCommand spriteCommand    = {};
@@ -263,7 +273,7 @@ namespace KTN
                 auto mat                       = AssetManager::Get()->GetAsset<Material>(sprite->Material);
                 spriteCommand.Color            = mat->AlbedoColor;
 
-                auto animComp                  = m_Registry.try_get<AnimationComponent>(p_Entity);
+                auto animComp                  = entt.TryGetComponent<AnimationComponent>();
                 if (animComp)
                 {
                     spriteCommand.Texture      = AssetManager::Get()->GetAsset<Texture2D>(animComp->Texture);
@@ -283,7 +293,7 @@ namespace KTN
                 m_RenderList.Submit(command);
             }
 
-            auto line                   = m_Registry.try_get<LineRendererComponent>(p_Entity);
+            auto line                   = entt.TryGetComponent<LineRendererComponent>();
             if (line)
             {
                 LineCommand lineCommand = {};
@@ -298,7 +308,7 @@ namespace KTN
                 m_RenderList.Submit(command);
             }
 
-            auto text                   = m_Registry.try_get<TextRendererComponent>(p_Entity);
+            auto text                   = entt.TryGetComponent<TextRendererComponent>();
             if (text)
             {
                 TextCommand textCommand = {};
@@ -326,6 +336,8 @@ namespace KTN
         RemoveSystems();
 
         m_SceneGraph->Update(m_Registry);
+
+        m_UISystem->Reset();
 
         bool first = true;
         m_Registry.view<TransformComponent, CameraComponent>().each(
@@ -376,6 +388,8 @@ namespace KTN
 
             m_SceneGraph->Update(m_Registry);
         }
+
+        m_UISystem->Reset();
 
         bool first = true;
         m_Registry.view<TransformComponent, CameraComponent>().each(
@@ -428,6 +442,8 @@ namespace KTN
 
             m_SceneGraph->Update(m_Registry);
         }
+
+        m_UISystem->Reset();
 
         bool first = true;
         m_Registry.view<TransformComponent, CameraComponent>().each(
@@ -505,12 +521,14 @@ namespace KTN
         m_SystemManager->OnStop(this);
     }
 
-    void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height)
+    void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop)
     {
         KTN_PROFILE_FUNCTION();
 
         m_Width  = p_Width;
         m_Height = p_Height;
+
+        m_UISystem->SetLeftTop(p_LeftTop);
     }
 
     void Scene::SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos, const glm::vec3& p_Rot)
@@ -625,6 +643,10 @@ namespace KTN
             }
             Renderer::EndPass();
         }
+
+        m_UISystem->Update();
+        m_UISystem->ProcessCanvas();
+        m_UISystem->Render();
     }
 
     void Scene::OnRenderRuntime()

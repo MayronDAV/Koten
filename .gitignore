@@ -21,3 +21,4 @@ Makefile
 *.slnx
 /Koten-ScriptCore/obj
 *.dll.mdb
+Layout.ini

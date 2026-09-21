@@ -17,6 +17,7 @@
 namespace KTN
 {
     class KTN_API Entity;
+    class KTN_API UISystem;
 
     template<typename T>
     concept HasOnComponentAdded = requires(T p_Component, Scene* p_Scene, Entity* p_Entity)
@@ -66,7 +67,7 @@ namespace KTN
 
             void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
             void SetPickingTarget(const Ref<Texture2D>& p_Target) { m_PickingTarget = p_Target; }
-            void SetViewportSize(uint32_t p_Width, uint32_t p_Height);
+            void SetViewportSize(uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop = glm::vec2(0.0f));
             void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
 
             void SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos = glm::vec3{ 0.0f }, const glm::vec3& p_Rot = glm::vec3{ 0.0f });
@@ -80,6 +81,8 @@ namespace KTN
             const std::unordered_map<UUID, entt::entity>& GetEntityMap() const { return m_EntityMap; }
             entt::registry& GetRegistry() { return m_Registry; }
             SceneConfig& GetConfig() { return m_Config; }
+            Ref<Texture2D> GetRenderTarget() { return m_RenderTarget; }
+            Ref<Texture2D> GetPickingTarget() { return m_PickingTarget; }
 
             ASSET_CLASS_METHODS(Scene)
 
@@ -149,6 +152,7 @@ namespace KTN
             bool m_IsPaused                       = false;
             int m_StepFrames                      = 0;
             Unique<SystemManager> m_SystemManager = nullptr;
+            Ref<UISystem> m_UISystem              = nullptr;
 
             std::unordered_map<UUID, entt::entity> m_EntityMap;
 

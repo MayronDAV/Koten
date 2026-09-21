@@ -13,6 +13,7 @@ namespace KTN
     AssetRegistryPanel::AssetRegistryPanel()
         : EditorPanel("AssetRegistry")
     {
+        m_Config.Dock = EditorPanelDock::Right;
     }
 
     void AssetRegistryPanel::OnImgui()

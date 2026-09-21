@@ -9,6 +9,21 @@ namespace KTN
 {
     class Editor;
 
+    enum class EditorPanelDock
+    {
+        None,
+        Left,
+        Center,
+        Right,
+        Top,
+        Down
+    };
+
+    struct EditorPanelConfig
+    {
+        EditorPanelDock Dock = EditorPanelDock::None;
+    };
+
     class EditorPanel
     {
         public:
@@ -23,12 +38,15 @@ namespace KTN
             virtual void OnRender() {}
 
             const std::string& GetName() const { return m_Name; }
+            const EditorPanelConfig& GetConfig() const { return m_Config; }
             Editor* GetEditor() { return m_Editor; }
             bool& IsActive() { return m_Active; }
 
         protected:
             bool m_Active = true;
             std::string m_Name;
+
+            EditorPanelConfig m_Config = {};
 
             Editor* m_Editor = nullptr;
     };

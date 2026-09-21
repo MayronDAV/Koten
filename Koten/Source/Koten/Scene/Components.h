@@ -56,6 +56,68 @@ namespace KTN
         RuntimeComponent(const RuntimeComponent&) = default;
     };
 
+    struct UICanvasComponent
+    {
+        UIRenderMode RenderMode       = UIRenderMode::ScreenSpace;
+        UUID Camera                   = 0;
+        glm::vec2 ReferenceResolution = { 800.0f, 600.0f };
+        UIScaleMode ScaleMode         = UIScaleMode::Fit;
+
+        AssetHandle RenderTarget      = 0;
+        bool ReceiveInput             = true;
+        int SortOrder                 = 0;
+
+        UICanvasComponent()                         = default;
+        UICanvasComponent(const UICanvasComponent&) = default;
+    };
+
+    struct UIComponent
+    {
+        glm::vec2 Anchor                = { 0.0f, 0.0f };
+        glm::vec2 Size                  = { 100.0f, 100.0f };
+
+        bool Active                     = true;
+        int SortOrder                   = 0;
+
+        UIComponent()                   = default;
+        UIComponent(const UIComponent&) = default;
+    };
+
+    struct UIInputComponent
+    {
+        bool Hovered                              = false;
+        bool Pressed                              = false;
+
+        UIInputComponent()                        = default;
+        UIInputComponent(const UIInputComponent&) = default;
+    };
+
+    struct UIImageComponent
+    {
+        enum class ImageType : uint8_t
+        {
+            Material = 0,
+            Texture
+        };
+
+        ImageType Type                            = ImageType::Material;
+        AssetHandle Handle                        = 0;
+
+        UIImageComponent(bool p_GetDefault = true) : Handle(p_GetDefault ? Material::GetDefault() : (AssetHandle)0) {}
+        UIImageComponent(const UIImageComponent&) = default;
+    };
+
+    struct CameraComponent
+    {
+        SceneCamera Camera;
+        AssetHandle RenderTarget = 0;
+
+        glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+        CameraComponent()                       = default;
+        CameraComponent(const CameraComponent&) = default;
+    };
+
     struct SpriteComponent
     {
         RenderType2D Type    = RenderType2D::Quad;
@@ -146,17 +208,6 @@ namespace KTN
 
         TextRendererComponent(bool p_GetDefault = true) : Font(p_GetDefault ? DFFont::GetDefault() : (AssetHandle)0) {}
         TextRendererComponent(const TextRendererComponent&) = default;
-    };
-
-    struct CameraComponent
-    {
-        SceneCamera Camera;
-        AssetHandle RenderTarget = 0;
-
-        glm::vec4 ClearColor     = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-        CameraComponent() = default;
-        CameraComponent(const CameraComponent&) = default;
     };
 
     // TODO: Correct this to use UUID instead of entt::entity, for better deserialization
@@ -280,6 +331,6 @@ namespace KTN
     };
 
     using PhysicsBody2DTypes = entt::type_list<Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent>;
-    #define ALL_COMPONENTS IDComponent, TagComponent, RuntimeComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent, AnimationComponent
+    #define ALL_COMPONENTS IDComponent, TagComponent, RuntimeComponent, UICanvasComponent, UIComponent, UIInputComponent, UIImageComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent, AnimationComponent
 
 } // namespace KTN
