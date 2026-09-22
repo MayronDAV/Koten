@@ -8,6 +8,8 @@
 #define GLFW_EXPOSE_NATIVE_X11
 #include <GLFW/glfw3native.h>
 #include <X11/Xlib.h>
+
+using X11Window = Window;
 #endif
 
 
@@ -114,8 +116,8 @@ namespace KTN
         if (!display)
             return { 0.0f, 0.0f };
 
-        Window root;
-        Window child;
+        X11Window root;
+        X11Window child;
 
         int rootX = 0;
         int rootY = 0;
