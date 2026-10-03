@@ -823,10 +823,10 @@ namespace KTN
             DrawComponent<UIInputComponent>("UIInput", p_Entity,
             [](UIInputComponent& p_Comp)
             {
-                //ImGui::BeginDisabled();
+                ImGui::BeginDisabled();
                 ImGui::Checkbox("Hovered", &p_Comp.Hovered);
                 ImGui::Checkbox("Pressed", &p_Comp.Pressed);
-                //ImGui::EndDisabled();
+                ImGui::EndDisabled();
             });
         }
 
@@ -973,7 +973,6 @@ namespace KTN
                 }
             });
         }
-
 
     } // namespace
 

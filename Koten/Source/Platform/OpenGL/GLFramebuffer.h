@@ -24,7 +24,7 @@ namespace KTN
             void Init();
 
         private:
-            uint32_t m_RendererID            = 0;
+            uint32_t m_RendererID           = 0;
             uint32_t m_ResolveID            = -1;
             uint32_t m_ColorAttachmentCount = 0;
             FramebufferSpecification m_Spec = {};

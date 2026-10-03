@@ -1,8 +1,10 @@
 #pragma once
-#include "Koten/Scene/System.h"
+#include "System.h"
+
 #include "Koten/Scene/Entity.h"
 #include "Koten/Asset/AnimationControllerImporter.h"
 #include "Koten/Asset/AnimationImporter.h"
+
 
 
 

@@ -26,15 +26,24 @@ namespace KTN
 
     namespace
     {
+        struct ViewportCache
+        {
+            Ref<ViewportContext> Viewport;
+            double TimeSinceLastAccessed;
+        };
+
         struct Data
         {
             SceneManagerConfig Config = {};
 
-            RuntimeState State = RuntimeState::None;
-            bool IsPaused = false;
+            RuntimeState State        = RuntimeState::None;
+            bool IsPaused             = false;
 
             std::vector<Ref<Scene>> Scenes;
             std::vector<Ref<Scene>> ScenesCopy;
+
+            std::unordered_map<ViewportID, ViewportCache> ViewportsCache;
+            double CacheLifeTime = 0.2;
         };
 
         static Data* s_Data = nullptr;
@@ -53,6 +62,8 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
+        s_Data->ViewportsCache.clear();
+
         if (s_Data)
         {
             delete s_Data;
@@ -60,36 +71,80 @@ namespace KTN
         }
     }
 
-    void SceneManager::SetRenderTarget(const Ref<Texture2D>& p_Target)
+    Ref<ViewportContext> SceneManager::GetOrCreateViewport(const ViewportID& p_ID)
     {
         KTN_PROFILE_FUNCTION();
 
-        for (size_t i = 0; i < s_Data->Scenes.size(); i++)
+        if (!s_Data)
+            return nullptr;
+
+        auto found = s_Data->ViewportsCache.find(p_ID);
+        if (found != s_Data->ViewportsCache.end() && found->second.Viewport)
         {
-            Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
-            scene->SetRenderTarget(p_Target);
+            found->second.Viewport->ID          = p_ID;
+            found->second.TimeSinceLastAccessed = Time::GetTime();
+            return found->second.Viewport;
         }
+
+        Ref<ViewportContext> viewport = CreateRef<ViewportContext>();
+        if (!viewport)
+        {
+            KTN_CORE_ERROR("Failed to create the Viewport: {}", p_ID);
+            return nullptr;
+        }
+
+        viewport->ID                  = p_ID;
+        s_Data->ViewportsCache[p_ID]  = { viewport, Time::GetTime() };
+        return viewport;
     }
 
-    void SceneManager::SetPickingTarget(const Ref<Texture2D>& p_Target)
+    void SceneManager::RemoveViewport(const ViewportID& p_ID)
     {
         KTN_PROFILE_FUNCTION();
 
-        for (size_t i = 0; i < s_Data->Scenes.size(); i++)
+        auto it = s_Data->ViewportsCache.find(p_ID);
+        if (it == s_Data->ViewportsCache.end())
         {
-            Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
-            scene->SetPickingTarget(p_Target);
+            KTN_CORE_ERROR("The Viewport {}, doesn't exist!", p_ID);
+            return;
         }
+
+        it->second.Viewport = nullptr;
+        s_Data->ViewportsCache.erase(it);
     }
 
-    void SceneManager::SetViewportSize(uint32_t p_Width, uint32_t p_Height)
+    void SceneManager::ClearCache()
     {
         KTN_PROFILE_FUNCTION();
 
-        for (size_t i = 0; i < s_Data->Scenes.size(); i++)
+        s_Data->ViewportsCache.clear();
+    }
+
+    void SceneManager::DeleteUnusedCache()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        if (!s_Data) return;
+
+        static ViewportID keysToDelete[256];
+        std::size_t keysToDeleteCount = 0;
+
+        for (auto&& [key, value] : s_Data->ViewportsCache)
         {
-            Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
-            scene->SetViewportSize(p_Width, p_Height);
+            if (value.Viewport && ((Time::GetTime() - value.TimeSinceLastAccessed) > s_Data->CacheLifeTime))
+            {
+                keysToDelete[keysToDeleteCount] = key;
+                keysToDeleteCount++;
+            }
+
+            if (keysToDeleteCount >= 256)
+                break;
+        }
+
+        for (std::size_t i = 0; i < keysToDeleteCount; i++)
+        {
+            s_Data->ViewportsCache[keysToDelete[i]].Viewport = nullptr;
+            s_Data->ViewportsCache.erase(keysToDelete[i]);
         }
     }
 
@@ -207,53 +262,41 @@ namespace KTN
         }
     }
 
-    void SceneManager::OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
+    void SceneManager::OnViewportUpdate()
     {
         KTN_PROFILE_FUNCTION();
 
-        for (size_t i = 0; i < s_Data->Scenes.size(); i++)
+        for (auto& [id, cache] : s_Data->ViewportsCache)
         {
-            Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
-            scene->OnRender(p_Projection, p_View, p_ClearColor);
+            auto& viewport = cache.Viewport;
+            if (!viewport) continue;
+
+            for (size_t i = 0; i < s_Data->Scenes.size(); i++)
+            {
+                Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
+                if (viewport->SceneID == 0 || scene->Handle == viewport->SceneID)
+                    scene->OnViewportUpdate(viewport);
+            }
         }
     }
 
-    void SceneManager::OnRender(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop, const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
+    void SceneManager::OnViewportRender()
     {
         KTN_PROFILE_FUNCTION();
 
-        for (size_t i = 0; i < s_Data->Scenes.size(); i++)
+        for (const auto& [id, cache] : s_Data->ViewportsCache)
         {
-            Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
-            scene->SetRenderTarget(p_Target);
-            scene->SetViewportSize(p_Width, p_Height, p_LeftTop);
-            scene->OnRender(p_Projection, p_View, p_ClearColor);
-            scene->SetRenderTarget(nullptr);
-        }
-    }
+            auto& viewport = cache.Viewport;
+            if (!viewport) continue;
 
-    void SceneManager::OnRenderRuntime()
-    {
-        KTN_PROFILE_FUNCTION();
-
-        for (size_t i = 0; i < s_Data->Scenes.size(); i++)
-        {
-            Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
-            scene->OnRenderRuntime();
-        }
-    }
-
-    void SceneManager::OnRenderRuntime(const Ref<Texture2D>& p_Target, uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop)
-    {
-        KTN_PROFILE_FUNCTION();
-
-        for (size_t i = 0; i < s_Data->Scenes.size(); i++)
-        {
-            Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
-            scene->SetRenderTarget(p_Target);
-            scene->SetViewportSize(p_Width, p_Height, p_LeftTop);
-            scene->OnRenderRuntime();
-            scene->SetRenderTarget(nullptr);
+            for (size_t i = 0; i < s_Data->Scenes.size(); i++)
+            {
+                Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
+                if (viewport->SceneID == 0 || scene->Handle == viewport->SceneID)
+                {
+                    scene->OnViewportRender(viewport);
+                }
+            }
         }
     }
 

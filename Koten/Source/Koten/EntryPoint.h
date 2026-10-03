@@ -39,6 +39,10 @@ namespace KTN
             OleUninitialize();
     #endif
 
+    #ifndef KTN_DIST
+        Log::Shutdown();
+    #endif
+
         return 0;
     }
 

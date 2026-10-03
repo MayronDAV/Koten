@@ -508,9 +508,8 @@ namespace KTN
                 panel->OnUpdate();
         }
 
-        m_Camera->OnUpdate();
-
         SceneManager::OnUpdate();
+        SceneManager::OnViewportUpdate();
     }
 
     void Editor::OnRender()
@@ -522,6 +521,8 @@ namespace KTN
             if (panel->IsActive())
                 panel->OnRender();
         }
+
+        SceneManager::OnViewportRender();
     }
 
     void Editor::OnImgui()
@@ -738,6 +739,9 @@ namespace KTN
         if (!m_CaptureShortcuts)
             return;
 
+        if (ImGui::GetIO().WantTextInput)
+            return;
+
         if (Shortcuts::IsActionPressed("Recompile Scripts"))
             ScriptEngine::RecompileAppAssembly();
 
@@ -749,6 +753,7 @@ namespace KTN
 
         if (Shortcuts::IsActionPressed("Open Settings"))
             m_Settings->SetActive(true); // Maybe change this to toggle in the future
+
 
         if (m_State == RuntimeState::Edit && Shortcuts::IsActionPressed("Play"))
         {

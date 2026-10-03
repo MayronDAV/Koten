@@ -101,28 +101,9 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        static auto path                = "DefaultTexture2D";
+        LoadDefault();
 
-        auto handle                     = AssetManager::Get()->GetHandleByPath(path);
-        if (!handle) handle             = AssetHandle();
-
-        if (!AssetManager::Get()->IsAssetHandleValid(handle) || !AssetManager::Get()->IsAssetLoaded(handle))
-        {
-            uint32_t whiteTextureData   = 0xffffffff;
-            auto texture                = Texture2D::Create({}, (uint8_t*)&whiteTextureData, sizeof(uint32_t));
-            texture->Handle             = handle;
-
-            AssetMetadata metadata      = {};
-            metadata.Type               = AssetType::Texture2D;
-            metadata.FilePath           = path;
-            metadata.Load               = false;
-            metadata.SerializeAssetData = false;
-            metadata.Scope              = AssetScope::Global;
-
-            AssetManager::Get()->ImportAsset(handle, metadata, texture);
-        }
-
-        return handle;
+        return AssetManager::Get()->GetHandleByPath("DefaultTexture2D");
     }
 
     void Texture2D::LoadDefault()

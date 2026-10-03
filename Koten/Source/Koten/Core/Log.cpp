@@ -34,4 +34,12 @@ namespace KTN
         s_ClientLogger->flush_on(spdlog::level::trace);
     }
 
+    void Log::Shutdown()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        s_CoreLogger.reset();
+        s_ClientLogger.reset();
+    }
+
 } // namespace KTN

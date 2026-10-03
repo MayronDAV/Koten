@@ -323,7 +323,7 @@ namespace KTN
                         if (it != m_Modules.end())
                         {
                             if (it->second->SourceHash == hash)
-                                return it->second;
+                                return;
                         }
                     }
                 }

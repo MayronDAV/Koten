@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 // std
+#include <variant>
 #include <string>
 #include <cstdint>
 
@@ -53,6 +54,8 @@ namespace KTN
         inline constexpr uint32_t INVALID_ANIM_STATE = UINT32_MAX;
         inline constexpr uint16_t MAX_INSTANCES      = 5000;
         inline constexpr uint8_t  MAX_TEXTURE_SLOTS  = 32;
+
+        using ViewportID                             = std::string;
 
     #pragma endregion
 
@@ -517,6 +520,86 @@ namespace KTN
         uint32_t StencilWriteMask      = 0xFF;
 
         std::string DebugName          = "Pipeline";
+    };
+
+    struct ViewportViewData
+    {
+        glm::mat4 Projection         = glm::mat4(1.0f);
+        glm::mat4 View               = glm::mat4(1.0f);
+        glm::vec4 ClearColor         = { 0.0f, 0.0f, 0.0f, 1.0f };
+    };
+
+    struct ViewportContext
+    {
+        using SceneCameraMap = std::unordered_map<uint64_t, ViewportViewData>;
+
+        ViewportID ID                = "";
+
+        glm::vec2 Size               = { 0.0f, 0.0f };
+        glm::vec2 Position           = { 0.0f, 0.0f };
+
+        Ref<Texture2D> PickingTarget = nullptr;
+        Ref<Texture2D> RenderTarget  = nullptr;
+
+        std::variant<std::monostate, ViewportViewData, SceneCameraMap> CameraData;
+
+        bool EnablePicking           = false;
+        bool UpdateUI                = true;
+        bool RenderUI                = true;
+
+        // If it's different from 0, the viewport will be
+        // updated/rendered for this specific scene!
+        uint64_t SceneID             = 0;
+
+        void SetCustomCamera()
+        {
+            CameraData.emplace<ViewportViewData>();
+        }
+
+        void SetSceneCameras()
+        {
+            CameraData.emplace<SceneCameraMap>();
+        }
+
+        void ClearCamera()
+        {
+            CameraData.emplace<std::monostate>();
+        }
+
+        bool HasCamera() const
+        {
+            return !std::holds_alternative<std::monostate>(CameraData);
+        }
+
+        bool HasCustomCamera() const
+        {
+            return std::holds_alternative<ViewportViewData>(CameraData);
+        }
+
+        bool HasSceneCameras() const
+        {
+            return std::holds_alternative<SceneCameraMap>(CameraData);
+        }
+
+        ViewportViewData& GetCustomCamera()
+        {
+            return std::get<ViewportViewData>(CameraData);
+        }
+
+        const ViewportViewData& GetCustomCamera() const
+        {
+            return std::get<ViewportViewData>(CameraData);
+        }
+
+        SceneCameraMap& GetSceneCameras()
+        {
+            return std::get<SceneCameraMap>(CameraData);
+        }
+
+        const SceneCameraMap& GetSceneCameras() const
+        {
+            return std::get<SceneCameraMap>(CameraData);
+        }
     };
 
     #pragma endregion

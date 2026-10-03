@@ -46,6 +46,7 @@ namespace KTN
         if (m_CurrentFrame)
         {
             m_CurrentFrame->End();
+            m_CurrentFrame = nullptr;
         }
 
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));

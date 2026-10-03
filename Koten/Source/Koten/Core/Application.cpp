@@ -18,7 +18,6 @@
 #include "Koten/Graphics/PickingManager.h"
 #include "ShaderModuleLibrary.h"
 #include "Koten/Project/Project.h"
-#include "Koten/Graphics/UISystem.h"
 
 
 
@@ -83,33 +82,6 @@ namespace KTN
 
         Renderer::Init();
 
-        TaskManager::Get().AddTask(
-        {
-            "Application Shutdown",
-            TaskManager::Phase::Destroy,
-            9999,
-            [this]()
-            {
-                m_LayerStack.Clear();
-
-                SceneManager::Shutdown();
-
-                Renderer::Shutdown();
-
-                Pipeline::ClearCache();
-                Framebuffer::ClearCache();
-                Renderpass::ClearCache();
-                Texture::ClearCache();
-
-                ScriptEngine::Shutdown();
-                RendererCommand::Release();
-
-                Engine::Shutdown();
-            },
-            false,
-            TaskManager::SyncPoint::None
-        });
-
         TaskManager::Get().ExecuteInit();
         ExecuteMainThreadQueue();
 
@@ -122,15 +94,29 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        PickingManager::Shutdown();
-
-        AnimSystemManager::Shutdown();
-
         TaskManager::Get().ExecuteDestroy();
         ExecuteMainThreadQueue();
 
-        TaskManager::Destroy();
+        m_LayerStack.Clear();
 
+        SceneManager::Shutdown();
+        ScriptEngine::Shutdown();
+        PickingManager::Shutdown();
+        AnimSystemManager::Shutdown();
+
+        Renderer::Shutdown();
+
+        Pipeline::ClearCache();
+        Framebuffer::ClearCache();
+        Renderpass::ClearCache();
+        Texture::ClearCache();
+
+        RendererCommand::Release();
+
+        Engine::Shutdown();
+
+        TaskManager::Get().WaitForAll();
+        TaskManager::Destroy();
         ThreadManager::Destroy();
 
         KTN_PROFILE_SHUTDOWN();
@@ -217,6 +203,7 @@ namespace KTN
                 Framebuffer::DeleteUnusedCache();
                 Renderpass::DeleteUnusedCache();
                 Texture::DeleteUnusedCache();
+                SceneManager::DeleteUnusedCache();
             }
         }
     }

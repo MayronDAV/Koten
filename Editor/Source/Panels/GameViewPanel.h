@@ -17,7 +17,6 @@ namespace KTN
 
             void OnImgui() override;
             void OnUpdate() override;
-            void OnRender() override;
 
         private:
             Ref<Texture2D> m_MainTexture = nullptr;

@@ -24,6 +24,8 @@ namespace KTN
             static Entity GetEntityByPickingID(PickingID p_ID);
             static Ref<Texture2D> GetPickingTarget(uint32_t p_ID);
 
+            static void RemovePickingTarget(uint32_t p_ID);
+
         private:
             struct PickingData
             {

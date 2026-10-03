@@ -2,6 +2,7 @@ include "./Tools/Customization/solution_items.lua"
 include "premake-dependencies.lua"
 
 
+
 workspace "Koten"
     architecture "x64"
     startproject "Editor"
@@ -22,13 +23,26 @@ workspace "Koten"
 
     IMGUI_GLFW 		= "ON"
     IMGUI_OPENGL 	= "ON"
+    USE_ASAN        = "OFF"
 
     filter "system:windows"
         systemversion "latest"
         multiprocessorcompile ("On")
-    
+        
         filter { "system:windows", "configurations:Dist" }
             linkoptions { "/SUBSYSTEM:WINDOWS" }
+
+    if USE_ASAN == "ON" then
+        filter "system:windows"
+            editandcontinue ("Off")
+
+        filter { "configurations:Debug" }
+            sanitize { "Address", "Fuzzer" }
+
+        filter { "system:linux", "configurations:Debug" }
+            buildoptions { "-fno-omit-frame-pointer" }
+    end
+
 
     filter "configurations:Debug"
         debugenvs
@@ -51,6 +65,17 @@ workspace "Koten"
         }
     
     
+function CopyDebugDependencies()
+    if USE_ASAN == "ON" then
+        filter "system:windows"
+            postbuildcommands {
+                "{COPY} \"%{wks.location}/Tools/MSVC/x64\" \"%{cfg.targetdir}\""
+            }
+
+        filter {}
+    end
+end
+
 group "Thirdparty"
     include "Tools"
     include "Thirdparty/premake-imgui.lua"

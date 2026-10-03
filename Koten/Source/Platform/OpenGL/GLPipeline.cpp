@@ -12,7 +12,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION_LOW();
 
-        m_Spec = p_Spec;
+        m_Spec   = p_Spec;
         m_Shader = p_Spec.pShader;
 
         CreateFramebuffers();
@@ -20,6 +20,8 @@ namespace KTN
 
     GLPipeline::~GLPipeline()
     {
+        m_Renderpass = nullptr;
+        m_Framebuffers.clear();
     }
 
     void GLPipeline::Begin(CommandBuffer* p_CommandBuffer, SubpassContents p_Contents, int p_MipIndex)
@@ -111,6 +113,9 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION_LOW();
 
+        m_Renderpass = nullptr;
+        m_Framebuffers.clear();
+
         std::vector<Ref<Texture2D>> attachments;
 
         if (!m_Spec.SwapchainTarget)
@@ -129,27 +134,27 @@ namespace KTN
             }
         }
 
-        RenderpassSpecification rspec    = {};
-        rspec.AttachmentCount            = (uint32_t)attachments.size();
-        rspec.Attachments                = attachments.data();
-        rspec.ResolveTexture            = m_Spec.ResolveTexture;
-        rspec.Clear                        = m_Spec.ClearTargets;
-        rspec.Samples                    = m_Spec.Samples;
-        rspec.SwapchainTarget            = m_Spec.SwapchainTarget;
-        rspec.DebugName                    = m_Spec.DebugName + "- GLRenderpass";
+        RenderpassSpecification rspec  = {};
+        rspec.AttachmentCount          = (uint32_t)attachments.size();
+        rspec.Attachments              = attachments.data();
+        rspec.ResolveTexture           = m_Spec.ResolveTexture;
+        rspec.Clear                    = m_Spec.ClearTargets;
+        rspec.Samples                  = m_Spec.Samples;
+        rspec.SwapchainTarget          = m_Spec.SwapchainTarget;
+        rspec.DebugName                = m_Spec.DebugName + "- GLRenderpass";
 
-        m_Renderpass                    = Renderpass::Get(rspec);
+        m_Renderpass                   = Renderpass::Get(rspec);
 
 
-        FramebufferSpecification fspec    = {};
-        fspec.Width                        = GetWidth();
-        fspec.Height                    = GetHeight();
-        fspec.RenderPass                = m_Renderpass;
-        fspec.AttachmentCount            = (uint32_t)attachments.size();
-        fspec.Attachments                = attachments.data();
-        fspec.Samples                    = m_Spec.Samples;
-        fspec.SwapchainTarget            = m_Spec.SwapchainTarget;
-        fspec.DebugName                    = m_Spec.DebugName + " - GLFramebuffer";
+        FramebufferSpecification fspec = {};
+        fspec.Width                    = GetWidth();
+        fspec.Height                   = GetHeight();
+        fspec.RenderPass               = m_Renderpass;
+        fspec.AttachmentCount          = (uint32_t)attachments.size();
+        fspec.Attachments              = attachments.data();
+        fspec.Samples                  = m_Spec.Samples;
+        fspec.SwapchainTarget          = m_Spec.SwapchainTarget;
+        fspec.DebugName                = m_Spec.DebugName + " - GLFramebuffer";
         if (m_Spec.BuildMipFramebuffers && !m_Spec.SwapchainTarget)
         {
             // Maybe change this?

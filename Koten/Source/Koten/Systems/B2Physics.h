@@ -1,5 +1,5 @@
 #pragma once
-#include "Koten/Scene/System.h"
+#include "System.h"
 #include "Koten/Scene/Entity.h"
 
 // lib

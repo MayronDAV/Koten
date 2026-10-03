@@ -314,7 +314,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        if (m_Paused || p_Scene->IsPaused()) return;
+        if (m_Paused || p_Scene->IsPaused() || !m_IsRunning) return;
 
         auto ts = Time::GetDeltaTime();
         b2World_Step(GetWorldID(m_World), (float)ts, 4);

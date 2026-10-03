@@ -29,7 +29,7 @@ namespace KTN
 
     void PickingManager::Update(uint32_t p_ID, uint32_t p_Width, uint32_t p_Height)
     {
-                KTN_PROFILE_FUNCTION();
+        KTN_PROFILE_FUNCTION();
 
         if (s_PickingData->PickingTargets.find(p_ID) == s_PickingData->PickingTargets.end())
             return;
@@ -125,6 +125,17 @@ namespace KTN
             return it->second;
 
         return nullptr;
+    }
+
+    void PickingManager::RemovePickingTarget(uint32_t p_ID)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        auto it = s_PickingData->PickingTargets.find(p_ID);
+        if (it == s_PickingData->PickingTargets.end())
+            return;
+
+        s_PickingData->PickingTargets.erase(it);
     }
 
 } // namespace KTN

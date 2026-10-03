@@ -14,12 +14,12 @@ namespace KTN
         {
             switch (p_Status)
             {
-                case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:            return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
-                case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:    return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
-                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:            return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
-                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:            return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
-                case GL_FRAMEBUFFER_UNSUPPORTED:                    return "GL_FRAMEBUFFER_UNSUPPORTED";
-                case GL_FRAMEBUFFER_COMPLETE:                        return "GL_FRAMEBUFFER_COMPLETE";
+                case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:         return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+                case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+                case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:        return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
+                case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:        return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+                case GL_FRAMEBUFFER_UNSUPPORTED:                   return "GL_FRAMEBUFFER_UNSUPPORTED";
+                case GL_FRAMEBUFFER_COMPLETE:                      return "GL_FRAMEBUFFER_COMPLETE";
             }
 
             KTN_CORE_WARN("Unknown framebuffer status!");
@@ -58,7 +58,7 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION_LOW();
 
-        uint32_t status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        uint32_t status = GLCall(glCheckFramebufferStatus(GL_FRAMEBUFFER));
         if (status != GL_FRAMEBUFFER_COMPLETE)
         {
             KTN_CORE_ERROR("Unable to create Framebuffer: {}", FBStatusToString(status));
@@ -87,11 +87,11 @@ namespace KTN
         {
             GLCall(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_RendererID));
             GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ResolveID));
-            glBlitFramebuffer(
+            GLCall(glBlitFramebuffer(
                 0, 0, m_Spec.Width, m_Spec.Height,
                 0, 0, m_Spec.Width, m_Spec.Height,
                 GL_COLOR_BUFFER_BIT, GL_NEAREST
-            );
+            ));
         }
 
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -138,27 +138,35 @@ namespace KTN
                         id,
                         0));
                 }
+
+                texture = nullptr; // release the texture reference to avoid dangling references
             }
         }
+        m_Spec.AttachmentCount = 0;
 
         Validate();
 
-        const auto& rspec = m_Spec.RenderPass->GetSpecification();
-        if (m_Spec.Samples > 1 && rspec.ResolveTexture)
+        if (m_Spec.RenderPass)
         {
-            auto id = As<Texture2D, GLTexture2D>(rspec.ResolveTexture)->GetID();
+            const auto& rspec = m_Spec.RenderPass->GetSpecification();
+            if (m_Spec.Samples > 1 && rspec.ResolveTexture)
+            {
+                auto id = As<Texture2D, GLTexture2D>(rspec.ResolveTexture)->GetID();
 
-            GLCall(glGenFramebuffers(1, &m_ResolveID));
-            GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_ResolveID));
+                GLCall(glGenFramebuffers(1, &m_ResolveID));
+                GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_ResolveID));
 
-            GLCall(glFramebufferTexture2D(
-                GL_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_2D,
-                id,
-                m_Spec.MipIndex));
+                GLCall(glFramebufferTexture2D(
+                    GL_FRAMEBUFFER,
+                    GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_2D,
+                    id,
+                    m_Spec.MipIndex));
 
-            Validate();
+                Validate();
+            }
+
+            m_Spec.RenderPass = nullptr;
         }
     }
 

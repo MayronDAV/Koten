@@ -13,7 +13,6 @@
 
 namespace KTN
 {
-
     SceneViewPanel::SceneViewPanel()
         : EditorPanel("Scene View")
     {
@@ -172,16 +171,26 @@ namespace KTN
         camera->SetViewportSize(m_Viewport.RenderWidth, m_Viewport.RenderHeight);
         Application::Get().GetImGui()->BlockEvents(m_HandleCameraEvents);
         camera->SetHandleEvents(m_HandleCameraEvents);
-    }
+        camera->OnUpdate();
 
-    void SceneViewPanel::OnRender()
-    {
-        KTN_PROFILE_FUNCTION();
+        auto viewport              = SceneManager::GetOrCreateViewport("SceneViewport");
+        viewport->RenderTarget     = nullptr;
+        viewport->RenderTarget     = m_MainTexture;
+        viewport->PickingTarget    = PickingManager::GetPickingTarget(m_PickingTextureID);
 
-        auto& camera               = m_Editor->GetCamera();
-        SceneManager::SetPickingTarget(PickingManager::GetPickingTarget(m_PickingTextureID));
-        SceneManager::OnRender(m_MainTexture, m_Viewport.RenderWidth, m_Viewport.RenderHeight, { m_Viewport.Position.x, m_Viewport.Position.y }, camera->GetProjection(), camera->GetView());
-        SceneManager::SetPickingTarget(nullptr);
+        viewport->Size.x           = m_Viewport.RenderWidth;
+        viewport->Size.y           = m_Viewport.RenderHeight;
+        viewport->Position         = { m_Viewport.Position.x, m_Viewport.Position.y };
+
+        viewport->SetCustomCamera();
+        auto& cameraData           = viewport->GetCustomCamera();
+        cameraData.Projection      = camera->GetProjection();
+        cameraData.View            = camera->GetView();
+        cameraData.ClearColor      = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+        viewport->EnablePicking    = true;
+        viewport->RenderUI         = true;
+        viewport->UpdateUI         = true;
     }
 
 } // namespace KTN

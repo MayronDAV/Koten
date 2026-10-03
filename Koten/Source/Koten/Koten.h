@@ -103,9 +103,12 @@
 
 // SYSTEMS
 
+#include "Koten/Systems/System.h"
+#include "Koten/Systems/SystemManager.h"
 #include "Koten/Systems/B2Physics.h"
 #include "Koten/Systems/AnimSystem.h"
 #include "Koten/Systems/AnimSystemManager.h"
+#include "Koten/Systems/UISystem.h"
 
 // SCENE
 
@@ -114,8 +117,6 @@
 #include "Koten/Scene/Scene.h"
 #include "Koten/Scene/SceneGraph.h"
 #include "Koten/Scene/SceneSerializer.h"
-#include "Koten/Scene/System.h"
-#include "Koten/Scene/SystemManager.h"
 #include "Koten/Scene/SceneManager.h"
 #include "Koten/Scene/EntitySerializer.h"
 

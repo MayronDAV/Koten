@@ -1,16 +1,22 @@
 #include "ktnpch.h"
 #include "Scene.h"
-#include "Koten/Graphics/Renderer.h"
 #include "Entity.h"
-#include "Koten/Systems/B2Physics.h"
-#include "Koten/Graphics/DebugRenderer.h"
-#include "Koten/Script/ScriptEngine.h"
-#include "Koten/Graphics/DFFont.h"
+
 #include "Koten/Project/Project.h"
+
+#include "Koten/Scene/SceneManager.h"
+
+#include "Koten/Script/ScriptEngine.h"
+
+#include "Koten/Graphics/Renderer.h"
+#include "Koten/Graphics/DebugRenderer.h"
+#include "Koten/Graphics/DFFont.h"
 #include "Koten/Graphics/Material.h"
-#include "Koten/Systems/AnimSystem.h"
 #include "Koten/Graphics/PickingManager.h"
-#include "Koten/Graphics/UISystem.h"
+
+#include "Koten/Systems/B2Physics.h"
+#include "Koten/Systems/AnimSystem.h"
+#include "Koten/Systems/UISystem.h"
 
 
 
@@ -131,12 +137,10 @@ namespace KTN
         if (m_Config.UsePhysics2D)
             m_SystemManager->RegisterSystem<B2Physics>();
         m_SystemManager->RegisterSystem<AnimSystem>();
+        m_SystemManager->RegisterSystem<UISystem>();
 
         m_SceneGraph = CreateUnique<SceneGraph>();
         m_SceneGraph->Init(m_Registry);
-
-        m_UISystem = CreateRef<UISystem>();
-        m_UISystem->Init(this);
     }
 
     Scene::~Scene()
@@ -148,12 +152,6 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         p_Dest->Handle         = p_Src->Handle;
-        p_Dest->m_Width        = p_Src->m_Width;
-        p_Dest->m_Height       = p_Src->m_Height;
-        p_Dest->m_RenderTarget = p_Src->m_RenderTarget;
-        p_Dest->m_Projection   = p_Src->m_Projection;
-        p_Dest->m_View         = p_Src->m_View;
-        p_Dest->m_ClearColor   = p_Src->m_ClearColor;
         p_Dest->m_HaveCamera   = p_Src->m_HaveCamera;
 
         auto& srcRegistry      = p_Src->m_Registry;
@@ -335,42 +333,39 @@ namespace KTN
 
         RemoveSystems();
 
+        m_SystemManager->OnUpdate(this);
+
         m_SceneGraph->Update(m_Registry);
 
-        m_UISystem->Reset();
-
-        bool first = true;
         m_Registry.view<TransformComponent, CameraComponent>().each(
         [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
         {
             if (!p_Camera.RenderTarget)
-                p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+                return;
 
             p_Camera.Camera.OnUpdate();
 
-            if (!p_Camera.RenderTarget)
-            {
-                if (!first)
-                {
-                    KTN_CORE_ERROR("there can only be one primary camera!");
-                    return;
-                }
+            auto entt                = Entity(p_Entt, this);
+            std::string tag          = entt.GetTag() + " - CameraViewport";
 
-                m_Projection = p_Camera.Camera.GetProjection();
-                m_View       = glm::inverse(p_Transform.GetWorldMatrix());
-                m_ClearColor = p_Camera.ClearColor;
-                m_HaveCamera = true;
-                first        = false;
+            auto viewport            = SceneManager::GetOrCreateViewport(tag);
+
+            viewport->SetCustomCamera();
+            auto& data               = viewport->GetCustomCamera();
+            data.Projection          = p_Camera.Camera.GetProjection();
+            data.View                = glm::inverse(p_Transform.GetWorldMatrix());
+            data.ClearColor          = p_Camera.ClearColor;
+
+            auto renderTarget        = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
+            if (renderTarget)
+            {
+                renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
             }
 
-            if (p_Camera.RenderTarget)
-            {
-                auto renderTarget = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
-                if (renderTarget)
-                {
-                    renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
-                }
-            }
+            viewport->RenderTarget   = renderTarget;
+            viewport->Size           = { (float)renderTarget->GetWidth(), (float)renderTarget->GetHeight() };
+            viewport->EnablePicking  = false;
+            viewport->SceneID        = (uint64_t)Handle;
         });
 
         UpdateRenderList();
@@ -389,40 +384,35 @@ namespace KTN
             m_SceneGraph->Update(m_Registry);
         }
 
-        m_UISystem->Reset();
-
-        bool first = true;
         m_Registry.view<TransformComponent, CameraComponent>().each(
         [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
         {
             if (!p_Camera.RenderTarget)
-                p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+                return;
 
             p_Camera.Camera.OnUpdate();
 
-            if (!p_Camera.RenderTarget)
-            {
-                if (!first)
-                {
-                    KTN_CORE_ERROR("there can only be one primary camera!");
-                    return;
-                }
+            auto entt                = Entity(p_Entt, this);
+            std::string tag          = entt.GetTag() + " - CameraViewport";
 
-                m_Projection = p_Camera.Camera.GetProjection();
-                m_View       = glm::inverse(p_Transform.GetWorldMatrix());
-                m_ClearColor = p_Camera.ClearColor;
-                m_HaveCamera = true;
-                first        = false;
+            auto viewport            = SceneManager::GetOrCreateViewport(tag);
+
+            viewport->SetCustomCamera();
+            auto& data               = viewport->GetCustomCamera();
+            data.Projection          = p_Camera.Camera.GetProjection();
+            data.View                = glm::inverse(p_Transform.GetWorldMatrix());
+            data.ClearColor          = p_Camera.ClearColor;
+
+            auto renderTarget        = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
+            if (renderTarget)
+            {
+                renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
             }
 
-            if (p_Camera.RenderTarget)
-            {
-                auto renderTarget = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
-                if (renderTarget)
-                {
-                    renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
-                }
-            }
+            viewport->RenderTarget   = renderTarget;
+            viewport->Size           = { (float)renderTarget->GetWidth(), (float)renderTarget->GetHeight() };
+            viewport->EnablePicking  = false;
+            viewport->SceneID        = (uint64_t)Handle;
         });
 
         UpdateRenderList();
@@ -443,50 +433,38 @@ namespace KTN
             m_SceneGraph->Update(m_Registry);
         }
 
-        m_UISystem->Reset();
-
-        bool first = true;
         m_Registry.view<TransformComponent, CameraComponent>().each(
         [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
         {
             if (!p_Camera.RenderTarget)
-                p_Camera.Camera.SetViewportSize(m_Width, m_Height);
+                return;
 
             p_Camera.Camera.OnUpdate();
 
-            if (!p_Camera.RenderTarget)
-            {
-                if (!first)
-                {
-                    KTN_CORE_ERROR("there can only be one primary camera!");
-                    return;
-                }
+            auto entt                = Entity(p_Entt, this);
+            std::string tag          = entt.GetTag() + " - CameraViewport";
 
-                m_Projection = p_Camera.Camera.GetProjection();
-                m_View       = glm::inverse(p_Transform.GetWorldMatrix());
-                m_ClearColor = p_Camera.ClearColor;
-                m_HaveCamera = true;
-                first        = false;
+            auto viewport            = SceneManager::GetOrCreateViewport(tag);
+
+            viewport->SetCustomCamera();
+            auto& data               = viewport->GetCustomCamera();
+            data.Projection          = p_Camera.Camera.GetProjection();
+            data.View                = glm::inverse(p_Transform.GetWorldMatrix());
+            data.ClearColor          = p_Camera.ClearColor;
+
+            auto renderTarget        = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
+            if (renderTarget)
+            {
+                renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
             }
 
-            if (p_Camera.RenderTarget)
-            {
-                auto renderTarget = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
-                if (renderTarget)
-                {
-                    renderTarget->Resize(p_Camera.Camera.GetViewportWidth(), p_Camera.Camera.GetViewportHeight());
-                }
-            }
+            viewport->RenderTarget   = renderTarget;
+            viewport->Size           = { (float)renderTarget->GetWidth(), (float)renderTarget->GetHeight() };
+            viewport->EnablePicking  = false;
+            viewport->SceneID        = (uint64_t)Handle;
         });
 
         UpdateRenderList();
-    }
-
-    void Scene::OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
-    {
-        KTN_PROFILE_FUNCTION();
-
-        RenderScene(p_Projection, p_View, p_ClearColor);
     }
 
     void Scene::OnSimulationStart()
@@ -519,16 +497,6 @@ namespace KTN
         ScriptEngine::OnRuntimeStop();
 
         m_SystemManager->OnStop(this);
-    }
-
-    void Scene::SetViewportSize(uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop)
-    {
-        KTN_PROFILE_FUNCTION();
-
-        m_Width  = p_Width;
-        m_Height = p_Height;
-
-        m_UISystem->SetLeftTop(p_LeftTop);
     }
 
     void Scene::SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos, const glm::vec3& p_Rot)
@@ -594,66 +562,74 @@ namespace KTN
         }
     }
 
-    void Scene::RenderScene(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor)
+    void Scene::OnViewportUpdate(const Ref<ViewportContext>& p_Viewport)
     {
         KTN_PROFILE_FUNCTION();
 
-        m_Registry.view<TransformComponent, CameraComponent>().each(
-        [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
+        if (p_Viewport->HasSceneCameras())
         {
-            if (!p_Camera.RenderTarget)
-                return;
-
-            auto renderTarget   = AssetManager::Get()->GetAsset<Texture2D>(p_Camera.RenderTarget);
-            if (!renderTarget)
-                return;
-
-            RenderPassInfo info = {};
-            info.RenderTarget   = renderTarget;
-            info.Width          = renderTarget->GetWidth();
-            info.Height         = renderTarget->GetHeight();
-            info.Projection     = p_Camera.Camera.GetProjection();
-            info.View           = glm::inverse(p_Transform.GetWorldMatrix());
-            info.Clear          = true;
-            info.ClearColor     = p_Camera.ClearColor;
-
-            Renderer::BeginPass(info);
+            bool first = true;
+            m_Registry.view<TransformComponent, CameraComponent>().each(
+            [&](auto p_Entt, TransformComponent& p_Transform, CameraComponent& p_Camera)
             {
-                Renderer::Submit(m_RenderList);
-            }
-            Renderer::EndPass();
-        });
+                if (p_Camera.RenderTarget)
+                    return;
 
-        if (m_HaveCamera)
-        {
-            RenderPassInfo info  = {};
-            info.RenderTarget    = m_RenderTarget;
-            info.PickingTarget   = m_PickingTarget;
-            info.Width           = m_Width;
-            info.Height          = m_Height;
-            info.Projection      = p_Projection;
-            info.View            = p_View;
-            info.Clear           = true;
-            info.ClearColor      = p_ClearColor;
-            info.Picking         = Engine::Get().GetSettings().MousePicking && m_PickingTarget;
+                if (!first)
+                {
+                    KTN_CORE_ERROR("there can only be one primary camera!");
+                    return;
+                }
 
-            Renderer::BeginPass(info);
-            {
-                Renderer::Submit(m_RenderList);
-            }
-            Renderer::EndPass();
+                p_Camera.Camera.SetViewportSize(p_Viewport->Size.x, p_Viewport->Size.y);
+                p_Camera.Camera.OnUpdate();
+
+                auto& data      = p_Viewport->GetSceneCameras()[Handle];
+                data.Projection = p_Camera.Camera.GetProjection();
+                data.View       = glm::inverse(p_Transform.GetWorldMatrix());
+                data.ClearColor = p_Camera.ClearColor;
+
+                m_HaveCamera    = true;
+                first           = false;
+            });
         }
 
-        m_UISystem->Update();
-        m_UISystem->ProcessCanvas();
-        m_UISystem->Render();
+        m_SystemManager->OnViewportUpdate(this, p_Viewport);
     }
 
-    void Scene::OnRenderRuntime()
+    void Scene::OnViewportRender(const Ref<ViewportContext>& p_Viewport)
     {
         KTN_PROFILE_FUNCTION();
 
-        RenderScene(m_Projection, m_View, m_ClearColor);
+        RenderPassInfo info = {};
+        info.RenderTarget   = p_Viewport->RenderTarget;
+        info.PickingTarget  = p_Viewport->PickingTarget;
+        info.Width          = (uint32_t)p_Viewport->Size.x;
+        info.Height         = (uint32_t)p_Viewport->Size.y;
+        if (p_Viewport->HasCustomCamera())
+        {
+            auto& data      = p_Viewport->GetCustomCamera();
+            info.Projection = data.Projection;
+            info.View       = data.View;
+            info.ClearColor = data.ClearColor;
+        }
+        else if (p_Viewport->HasSceneCameras())
+        {
+            auto& data      = p_Viewport->GetSceneCameras()[Handle];
+            info.Projection = data.Projection;
+            info.View       = data.View;
+            info.ClearColor = data.ClearColor;
+        }
+        info.Picking        = p_Viewport->EnablePicking && p_Viewport->PickingTarget;
+        info.Clear          = true;
+
+        Renderer::BeginPass(info);
+        {
+            Renderer::Submit(m_RenderList);
+        }
+        Renderer::EndPass();
+
+        m_SystemManager->OnViewportRender(this, p_Viewport);
     }
 
 } // namespace KTN

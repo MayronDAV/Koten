@@ -2,7 +2,7 @@
 #include "Koten/Core/Base.h"
 #include "Components.h"
 #include "SceneGraph.h"
-#include "SystemManager.h"
+#include "Koten/Systems/SystemManager.h"
 #include "Koten/Asset/Asset.h"
 #include "Koten/Graphics/RenderList.h"
 
@@ -17,7 +17,6 @@
 namespace KTN
 {
     class KTN_API Entity;
-    class KTN_API UISystem;
 
     template<typename T>
     concept HasOnComponentAdded = requires(T p_Component, Scene* p_Scene, Entity* p_Entity)
@@ -53,7 +52,6 @@ namespace KTN
             void UpdateRenderList();
 
             void OnUpdate();
-            void OnRender(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f });
 
             void OnSimulationStart();
             void OnSimulationStop();
@@ -63,11 +61,10 @@ namespace KTN
             void OnRuntimeStop();
 
             void OnUpdateRuntime();
-            void OnRenderRuntime();
 
-            void SetRenderTarget(const Ref<Texture2D>& p_Target) { m_RenderTarget = p_Target; }
-            void SetPickingTarget(const Ref<Texture2D>& p_Target) { m_PickingTarget = p_Target; }
-            void SetViewportSize(uint32_t p_Width, uint32_t p_Height, const glm::vec2& p_LeftTop = glm::vec2(0.0f));
+            void OnViewportUpdate(const Ref<ViewportContext>& p_Viewport);
+            void OnViewportRender(const Ref<ViewportContext>& p_Viewport);
+
             void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
 
             void SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos = glm::vec3{ 0.0f }, const glm::vec3& p_Rot = glm::vec3{ 0.0f });
@@ -81,14 +78,11 @@ namespace KTN
             const std::unordered_map<UUID, entt::entity>& GetEntityMap() const { return m_EntityMap; }
             entt::registry& GetRegistry() { return m_Registry; }
             SceneConfig& GetConfig() { return m_Config; }
-            Ref<Texture2D> GetRenderTarget() { return m_RenderTarget; }
-            Ref<Texture2D> GetPickingTarget() { return m_PickingTarget; }
 
             ASSET_CLASS_METHODS(Scene)
 
         private:
             void RemoveSystems();
-            void RenderScene(const glm::mat4& p_Projection, const glm::mat4& p_View, const glm::vec4& p_ClearColor);
 
             template<typename T>
             static void OnComponentAdded(entt::registry& p_Registry, entt::entity p_Entity)
@@ -141,18 +135,11 @@ namespace KTN
 
         private:
             entt::registry m_Registry;
-            Ref<Texture2D> m_RenderTarget         = nullptr;
-            Ref<Texture2D> m_PickingTarget        = nullptr;
-            uint32_t m_Width                      = 0;
-            uint32_t m_Height                     = 0;
-            glm::mat4 m_Projection                = { 1.0f };
-            glm::mat4 m_View                      = { 1.0f };
-            glm::vec4 m_ClearColor                = { 0.0f, 0.0f, 0.0f, 1.0f };
+
             bool m_HaveCamera                     = false;
             bool m_IsPaused                       = false;
             int m_StepFrames                      = 0;
             Unique<SystemManager> m_SystemManager = nullptr;
-            Ref<UISystem> m_UISystem              = nullptr;
 
             std::unordered_map<UUID, entt::entity> m_EntityMap;
 

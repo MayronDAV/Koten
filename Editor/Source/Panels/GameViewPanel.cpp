@@ -80,13 +80,21 @@ namespace KTN
         tspec.DebugName            = "GameView-MainTexture";
 
         m_MainTexture              = Texture2D::Get(tspec);
-    }
 
-    void GameViewPanel::OnRender()
-    {
-        KTN_PROFILE_FUNCTION();
+        auto viewport              = SceneManager::GetOrCreateViewport("GameViewport");
+        viewport->RenderTarget     = nullptr;
+        viewport->RenderTarget     = m_MainTexture;
+        viewport->PickingTarget    =  nullptr;
 
-        SceneManager::OnRenderRuntime(m_MainTexture, m_ViewportWidth, m_ViewportHeight);
+        viewport->Size.x           = (float)m_ViewportWidth;
+        viewport->Size.y           = (float)m_ViewportHeight;
+        viewport->Position         = { 0.0f, 0.0f };
+
+        viewport->SetSceneCameras();
+
+        viewport->EnablePicking    = false;
+        viewport->UpdateUI         = true;
+        viewport->RenderUI         = true;
     }
 
 } // namespace KTN

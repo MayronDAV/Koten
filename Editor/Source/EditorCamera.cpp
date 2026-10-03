@@ -101,7 +101,7 @@ namespace KTN
 
         float dt = (float)Time::GetDeltaTime();
 
-        glm::vec2 mousePos = Input::GetMousePosition();
+        glm::vec2 mousePos = Input::GetCursorPosition();
 
         static bool firstClick = true;
         if (Input::IsMouseButtonPressed(Mouse::Button_Right))

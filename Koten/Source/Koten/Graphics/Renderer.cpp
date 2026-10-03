@@ -174,10 +174,18 @@ namespace KTN
             RenderPass* CurrentPass = nullptr;
         };
 
+        struct TargetsCacheEntry
+        {
+            Ref<RenderTargets> Targets;
+            double TimeSinceLastAccessed;
+        };
+
         struct RendererState
         {
             RendererResources Resources;
-            std::unordered_map<uint64_t, Ref<RenderTargets>> TargetsCache;
+            std::unordered_map<uint64_t, TargetsCacheEntry> TargetsCache;
+            inline static constexpr double CacheLifeTime = 0.1;
+
             FrameData Frame;
         };
 
@@ -424,8 +432,8 @@ namespace KTN
         if (s_Line) s_Line->Begin();
         if (s_Text) s_Text->Begin();
 
-        for (auto& [key, targets] : s_Renderer->TargetsCache)
-            targets->ClearedThisFrame = false;
+        for (auto& [key, entry] : s_Renderer->TargetsCache)
+            entry.Targets->ClearedThisFrame = false;
     }
 
     void Renderer::EndFrame()
@@ -512,6 +520,28 @@ namespace KTN
         }
 
         RendererCommand::End();
+
+
+        static std::size_t keysToDelete[256];
+        std::size_t keysToDeleteCount = 0;
+
+        for (auto&& [key, value] : s_Renderer->TargetsCache)
+        {
+            if (value.Targets && (Time::GetTime() - value.TimeSinceLastAccessed) > RendererState::CacheLifeTime)
+            {
+                keysToDelete[keysToDeleteCount] = key;
+                keysToDeleteCount++;
+            }
+
+            if (keysToDeleteCount >= 256)
+                break;
+        }
+
+        for (std::size_t i = 0; i < keysToDeleteCount; i++)
+        {
+            s_Renderer->TargetsCache[keysToDelete[i]].Targets = nullptr;
+            s_Renderer->TargetsCache.erase(keysToDelete[i]);
+        }
     }
 
     void Renderer::BeginPass(const RenderPassInfo& p_PassInfo)
@@ -587,16 +617,17 @@ namespace KTN
         auto it = s_Renderer->TargetsCache.find(hash);
         if (it != s_Renderer->TargetsCache.end())
         {
-            pass.Targets              = it->second;
+            pass.Targets                     = it->second.Targets;
+            it->second.TimeSinceLastAccessed = Time::GetTime();
             getOrCreateTargets(pass.Targets);
             return;
         }
 
-        auto targets                  = CreateRef<RenderTargets>();
-        s_Renderer->TargetsCache.emplace(hash, targets);
+        auto targets                   = CreateRef<RenderTargets>();
+        s_Renderer->TargetsCache[hash] = { targets, Time::GetTime() };
         getOrCreateTargets(targets);
 
-        pass.Targets                  = targets;
+        pass.Targets                   = targets;
     }
 
     void Renderer::EndPass()

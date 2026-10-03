@@ -29,7 +29,6 @@ namespace KTN
                     SceneManager::Load(m_Project->GetConfig().StartScene);
                 }
 
-                SceneManager::SetRenderTarget(nullptr);
                 SceneManager::Play();
             }
 
@@ -45,15 +44,30 @@ namespace KTN
                 KTN_PROFILE_FUNCTION();
 
                 auto& window = Application::Get().GetWindow();
-                SceneManager::SetViewportSize(window->GetWidth(), window->GetHeight());
+
+                auto viewport              = SceneManager::GetOrCreateViewport("RuntimeViewport");
+                viewport->RenderTarget     = nullptr;
+                viewport->RenderTarget     = nullptr;
+                viewport->PickingTarget    = nullptr;
+
+                viewport->Size.x           = (float)window->GetWidth();
+                viewport->Size.y           = (float)window->GetHeight();
+                viewport->Position         = { 0.0f, 0.0f };
+
+                viewport->CustomCamera     = false;
+                viewport->EnablePicking    = false;
+                viewport->UpdateUI         = true;
+                viewport->RenderUI         = true;
+
                 SceneManager::OnUpdate();
+                SceneManager::OnViewportUpdate();
             }
 
             void OnRender() override
             {
                 KTN_PROFILE_FUNCTION();
 
-                SceneManager::OnRenderRuntime();
+                SceneManager::OnViewportRender();
             }
     };
 
