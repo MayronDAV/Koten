@@ -54,7 +54,7 @@ namespace KTN
                 viewport->Size.y           = (float)window->GetHeight();
                 viewport->Position         = { 0.0f, 0.0f };
 
-                viewport->CustomCamera     = false;
+                viewport->SetSceneCameras();
                 viewport->EnablePicking    = false;
                 viewport->UpdateUI         = true;
                 viewport->RenderUI         = true;
