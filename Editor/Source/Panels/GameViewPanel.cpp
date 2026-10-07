@@ -59,8 +59,9 @@ namespace KTN
 
             drawList->AddRect(min, max, IM_COL32(255, 255, 255, 80));
 
-            m_ViewportWidth      = (uint32_t)imageSize.x;
-            m_ViewportHeight     = (uint32_t)imageSize.y;
+            m_Viewport.Position  = min;
+            m_Viewport.Width     = (uint32_t)imageSize.x;
+            m_Viewport.Height    = (uint32_t)imageSize.y;
         }
         ImGui::End();
     }
@@ -69,32 +70,43 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        TextureSpecification tspec = {};
-        tspec.Width                = m_ViewportWidth;
-        tspec.Height               = m_ViewportHeight;
-        tspec.Format               = TextureFormat::RGBA32_FLOAT;
-        tspec.Usage                = TextureUsage::TEXTURE_COLOR_ATTACHMENT;
-        tspec.Samples              = 1;
-        tspec.GenerateMips         = false;
-        tspec.AnisotropyEnable     = false;
-        tspec.DebugName            = "GameView-MainTexture";
+        TextureSpecification tspec  = {};
+        tspec.Width                 = m_Viewport.Width;
+        tspec.Height                = m_Viewport.Height;
+        tspec.Format                = TextureFormat::RGBA32_FLOAT;
+        tspec.Usage                 = TextureUsage::TEXTURE_COLOR_ATTACHMENT;
+        tspec.Samples               = 1;
+        tspec.GenerateMips          = false;
+        tspec.AnisotropyEnable      = false;
+        tspec.DebugName             = "GameView-MainTexture";
 
-        m_MainTexture              = Texture2D::Get(tspec);
+        m_MainTexture               = Texture2D::Get(tspec);
 
-        auto viewport              = SceneManager::GetOrCreateViewport("GameViewport");
-        viewport->RenderTarget     = nullptr;
-        viewport->RenderTarget     = m_MainTexture;
-        viewport->PickingTarget    =  nullptr;
+        auto viewport               = SceneManager::GetOrCreateViewport("GameViewport");
+        viewport->RenderTarget      = nullptr;
+        viewport->RenderTarget      = m_MainTexture;
+        viewport->PickingTarget     = nullptr;
 
-        viewport->Size.x           = (float)m_ViewportWidth;
-        viewport->Size.y           = (float)m_ViewportHeight;
-        viewport->Position         = { 0.0f, 0.0f };
+        viewport->EnablePicking     = false;
+
+        auto state = m_Editor->GetState();
+        if (state != RuntimeState::Edit)
+        {
+            if (m_PickingTextureID == 0)
+                m_PickingTextureID  = PickingManager::CreatePickingTarget(m_Viewport.Width, m_Viewport.Height);
+
+            PickingManager::Update(m_PickingTextureID, m_Viewport.Width, m_Viewport.Height);
+            viewport->PickingTarget = PickingManager::GetPickingTarget(m_PickingTextureID);
+            viewport->EnablePicking = true;
+        }
+
+        viewport->Size              = { (float)m_Viewport.Width, (float)m_Viewport.Height };
+        viewport->Position          = { m_Viewport.Position.x, m_Viewport.Position.y };
 
         viewport->SetSceneCameras();
 
-        viewport->EnablePicking    = false;
-        viewport->UpdateUI         = true;
-        viewport->RenderUI         = true;
+        viewport->UpdateUI          = true;
+        viewport->RenderUI          = true;
     }
 
 } // namespace KTN

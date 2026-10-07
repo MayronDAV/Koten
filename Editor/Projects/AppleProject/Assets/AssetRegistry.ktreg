@@ -55,6 +55,14 @@ AssetRegistry:
     Scope: Project
     AssetData:
       {}
+  - Handle: 3417170756756601858
+    FilePath: Scenes/UIExample.ktscn
+    Type: Scene
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      {}
   - Handle: 3851349682833951057
     FilePath: Scenes/teste.ktscn
     Type: Scene

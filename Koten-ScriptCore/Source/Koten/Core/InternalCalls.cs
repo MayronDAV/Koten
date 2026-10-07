@@ -104,6 +104,21 @@ namespace KTN
         internal extern static bool GameObject_IsValid(ObjectHandle p_Handle);
         #endregion
 
+        #region RuntimeComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool RuntimeComponent_IsEnabled(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool RuntimeComponent_IsActive(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RuntimeComponent_SetEnabled(ObjectHandle p_Handle, bool p_Value);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void RuntimeComponent_SetActive(ObjectHandle p_Handle, bool p_Value);
+
+        #endregion
+
         #region SceneManager
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -180,21 +195,6 @@ namespace KTN
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void TransformComponent_SetLocalTranslation(ObjectHandle p_Handle, ref Vector3 p_Value);
-        #endregion
-
-        #region RuntimeComponent
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool RuntimeComponent_IsEnabled(ObjectHandle p_Handle);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool RuntimeComponent_IsActive(ObjectHandle p_Handle);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void RuntimeComponent_SetEnabled(ObjectHandle p_Handle, bool p_Value);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void RuntimeComponent_SetActive(ObjectHandle p_Handle, bool p_Value);
-
         #endregion
 
         #region TextRendererComponent
@@ -356,6 +356,93 @@ namespace KTN
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool AnimationComponent_SetInt(ObjectHandle p_Handle, string p_Name, int p_Value);
+
+        #endregion
+
+        // UI
+
+        #region UICanvasComponent
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static int UICanvasComponent_GetRenderMode(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UICanvasComponent_SetRenderMode(ObjectHandle p_Handle, int p_RenderMode);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static int UICanvasComponent_GetScaleMode(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UICanvasComponent_SetScaleMode(ObjectHandle p_Handle, int p_ScaleMode);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static ulong UICanvasComponent_GetCamera(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UICanvasComponent_SetCamera(ObjectHandle p_Handle, ulong p_Camera);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UICanvasComponent_GetRefResolution(ObjectHandle p_Handle, out Vector2 p_RefResolution);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UICanvasComponent_SetRefResolution(ObjectHandle p_Handle, ref Vector2 p_RefResolution);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool UICanvasComponent_ReceiveInput(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UICanvasComponent_SetReceiveInput(ObjectHandle p_Handle, bool p_ReceiveInput);
+
+        #endregion
+
+        #region UIComponent
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIComponent_GetAnchor(ObjectHandle p_Handle, out Vector2 p_Anchor);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIComponent_SetAnchor(ObjectHandle p_Handle, ref Vector2 p_Anchor);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIComponent_GetSize(ObjectHandle p_Handle, out Vector2 p_Size);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIComponent_SetSize(ObjectHandle p_Handle, ref Vector2 p_Size);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool UIComponent_IsActive(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIComponent_SetActive(ObjectHandle p_Handle, bool p_Active);
+
+        #endregion
+
+        #region UIInputComponent
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool UIInputComponent_IsHovered(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool UIInputComponent_IsPressed(ObjectHandle p_Handle);
+
+        #endregion
+
+        #region UIImageComponent
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static ObjectHandle UIImageComponent_GetImage(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIImageComponent_SetImageWithUUID(ObjectHandle p_Handle, ulong p_Image);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIImageComponent_SetImageWithPath(ObjectHandle p_Handle, string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIImageComponent_GetColor(ObjectHandle p_Handle, out Vector4 p_Color);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void UIImageComponent_SetColor(ObjectHandle p_Handle, ref Vector4 p_Color);
 
         #endregion
     }

@@ -94,16 +94,10 @@ namespace KTN
 
     struct UIImageComponent
     {
-        enum class ImageType : uint8_t
-        {
-            Material = 0,
-            Texture
-        };
-
-        ImageType Type                            = ImageType::Material;
         AssetHandle Handle                        = 0;
+        glm::vec4 Color                           = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-        UIImageComponent(bool p_GetDefault = true) : Handle(p_GetDefault ? Material::GetDefault() : (AssetHandle)0) {}
+        UIImageComponent(bool p_GetDefault = true) : Handle(p_GetDefault ? Texture2D::GetDefault() : (AssetHandle)0) {}
         UIImageComponent(const UIImageComponent&) = default;
     };
 

@@ -4,11 +4,18 @@ namespace KTN
 {
     enum AssetType
     {
-        Scene = 1,
+        None = 0,
+        Scene,
         Font,
         Texture2D,
         PhysicsMaterial2D,
-        Prefab
+        Prefab,
+        Material,
+        TextureAtlas,
+        Animation,
+        AnimationController,
+        ShaderStage,
+        Shader
     };
 
     public class Asset : Object

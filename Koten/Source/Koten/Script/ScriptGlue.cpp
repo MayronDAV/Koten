@@ -1468,6 +1468,443 @@ namespace KTN
 
         #pragma endregion
 
+        // UI
+
+        #pragma region UICanvasComponent
+
+        static int UICanvasComponent_GetRenderMode(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return 0;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return 0;
+
+            return (int)entity.GetComponent<UICanvasComponent>().RenderMode;
+        }
+
+        static void UICanvasComponent_SetRenderMode(ObjectHandle p_Obj, int p_RenderMode)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return;
+
+            entity.GetComponent<UICanvasComponent>().RenderMode = (UIRenderMode)p_RenderMode;
+        }
+
+        static int UICanvasComponent_GetScaleMode(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return 0;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return 0;
+
+            return (int)entity.GetComponent<UICanvasComponent>().ScaleMode;
+        }
+
+        static void UICanvasComponent_SetScaleMode(ObjectHandle p_Obj, int p_ScaleMode)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return;
+
+            entity.GetComponent<UICanvasComponent>().ScaleMode = (UIScaleMode)p_ScaleMode;
+        }
+
+        static uint64_t UICanvasComponent_GetCamera(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return 0ull;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return 0ull;
+
+            return entity.GetComponent<UICanvasComponent>().Camera;
+        }
+
+        static void UICanvasComponent_SetCamera(ObjectHandle p_Obj, uint64_t p_Camera)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return;
+
+            auto& comp            = entity.GetComponent<UICanvasComponent>();
+            comp.Camera           = 0;
+            comp.RenderTarget     = 0;
+
+            if (p_Camera == 0)
+                return;
+
+            Entity cameraEntt     = FindWithUUID({ p_Camera, p_Obj.SceneHandle, p_Obj.Type });
+            if (cameraEntt)
+            {
+                if (!cameraEntt.HasComponent<CameraComponent>())
+                {
+                    KTN_CORE_ERROR("Entity does not have CameraComponent!");
+                    return;
+                }
+
+                comp.Camera       = p_Camera;
+                comp.RenderTarget = cameraEntt.GetComponent<CameraComponent>().RenderTarget;
+            }
+        }
+
+        static void UICanvasComponent_GetReferenceResolution(ObjectHandle p_Obj, glm::vec2* p_RefResolution)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return;
+
+            *p_RefResolution = entity.GetComponent<UICanvasComponent>().ReferenceResolution;
+        }
+
+        static void UICanvasComponent_SetReferenceResolution(ObjectHandle p_Obj, glm::vec2* p_RefResolution)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return;
+
+            entity.GetComponent<UICanvasComponent>().ReferenceResolution = *p_RefResolution;
+        }
+
+        static bool UICanvasComponent_ReceiveInput(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return false;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return false;
+
+            return entity.GetComponent<UICanvasComponent>().ReceiveInput;
+        }
+
+        static void UICanvasComponent_SetReceiveInput(ObjectHandle p_Obj, bool p_ReceiveInput)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UICanvasComponent>())
+                return;
+
+            entity.GetComponent<UICanvasComponent>().ReceiveInput = p_ReceiveInput;
+        }
+
+        #pragma endregion
+
+        #pragma region UIComponent
+
+        static void UIComponent_GetAnchor(ObjectHandle p_Obj, glm::vec2* p_Anchor)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIComponent>())
+                return;
+
+            *p_Anchor = entity.GetComponent<UIComponent>().Anchor;
+        }
+
+        static void UIComponent_SetAnchor(ObjectHandle p_Obj, glm::vec2* p_Anchor)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIComponent>())
+                return;
+
+            entity.GetComponent<UIComponent>().Anchor = *p_Anchor;
+        }
+
+        static void UIComponent_GetSize(ObjectHandle p_Obj, glm::vec2* p_Size)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIComponent>())
+                return;
+
+            *p_Size = entity.GetComponent<UIComponent>().Size;
+        }
+
+        static void UIComponent_SetSize(ObjectHandle p_Obj, glm::vec2* p_Size)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIComponent>())
+                return;
+
+            entity.GetComponent<UIComponent>().Size = *p_Size;
+        }
+
+        static bool UIComponent_IsActive(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return false;
+            }
+
+            if (!entity.HasComponent<UIComponent>())
+                return false;
+
+            return entity.GetComponent<UIComponent>().Active;
+        }
+
+        static void UIComponent_SetActive(ObjectHandle p_Obj, bool p_Active)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIComponent>())
+                return;
+
+            entity.GetComponent<UIComponent>().Active = p_Active;
+        }
+
+        #pragma endregion
+
+        #pragma region UIInputComponent
+
+        static bool UIInputComponent_IsHovered(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return false;
+            }
+
+            if (!entity.HasComponent<UIInputComponent>())
+                return false;
+
+            return entity.GetComponent<UIInputComponent>().Hovered;
+        }
+
+        static bool UIInputComponent_IsPressed(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return false;
+            }
+
+            if (!entity.HasComponent<UIInputComponent>())
+                return false;
+
+            return entity.GetComponent<UIInputComponent>().Pressed;
+        }
+
+        #pragma endregion
+
+        #pragma region UIImageComponent
+
+        static ObjectHandle UIImageComponent_GetImage(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return {};
+            }
+
+            if (!entity.HasComponent<UIImageComponent>())
+                return {};
+
+            auto handle = entity.GetComponent<UIImageComponent>().Handle;
+            return { handle, 0, (int32_t)AssetType::Texture2D };
+        }
+
+        static void UIImageComponent_SetImageWithUUID(ObjectHandle p_Obj, uint64_t p_UUID)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIImageComponent>())
+                return;
+
+            auto& comp = entity.GetComponent<UIImageComponent>();
+            if (p_UUID == 0 || !AssetManager::Get()->IsAssetHandleValid(p_UUID))
+            {
+                comp.Handle = Texture2D::GetDefault();
+                return;
+            }
+
+            comp.Handle = p_UUID;
+        }
+
+        static void UIImageComponent_SetImageWithPath(ObjectHandle p_Obj, MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIImageComponent>())
+                return;
+
+            auto path   = MonoStringToString(p_Path);
+            path        = Project::GetAssetFileSystemPath(path).string();
+            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
+
+            entity.GetComponent<UIImageComponent>().Handle = handle ? handle : Texture2D::GetDefault();
+        }
+
+        static void UIImageComponent_GetColor(ObjectHandle p_Obj, glm::vec4* p_Color)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIImageComponent>())
+                return;
+
+            *p_Color = entity.GetComponent<UIImageComponent>().Color;
+        }
+
+        static void UIImageComponent_SetColor(ObjectHandle p_Obj, glm::vec4* p_Color)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<UIImageComponent>())
+                return;
+
+            entity.GetComponent<UIImageComponent>().Color = *p_Color;
+        }
+
+        #pragma endregion
+
         std::string DemangleToKTNClassName(const std::string& p_MangledName) 
         {
             KTN_PROFILE_FUNCTION_LOW();
@@ -1654,6 +2091,35 @@ namespace KTN
         KTN_ADD_INTERNAL_CALL(AnimationComponent_SetBool);
         KTN_ADD_INTERNAL_CALL(AnimationComponent_SetFloat);
         KTN_ADD_INTERNAL_CALL(AnimationComponent_SetInt);
+
+        // UI
+
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_GetRenderMode);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_SetRenderMode);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_GetScaleMode);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_SetScaleMode);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_GetCamera);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_SetCamera);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_GetReferenceResolution);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_SetReferenceResolution);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_ReceiveInput);
+        KTN_ADD_INTERNAL_CALL(UICanvasComponent_SetReceiveInput);
+
+        KTN_ADD_INTERNAL_CALL(UIComponent_GetAnchor);
+        KTN_ADD_INTERNAL_CALL(UIComponent_SetAnchor);
+        KTN_ADD_INTERNAL_CALL(UIComponent_GetSize);
+        KTN_ADD_INTERNAL_CALL(UIComponent_SetSize);
+        KTN_ADD_INTERNAL_CALL(UIComponent_IsActive);
+        KTN_ADD_INTERNAL_CALL(UIComponent_SetActive);
+
+        KTN_ADD_INTERNAL_CALL(UIInputComponent_IsHovered);
+        KTN_ADD_INTERNAL_CALL(UIInputComponent_IsPressed);
+
+        KTN_ADD_INTERNAL_CALL(UIImageComponent_GetImage);
+        KTN_ADD_INTERNAL_CALL(UIImageComponent_SetImageWithUUID);
+        KTN_ADD_INTERNAL_CALL(UIImageComponent_SetImageWithPath);
+        KTN_ADD_INTERNAL_CALL(UIImageComponent_GetColor);
+        KTN_ADD_INTERNAL_CALL(UIImageComponent_SetColor);
     }
 
 } // namespace KTN

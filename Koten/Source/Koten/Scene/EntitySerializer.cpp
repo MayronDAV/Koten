@@ -213,6 +213,24 @@ namespace KTN
         }
 
         template<>
+        void ComponentSerializeIfExist<RuntimeComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<RuntimeComponent>())
+                return;
+
+            p_Out << YAML::Key << "RuntimeComponent";
+            p_Out << YAML::BeginMap;
+
+            auto& comp = p_Entity.GetComponent<RuntimeComponent>();
+            ADD_KEY_VALUE("Enabled", comp.Enabled);
+            ADD_KEY_VALUE("Active", comp.Active);
+
+            p_Out << YAML::EndMap;
+        }
+
+        template<>
         void ComponentSerializeIfExist<HierarchyComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
         {
             KTN_PROFILE_FUNCTION();
@@ -556,24 +574,6 @@ namespace KTN
         }
 
         template<>
-        void ComponentSerializeIfExist<RuntimeComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
-        {
-            KTN_PROFILE_FUNCTION();
-
-            if (!p_Entity.HasComponent<RuntimeComponent>())
-                return;
-
-            p_Out << YAML::Key << "RuntimeComponent";
-            p_Out << YAML::BeginMap;
-
-            auto& comp = p_Entity.GetComponent<RuntimeComponent>();
-            ADD_KEY_VALUE("Enabled", comp.Enabled);
-            ADD_KEY_VALUE("Active", comp.Active);
-
-            p_Out << YAML::EndMap;
-        }
-
-        template<>
         void ComponentSerializeIfExist<AnimationComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
         {
             KTN_PROFILE_FUNCTION();
@@ -618,6 +618,85 @@ namespace KTN
             p_Out << YAML::EndMap;
         }
 
+        // UI
+
+        template<>
+        void ComponentSerializeIfExist<UICanvasComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<UICanvasComponent>())
+                return;
+
+            p_Out << YAML::Key << "UICanvasComponent";
+            p_Out << YAML::BeginMap;
+
+            auto& comp = p_Entity.GetComponent<UICanvasComponent>();
+            ADD_KEY_VALUE("RenderMode", (int)comp.RenderMode);
+            ADD_KEY_VALUE("Camera", comp.Camera);
+            ADD_KEY_VALUE("ReferenceResolution", comp.ReferenceResolution);
+            ADD_KEY_VALUE("ScaleMode", (int)comp.ScaleMode);
+            ADD_KEY_VALUE("RenderTarget", comp.RenderTarget);
+            ADD_KEY_VALUE("ReceiveInput", comp.ReceiveInput);
+            ADD_KEY_VALUE("SortOrder", comp.SortOrder);
+
+            p_Out << YAML::EndMap;
+        }
+
+        template<>
+        void ComponentSerializeIfExist<UIComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<UIComponent>())
+                return;
+
+            p_Out << YAML::Key << "UIComponent";
+            p_Out << YAML::BeginMap;
+
+            auto& comp = p_Entity.GetComponent<UIComponent>();
+            ADD_KEY_VALUE("Anchor", comp.Anchor);
+            ADD_KEY_VALUE("Size", comp.Size);
+            ADD_KEY_VALUE("Active", comp.Active);
+            ADD_KEY_VALUE("SortOrder", comp.SortOrder);
+
+            p_Out << YAML::EndMap;
+        }
+
+        template<>
+        void ComponentSerializeIfExist<UIInputComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<UIInputComponent>())
+                return;
+
+            p_Out << YAML::Key << "UIInputComponent";
+            p_Out << YAML::BeginMap;
+
+            // No need to serialize Hovered and Pressed, as they are runtime states
+
+            p_Out << YAML::EndMap;
+        }
+
+        template<>
+        void ComponentSerializeIfExist<UIImageComponent>(YAML::Emitter& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<UIImageComponent>())
+                return;
+
+            p_Out << YAML::Key << "UIImageComponent";
+            p_Out << YAML::BeginMap;
+
+            auto& comp = p_Entity.GetComponent<UIImageComponent>();
+            ADD_KEY_VALUE("Handle", comp.Handle);
+            ADD_KEY_VALUE("Color", comp.Color);
+
+            p_Out << YAML::EndMap;
+        }
+
     } // namespace
 
     // Serialize BIN
@@ -634,6 +713,21 @@ namespace KTN
             Utils::WriteString(p_Out, "TagComponent");
 
             Utils::WriteString(p_Out, p_Entity.GetTag());
+        }
+
+        template<>
+        void ComponentSerializeBinIfExist<RuntimeComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<RuntimeComponent>())
+                return;
+
+            Utils::WriteString(p_Out, "RuntimeComponent");
+
+            auto& comp = p_Entity.GetComponent<RuntimeComponent>();
+            p_Out.write(reinterpret_cast<const char*>(&comp.Enabled), sizeof(comp.Enabled));
+            p_Out.write(reinterpret_cast<const char*>(&comp.Active), sizeof(comp.Active));
         }
 
         template<>
@@ -983,21 +1077,6 @@ namespace KTN
         }
 
         template<>
-        void ComponentSerializeBinIfExist<RuntimeComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
-        {
-            KTN_PROFILE_FUNCTION();
-
-            if (!p_Entity.HasComponent<RuntimeComponent>())
-                return;
-
-            Utils::WriteString(p_Out, "RuntimeComponent");
-
-            auto& comp = p_Entity.GetComponent<RuntimeComponent>();
-            p_Out.write(reinterpret_cast<const char*>(&comp.Enabled), sizeof(comp.Enabled));
-            p_Out.write(reinterpret_cast<const char*>(&comp.Active), sizeof(comp.Active));
-        }
-
-        template<>
         void ComponentSerializeBinIfExist<AnimationComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
         {
             KTN_PROFILE_FUNCTION();
@@ -1038,6 +1117,73 @@ namespace KTN
             }
         }
 
+        // UI
+
+        template<>
+        void ComponentSerializeBinIfExist<UICanvasComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<UICanvasComponent>())
+                return;
+
+            Utils::WriteString(p_Out, "UICanvasComponent");
+
+            auto& comp = p_Entity.GetComponent<UICanvasComponent>();
+            p_Out.write(reinterpret_cast<const char*>(&comp.RenderMode), sizeof(comp.RenderMode));
+            p_Out.write(reinterpret_cast<const char*>(&comp.Camera), sizeof(comp.Camera));
+            p_Out.write(reinterpret_cast<const char*>(&comp.ReferenceResolution), sizeof(comp.ReferenceResolution));
+            p_Out.write(reinterpret_cast<const char*>(&comp.ScaleMode), sizeof(comp.ScaleMode));
+            p_Out.write(reinterpret_cast<const char*>(&comp.RenderTarget), sizeof(comp.RenderTarget));
+            p_Out.write(reinterpret_cast<const char*>(&comp.ReceiveInput), sizeof(comp.ReceiveInput));
+            p_Out.write(reinterpret_cast<const char*>(&comp.SortOrder), sizeof(comp.SortOrder));
+        }
+
+        template<>
+        void ComponentSerializeBinIfExist<UIComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<UIComponent>())
+                return;
+
+            Utils::WriteString(p_Out, "UIComponent");
+
+            auto& comp = p_Entity.GetComponent<UIComponent>();
+            p_Out.write(reinterpret_cast<const char*>(&comp.Anchor), sizeof(comp.Anchor));
+            p_Out.write(reinterpret_cast<const char*>(&comp.Size), sizeof(comp.Size));
+            p_Out.write(reinterpret_cast<const char*>(&comp.Active), sizeof(comp.Active));
+            p_Out.write(reinterpret_cast<const char*>(&comp.SortOrder), sizeof(comp.SortOrder));
+        }
+
+        template<>
+        void ComponentSerializeBinIfExist<UIInputComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<UIInputComponent>())
+                return;
+
+            Utils::WriteString(p_Out, "UIInputComponent");
+
+            // No need to serialize Hovered and Pressed, as they are runtime states
+        }
+
+        template<>
+        void ComponentSerializeBinIfExist<UIImageComponent>(std::ofstream& p_Out, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (!p_Entity.HasComponent<UIImageComponent>())
+                return;
+
+            Utils::WriteString(p_Out, "UIImageComponent");
+
+            auto& comp = p_Entity.GetComponent<UIImageComponent>();
+            p_Out.write(reinterpret_cast<const char*>(&comp.Handle), sizeof(comp.Handle));
+            p_Out.write(reinterpret_cast<const char*>(&comp.Color), sizeof(comp.Color));
+        }
+
     } // namespace
 
     // Deserialize YAML
@@ -1054,6 +1200,19 @@ namespace KTN
                 tag = tagComp["Tag"].as<std::string>();
 
             p_Entity.GetComponent<TagComponent>().Tag = tag;
+        }
+
+        template<>
+        void ComponentDeserializeIfExist<RuntimeComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            auto data = p_Data["RuntimeComponent"];
+            if (!data) return;
+
+            auto& comp = p_Entity.AddOrReplaceComponent<RuntimeComponent>();
+            comp.Enabled = data["Enabled"].as<bool>();
+            comp.Active = data["Active"].as<bool>();
         }
 
         template<>
@@ -1347,19 +1506,6 @@ namespace KTN
         }
 
         template<>
-        void ComponentDeserializeIfExist<RuntimeComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
-        {
-            KTN_PROFILE_FUNCTION();
-
-            auto data = p_Data["RuntimeComponent"];
-            if (!data) return;
-
-            auto& comp = p_Entity.AddOrReplaceComponent<RuntimeComponent>();
-            comp.Enabled = data["Enabled"].as<bool>();
-            comp.Active = data["Active"].as<bool>();
-        }
-
-        template<>
         void ComponentDeserializeIfExist<AnimationComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
         {
             KTN_PROFILE_FUNCTION();
@@ -1396,6 +1542,65 @@ namespace KTN
             }
         }
 
+        // UI
+
+        template<>
+        void ComponentDeserializeIfExist<UICanvasComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            auto data                = p_Data["UICanvasComponent"];
+            if (!data) return;
+
+            auto& comp               = p_Entity.AddOrReplaceComponent<UICanvasComponent>();
+            comp.RenderMode          = (UIRenderMode)data["RenderMode"].as<int>();
+            comp.Camera              = data["Camera"].as<UUID>();
+            comp.ReferenceResolution = data["ReferenceResolution"].as<glm::vec2>();
+            comp.ScaleMode           = (UIScaleMode)data["ScaleMode"].as<int>();
+            comp.RenderTarget        = data["RenderTarget"].as<AssetHandle>();
+            comp.ReceiveInput        = data["ReceiveInput"].as<bool>();
+            comp.SortOrder           = data["SortOrder"].as<int>();
+        }
+
+        template<>
+        void ComponentDeserializeIfExist<UIComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            auto data      = p_Data["UIComponent"];
+            if (!data) return;
+
+            auto& comp     = p_Entity.AddOrReplaceComponent<UIComponent>();
+            comp.Anchor    = data["Anchor"].as<glm::vec2>();
+            comp.Size      = data["Size"].as<glm::vec2>();
+            comp.Active    = data["Active"].as<bool>();
+            comp.SortOrder = data["SortOrder"].as<int>();
+        }
+
+        template<>
+        void ComponentDeserializeIfExist<UIInputComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            auto data  = p_Data["UIInputComponent"];
+            if (!data) return;
+
+            p_Entity.AddOrReplaceComponent<UIInputComponent>();
+        }
+
+        template<>
+        void ComponentDeserializeIfExist<UIImageComponent>(YAML::Node& p_Data, entt::registry& p_Registry, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            auto data   = p_Data["UIImageComponent"];
+            if (!data) return;
+
+            auto& comp  = p_Entity.AddOrReplaceComponent<UIImageComponent>(false);
+            comp.Handle = data["Handle"].as<AssetHandle>();
+            comp.Color  = data["Color"].as<glm::vec4>();
+        }
+
     } // namespace
 
     // Deserialize BIN
@@ -1417,6 +1622,22 @@ namespace KTN
                 auto& comp = p_Entity.GetComponent<TagComponent>();
                 comp.Tag = tag;
             }
+        }
+
+        template<>
+        void ComponentDeserializeBinIfExist<RuntimeComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (p_Current != "RuntimeComponent")
+                return;
+
+            RuntimeComponent comp = {};
+            KTN_STREAM(&comp.Enabled, sizeof(comp.Enabled));
+            KTN_STREAM(&comp.Active, sizeof(comp.Active));
+
+            if (p_Entity)
+                p_Entity.AddOrReplaceComponent<RuntimeComponent>() = comp;
         }
 
         template<>
@@ -1766,22 +1987,6 @@ namespace KTN
         }
 
         template<>
-        void ComponentDeserializeBinIfExist<RuntimeComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
-        {
-            KTN_PROFILE_FUNCTION();
-
-            if (p_Current != "RuntimeComponent")
-                return;
-
-            RuntimeComponent comp = {};
-            KTN_STREAM(&comp.Enabled, sizeof(comp.Enabled));
-            KTN_STREAM(&comp.Active, sizeof(comp.Active));
-
-            if (p_Entity)
-                p_Entity.AddOrReplaceComponent<RuntimeComponent>() = comp;
-        }
-
-        template<>
         void ComponentDeserializeBinIfExist<AnimationComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
         {
             KTN_PROFILE_FUNCTION();
@@ -1824,6 +2029,75 @@ namespace KTN
 
             if (p_Entity)
                 p_Entity.AddOrReplaceComponent<AnimationComponent>() = comp;
+        }
+
+        // UI
+
+        template<>
+        void ComponentDeserializeBinIfExist<UICanvasComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (p_Current != "UICanvasComponent")
+                return;
+
+            UICanvasComponent comp = {};
+            KTN_STREAM(&comp.RenderMode, sizeof(comp.RenderMode));
+            KTN_STREAM(&comp.Camera, sizeof(comp.Camera));
+            KTN_STREAM(&comp.ReferenceResolution, sizeof(comp.ReferenceResolution));
+            KTN_STREAM(&comp.ScaleMode, sizeof(comp.ScaleMode));
+            KTN_STREAM(&comp.RenderTarget, sizeof(comp.RenderTarget));
+            KTN_STREAM(&comp.ReceiveInput, sizeof(comp.ReceiveInput));
+            KTN_STREAM(&comp.SortOrder, sizeof(comp.SortOrder));
+
+            if (p_Entity)
+                p_Entity.AddOrReplaceComponent<UICanvasComponent>() = comp;
+        }
+
+        template<>
+        void ComponentDeserializeBinIfExist<UIComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (p_Current != "UIComponent")
+                return;
+
+            UIComponent comp = {};
+            KTN_STREAM(&comp.Anchor, sizeof(comp.Anchor));
+            KTN_STREAM(&comp.Size, sizeof(comp.Size));
+            KTN_STREAM(&comp.Active, sizeof(comp.Active));
+            KTN_STREAM(&comp.SortOrder, sizeof(comp.SortOrder));
+
+            if (p_Entity)
+                p_Entity.AddOrReplaceComponent<UIComponent>() = comp;
+        }
+
+        template<>
+        void ComponentDeserializeBinIfExist<UIInputComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (p_Current != "UIInputComponent")
+                return;
+
+            if (p_Entity)
+                p_Entity.AddOrReplaceComponent<UIInputComponent>();
+        }
+
+        template<>
+        void ComponentDeserializeBinIfExist<UIImageComponent>(ReadStream& p_In, const std::string& p_Current, Buffer* p_Buffer, Entity p_Entity)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (p_Current != "UIImageComponent")
+                return;
+
+            UIImageComponent comp(false);
+            KTN_STREAM(&comp.Handle, sizeof(comp.Handle));
+            KTN_STREAM(&comp.Color, sizeof(comp.Color));
+
+            if (p_Entity)
+                p_Entity.AddOrReplaceComponent<UIImageComponent>() = comp;
         }
 
     } // namespace

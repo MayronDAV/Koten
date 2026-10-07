@@ -917,60 +917,46 @@ namespace KTN
             DrawComponent<UIImageComponent>("UIImage", p_Entity,
             [&](UIImageComponent& p_Comp)
             {
-                ImGui::BeginGroup();
-                {
-                    bool isMaterial = p_Comp.Type == UIImageComponent::ImageType::Material;
-                    if (isMaterial)
-                    {
-                        auto material = AssetManager::Get()->GetAsset<Material>(p_Comp.Handle);
-                        ImVec2 imageSize = { 100.0f, 100.0f };
+                auto image       = AssetManager::Get()->GetAsset<Texture2D>(p_Comp.Handle);
+                ImVec2 imageSize = { 100.0f, 100.0f };
 
-                        auto color = ImVec4{ material->AlbedoColor.x, material->AlbedoColor.y, material->AlbedoColor.z, material->AlbedoColor.w };
-                        auto texture = AssetManager::Get()->GetAsset<Texture2D>(material->Texture);
-
-                        UI::ImageCircleMask(texture, imageSize, color);
-                    }
-                    else
-                    {
-                        auto texture     = AssetManager::Get()->GetAsset<Texture2D>(p_Comp.Handle);
-                        ImVec2 imageSize = { 100.0f, 100.0f };
-
-                        UI::ImageCircleMask(texture, imageSize, { 1.0f, 1.0f, 1.0f, 1.0f });
-                    }
-
-                    ImGui::SameLine();
-                    std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.Handle));
-                    ImGui::Text(path.c_str());
-
-                    if (isMaterial)
-                    {
-                        if (ImGui::Button(ICON_MDI_ASTERISK " Edit"))
-                        {
-                            p_This->GetEditor()->GetMaterialPanel()->Open(p_Comp.Handle);
-                        }
-                    }
-                }
-                ImGui::EndGroup();
+                auto color       = ImVec4{ p_Comp.Color.x, p_Comp.Color.y, p_Comp.Color.z, p_Comp.Color.w };
+                UI::ImageCircleMask(image, imageSize, color);
 
                 if (ImGui::BeginDragDropTarget())
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                     {
                         const wchar_t* path = (const wchar_t*)payload->Data;
-                        auto filepath       = std::filesystem::path(path);
+                        auto filepath = std::filesystem::path(path);
                         if (filepath.extension() == ".ktmat")
                         {
-                            p_Comp.Handle   = AssetManager::Get()->ImportAsset(AssetType::Material, filepath.string());
-                            p_Comp.Type     = UIImageComponent::ImageType::Material;
+                            auto handle = AssetManager::Get()->ImportAsset(AssetType::Material, filepath.string());
+                            auto material = AssetManager::Get()->GetAsset<Material>(handle);
+                            p_Comp.Handle = material->Texture;
+                            p_Comp.Color = material->AlbedoColor;
                         }
                         else
                         {
-                            p_Comp.Handle   = AssetManager::Get()->ImportAsset(AssetType::Texture2D, filepath.string());
-                            p_Comp.Type     = UIImageComponent::ImageType::Texture;
+                            p_Comp.Handle = AssetManager::Get()->ImportAsset(AssetType::Texture2D, filepath.string());
                         }
                     }
                     ImGui::EndDragDropTarget();
                 }
+
+                ImGui::SameLine();
+
+                ImGui::BeginChild("ImageInfo", { 0.0f, imageSize.y });
+                std::string path = GetRelative(AssetManager::Get()->GetMetadata(p_Comp.Handle));
+                ImGui::Text(path.c_str());
+
+                ImGui::Spacing();
+
+                ImGui::Text("Color");
+                ImGui::SameLine();
+                ImGui::ColorEdit4("##RGBA", &p_Comp.Color[0]);
+
+                ImGui::EndChild();
             });
         }
 

@@ -1,0 +1,113 @@
+Scene: 3417170756756601858
+Configs:
+  - UsePhysics2D: true
+Entities:
+  - Entity: 3645832050754726829
+    TagComponent:
+      Tag: Bottom-Left
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.066, 0.92]
+      Size: [100, 100]
+      Active: true
+      SortOrder: 0
+    UIInputComponent:
+      {}
+    UIImageComponent:
+      Handle: 1174555778226226796
+      Color: [1, 1, 1, 1]
+    HierarchyComponent:
+      Parent: 5584815381078517805
+      First: 0
+      Prev: 2920025421683395297
+      Next: 0
+      ChildCount: 0
+    ScriptComponent:
+      FullClassName: Apple.ImageColor
+  - Entity: 2920025421683395297
+    TagComponent:
+      Tag: Top-Right
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.935, 0.089]
+      Size: [100, 100]
+      Active: true
+      SortOrder: 0
+    UIInputComponent:
+      {}
+    UIImageComponent:
+      Handle: 3912666485704849466
+      Color: [1, 1, 1, 1]
+    HierarchyComponent:
+      Parent: 5584815381078517805
+      First: 0
+      Prev: 0
+      Next: 3645832050754726829
+      ChildCount: 0
+    ScriptComponent:
+      FullClassName: Apple.ImageColor
+  - Entity: 5584815381078517805
+    TagComponent:
+      Tag: Canvas
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UICanvasComponent:
+      RenderMode: 0
+      Camera: 0
+      ReferenceResolution: [800, 600]
+      ScaleMode: 0
+      RenderTarget: 0
+      ReceiveInput: true
+      SortOrder: 0
+    HierarchyComponent:
+      Parent: 0
+      First: 2920025421683395297
+      Prev: 0
+      Next: 0
+      ChildCount: 2
+  - Entity: 1154228749097095179
+    TagComponent:
+      Tag: Camera
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 0.3]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      RenderTarget: 0
+      ClearColor: [0, 0, 0, 1]
+      Width: 352
+      Height: 264
+      IsOrthographic: true
+      IsAspectRatioFixed: false
+      FOV: 90
+      Far: 1000
+      Near: 0.001
+      Scale: 10
+      Zoom: 1
+  - Entity: 12268079964959094710
+    TagComponent:
+      Tag: Apple
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Material: 2347241170725850122
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]

@@ -265,4 +265,167 @@ namespace KTN
         }
     }
 
+    // UI
+
+    public enum UIRenderMode
+    {
+        ScreenSpace = 0,
+        ScreenSpaceCamera
+    };
+
+    public enum UIScaleMode
+    {
+        Fit = 0,
+        Stretch,
+        Fill
+    };
+
+    public class UICanvasComponent : Component
+    {
+        public UIRenderMode RenderMode
+        {
+            get => (UIRenderMode)InternalCalls.UICanvasComponent_GetRenderMode(GetHandle());
+            set => InternalCalls.UICanvasComponent_SetRenderMode(GetHandle(), (int)value);
+        }
+
+        public UIScaleMode ScaleMode
+        {
+            get => (UIScaleMode)InternalCalls.UICanvasComponent_GetScaleMode(GetHandle());
+            set => InternalCalls.UICanvasComponent_SetScaleMode(GetHandle(), (int)value);
+        }
+
+        public GameObject Camera
+        {
+            get
+            {
+                ulong handle = InternalCalls.UICanvasComponent_GetCamera(GetHandle());
+                if (handle == 0)
+                    return null;
+
+                return new GameObject(handle, SceneHandle);
+            }
+            set
+            {
+                if (value == null || (value.SceneHandle != SceneHandle))
+                {
+                    InternalCalls.UICanvasComponent_SetCamera(GetHandle(), 0);
+                    return;
+                }
+
+                InternalCalls.UICanvasComponent_SetCamera(GetHandle(), value.ID);
+            }
+        }
+
+        public Vector2 RefResolution
+        {
+            get
+            {
+                InternalCalls.UICanvasComponent_GetRefResolution(GetHandle(), out Vector2 refResolution);
+                return refResolution;
+            }
+            set => InternalCalls.UICanvasComponent_SetRefResolution(GetHandle(), ref value);
+        }
+
+        public bool ReceiveInput
+        {
+            get => InternalCalls.UICanvasComponent_ReceiveInput(GetHandle());
+            set => InternalCalls.UICanvasComponent_SetReceiveInput(GetHandle(), value);
+        }
+    }
+
+    public class UIComponent : Component
+    {
+        public Vector2 Anchor
+        {
+            get
+            {
+                InternalCalls.UIComponent_GetAnchor(GetHandle(), out Vector2 anchor);
+                return anchor;
+            }
+            set => InternalCalls.UIComponent_SetAnchor(GetHandle(), ref value);
+        }
+
+        public Vector2 Size
+        {
+            get
+            {
+                InternalCalls.UIComponent_GetSize(GetHandle(), out Vector2 size);
+                return size;
+            }
+            set => InternalCalls.UIComponent_SetSize(GetHandle(), ref value);
+        }
+
+        public bool Active
+        {
+            get => InternalCalls.UIComponent_IsActive(GetHandle());
+            set => InternalCalls.UIComponent_SetActive(GetHandle(), value);
+        }
+    }
+
+    public class UIInputComponent : Component
+    {
+        public bool Hovered
+        {
+            get => InternalCalls.UIInputComponent_IsHovered(GetHandle());
+        }
+
+        public bool Pressed
+        {
+            get => InternalCalls.UIInputComponent_IsPressed(GetHandle());
+        }
+    }
+
+    public class UIImageComponent : UIComponent
+    {
+        public Asset Image
+        {
+            get
+            {
+                var handle = InternalCalls.UIImageComponent_GetImage(GetHandle());
+                if (handle.ID == 0)
+                    return null;
+
+                return new Asset(handle.ID, handle.SceneHandle, (AssetType)handle.Type);
+            }
+        }
+
+        public Vector4 Color
+        {
+            get
+            {
+                InternalCalls.UIImageComponent_GetColor(GetHandle(), out Vector4 color);
+                return color;
+            }
+            set => InternalCalls.UIImageComponent_SetColor(GetHandle(), ref value);
+        }
+
+        public void SetImage(Asset p_Asset)
+        {
+            if (p_Asset == null || !p_Asset.IsValid())
+            {
+                InternalCalls.UIImageComponent_SetImageWithUUID(GetHandle(), 0);
+                return;
+            }
+
+            if (p_Asset.Type != (int)AssetType.Texture2D && p_Asset.Type != (int)AssetType.Material)
+            {
+                // TODO: Log error message to console
+                Console.WriteLine("UIImageComponent can only accept Texture2D or Material assets.");
+                return;
+            }
+
+            InternalCalls.UIImageComponent_SetImageWithUUID(GetHandle(), p_Asset.ID);
+        }
+
+        public void SetImage(ulong p_Handle)
+        {
+            InternalCalls.UIImageComponent_SetImageWithUUID(GetHandle(), p_Handle);
+        }
+
+        public void SetImage(string p_Path)
+        {
+            InternalCalls.UIImageComponent_SetImageWithPath(GetHandle(), p_Path);
+        }
+    }
+
 } // namespace KTN

@@ -16,8 +16,7 @@ namespace KTN
     SceneViewPanel::SceneViewPanel()
         : EditorPanel("Scene View")
     {
-        m_Config.Dock      = EditorPanelDock::Center;
-        m_PickingTextureID = PickingManager::CreatePickingTarget(m_Viewport.RenderWidth, m_Viewport.RenderHeight);
+        m_Config.Dock = EditorPanelDock::Center;
     }
 
     void SceneViewPanel::OnImgui()
@@ -164,6 +163,9 @@ namespace KTN
         tspec.DebugName            = "SceneView-MainTexture";
 
         m_MainTexture              = Texture2D::Get(tspec);
+
+        if (m_PickingTextureID == 0)
+            m_PickingTextureID = PickingManager::CreatePickingTarget(m_Viewport.RenderWidth, m_Viewport.RenderHeight);
 
         PickingManager::Update(m_PickingTextureID, m_Viewport.RenderWidth, m_Viewport.RenderHeight);
 

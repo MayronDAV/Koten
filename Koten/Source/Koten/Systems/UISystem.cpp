@@ -110,16 +110,13 @@ namespace KTN
                         Entity entity = PickingManager::ReadPixel(data.PickingTargets[canvasID], pixelX, pixelY);
                         if (entity)
                         {
-                            KTN_CORE_WARN("Pixel Position: ({}, {})", pixelX, pixelY);
                             auto* inputComponent = entity.TryGetComponent<UIInputComponent>();
                             if (inputComponent)
                             {
                                 inputComponent->Hovered = true;
-                                KTN_CORE_INFO("Hovered Entity: {}", (uint64_t)entity.GetUUID());
                                 if (Input::IsMouseButtonPressed(Mouse::Button_Left))
                                 {
                                     inputComponent->Pressed = true;
-                                    KTN_CORE_INFO("Pressed Entity: {}", (uint64_t)entity.GetUUID());
                                 }
                             }
                         }
@@ -276,31 +273,14 @@ namespace KTN
                 spriteCommand.Offset           = { 0.0f, 0.0f };
                 spriteCommand.Scale            = { 1.0f, -1.0f };
                 spriteCommand.UseDirectUVs     = false;
+                spriteCommand.Color            = imageComponent->Color;
 
-                if (imageComponent->Type == UIImageComponent::ImageType::Material)
-                {
-                    auto material              = AssetManager::Get()->GetAsset<Material>(imageComponent->Handle);
-                    if (material)
-                    {
-                        spriteCommand.Color    = material->AlbedoColor;
-                        spriteCommand.Texture  = AssetManager::Get()->GetAsset<Texture2D>(material->Texture);
-                        command.Command        = spriteCommand;
+                auto image                     = AssetManager::Get()->GetAsset<Texture2D>(imageComponent->Handle);
+                if (image)
+                    spriteCommand.Texture      = image;
 
-                        p_CanvasData.List.Submit(command);
-                    }
-                }
-                else
-                {
-                    auto image                 = AssetManager::Get()->GetAsset<Texture2D>(imageComponent->Handle);
-                    if (image)
-                    {
-                        spriteCommand.Color    = { 1.0f, 1.0f, 1.0f, 1.0f };
-                        spriteCommand.Texture  = image;
-                        command.Command        = spriteCommand;
-
-                        p_CanvasData.List.Submit(command);
-                    }
-                }
+                command.Command                = spriteCommand;
+                p_CanvasData.List.Submit(command);
             }
         }
 
