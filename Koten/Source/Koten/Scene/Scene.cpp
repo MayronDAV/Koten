@@ -118,6 +118,7 @@ namespace KTN
 
         m_Registry.ctx().emplace<Scene*>(this);
 
+        AddDependency<ImageComponent, TransformComponent>(m_Registry);
         AddDependency<SpriteComponent, TransformComponent>(m_Registry);
         AddDependency<LineRendererComponent, TransformComponent>(m_Registry);
         AddDependency<TextRendererComponent, TransformComponent>(m_Registry);
@@ -129,7 +130,6 @@ namespace KTN
         AddDependency<StaticBody2DComponent, TransformComponent>(m_Registry);
         AddDependency<StaticBody2DComponent, BodyShape2DComponent>(m_Registry);
         AddDependency<UIInputComponent, UIComponent>(m_Registry);
-        AddDependency<UIImageComponent, UIComponent>(m_Registry);
 
         RegisterComponentCallbacks<ALL_COMPONENTS>(m_Registry);
 
@@ -216,6 +216,95 @@ namespace KTN
         return newScene;    
     }
 
+    bool Scene::ProccessEntityRenderCommand(RenderCommand& p_Command, Entity& p_Entity)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
+
+        auto sprite                        = p_Entity.TryGetComponent<SpriteComponent>();
+        if (sprite)
+        {
+            SpriteCommand spriteCommand    = {};
+            spriteCommand.Type             = sprite->Type;
+            spriteCommand.Thickness        = sprite->Thickness;
+            spriteCommand.Fade             = sprite->Fade;
+
+            auto mat                       = AssetManager::Get()->GetAsset<Material>(sprite->Material);
+            spriteCommand.Color            = mat->AlbedoColor;
+
+            auto animComp                  = p_Entity.TryGetComponent<AnimationComponent>();
+            if (animComp)
+            {
+                spriteCommand.Texture      = AssetManager::Get()->GetAsset<Texture2D>(animComp->Texture);
+                spriteCommand.UseDirectUVs = true;
+                spriteCommand.UV           = animComp->CurrentAnim.UV;
+            }
+            else
+            {
+                spriteCommand.Texture      = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
+                spriteCommand.Size         = sprite->Size;
+                spriteCommand.BySize       = sprite->BySize;
+                spriteCommand.Offset       = sprite->Offset;
+                spriteCommand.Scale        = sprite->Scale;
+            }
+
+            p_Command.Command              = spriteCommand;
+            return true;
+        }
+
+        auto line                   = p_Entity.TryGetComponent<LineRendererComponent>();
+        if (line)
+        {
+            LineCommand lineCommand = {};
+            lineCommand.Primitive   = line->Primitive;
+            lineCommand.Color       = line->Color;
+            lineCommand.Width       = line->Width;
+            lineCommand.Start       = line->Start;
+            lineCommand.End         = line->End;
+
+            p_Command.Command       = lineCommand;
+            return true;
+        }
+
+        auto text                   = p_Entity.TryGetComponent<TextRendererComponent>();
+        if (text)
+        {
+            TextCommand textCommand = {};
+            textCommand.Font        = AssetManager::Get()->GetAsset<DFFont>(text->Font);
+            textCommand.Text        = text->String;
+            textCommand.Color       = text->Color;
+            textCommand.BgColor     = text->BgColor;
+            textCommand.CharBgColor = text->CharBgColor;
+            textCommand.DrawBg      = text->DrawBg;
+            textCommand.LineSpacing = text->LineSpacing;
+            textCommand.Kerning     = text->Kerning;
+
+            p_Command.Command       = textCommand;
+            return true;
+        }
+
+        auto* imageComponent            = p_Entity.TryGetComponent<ImageComponent>();
+        if (imageComponent)
+        {
+            SpriteCommand spriteCommand = {};
+            spriteCommand.Type          = RenderType2D::Quad;
+            spriteCommand.Size          = { 0.0f, 0.0f };
+            spriteCommand.BySize        = true;
+            spriteCommand.Offset        = { 0.0f, 0.0f };
+            spriteCommand.Scale         = { 1.0f, 1.0f };
+            spriteCommand.UseDirectUVs  = false;
+            spriteCommand.Color         = imageComponent->Color;
+
+            auto image                  = AssetManager::Get()->GetAsset<Texture2D>(imageComponent->Handle);
+            if (image)
+                spriteCommand.Texture   = image;
+
+            p_Command.Command           = spriteCommand;
+            return true;
+        }
+
+        return false;
+    }
+
     Entity Scene::CreateEntity(const std::string& p_Tag)
     {
         KTN_PROFILE_FUNCTION();
@@ -260,69 +349,8 @@ namespace KTN
             command.ID            = PickingManager::RegisterEntity(entt);
             command.Transform     = p_Transform.GetWorldMatrix();
 
-            auto sprite = entt.TryGetComponent<SpriteComponent>();
-            if (sprite)
-            {
-                SpriteCommand spriteCommand    = {};
-                spriteCommand.Type             = sprite->Type;
-                spriteCommand.Thickness        = sprite->Thickness;
-                spriteCommand.Fade             = sprite->Fade;
-
-                auto mat                       = AssetManager::Get()->GetAsset<Material>(sprite->Material);
-                spriteCommand.Color            = mat->AlbedoColor;
-
-                auto animComp                  = entt.TryGetComponent<AnimationComponent>();
-                if (animComp)
-                {
-                    spriteCommand.Texture      = AssetManager::Get()->GetAsset<Texture2D>(animComp->Texture);
-                    spriteCommand.UseDirectUVs = true;
-                    spriteCommand.UV           = animComp->CurrentAnim.UV;
-                }
-                else
-                {
-                    spriteCommand.Texture      = AssetManager::Get()->GetAsset<Texture2D>(mat->Texture);
-                    spriteCommand.Size         = sprite->Size;
-                    spriteCommand.BySize       = sprite->BySize;
-                    spriteCommand.Offset       = sprite->Offset;
-                    spriteCommand.Scale        = sprite->Scale;
-                }
-
-                command.Command                = spriteCommand;
+            if (ProccessEntityRenderCommand(command, entt))
                 m_RenderList.Submit(command);
-            }
-
-            auto line                   = entt.TryGetComponent<LineRendererComponent>();
-            if (line)
-            {
-                LineCommand lineCommand = {};
-                lineCommand.Primitive   = line->Primitive;
-                lineCommand.Color       = line->Color;
-                lineCommand.Width       = line->Width;
-                lineCommand.Start       = line->Start;
-                lineCommand.End         = line->End;
-
-                command.Command         = lineCommand;
-
-                m_RenderList.Submit(command);
-            }
-
-            auto text                   = entt.TryGetComponent<TextRendererComponent>();
-            if (text)
-            {
-                TextCommand textCommand = {};
-                textCommand.Font        = AssetManager::Get()->GetAsset<DFFont>(text->Font);
-                textCommand.Text        = text->String;
-                textCommand.Color       = text->Color;
-                textCommand.BgColor     = text->BgColor;
-                textCommand.CharBgColor = text->CharBgColor;
-                textCommand.DrawBg      = text->DrawBg;
-                textCommand.LineSpacing = text->LineSpacing;
-                textCommand.Kerning     = text->Kerning;
-
-                command.Command         = textCommand;
-
-                m_RenderList.Submit(command);
-            }
         });
         DebugRenderer::End();
     }

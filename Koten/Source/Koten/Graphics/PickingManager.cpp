@@ -127,6 +127,17 @@ namespace KTN
         return nullptr;
     }
 
+    PickingID PickingManager::FindPickingID(Entity p_Entity)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        auto it = std::find_if(s_PickingData->PickingMap.begin(), s_PickingData->PickingMap.end(), [&](const auto& pair) { return pair.second == p_Entity; });
+        if (it != s_PickingData->PickingMap.end())
+            return it->first;
+
+        return INVALID_PICKING_ID;
+    }
+
     void PickingManager::RemovePickingTarget(uint32_t p_ID)
     {
         KTN_PROFILE_FUNCTION();

@@ -6,17 +6,17 @@ namespace Apple
 {
 	public class ImageColor : ScriptBehavior
 	{
-		private UIImageComponent m_Component;
+		private ImageComponent m_Component;
 
         private float m_OldTime = 0.0f;
         private float m_CurTime = 0.0f;
 
 		void OnCreate()
 		{
-			m_Component = GetComponent<UIImageComponent>();
+			m_Component = GetComponent<ImageComponent>();
             if (m_Component == null)
             {
-                Console.WriteLine("ImageColor: UIImageComponent not found!");
+                Console.WriteLine("ImageColor: ImageComponent not found!");
             }
 		}
 

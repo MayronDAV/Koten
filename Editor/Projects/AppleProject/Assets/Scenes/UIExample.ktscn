@@ -4,44 +4,51 @@ Configs:
 Entities:
   - Entity: 3645832050754726829
     TagComponent:
-      Tag: Bottom-Left
+      Tag: Top-Left
     RuntimeComponent:
       Enabled: true
       Active: true
     UIComponent:
       Anchor: [0.066, 0.92]
+      Offset: [0, 0]
       Size: [100, 100]
       Active: true
       SortOrder: 0
     UIInputComponent:
       {}
-    UIImageComponent:
-      Handle: 1174555778226226796
-      Color: [1, 1, 1, 1]
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     HierarchyComponent:
       Parent: 5584815381078517805
       First: 0
       Prev: 2920025421683395297
-      Next: 0
+      Next: 15730707188776866354
       ChildCount: 0
     ScriptComponent:
       FullClassName: Apple.ImageColor
+    ImageComponent:
+      Handle: 1174555778226226796
+      Color: [1, 1, 1, 1]
   - Entity: 2920025421683395297
     TagComponent:
-      Tag: Top-Right
+      Tag: Bottom-Right
     RuntimeComponent:
       Enabled: true
       Active: true
     UIComponent:
-      Anchor: [0.935, 0.089]
+      Anchor: [0.96, 0.09]
+      Offset: [0, 0]
       Size: [100, 100]
       Active: true
       SortOrder: 0
     UIInputComponent:
       {}
-    UIImageComponent:
-      Handle: 3912666485704849466
-      Color: [1, 1, 1, 1]
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     HierarchyComponent:
       Parent: 5584815381078517805
       First: 0
@@ -50,6 +57,9 @@ Entities:
       ChildCount: 0
     ScriptComponent:
       FullClassName: Apple.ImageColor
+    ImageComponent:
+      Handle: 3912666485704849466
+      Color: [1, 1, 1, 1]
   - Entity: 5584815381078517805
     TagComponent:
       Tag: Canvas
@@ -69,7 +79,7 @@ Entities:
       First: 2920025421683395297
       Prev: 0
       Next: 0
-      ChildCount: 2
+      ChildCount: 3
   - Entity: 1154228749097095179
     TagComponent:
       Tag: Camera
@@ -111,3 +121,61 @@ Entities:
       BySize: true
       Offset: [0, 0]
       Scale: [1, 1]
+  - Entity: 15730707188776866354
+    TagComponent:
+      Tag: Text
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.35, 0.26]
+      Offset: [0, 0]
+      Size: [100, 100]
+      Active: true
+      SortOrder: 0
+    UIInputComponent:
+      {}
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextRendererComponent:
+      String: Play
+      Font: 7835493660212497376
+      Color: [1, 1, 1, 1]
+      BgColor: [0, 0, 0, 0]
+      CharBgColor: [0, 0, 0, 0]
+      DrawBg: false
+      Kerning: 0
+      LineSpacing: 0
+    HierarchyComponent:
+      Parent: 5584815381078517805
+      First: 13975689764960563185
+      Prev: 3645832050754726829
+      Next: 0
+      ChildCount: 1
+  - Entity: 13975689764960563185
+    TagComponent:
+      Tag: Bg
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.45999998, 0.29999998]
+      Offset: [0.11, 0.04]
+      Size: [200, 100]
+      Active: true
+      SortOrder: 0
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    HierarchyComponent:
+      Parent: 15730707188776866354
+      First: 0
+      Prev: 0
+      Next: 0
+      ChildCount: 0
+    ImageComponent:
+      Handle: 1174555778226226796
+      Color: [1, 0, 0, 1]

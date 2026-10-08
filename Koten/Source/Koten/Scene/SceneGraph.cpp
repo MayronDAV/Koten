@@ -26,6 +26,8 @@ namespace KTN
 
     void SceneGraph::Update(entt::registry& p_Registry)
     {
+        KTN_PROFILE_FUNCTION();
+
         auto view = p_Registry.view<HierarchyComponent>();
         for (auto entity : view)
         {
@@ -33,13 +35,15 @@ namespace KTN
             if (hierarchy && hierarchy->Parent == entt::null)
             {
                 // Recursively update children
-                UpdateTransform(p_Registry, entity);
+                UpdatePosition(p_Registry, entity);
             }
         }
     }
 
-    void SceneGraph::UpdateTransform(entt::registry& p_Registry, entt::entity p_Entity)
+    void SceneGraph::UpdatePosition(entt::registry& p_Registry, entt::entity p_Entity)
     {
+        KTN_PROFILE_FUNCTION();
+
         auto hierarchyComponent = p_Registry.try_get<HierarchyComponent>(p_Entity);
         if (hierarchyComponent)
         {
@@ -56,14 +60,28 @@ namespace KTN
                 }
             }
 
+            auto uiComp = p_Registry.try_get<UIComponent>(p_Entity);
+            if (uiComp)
+            {
+                if (hierarchyComponent->Parent != entt::null)
+                {
+                    auto parentUIComp = p_Registry.try_get<UIComponent>(hierarchyComponent->Parent);
+                    if (parentUIComp)
+                    {
+                        uiComp->Anchor = glm::clamp(parentUIComp->Anchor + uiComp->Offset, glm::vec2(0.0f), glm::vec2(1.0f));
+                    }
+                }
+            }
+
             entt::entity child = hierarchyComponent->First;
             while (child != entt::null && p_Registry.valid(child))
             {
                 auto hierarchyComponent = p_Registry.try_get<HierarchyComponent>(child);
                 auto next = hierarchyComponent ? hierarchyComponent->Next : entt::null;
-                UpdateTransform(p_Registry, child);
+                UpdatePosition(p_Registry, child);
                 child = next;
             }
         }
     }
+
 } // namespace KTN

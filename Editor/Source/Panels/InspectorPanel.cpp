@@ -19,9 +19,9 @@ namespace KTN
 {
     namespace
     {
-        #define ALL_VIEW_COMPONENTS TransformComponent, CameraComponent, SpriteComponent, LineRendererComponent, TextRendererComponent,\
-            CharacterBody2DComponent, Rigidbody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, AnimationComponent, \
-            UIComponent, UIInputComponent, UICanvasComponent, UIImageComponent
+        #define ALL_VIEW_COMPONENTS TransformComponent, UICanvasComponent, UIComponent, UIInputComponent, CameraComponent, SpriteComponent,  \
+        ImageComponent, LineRendererComponent, TextRendererComponent, CharacterBody2DComponent, Rigidbody2DComponent, StaticBody2DComponent, \
+        BodyShape2DComponent, ScriptComponent, AnimationComponent
 
         template <typename Component>
         void ComponentDrawView(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity) {}
@@ -809,6 +809,7 @@ namespace KTN
                 ImGui::Checkbox("Active", &p_Comp.Active);
 
                 UI::DragFloat2("Anchor", p_Comp.Anchor, 0.0f, 0.01f, 0.0f, 1.0f);
+                UI::DragFloat2("Offset", p_Comp.Offset, 0.0f, 0.01f, 0.0f, 1.0f);
                 UI::DragFloat2("Size", p_Comp.Size, 1.0f, 1.0f);
 
                 ImGui::InputInt("SortOrder", &p_Comp.SortOrder);
@@ -910,12 +911,12 @@ namespace KTN
         }
 
         template <>
-        void ComponentDrawView<UIImageComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
+        void ComponentDrawView<ImageComponent>(InspectorPanel* p_This, entt::registry& p_Registry, Entity p_Entity)
         {
             KTN_PROFILE_FUNCTION();
 
-            DrawComponent<UIImageComponent>("UIImage", p_Entity,
-            [&](UIImageComponent& p_Comp)
+            DrawComponent<ImageComponent>("ImageComponent", p_Entity,
+            [&](ImageComponent& p_Comp)
             {
                 auto image       = AssetManager::Get()->GetAsset<Texture2D>(p_Comp.Handle);
                 ImVec2 imageSize = { 100.0f, 100.0f };
@@ -1029,6 +1030,7 @@ namespace KTN
 
                     ImGui::Separator();
 
+                    DisplayComponentEntry<ImageComponent>("ImageComponent", selectedEntt);
                     DisplayComponentEntry<SpriteComponent>("Sprite", selectedEntt);
                     DisplayComponentEntry<LineRendererComponent>("LineRenderer", selectedEntt);
                     DisplayComponentEntry<TextRendererComponent>("TextRenderer", selectedEntt);
@@ -1052,7 +1054,6 @@ namespace KTN
                     DisplayComponentEntry<UIComponent>("UIContext", selectedEntt);
                     DisplayComponentEntry<UIInputComponent>("UIInput", selectedEntt);
                     DisplayComponentEntry<UICanvasComponent>("UICanvas", selectedEntt);
-                    DisplayComponentEntry<UIImageComponent>("UIImage", selectedEntt);
 
                     ImGui::EndPopup();
                 }

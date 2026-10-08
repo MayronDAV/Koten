@@ -265,6 +265,59 @@ namespace KTN
         }
     }
 
+    public class ImageComponent : UIComponent
+    {
+        public Asset Image
+        {
+            get
+            {
+                var handle = InternalCalls.ImageComponent_GetImage(GetHandle());
+                if (handle.ID == 0)
+                    return null;
+
+                return new Asset(handle.ID, handle.SceneHandle, (AssetType)handle.Type);
+            }
+        }
+
+        public Vector4 Color
+        {
+            get
+            {
+                InternalCalls.ImageComponent_GetColor(GetHandle(), out Vector4 color);
+                return color;
+            }
+            set => InternalCalls.ImageComponent_SetColor(GetHandle(), ref value);
+        }
+
+        public void SetImage(Asset p_Asset)
+        {
+            if (p_Asset == null || !p_Asset.IsValid())
+            {
+                InternalCalls.ImageComponent_SetImageWithUUID(GetHandle(), 0);
+                return;
+            }
+
+            if (p_Asset.Type != (int)AssetType.Texture2D && p_Asset.Type != (int)AssetType.Material)
+            {
+                // TODO: Log error message to console
+                Console.WriteLine("UIImageComponent can only accept Texture2D or Material assets.");
+                return;
+            }
+
+            InternalCalls.ImageComponent_SetImageWithUUID(GetHandle(), p_Asset.ID);
+        }
+
+        public void SetImage(ulong p_Handle)
+        {
+            InternalCalls.ImageComponent_SetImageWithUUID(GetHandle(), p_Handle);
+        }
+
+        public void SetImage(string p_Path)
+        {
+            InternalCalls.ImageComponent_SetImageWithPath(GetHandle(), p_Path);
+        }
+    }
+
     // UI
 
     public enum UIRenderMode
@@ -372,59 +425,6 @@ namespace KTN
         public bool Pressed
         {
             get => InternalCalls.UIInputComponent_IsPressed(GetHandle());
-        }
-    }
-
-    public class UIImageComponent : UIComponent
-    {
-        public Asset Image
-        {
-            get
-            {
-                var handle = InternalCalls.UIImageComponent_GetImage(GetHandle());
-                if (handle.ID == 0)
-                    return null;
-
-                return new Asset(handle.ID, handle.SceneHandle, (AssetType)handle.Type);
-            }
-        }
-
-        public Vector4 Color
-        {
-            get
-            {
-                InternalCalls.UIImageComponent_GetColor(GetHandle(), out Vector4 color);
-                return color;
-            }
-            set => InternalCalls.UIImageComponent_SetColor(GetHandle(), ref value);
-        }
-
-        public void SetImage(Asset p_Asset)
-        {
-            if (p_Asset == null || !p_Asset.IsValid())
-            {
-                InternalCalls.UIImageComponent_SetImageWithUUID(GetHandle(), 0);
-                return;
-            }
-
-            if (p_Asset.Type != (int)AssetType.Texture2D && p_Asset.Type != (int)AssetType.Material)
-            {
-                // TODO: Log error message to console
-                Console.WriteLine("UIImageComponent can only accept Texture2D or Material assets.");
-                return;
-            }
-
-            InternalCalls.UIImageComponent_SetImageWithUUID(GetHandle(), p_Asset.ID);
-        }
-
-        public void SetImage(ulong p_Handle)
-        {
-            InternalCalls.UIImageComponent_SetImageWithUUID(GetHandle(), p_Handle);
-        }
-
-        public void SetImage(string p_Path)
-        {
-            InternalCalls.UIImageComponent_SetImageWithPath(GetHandle(), p_Path);
         }
     }
 

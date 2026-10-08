@@ -1468,6 +1468,108 @@ namespace KTN
 
         #pragma endregion
 
+        #pragma region ImageComponent
+
+        static ObjectHandle ImageComponent_GetImage(ObjectHandle p_Obj)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return {};
+            }
+
+            if (!entity.HasComponent<ImageComponent>())
+                return {};
+
+            auto handle = entity.GetComponent<ImageComponent>().Handle;
+            return { handle, 0, (int32_t)AssetType::Texture2D };
+        }
+
+        static void ImageComponent_SetImageWithUUID(ObjectHandle p_Obj, uint64_t p_UUID)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<ImageComponent>())
+                return;
+
+            auto& comp = entity.GetComponent<ImageComponent>();
+            if (p_UUID == 0 || !AssetManager::Get()->IsAssetHandleValid(p_UUID))
+            {
+                comp.Handle = Texture2D::GetDefault();
+                return;
+            }
+
+            comp.Handle = p_UUID;
+        }
+
+        static void ImageComponent_SetImageWithPath(ObjectHandle p_Obj, MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<ImageComponent>())
+                return;
+
+            auto path   = MonoStringToString(p_Path);
+            path        = Project::GetAssetFileSystemPath(path).string();
+            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
+
+            entity.GetComponent<ImageComponent>().Handle = handle ? handle : Texture2D::GetDefault();
+        }
+
+        static void ImageComponent_GetColor(ObjectHandle p_Obj, glm::vec4* p_Color)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<ImageComponent>())
+                return;
+
+            *p_Color = entity.GetComponent<ImageComponent>().Color;
+        }
+
+        static void ImageComponent_SetColor(ObjectHandle p_Obj, glm::vec4* p_Color)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            Entity entity = FindWithUUID(p_Obj);
+            if (!entity)
+            {
+                KTN_CORE_ERROR("Invalid Object Handle!");
+                return;
+            }
+
+            if (!entity.HasComponent<ImageComponent>())
+                return;
+
+            entity.GetComponent<ImageComponent>().Color = *p_Color;
+        }
+
+        #pragma endregion
+
+
         // UI
 
         #pragma region UICanvasComponent
@@ -1804,107 +1906,6 @@ namespace KTN
 
         #pragma endregion
 
-        #pragma region UIImageComponent
-
-        static ObjectHandle UIImageComponent_GetImage(ObjectHandle p_Obj)
-        {
-            KTN_PROFILE_FUNCTION_LOW();
-
-            Entity entity = FindWithUUID(p_Obj);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Object Handle!");
-                return {};
-            }
-
-            if (!entity.HasComponent<UIImageComponent>())
-                return {};
-
-            auto handle = entity.GetComponent<UIImageComponent>().Handle;
-            return { handle, 0, (int32_t)AssetType::Texture2D };
-        }
-
-        static void UIImageComponent_SetImageWithUUID(ObjectHandle p_Obj, uint64_t p_UUID)
-        {
-            KTN_PROFILE_FUNCTION_LOW();
-
-            Entity entity = FindWithUUID(p_Obj);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Object Handle!");
-                return;
-            }
-
-            if (!entity.HasComponent<UIImageComponent>())
-                return;
-
-            auto& comp = entity.GetComponent<UIImageComponent>();
-            if (p_UUID == 0 || !AssetManager::Get()->IsAssetHandleValid(p_UUID))
-            {
-                comp.Handle = Texture2D::GetDefault();
-                return;
-            }
-
-            comp.Handle = p_UUID;
-        }
-
-        static void UIImageComponent_SetImageWithPath(ObjectHandle p_Obj, MonoString* p_Path)
-        {
-            KTN_PROFILE_FUNCTION_LOW();
-
-            Entity entity = FindWithUUID(p_Obj);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Object Handle!");
-                return;
-            }
-
-            if (!entity.HasComponent<UIImageComponent>())
-                return;
-
-            auto path   = MonoStringToString(p_Path);
-            path        = Project::GetAssetFileSystemPath(path).string();
-            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
-
-            entity.GetComponent<UIImageComponent>().Handle = handle ? handle : Texture2D::GetDefault();
-        }
-
-        static void UIImageComponent_GetColor(ObjectHandle p_Obj, glm::vec4* p_Color)
-        {
-            KTN_PROFILE_FUNCTION_LOW();
-
-            Entity entity = FindWithUUID(p_Obj);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Object Handle!");
-                return;
-            }
-
-            if (!entity.HasComponent<UIImageComponent>())
-                return;
-
-            *p_Color = entity.GetComponent<UIImageComponent>().Color;
-        }
-
-        static void UIImageComponent_SetColor(ObjectHandle p_Obj, glm::vec4* p_Color)
-        {
-            KTN_PROFILE_FUNCTION_LOW();
-
-            Entity entity = FindWithUUID(p_Obj);
-            if (!entity)
-            {
-                KTN_CORE_ERROR("Invalid Object Handle!");
-                return;
-            }
-
-            if (!entity.HasComponent<UIImageComponent>())
-                return;
-
-            entity.GetComponent<UIImageComponent>().Color = *p_Color;
-        }
-
-        #pragma endregion
-
         std::string DemangleToKTNClassName(const std::string& p_MangledName) 
         {
             KTN_PROFILE_FUNCTION_LOW();
@@ -2092,6 +2093,12 @@ namespace KTN
         KTN_ADD_INTERNAL_CALL(AnimationComponent_SetFloat);
         KTN_ADD_INTERNAL_CALL(AnimationComponent_SetInt);
 
+        KTN_ADD_INTERNAL_CALL(ImageComponent_GetImage);
+        KTN_ADD_INTERNAL_CALL(ImageComponent_SetImageWithUUID);
+        KTN_ADD_INTERNAL_CALL(ImageComponent_SetImageWithPath);
+        KTN_ADD_INTERNAL_CALL(ImageComponent_GetColor);
+        KTN_ADD_INTERNAL_CALL(ImageComponent_SetColor);
+
         // UI
 
         KTN_ADD_INTERNAL_CALL(UICanvasComponent_GetRenderMode);
@@ -2114,12 +2121,6 @@ namespace KTN
 
         KTN_ADD_INTERNAL_CALL(UIInputComponent_IsHovered);
         KTN_ADD_INTERNAL_CALL(UIInputComponent_IsPressed);
-
-        KTN_ADD_INTERNAL_CALL(UIImageComponent_GetImage);
-        KTN_ADD_INTERNAL_CALL(UIImageComponent_SetImageWithUUID);
-        KTN_ADD_INTERNAL_CALL(UIImageComponent_SetImageWithPath);
-        KTN_ADD_INTERNAL_CALL(UIImageComponent_GetColor);
-        KTN_ADD_INTERNAL_CALL(UIImageComponent_SetColor);
     }
 
 } // namespace KTN

@@ -74,6 +74,7 @@ namespace KTN
     struct UIComponent
     {
         glm::vec2 Anchor                = { 0.0f, 0.0f };
+        glm::vec2 Offset                = { 0.0f, 0.0f };
         glm::vec2 Size                  = { 100.0f, 100.0f };
 
         bool Active                     = true;
@@ -92,13 +93,13 @@ namespace KTN
         UIInputComponent(const UIInputComponent&) = default;
     };
 
-    struct UIImageComponent
+    struct ImageComponent
     {
         AssetHandle Handle                        = 0;
         glm::vec4 Color                           = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-        UIImageComponent(bool p_GetDefault = true) : Handle(p_GetDefault ? Texture2D::GetDefault() : (AssetHandle)0) {}
-        UIImageComponent(const UIImageComponent&) = default;
+        ImageComponent(bool p_GetDefault = true) : Handle(p_GetDefault ? Texture2D::GetDefault() : (AssetHandle)0) {}
+        ImageComponent(const ImageComponent&) = default;
     };
 
     struct CameraComponent
@@ -325,6 +326,10 @@ namespace KTN
     };
 
     using PhysicsBody2DTypes = entt::type_list<Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent>;
-    #define ALL_COMPONENTS IDComponent, TagComponent, RuntimeComponent, UICanvasComponent, UIComponent, UIInputComponent, UIImageComponent, TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent, Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent, AnimationComponent
+
+    #define ALL_COMPONENTS IDComponent, TagComponent, RuntimeComponent, UICanvasComponent, UIComponent, UIInputComponent,          \
+    TransformComponent, SpriteComponent, LineRendererComponent, TextRendererComponent, CameraComponent, HierarchyComponent,        \
+    Rigidbody2DComponent, CharacterBody2DComponent, StaticBody2DComponent, BodyShape2DComponent, ScriptComponent, PrefabComponent, \
+    AnimationComponent, ImageComponent
 
 } // namespace KTN

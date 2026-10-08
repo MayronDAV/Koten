@@ -167,7 +167,7 @@ namespace KTN
                     info.PickingTarget                = PickingManager::GetPickingTarget(data.PickingTargets[canvasID]);
                 }
 
-                info.Projection    = glm::ortho(0.0f, p_Viewport->Size.x, p_Viewport->Size.y, 0.0f, -1.0f, 1.0f);
+                info.Projection    = glm::ortho(0.0f, p_Viewport->Size.x, 0.0f, p_Viewport->Size.y, -1.0f, 1.0f);
                 info.View          = glm::mat4(1.0f);
                 info.Clear         = true;
 
@@ -245,10 +245,14 @@ namespace KTN
         {
             RenderCommand command              = {};
             command.ID                         = INVALID_PICKING_ID;
-            auto* inputComponent               = p_Entity.TryGetComponent<UIInputComponent>();
-            if (inputComponent)
+            if (p_Entity.HasComponent<UIInputComponent>())
             {
                 command.ID                     = PickingManager::RegisterEntity(p_Entity, false);
+            }
+            else if (auto parent = p_Entity.GetParent();
+                     parent && parent.HasComponent<UIInputComponent>())
+            {
+                command.ID                     = PickingManager::FindPickingID(parent);
             }
 
             glm::vec2 logicalPosition          = uiComponent->Anchor * p_CanvasData.RefResolution;
@@ -263,25 +267,8 @@ namespace KTN
 
             command.Transform                  = transform.GetLocalMatrix();
 
-            auto* imageComponent               = p_Entity.TryGetComponent<UIImageComponent>();
-            if (imageComponent)
-            {
-                SpriteCommand spriteCommand    = {};
-                spriteCommand.Type             = RenderType2D::Quad;
-                spriteCommand.Size             = { 0.0f, 0.0f };
-                spriteCommand.BySize           = true;
-                spriteCommand.Offset           = { 0.0f, 0.0f };
-                spriteCommand.Scale            = { 1.0f, -1.0f };
-                spriteCommand.UseDirectUVs     = false;
-                spriteCommand.Color            = imageComponent->Color;
-
-                auto image                     = AssetManager::Get()->GetAsset<Texture2D>(imageComponent->Handle);
-                if (image)
-                    spriteCommand.Texture      = image;
-
-                command.Command                = spriteCommand;
+            if (Scene::ProccessEntityRenderCommand(command, p_Entity))
                 p_CanvasData.List.Submit(command);
-            }
         }
 
         auto* hierarchy    = p_Entity.TryGetComponent<HierarchyComponent>();

@@ -24,6 +24,8 @@ namespace KTN
             static Entity GetEntityByPickingID(PickingID p_ID);
             static Ref<Texture2D> GetPickingTarget(uint32_t p_ID);
 
+            static PickingID FindPickingID(Entity p_Entity);
+
             static void RemovePickingTarget(uint32_t p_ID);
 
         private:

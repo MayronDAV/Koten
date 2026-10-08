@@ -20,7 +20,7 @@ namespace KTN
             void DisableOnConstruct(entt::registry& p_Registry, bool p_Disable);
 
             void Update(entt::registry& p_Registry);
-            void UpdateTransform(entt::registry& p_Registry, entt::entity p_Entity);
+            void UpdatePosition(entt::registry& p_Registry, entt::entity p_Entity);
     };
 
 } // namespace KTN

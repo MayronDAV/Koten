@@ -359,6 +359,25 @@ namespace KTN
 
         #endregion
 
+        #region ImageComponent
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static ObjectHandle ImageComponent_GetImage(ObjectHandle p_Handle);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ImageComponent_SetImageWithUUID(ObjectHandle p_Handle, ulong p_Image);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ImageComponent_SetImageWithPath(ObjectHandle p_Handle, string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ImageComponent_GetColor(ObjectHandle p_Handle, out Vector4 p_Color);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void ImageComponent_SetColor(ObjectHandle p_Handle, ref Vector4 p_Color);
+
+        #endregion
+
         // UI
 
         #region UICanvasComponent
@@ -424,25 +443,6 @@ namespace KTN
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static bool UIInputComponent_IsPressed(ObjectHandle p_Handle);
-
-        #endregion
-
-        #region UIImageComponent
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static ObjectHandle UIImageComponent_GetImage(ObjectHandle p_Handle);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void UIImageComponent_SetImageWithUUID(ObjectHandle p_Handle, ulong p_Image);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void UIImageComponent_SetImageWithPath(ObjectHandle p_Handle, string p_Path);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void UIImageComponent_GetColor(ObjectHandle p_Handle, out Vector4 p_Color);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static void UIImageComponent_SetColor(ObjectHandle p_Handle, ref Vector4 p_Color);
 
         #endregion
     }

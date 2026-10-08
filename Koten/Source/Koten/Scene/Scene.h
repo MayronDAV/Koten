@@ -45,6 +45,7 @@ namespace KTN
             static void Copy(const Ref<Scene>& p_Src, const Ref<Scene>& p_Dest);
             static Entity DuplicateEntity(const Entity& p_Entity);
             static Ref<Scene> Copy(const Ref<Scene>& p_Scene);
+            static bool ProccessEntityRenderCommand(RenderCommand& p_Command, Entity& p_Entity);
 
             Entity CreateEntity(const std::string& p_Tag = std::string());
             Entity CreateEntity(UUID p_UUID, const std::string& p_Tag = std::string());
