@@ -1,0 +1,12 @@
+Scene: 325582804964689416
+Configs:
+  - UsePhysics2D: true
+Entities:
+  - Entity: 14935307803748925634
+    TagComponent:
+      Tag: Gen
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    ScriptComponent:
+      FullClassName: TW.Gen2

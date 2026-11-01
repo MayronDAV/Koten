@@ -1,10 +1,14 @@
+using System.Runtime.InteropServices;
+
 namespace KTN
 {
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct Vector4
     {
         public float X, Y, Z, W;
 
         public static Vector4 Zero => new Vector4(0.0f);
+        public static Vector4 One => new Vector4(1.0f);
 
         public Vector4(float p_Scalar)
         {

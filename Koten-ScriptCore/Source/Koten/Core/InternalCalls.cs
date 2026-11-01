@@ -36,6 +36,25 @@ namespace KTN
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static object GetScriptInstance(ulong p_UUID);
 
+        #region File
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool File_Exists(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool File_WriteText(string p_Path, string p_Text);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string File_ReadText(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool File_WriteBinary(string p_Path, byte[] p_Data);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static byte[] File_ReadBinary(string p_Path);
+
+        #endregion
+
         #region Window
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -72,7 +91,7 @@ namespace KTN
 
         #region Object
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static ObjectHandle Object_Instantiate(ObjectHandle p_Handle, ref Vector3 p_Postion, ref Vector3 p_Rotation);
+        internal extern static ObjectHandle Object_Instantiate(ObjectHandle p_Handle, ref Vector3 p_Postion, ref Vector3 p_Scale, ref Vector3 p_Rotation);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Object_Destroy(ObjectHandle p_Handle);

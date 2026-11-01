@@ -62,10 +62,9 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        s_Data->ViewportsCache.clear();
-
         if (s_Data)
         {
+            s_Data->ViewportsCache.clear();
             delete s_Data;
             s_Data = nullptr;
         }
@@ -243,6 +242,8 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
+        if (!s_Data) return;
+
         for (size_t i = 0; i < s_Data->Scenes.size(); i++)
         {
             Ref<Scene> scene = s_Data->Config.CopyScenesOnPlay && s_Data->State != RuntimeState::None ? s_Data->ScenesCopy.at(i) : s_Data->Scenes.at(i);
@@ -266,6 +267,8 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
+        if (!s_Data) return;
+
         for (auto& [id, cache] : s_Data->ViewportsCache)
         {
             auto& viewport = cache.Viewport;
@@ -283,6 +286,8 @@ namespace KTN
     void SceneManager::OnViewportRender()
     {
         KTN_PROFILE_FUNCTION();
+
+        if (!s_Data) return;
 
         for (const auto& [id, cache] : s_Data->ViewportsCache)
         {
@@ -720,8 +725,10 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        auto scene = CreateRef<Scene>();
-        scene->Handle = p_Handle;
+        s_Data->Scenes.clear();
+
+        auto scene         = CreateRef<Scene>();
+        scene->Handle      = p_Handle;
         scene->GetConfig() = p_Config;
         s_Data->Scenes.push_back(scene);
 
@@ -732,8 +739,8 @@ namespace KTN
         }
 
         AssetMetadata metadata = {};
-        metadata.Type = AssetType::Scene;
-        metadata.FilePath = p_Path;
+        metadata.Type          = AssetType::Scene;
+        metadata.FilePath      = p_Path;
 
         return AssetManager::Get()->ImportAsset(p_Handle, metadata, scene);
     }

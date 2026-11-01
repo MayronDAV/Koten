@@ -1,0 +1,35 @@
+AssetHandle: 10946681483925174717
+Root:
+  Entity:
+    TagComponent:
+      Tag: Door
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Material: 11497460683134412978
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    StaticBody2DComponent:
+      IsTrigger: true
+      Mass: 0
+      PhysicsMaterial2D: 7980078156861383348
+    BodyShape2DComponent:
+      Shape: 0
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+    ScriptComponent:
+      FullClassName: TW.Door
+    PrefabComponent:
+      Path: Prefabs/Door.ktprefab
+    Children:
+      []

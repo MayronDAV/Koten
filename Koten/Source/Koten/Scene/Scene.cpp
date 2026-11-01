@@ -454,9 +454,9 @@ namespace KTN
 
         if (!m_IsPaused || (m_StepFrames >= 0 && m_StepFrames-- > 0))
         {
-            m_SystemManager->OnUpdate(this);
-
             ScriptEngine::OnRuntimeUpdate(this);
+
+            m_SystemManager->OnUpdate(this);
 
             m_SceneGraph->Update(m_Registry);
         }
@@ -527,7 +527,7 @@ namespace KTN
         m_SystemManager->OnStop(this);
     }
 
-    void Scene::SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos, const glm::vec3& p_Rot)
+    void Scene::SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos, const glm::vec3& p_Scale, const glm::vec3& p_Rot)
     {
         KTN_PROFILE_FUNCTION();
 
@@ -541,6 +541,7 @@ namespace KTN
         if (tcomp)
         {
             tcomp->SetLocalTranslation(p_Pos);
+            tcomp->SetLocalScale(p_Scale);
             tcomp->SetLocalRotation(p_Rot);
         }
     }
@@ -609,7 +610,7 @@ namespace KTN
                     return;
                 }
 
-                p_Camera.Camera.SetViewportSize(p_Viewport->Size.x, p_Viewport->Size.y);
+                p_Camera.Camera.SetViewportSize((uint32_t)p_Viewport->Size.x, (uint32_t)p_Viewport->Size.y);
                 p_Camera.Camera.OnUpdate();
 
                 auto& data      = p_Viewport->GetSceneCameras()[Handle];

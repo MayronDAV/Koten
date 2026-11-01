@@ -66,22 +66,25 @@ namespace KTN
             ImGui::OpenPopup("NewDropdownPopup");
         }
 
-        ImGui::SetNextWindowPos(
-            ImVec2(btnPos.x + btnSize.x + 4, btnPos.y),
-            ImGuiCond_Appearing
-        );
-
+        ImGui::SetNextWindowPos(ImVec2(btnPos.x + btnSize.x + 4, btnPos.y), ImGuiCond_Appearing);
         if (ImGui::BeginPopup("NewDropdownPopup"))
         {
             if (ImGui::Selectable("Copy"))
             {
                 m_Metadata.FilePath = (Project::GetAssetFileSystemPath("Materials") / (FileSystem::GetStem(m_Metadata.FilePath) + (m_Metadata.Type == AssetType::Material ? "(1).ktmat" : "(1).ktasset"))).string();
                 m_Material->Handle  = m_MaterialHandle;
+
+                if (m_Metadata.Type == AssetType::Material)
+                {
+                    auto material   = As<Asset, Material>(m_Material);
+                    material->Name  = FileSystem::GetStem(m_Metadata.FilePath);
+                }
             }
 
             if (ImGui::Selectable("Material"))
             {
                 m_Metadata.Type     = AssetType::Material;
+                m_Metadata.Scope    = AssetScope::Project;
                 m_Metadata.FilePath = (Project::GetAssetFileSystemPath("Materials") / "New.ktmat").string();
 
                 auto mat            = CreateRef<Material>();
@@ -93,6 +96,7 @@ namespace KTN
 
             if (ImGui::Selectable("PhysicsMaterial2D"))
             {
+                m_Metadata.Scope    = AssetScope::Project;
                 m_Metadata.Type     = AssetType::PhysicsMaterial2D;
                 m_Metadata.FilePath = (Project::GetAssetFileSystemPath("Materials") / "New.ktasset").string();
                 m_Material          = CreateRef<PhysicsMaterial2D>();
@@ -106,6 +110,19 @@ namespace KTN
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
         ImGui::BeginChild("MaterialOptions", { size.x, size.y - (lineHeight * 1.2f) }, false);
         ImGui::PopStyleVar();
+
+        // Scope
+        {
+            int currentItem             = (int)m_Metadata.Scope;
+            static const char* items[]  = { "Project", "Global" };
+            static const int itemsCount = IM_ARRAYSIZE(items);
+
+            if (UI::Combo("Scope", items[currentItem], items, itemsCount, &currentItem, -1))
+            {
+                m_Metadata.Scope = (AssetScope)currentItem;
+            }
+        }
+
         if (m_Material)
         {
             auto type = m_Metadata.Type;
@@ -166,8 +183,9 @@ namespace KTN
             {
                 if (AssetManager::Get()->IsAssetHandleValid(m_MaterialHandle))
                 {
-                    auto& metadata = AssetManager::Get()->GetMetadata(m_MaterialHandle);
+                    auto& metadata    = AssetManager::Get()->GetMetadata(m_MaterialHandle);
                     metadata.FilePath = m_Metadata.FilePath;
+                    metadata.Scope    = m_Metadata.Scope;
                     AssetManager::Get()->SerializeAssetRegistry();
                 }
                 m_Edited = false;
@@ -175,6 +193,12 @@ namespace KTN
 
             if (m_New)
             {
+                if (m_Material->GetType() == AssetType::Material)
+                {
+                    auto material  = As<Asset, Material>(m_Material);
+                    material->Name = FileSystem::GetStem(m_Metadata.FilePath);
+                }
+
                 AssetManager::Get()->ImportAsset(m_MaterialHandle, m_Metadata, m_Material);
                 m_New = false;
             }

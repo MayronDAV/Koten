@@ -507,9 +507,6 @@ namespace KTN
             if (panel->IsActive())
                 panel->OnUpdate();
         }
-
-        SceneManager::OnUpdate();
-        SceneManager::OnViewportUpdate();
     }
 
     void Editor::OnRender()
@@ -521,8 +518,6 @@ namespace KTN
             if (panel->IsActive())
                 panel->OnRender();
         }
-
-        SceneManager::OnViewportRender();
     }
 
     void Editor::OnImgui()
@@ -844,13 +839,8 @@ namespace KTN
 
     void Editor::BuildDefaultLayout()
     {
-        ImGuiID dockspaceID = ImGui::GetID("MyDockspace");
-
+        ImGuiID dockspaceID     = ImGui::GetID("MyDockspace");
         ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-        // ============================================================
-        // Reset DockSpace
-        // ============================================================
 
         ImGui::DockBuilderRemoveNode(dockspaceID);
 
@@ -864,18 +854,7 @@ namespace KTN
             viewport->WorkSize
         );
 
-
-        // ============================================================
-        // TOP
-        //
-        // ┌──────────────────────────────────────────────┐
-        // │                    TOP                       │
-        // ├──────────────────────────────────────────────┤
-        // │                 REMAINING                    │
-        // └──────────────────────────────────────────────┘
-        // ============================================================
-
-        ImGuiID topNode = 0;
+        ImGuiID topNode  = 0;
         ImGuiID mainNode = 0;
 
         ImGui::DockBuilderSplitNode(
@@ -886,16 +865,7 @@ namespace KTN
             &mainNode
         );
 
-
-        // ============================================================
-        // LEFT
-        //
-        // ┌────────┬─────────────────────────────────────┐
-        // │  LEFT  │              REMAINING              │
-        // └────────┴─────────────────────────────────────┘
-        // ============================================================
-
-        ImGuiID leftNode = 0;
+        ImGuiID leftNode        = 0;
         ImGuiID centerRightNode = 0;
 
         ImGui::DockBuilderSplitNode(
@@ -906,16 +876,7 @@ namespace KTN
             &centerRightNode
         );
 
-
-        // ============================================================
-        // RIGHT
-        //
-        // ┌────────┬──────────────────────────┬─────────┐
-        // │  LEFT  │          CENTER          │  RIGHT  │
-        // └────────┴──────────────────────────┴─────────┘
-        // ============================================================
-
-        ImGuiID rightNode = 0;
+        ImGuiID rightNode  = 0;
         ImGuiID centerNode = 0;
 
         ImGui::DockBuilderSplitNode(
@@ -926,20 +887,7 @@ namespace KTN
             &centerNode
         );
 
-
-        // ============================================================
-        // DOWN
-        //
-        // ┌────────┬──────────────────────────┬─────────┐
-        // │        │                          │         │
-        // │  LEFT  │          CENTER          │  RIGHT  │
-        // │        │                          │         │
-        // ├────────┴──────────────────────────┴─────────┤
-        // │                    DOWN                     │
-        // └─────────────────────────────────────────────┘
-        // ============================================================
-
-        ImGuiID downNode = 0;
+        ImGuiID downNode      = 0;
         ImGuiID centerTopNode = 0;
 
         ImGui::DockBuilderSplitNode(
@@ -950,23 +898,13 @@ namespace KTN
             &centerTopNode
         );
 
-
-        // ============================================================
-        // Store nodes
-        // ============================================================
-
         m_DockNodes.clear();
 
-        m_DockNodes[EditorPanelDock::Top] = topNode;
-        m_DockNodes[EditorPanelDock::Left] = leftNode;
+        m_DockNodes[EditorPanelDock::Top]    = topNode;
+        m_DockNodes[EditorPanelDock::Left]   = leftNode;
         m_DockNodes[EditorPanelDock::Center] = centerTopNode;
-        m_DockNodes[EditorPanelDock::Right] = rightNode;
-        m_DockNodes[EditorPanelDock::Down] = downNode;
-
-
-        // ============================================================
-        // Dock panels
-        // ============================================================
+        m_DockNodes[EditorPanelDock::Right]  = rightNode;
+        m_DockNodes[EditorPanelDock::Down]   = downNode;
 
         for (const auto& panel : m_Panels)
         {
@@ -988,11 +926,6 @@ namespace KTN
                 it->second
             );
         }
-
-
-        // ============================================================
-        // Finish
-        // ============================================================
 
         ImGui::DockBuilderFinish(dockspaceID);
     }

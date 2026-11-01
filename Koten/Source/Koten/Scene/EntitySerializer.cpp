@@ -7,6 +7,10 @@
 // lib
 #include <yaml-cpp/yaml.h>
 
+// std
+#include <vector>
+#include <functional>
+
 
 
 namespace KTN
@@ -140,7 +144,6 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         ComponentDeserialize<ALL_COMPONENTS>(*p_Node, p_Entt.GetScene()->GetRegistry(), p_Entt);
-
         return true;
     }
 
@@ -156,11 +159,10 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         ReadStream stream = {};
-        stream.InStream = &p_In;
-        stream.Buffer = nullptr;
+        stream.InStream   = &p_In;
+        stream.Buffer     = nullptr;
 
         ComponentDeserializeBin<ALL_COMPONENTS>(stream, nullptr, p_Entt);
-
         return true;
     }
 
@@ -169,11 +171,10 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         ReadStream stream = {};
-        stream.InStream = &p_In;
-        stream.Buffer = nullptr;
+        stream.InStream   = &p_In;
+        stream.Buffer     = nullptr;
 
         ComponentDeserializeBin<ALL_COMPONENTS>(stream, &p_Buffer);
-
         return true;
     }
 
@@ -182,12 +183,30 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         ReadStream stream = {};
-        stream.InStream = nullptr;
-        stream.Buffer = &p_In;
+        stream.InStream   = nullptr;
+        stream.Buffer     = &p_In;
 
         ComponentDeserializeBin<ALL_COMPONENTS>(stream, nullptr, p_Entt);
-
         return true;
+    }
+
+    void EntitySerializer::ClearFunctions()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        m_Functions.clear();
+    }
+
+    void EntitySerializer::ExecuteFunctions()
+    {
+        KTN_PROFILE_FUNCTION();
+
+        for (auto& func : m_Functions)
+        {
+            func();
+        }
+
+        ClearFunctions();
     }
 
     // Serialize YAML
@@ -743,7 +762,7 @@ namespace KTN
 
             auto& comp = p_Entity.GetComponent<HierarchyComponent>();
 
-            UUID null = 0ul;
+            UUID null = 0ull;
 
             if (comp.Parent != entt::null)
             {
@@ -1225,19 +1244,23 @@ namespace KTN
             auto hierarchyComp = p_Data["HierarchyComponent"];
             if (!hierarchyComp) return;
 
-            auto scene = p_Entity.GetScene();
+            auto parent     = hierarchyComp["Parent"].as<uint64_t>();
+            auto first      = hierarchyComp["First"].as<uint64_t>();
+            auto prev       = hierarchyComp["Prev"].as<uint64_t>();
+            auto next       = hierarchyComp["Next"].as<uint64_t>();
+            auto childCount = hierarchyComp["ChildCount"].as<uint32_t>();
 
-            auto parent = hierarchyComp["Parent"].as<uint64_t>();
-            auto first = hierarchyComp["First"].as<uint64_t>();
-            auto prev = hierarchyComp["Prev"].as<uint64_t>();
-            auto next = hierarchyComp["Next"].as<uint64_t>();
-
-            auto& comp = p_Entity.AddOrReplaceComponent<HierarchyComponent>();
-            comp.Parent = parent != 0ul ? scene->GetEntityByUUID(parent).GetHandle() : entt::null;
-            comp.First = first != 0ul ? scene->GetEntityByUUID(first).GetHandle() : entt::null;
-            comp.Prev = prev != 0ul ? scene->GetEntityByUUID(prev).GetHandle() : entt::null;
-            comp.Next = next != 0ul ? scene->GetEntityByUUID(next).GetHandle() : entt::null;
-            comp.ChildCount = hierarchyComp["ChildCount"].as<uint32_t>();
+            EntitySerializer::PushFunction([p_Entity, parent, first, prev, next, childCount]()
+            {
+                Entity entt     = p_Entity;
+                auto& comp      = entt.AddOrReplaceComponent<HierarchyComponent>();
+                auto scene      = entt.GetScene();
+                comp.Parent     = parent != 0ul ? scene->GetEntityByUUID(parent).GetHandle() : entt::null;
+                comp.First      = first  != 0ul ? scene->GetEntityByUUID(first).GetHandle()  : entt::null;
+                comp.Prev       = prev   != 0ul ? scene->GetEntityByUUID(prev).GetHandle()   : entt::null;
+                comp.Next       = next   != 0ul ? scene->GetEntityByUUID(next).GetHandle()   : entt::null;
+                comp.ChildCount = childCount;
+            });
         }
 
         template<>
@@ -1662,13 +1685,17 @@ namespace KTN
 
             if (p_Entity)
             {
-                auto& comp = p_Entity.AddOrReplaceComponent<HierarchyComponent>();
-                auto scene = p_Entity.GetScene();
-                comp.Parent = parent != 0ul ? scene->GetEntityByUUID(parent).GetHandle() : entt::null;
-                comp.First = first != 0ul ? scene->GetEntityByUUID(first).GetHandle() : entt::null;
-                comp.Prev = prev != 0ul ? scene->GetEntityByUUID(prev).GetHandle() : entt::null;
-                comp.Next = next != 0ul ? scene->GetEntityByUUID(next).GetHandle() : entt::null;
-                comp.ChildCount = childCount;
+                EntitySerializer::PushFunction([p_Entity, parent, first, prev, next, childCount]()
+                {
+                    Entity entt     = p_Entity;
+                    auto& comp      = entt.AddOrReplaceComponent<HierarchyComponent>();
+                    auto scene      = entt.GetScene();
+                    comp.Parent     = parent != 0ul ? scene->GetEntityByUUID(parent).GetHandle() : entt::null;
+                    comp.First      = first  != 0ul ? scene->GetEntityByUUID(first).GetHandle()  : entt::null;
+                    comp.Prev       = prev   != 0ul ? scene->GetEntityByUUID(prev).GetHandle()   : entt::null;
+                    comp.Next       = next   != 0ul ? scene->GetEntityByUUID(next).GetHandle()   : entt::null;
+                    comp.ChildCount = childCount;
+                });
             }
         }
 

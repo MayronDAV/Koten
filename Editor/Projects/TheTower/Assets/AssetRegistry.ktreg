@@ -1,0 +1,108 @@
+AssetRegistry:
+  - Handle: 325582804964689416
+    FilePath: Scenes/FloorFile.ktscn
+    Type: Scene
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      {}
+  - Handle: 1235058831379764835
+    FilePath: Materials/Player.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      {}
+  - Handle: 5954195909458607770
+    FilePath: Scenes/Menu.ktscn
+    Type: Scene
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      {}
+  - Handle: 7658430674200247906
+    FilePath: Prefabs/Wall.ktprefab
+    Type: Prefab
+    Load: true
+    SerializeAssetData: false
+    Scope: Project
+  - Handle: 9926996186398462008
+    FilePath: Scenes/Floor.ktscn
+    Type: Scene
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      {}
+  - Handle: 10000323661634319554
+    FilePath: Prefabs/Player.ktprefab
+    Type: Prefab
+    Load: true
+    SerializeAssetData: false
+    Scope: Project
+  - Handle: 10608880292065035742
+    FilePath: Materials/Wall.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      {}
+  - Handle: 10946681483925174717
+    FilePath: Prefabs/Door.ktprefab
+    Type: Prefab
+    Load: true
+    SerializeAssetData: false
+    Scope: Project
+  - Handle: 11497460683134412978
+    FilePath: Materials/Door.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: false
+    Scope: Project
+  - Handle: 13631147458658217894
+    FilePath: Materials/Ground.ktmat
+    Type: Material
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      {}
+  - Handle: 16063497796006122040
+    FilePath: Scenes/Loading.ktscn
+    Type: Scene
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      {}
+  - Handle: 17988749841901371270
+    FilePath: Fonts/Arial/Arial Regular.ttf
+    Type: Font
+    Load: true
+    SerializeAssetData: true
+    Scope: Project
+    AssetData:
+      ImageType: MSDF
+      GlyphIdentifier: UNICODE_CODEPOINT
+      ImageFormat: PNG
+      EmSize: 40
+      PxRange: 2
+      MiterLimit: 1
+      AngleThreshold: 3
+      FontScale: 1
+      ThreadCount: 4
+      ExpensiveColoring: false
+      FixedScale: true
+      OverlapSupport: true
+      ScanlinePass: true
+      UseDefaultCharset: true
+  - Handle: 18412821538777441647
+    FilePath: Prefabs/Ground.ktprefab
+    Type: Prefab
+    Load: true
+    SerializeAssetData: false
+    Scope: Project

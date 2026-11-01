@@ -47,27 +47,21 @@ namespace KTN
 
                 auto viewport              = SceneManager::GetOrCreateViewport("RuntimeViewport");
                 viewport->RenderTarget     = nullptr;
-                viewport->RenderTarget     = nullptr;
                 viewport->PickingTarget    = nullptr;
 
                 viewport->Size.x           = (float)window->GetWidth();
                 viewport->Size.y           = (float)window->GetHeight();
-                viewport->Position         = { 0.0f, 0.0f };
+                viewport->Position         = window->GetPosition();
 
                 viewport->SetSceneCameras();
-                viewport->EnablePicking    = false;
+                viewport->EnablePicking    = true;
                 viewport->UpdateUI         = true;
                 viewport->RenderUI         = true;
-
-                SceneManager::OnUpdate();
-                SceneManager::OnViewportUpdate();
             }
 
             void OnRender() override
             {
                 KTN_PROFILE_FUNCTION();
-
-                SceneManager::OnViewportRender();
             }
     };
 

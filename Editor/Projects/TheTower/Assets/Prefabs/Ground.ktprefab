@@ -1,0 +1,25 @@
+AssetHandle: 18412821538777441647
+Root:
+  Entity:
+    TagComponent:
+      Tag: Ground
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteComponent:
+      Type: 0
+      Material: 13631147458658217894
+      Thickness: 1
+      Fade: 0.005
+      Size: [0, 0]
+      BySize: true
+      Offset: [0, 0]
+      Scale: [1, 1]
+    PrefabComponent:
+      Path: Prefabs/Ground.ktprefab
+    Children:
+      []

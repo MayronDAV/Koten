@@ -1,0 +1,55 @@
+Scene: 16063497796006122040
+Configs:
+  - UsePhysics2D: false
+Entities:
+  - Entity: 4116474071628639634
+    TagComponent:
+      Tag: Loading
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.89, 0.02]
+      Offset: [0, 0]
+      Size: [50, 50]
+      Active: true
+      SortOrder: 0
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextRendererComponent:
+      String: Loading...
+      Font: 17988749841901371270
+      Color: [1, 1, 1, 1]
+      BgColor: [0, 0, 0, 0]
+      CharBgColor: [0, 0, 0, 0]
+      DrawBg: false
+      Kerning: 0
+      LineSpacing: 0
+    HierarchyComponent:
+      Parent: 8427632198285903923
+      First: 0
+      Prev: 0
+      Next: 0
+      ChildCount: 0
+  - Entity: 8427632198285903923
+    TagComponent:
+      Tag: Canvas
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UICanvasComponent:
+      RenderMode: 0
+      Camera: 0
+      ReferenceResolution: [1920, 1080]
+      ScaleMode: 0
+      RenderTarget: 0
+      ReceiveInput: true
+      SortOrder: 0
+    HierarchyComponent:
+      Parent: 0
+      First: 4116474071628639634
+      Prev: 0
+      Next: 0
+      ChildCount: 1

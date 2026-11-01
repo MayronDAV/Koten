@@ -14,7 +14,12 @@
 // lib
 #include <mono/metadata/object.h>
 #include <mono/metadata/reflection.h>
+#include <mono/metadata/appdomain.h>
 #include <box2d/box2d.h>
+
+// std
+#include <vector>
+#include <iterator>
 
 
 
@@ -79,6 +84,117 @@ namespace KTN
         {
             return ScriptEngine::GetManagedInstance(p_UUID);
         }
+
+        #pragma region File
+
+        static bool File_Exists(MonoString* p_Path)
+        {
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
+
+            std::error_code error;
+            const bool exists = std::filesystem::exists(filePath, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("File_Exists error {} - {}: {}", error.category().name(), error.value(), error.message());
+            }
+
+            return !error && exists;
+        }
+
+        static bool File_WriteText(MonoString* p_Path, MonoString* p_Text)
+        {
+            const std::string nativePath = MonoStringToString(p_Path);
+            const std::string nativeText = MonoStringToString(p_Text);
+
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
+
+            if (filePath.has_parent_path())
+                std::filesystem::create_directories(filePath.parent_path());
+
+            return FileSystem::WriteTextFile(filePath.string(), nativeText);
+        }
+
+        static MonoString* File_ReadText(MonoString* p_Path)
+        {
+            const std::string nativePath = MonoStringToString(p_Path);
+            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
+
+            std::error_code error;
+            const bool exists = std::filesystem::exists(filePath, error);
+            if (!exists)
+                return nullptr;
+
+            if (error)
+            {
+                KTN_CORE_ERROR("File_Exists error {} - {}: {}", error.category().name(), error.value(), error.message());
+                return nullptr;
+            }
+
+            std::string text = FileSystem::ReadFile(filePath.string());
+            return ScriptEngine::CreateString(text.c_str());
+        }
+
+        static bool File_WriteBinary(MonoString* p_Path, MonoArray* p_Data)
+        {
+            if (!p_Data)
+                return false;
+
+            const std::string nativePath   = MonoStringToString(p_Path);
+            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
+
+            const uintptr_t length  = mono_array_length(p_Data);
+            Buffer bytes(length);
+
+            if (!bytes.Data || length <= 0 || length >= UINT64_MAX)
+                return false;
+
+            for (uintptr_t i = 0; i < length; ++i)
+            {
+                const uint8_t value = mono_array_get(p_Data, uint8_t, i);
+                bytes.Data[i]       = value;
+            }
+
+            return FileSystem::WriteFile(filePath.string(), bytes.Data, bytes.Size);;
+        }
+
+        static MonoArray* File_ReadBinary(MonoString* p_Path)
+        {
+            const std::string nativePath    = MonoStringToString(p_Path);
+            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
+
+            std::error_code error;
+            const bool exists = std::filesystem::exists(filePath, error);
+            if (!exists)
+                return nullptr;
+
+            if (error)
+            {
+                KTN_CORE_ERROR("File_ReadBinary error {} - {}: {}", error.category().name(), error.value(), error.message());
+                return nullptr;
+            }
+
+            auto buffer = FileSystem::ReadFileBinary(filePath.string());
+            if (!buffer.Data || buffer.Size <= 0)
+                return nullptr;
+
+            MonoArray* result = mono_array_new(ScriptEngine::GetAppDomain(), mono_get_byte_class(), buffer.Size);
+            if (!result)
+                return nullptr;
+
+            for (size_t i = 0; i < buffer.Size; ++i)
+                mono_array_set(result, uint8_t, i, buffer.Data[i]);
+
+            return result;
+        }
+
+        #pragma endregion
         
         #pragma region Window
 
@@ -194,7 +310,7 @@ namespace KTN
         #pragma endregion
 
         #pragma region Object
-        static ObjectHandle Object_Instantiate(ObjectHandle p_Handle, glm::vec3* p_Position, glm::vec3* p_Rotation)
+        static ObjectHandle Object_Instantiate(ObjectHandle p_Handle, glm::vec3* p_Position, glm::vec3* p_Scale, glm::vec3* p_Rotation)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
@@ -246,10 +362,11 @@ namespace KTN
                     return { 0, 0, 0 };
                 }
 
-                auto pos = p_Position ? *p_Position : glm::vec3{0.0f};
-                auto rot = p_Rotation ? *p_Rotation : glm::vec3{ 0.0f };
-                
-                scene->SetEntityTransform(newEntity, pos, rot);
+                auto pos   = p_Position ? *p_Position : glm::vec3{0.0f};
+                auto scale = p_Scale ? *p_Scale : glm::vec3{1.0f};
+                auto rot   = p_Rotation ? *p_Rotation : glm::vec3{ 0.0f };
+
+                scene->SetEntityTransform(newEntity, pos, scale, rot);
 
                 return { newEntity.GetUUID(), sceneHandle, 0 };
             }
@@ -272,13 +389,15 @@ namespace KTN
                 auto& entt = prefab->Entt;
                 auto scene = entt.GetScene();
 
-                auto pos = p_Position ? *p_Position : glm::vec3{ 0.0f };
-                auto rot = p_Rotation ? *p_Rotation : glm::vec3{ 0.0f };
+                auto pos   = p_Position ? *p_Position : glm::vec3{ 0.0f };
+                auto scale = p_Scale ? *p_Scale : glm::vec3{ 1.0f };
+                auto rot   = p_Rotation ? *p_Rotation : glm::vec3{ 0.0f };
 
                 auto tcomp = entt.TryGetComponent<TransformComponent>();
                 if (tcomp)
                 {
                     tcomp->SetLocalTranslation(pos);
+                    tcomp->SetLocalScale(scale);
                     tcomp->SetLocalRotation(rot);
                 }
 
@@ -289,6 +408,11 @@ namespace KTN
                     {
                         system->OnCreateEntity(entt);
                     }
+                }
+
+                if (entt.HasComponent<ScriptComponent>())
+                {
+                    ScriptEngine::OnCreateEntity(entt);
                 }
 
                 auto hcomp = entt.TryGetComponent<HierarchyComponent>();
@@ -1103,17 +1227,17 @@ namespace KTN
 
         static float Input_GetMouseX()
         {
-            return Input::GetMouseX();
+            return Input::GetCursorX();
         }
 
         static float Input_GetMouseY()
         {
-            return Input::GetMouseY();
+            return Input::GetCursorY();
         }
 
         static void Input_GetMousePosition(glm::vec2* p_Result)
         {
-            *p_Result = Input::GetMousePosition();
+            *p_Result = Input::GetCursorPosition();
         }
 
         static void Input_GetConnectedControllerIDs(MonoArray* p_Out, MonoException** p_Exception)
@@ -1979,6 +2103,12 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         KTN_ADD_INTERNAL_CALL(GetScriptInstance);
+
+        KTN_ADD_INTERNAL_CALL(File_Exists);
+        KTN_ADD_INTERNAL_CALL(File_ReadText);
+        KTN_ADD_INTERNAL_CALL(File_WriteText);
+        KTN_ADD_INTERNAL_CALL(File_ReadBinary);
+        KTN_ADD_INTERNAL_CALL(File_WriteBinary);
 
         KTN_ADD_INTERNAL_CALL(Window_SetTitle);
         KTN_ADD_INTERNAL_CALL(Window_SetVsync);

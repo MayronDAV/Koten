@@ -33,9 +33,9 @@ namespace KTN
             InternalCalls.Object_Destroy(handle);
         }
 
-        static internal Object InstantiateObject(Object p_Object, Vector3 p_Position, Vector3 p_Rotation)
+        static internal Object InstantiateObject(Object p_Object, Vector3 p_Position, Vector3 p_Scale, Vector3 p_Rotation)
         {
-            var handle = InternalCalls.Object_Instantiate(new ObjectHandle { ID = p_Object.ID, SceneHandle = p_Object.SceneHandle, Type = p_Object.Type }, ref p_Position, ref p_Rotation);
+            var handle = InternalCalls.Object_Instantiate(new ObjectHandle { ID = p_Object.ID, SceneHandle = p_Object.SceneHandle, Type = p_Object.Type }, ref p_Position, ref p_Scale, ref p_Rotation);
             var obj = new Object
             {
                 ID = handle.ID,

@@ -42,19 +42,19 @@ namespace KTN
             return null;
         }
 
-        public Object Instantiate(Object p_Object, Vector3 p_Position, Vector3 p_Rotation)
+        public Object Instantiate(Object p_Object, Vector3 p_Position, Vector3 p_Scale, Vector3 p_Rotation)
         {
             var obj = new Object(p_Object.ID, SceneHandle) { Type = p_Object.Type };
 
-            var inst = Object.InstantiateObject(obj, p_Position, p_Rotation);
+            var inst = Object.InstantiateObject(obj, p_Position, p_Scale, p_Rotation);
             return new Object(inst.ID, inst.SceneHandle, obj.Type);
         }
 
-        public T Instantiate<T>(Object p_Object, Vector3 p_Position, Vector3 p_Rotation) where T : Component, new()
+        public T Instantiate<T>(Object p_Object, Vector3 p_Position, Vector3 p_Scale, Vector3 p_Rotation) where T : Component, new()
         {
             var obj = new Object(p_Object.ID, SceneHandle) { Type = p_Object.Type };
 
-            var inst = Object.InstantiateObject(obj, p_Position, p_Rotation);
+            var inst = Object.InstantiateObject(obj, p_Position, p_Scale, p_Rotation);
             return new T() { ID = inst.ID, SceneHandle = inst.SceneHandle, Type = obj.Type };
         }
 

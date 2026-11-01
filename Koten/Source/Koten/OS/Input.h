@@ -56,6 +56,8 @@ namespace KTN
 
             static glm::vec2 GetCursorPosition();
             static glm::vec2 GetMousePosition();
+            static float GetCursorX() { return GetCursorPosition().x; }
+            static float GetCursorY() { return GetCursorPosition().y; }
             static float GetMouseX() { return GetMousePosition().x; }
             static float GetMouseY() { return GetMousePosition().y; }
 

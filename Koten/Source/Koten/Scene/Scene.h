@@ -68,7 +68,7 @@ namespace KTN
 
             void SetIsPaused(bool p_Paused) { m_IsPaused = p_Paused; }
 
-            void SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos = glm::vec3{ 0.0f }, const glm::vec3& p_Rot = glm::vec3{ 0.0f });
+            void SetEntityTransform(Entity p_Entity, const glm::vec3& p_Pos = glm::vec3{ 0.0f }, const glm::vec3& p_Scale = glm::vec3{ 1.0f }, const glm::vec3& p_Rot = glm::vec3{ 0.0f });
 
             void Step(int p_Frames = 1);
 

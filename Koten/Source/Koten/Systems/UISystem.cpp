@@ -59,8 +59,7 @@ namespace KTN
         auto& data            = it->second;
 
         data.RenderData.clear();
-        auto& registry = p_Scene->GetRegistry();
-        registry.view<RuntimeComponent, UICanvasComponent>().each(
+        p_Scene->GetRegistry().view<RuntimeComponent, UICanvasComponent>().each(
         [&](entt::entity p_Entity, const RuntimeComponent& p_Runtime, const UICanvasComponent& p_Canvas)
         {
             if (!p_Runtime.Active)
@@ -105,7 +104,7 @@ namespace KTN
                         int pixelY = (int)localY;
 
                         if (Engine::Get().GetAPI() == RenderAPI::OpenGL)
-                            pixelY = p_Viewport->Size.y - 1 - pixelY;
+                            pixelY = (int)p_Viewport->Size.y - 1 - pixelY;
 
                         Entity entity = PickingManager::ReadPixel(data.PickingTargets[canvasID], pixelX, pixelY);
                         if (entity)

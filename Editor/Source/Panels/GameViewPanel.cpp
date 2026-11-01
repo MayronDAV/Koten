@@ -83,28 +83,14 @@ namespace KTN
         m_MainTexture               = Texture2D::Get(tspec);
 
         auto viewport               = SceneManager::GetOrCreateViewport("GameViewport");
-        viewport->RenderTarget      = nullptr;
         viewport->RenderTarget      = m_MainTexture;
         viewport->PickingTarget     = nullptr;
-
-        viewport->EnablePicking     = false;
-
-        auto state = m_Editor->GetState();
-        if (state != RuntimeState::Edit)
-        {
-            if (m_PickingTextureID == 0)
-                m_PickingTextureID  = PickingManager::CreatePickingTarget(m_Viewport.Width, m_Viewport.Height);
-
-            PickingManager::Update(m_PickingTextureID, m_Viewport.Width, m_Viewport.Height);
-            viewport->PickingTarget = PickingManager::GetPickingTarget(m_PickingTextureID);
-            viewport->EnablePicking = true;
-        }
 
         viewport->Size              = { (float)m_Viewport.Width, (float)m_Viewport.Height };
         viewport->Position          = { m_Viewport.Position.x, m_Viewport.Position.y };
 
         viewport->SetSceneCameras();
-
+        viewport->EnablePicking     = m_Editor->GetState() != RuntimeState::Edit;
         viewport->UpdateUI          = true;
         viewport->RenderUI          = true;
     }

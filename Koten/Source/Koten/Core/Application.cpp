@@ -160,6 +160,9 @@ namespace KTN
 
                 for (auto& layer : m_LayerStack)
                     layer->OnUpdate();
+
+                SceneManager::OnUpdate();
+                SceneManager::OnViewportUpdate();
             
                 TaskManager::Get().ExecutePhase(TaskManager::Phase::LateUpdate);
                 TaskManager::Get().WaitForSyncPoint(TaskManager::SyncPoint::FramePostUpdate);
@@ -177,6 +180,8 @@ namespace KTN
 
                 for (auto& layer : m_LayerStack)
                     layer->OnRender();
+
+                SceneManager::OnViewportRender();
 
                 Renderer::EndFrame();
 

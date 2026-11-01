@@ -92,20 +92,17 @@ namespace KTN
         auto entts = data["Entities"];
         if (entts)
         {
-            // TODO: Maybe find another way to load the entt hierarchy
-            for (auto entt : entts)
-            {
-                auto enttID = entt["Entity"].as<uint64_t>();
-                Entity deserializedEntt = m_Scene->CreateEntity((UUID)enttID, "Entity");
-            }
+            EntitySerializer::ClearFunctions();
 
             for (auto entt : entts)
             {
                 auto enttID = entt["Entity"].as<uint64_t>();
-                Entity deserializedEntt = m_Scene->GetEntityByUUID((UUID)enttID);
+                Entity deserializedEntt = m_Scene->CreateEntity(enttID);
 
                 EntitySerializer::Deserialize(&entt, deserializedEntt);
             }
+
+            EntitySerializer::ExecuteFunctions();
         }
 
         return true;
@@ -143,6 +140,8 @@ namespace KTN
         int size = 0;
         p_In.read(reinterpret_cast<char*>(&size), sizeof(size));
 
+        EntitySerializer::ClearFunctions();
+
         for (int i = 0; i < size; i++)
         {
             UUID uuid;
@@ -151,6 +150,8 @@ namespace KTN
             Entity entt = m_Scene->CreateEntity(uuid);
             EntitySerializer::DeserializeBin(p_In, entt);
         }
+
+        EntitySerializer::ExecuteFunctions();
 
         return true;
     }
@@ -168,6 +169,8 @@ namespace KTN
         int size = 0;
         reader.ReadBytes(&size, sizeof(size));
 
+        EntitySerializer::ClearFunctions();
+
         for (int i = 0; i < size; i++)
         {
             UUID uuid;
@@ -176,6 +179,8 @@ namespace KTN
             Entity entt = m_Scene->CreateEntity(uuid);
             EntitySerializer::DeserializeBin(reader, entt);
         }
+
+        EntitySerializer::ExecuteFunctions();
 
         return true;
     }

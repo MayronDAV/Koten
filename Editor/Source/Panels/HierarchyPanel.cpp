@@ -33,6 +33,20 @@ namespace KTN
 
             bool opened = ImGui::TreeNodeEx((void*)(uint64_t)scene->Handle, flags, name.c_str());
 
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    const wchar_t* path = (const wchar_t*)payload->Data;
+                    auto filepath = std::filesystem::path(path);
+                    if (filepath.extension() == ".ktprefab")
+                    {
+                        PrefabImporter::Load(scene->Handle, filepath.string());
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
             if (ImGui::BeginPopupContextItem())
             {
                 if (ImGui::MenuItem(ICON_MDI_FLOPPY " Save"))
