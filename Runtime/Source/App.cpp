@@ -13,6 +13,8 @@ namespace KTN
         public:
             RuntimeLayer() : Layer("RuntimeLayer")
             {
+                ScriptGlue::Initialize();
+
                 m_Project                       = Project::GetActive();
 
                 SceneManager::Init();

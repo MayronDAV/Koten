@@ -196,7 +196,7 @@ namespace KTN
                 {
                     auto& clip = m_Anim->Clips[i];
     
-                    ImGui::PushID(clip.ID);
+                    ImGui::PushID((int)clip.ID);
                     if (ImGui::Selectable(clip.Name.c_str(), m_SelectedClipID == clip.ID))
                     {
                         m_SelectedClipID = clip.ID;
@@ -222,7 +222,7 @@ namespace KTN
                         ImGui::BeginGroup();
 
                         auto texture     = AssetManager::Get()->GetAsset<Texture2D>(atlas->Texture);
-                        ImGui::PushID(region.ID);
+                        ImGui::PushID((int)region.ID);
 
                         float buttonSize = itemWidth - 20.0f;
 
@@ -578,7 +578,7 @@ namespace KTN
                     if (major)
                     {
                         char buf[16];
-                        sprintf(buf, "%.0fs", t);
+                        Sprintf(buf, "%.0fs", t);
                         draw->AddText({ x + 2, centerY + 22 }, IM_COL32_WHITE, buf);
                     }
                 }

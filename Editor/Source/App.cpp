@@ -29,14 +29,28 @@ namespace KTN
             {
                 if (i + 1 < p_Argc)
                 {
-                    std::string projectPath = std::filesystem::absolute(p_Argv[i + 1]).string();
+                    std::error_code error;
+                    std::string projectPath = std::filesystem::absolute(p_Argv[i + 1], error).string();
+                    if (error)
+                    {
+                        std::cout << "Error resolving project path " << error.category().name() << " - " << error.value() << ": " << error.message() << "\n";
+                        return nullptr;
+                    }
+
                     if (projectPath.empty())
                     {
                         std::cout << "The project path is empty. Please provide a valid path.\n";
                         return nullptr;
                     }
 
-                    if (!std::filesystem::exists(projectPath))
+                    const bool exists = std::filesystem::exists(projectPath, error);
+                    if (error)
+                    {
+                        std::cout << "Error checking if project path exists " << error.category().name() << " - " << error.value() << ": " << error.message() << "\n";
+                        return nullptr;
+                    }
+
+                    if (!exists)
                     {
                         std::cout << "The project path doesn't exist. Please provide a valid path.\n";
                         return nullptr;

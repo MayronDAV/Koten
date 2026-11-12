@@ -54,6 +54,8 @@ namespace KTN
             virtual void* GetNative()                                          = 0;
             virtual bool IsVsync() const                                       = 0;
 
+            virtual void Close()                                               = 0;
+
             static Unique<Window> Create(const WindowSpecification& p_Spec = {});
     };
 

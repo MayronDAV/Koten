@@ -134,7 +134,7 @@ namespace KTN
                     }
 
                     auto& cached = cacheIt->second;
-                    UpdateEntity(p_AnimComp, *cached.Controller, *cached.Animation, dt);
+                    UpdateEntity(p_AnimComp, *cached.Controller, *cached.Animation, (float)dt);
                 });
             });
 

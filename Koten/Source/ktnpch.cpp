@@ -28,6 +28,13 @@ namespace YAML
         return p_Out;
     }
 
+    Emitter& operator <<(Emitter& p_Out, const KTN::ObjectHandle& p_Value)
+    {
+        p_Out << Flow;
+        p_Out << BeginSeq << p_Value.ID << p_Value.SceneHandle << p_Value.Type << EndSeq;
+        return p_Out;
+    }
+
     Emitter& operator<<(Emitter& p_Out, const KTN::AssetHandle& p_Handle)
     {
         p_Out << (uint64_t)p_Handle;

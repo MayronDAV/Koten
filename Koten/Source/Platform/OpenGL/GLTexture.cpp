@@ -165,7 +165,7 @@ namespace KTN
         KTN_PROFILE_FUNCTION_LOW();
 
         std::vector<uint8_t> buffer(GetEstimatedSize());
-        GLCall(glGetTextureImage(m_RendererID, 0, m_Format, GLUtils::TextureFormatToGLType(m_Specification.Format), buffer.size(), buffer.data()));
+        GLCall(glGetTextureImage(m_RendererID, 0, m_Format, GLUtils::TextureFormatToGLType(m_Specification.Format), (GLsizei)buffer.size(), buffer.data()));
 
         return buffer;
     }

@@ -240,7 +240,7 @@ namespace KTN
             {
                 job();
             }
-            catch (const std::exception& e)
+            catch (std::exception e)
             {
                 KTN_CORE_ERROR("Exception in worker thread {0}: {1}", p_ThreadIndex, e.what());
             }

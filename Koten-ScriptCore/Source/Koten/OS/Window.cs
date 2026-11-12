@@ -36,5 +36,10 @@ namespace KTN
         {
             InternalCalls.Window_Resize(p_Width, p_Height);
         }
+
+        public static void Close()
+        {
+            InternalCalls.Window_Close();
+        }
     }
 }

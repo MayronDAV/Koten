@@ -10,10 +10,10 @@ namespace TW
 {
     public class Gen2 : ScriptBehavior
     {
-        private Asset m_Door;
-        private Asset m_Ground;
-        private Asset m_Wall;
-        private Asset m_Player;
+        public Asset m_Door;
+        public Asset m_Ground;
+        public Asset m_Wall;
+        public Asset m_Player;
 
         void InstantiateMap(List<MapRect> p_Rectangles)
         {
@@ -62,7 +62,11 @@ namespace TW
 
         void OnCreate()
         {
-            if (!File.Exists("Maps/Ini.txt"))
+            Path iniPath    = new Path("Assets/Maps/Ini.txt");
+            Path mapPath    = new Path("Assets/Maps/Map.txt");
+            Path mapBinPath = new Path("Assets/Maps/Map.bin");
+
+            if (!iniPath.Exists())
             {
                 FileEmitter emitter = new FileEmitter();
                 emitter.BeginBlock("Settings");
@@ -70,14 +74,14 @@ namespace TW
                     emitter.Write("ReadFile", "bin");
                 }
                 emitter.EndBlock();
-                bool saved = emitter.Save("Maps/Ini.txt");
+                bool saved = emitter.Save(iniPath);
                 if (!saved)
                 {
                     Console.WriteLine("Failed to save map gen ini!");
                 }
             }
 
-            if (!File.Exists("Maps/Map.txt"))
+            if (!mapPath.Exists())
             {
                 FileEmitter emitter = new FileEmitter();
                 emitter.BeginBlock("MapSettings");
@@ -101,14 +105,14 @@ namespace TW
                     emitter.Write("CellSize", "1");
                 }
                 emitter.EndBlock();
-                bool saved = emitter.Save("Maps/Map.txt");
+                bool saved = emitter.Save(mapPath);
                 if (!saved)
                 {
                     Console.WriteLine("Failed to save map!");
                 }
             }
 
-            if (!File.Exists("Maps/Map.bin"))
+            if (!mapBinPath.Exists())
             {
                 using (var writer = new BinaryFileWriter())
                 {
@@ -131,7 +135,7 @@ namespace TW
                         "###########"
                     });
 
-                    bool saved = writer.Save("Maps/Map.bin");
+                    bool saved = writer.Save(mapBinPath);
                     if (!saved)
                     {
                         Console.WriteLine("Failed to save map bin!");
@@ -140,22 +144,46 @@ namespace TW
 
             }
 
-            m_Door   = AssetManager.FindWithPath("Prefabs/Door.ktprefab");
-            m_Ground = AssetManager.FindWithPath("Prefabs/Ground.ktprefab");
-            m_Wall   = AssetManager.FindWithPath("Prefabs/Wall.ktprefab");
-            m_Player = AssetManager.FindWithPath("Prefabs/Player.ktprefab");
+            if (m_Door == null   || !m_Door.IsValid()   || 
+                m_Ground == null || !m_Ground.IsValid() || 
+                m_Wall == null   || !m_Wall.IsValid()   || 
+                m_Player == null || !m_Player.IsValid())
+            {
+                return;
+            }
 
             Instantiate(m_Player, new Vector3(5.0f, -8.0f, 0.0f), Vector3.One, Vector3.Zero);
 
-            FileNode rootIni  = FileReader.ReadFile("Maps/Ini.txt");
+            if (!iniPath.Exists())
+            {
+                Console.WriteLine("Ini file not found!");
+                return;
+            }
+
+            FileNode rootIni  = FileReader.ReadFile(iniPath);
             FileNode settings = rootIni.GetNode("Settings");
+            if (settings == null)
+            {
+                Console.WriteLine("Failed to read map gen ini!");
+                return;
+            }
             string readFile   = settings.GetString("ReadFile");
 
             if (readFile.Equals("txt", StringComparison.OrdinalIgnoreCase))
             {
-                FileNode root        = FileReader.ReadFile("Maps/Map.txt");
+                if (!mapPath.Exists())
+                {
+                    Console.WriteLine("Map file not found!");
+                    return;
+                }
 
+                FileNode root        = FileReader.ReadFile(mapPath);
                 FileNode mapSettings = root.GetNode("MapSettings"); 
+                if (mapSettings == null)
+                {
+                    Console.WriteLine("Failed to read map file!");
+                    return;
+                }
                 string[] map         = mapSettings.GetStringArray("Map");
                 string widthStr      = mapSettings.GetString("Width");
                 string heightStr     = mapSettings.GetString("Height");
@@ -177,7 +205,13 @@ namespace TW
             }
             else if (readFile.Equals("bin", StringComparison.OrdinalIgnoreCase))
             {
-                using (var reader = BinaryFileReader.FromFile("Maps/Map.bin"))
+                if (!mapBinPath.Exists())
+                {
+                    Console.WriteLine("Map bin file not found!");
+                    return;
+                }
+
+                using (var reader = BinaryFileReader.FromFile(mapBinPath))
                 {
                     int version  = reader.ReadInt32();
                     if (version != 1)

@@ -9,7 +9,7 @@ namespace KTN
         Additive
     };
 
-    public class SceneManager
+    public static class SceneManager
     {
         public static LoadMode Mode { get => (LoadMode)InternalCalls.SceneManager_GetConfigLoadMode(); set => InternalCalls.SceneManager_SetConfigLoadMode((int)value); }
         public static bool IsPaused { get => InternalCalls.SceneManager_IsPaused(); set => InternalCalls.SceneManager_Pause(value); }

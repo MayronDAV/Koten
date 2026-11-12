@@ -21,8 +21,8 @@ namespace TW
 
             if (m_Component.Pressed && !m_Loading)
             {
-                SceneManager.LoadScene("Scenes/Loading.ktscn", LoadMode.Single);
-                SceneManager.LoadSceneAsync("Scenes/Floor.ktscn", LoadMode.Single);
+                SceneManager.LoadScene("Assets/Scenes/Loading.ktscn", LoadMode.Single);
+                SceneManager.LoadSceneAsync("Assets/Scenes/Floor.ktscn", LoadMode.Single); 
                 m_Loading = true;
             }
         }
@@ -46,9 +46,30 @@ namespace TW
 
             if (m_Component.Pressed && !m_Loading)
             {
-                SceneManager.LoadScene("Scenes/Loading.ktscn", LoadMode.Single);
-                SceneManager.LoadSceneAsync("Scenes/FloorFile.ktscn", LoadMode.Single);
+                SceneManager.LoadScene("Assets/Scenes/Loading.ktscn", LoadMode.Single);
+                SceneManager.LoadSceneAsync("Assets/Scenes/FloorFile.ktscn", LoadMode.Single);
                 m_Loading = true;
+            }
+        }
+    }
+
+    public class Exit : ScriptBehavior
+    {
+        private UIInputComponent m_Component;
+
+        void OnCreate()
+        {
+            m_Component = GetComponent<UIInputComponent>();
+        }
+
+        void OnUpdate()
+        {
+            if (m_Component == null)
+                return;
+
+            if (m_Component.Pressed)
+            {
+                Window.Close();
             }
         }
     }

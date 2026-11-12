@@ -71,7 +71,7 @@ namespace KTN
         {
             data = YAML::LoadFile(p_Path);
         }
-        catch (const YAML::ParserException& e)
+        catch (YAML::ParserException e)
         {
             KTN_CORE_ERROR("Failed to load .ktshader file '{}'\n     {}", p_Path, e.what());
             return nullptr;

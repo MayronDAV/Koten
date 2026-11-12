@@ -218,6 +218,13 @@ namespace KTN
         return resolutions;
     }
 
+    void GLFWWindow::Close()
+    {
+        KTN_PROFILE_FUNCTION_LOW();
+
+        glfwSetWindowShouldClose(m_Window, GLFW_TRUE);
+    }
+
     void GLFWWindow::Init(const WindowSpecification& p_Spec)
     {
         KTN_PROFILE_FUNCTION_LOW();

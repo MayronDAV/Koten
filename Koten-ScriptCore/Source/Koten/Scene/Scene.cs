@@ -5,7 +5,7 @@ namespace KTN
     public class Scene
     {
         internal Scene() { }
-        internal Scene(ulong p_Handle)
+        public Scene(ulong p_Handle)
         {
             Handle = p_Handle;
         }

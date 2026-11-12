@@ -45,7 +45,7 @@ namespace KTN
             auto it = assetRegistry.begin();
 
             ImGuiListClipper clipper;
-            clipper.Begin(assetRegistry.size());
+            clipper.Begin((int)assetRegistry.size());
             static AssetHandle currentID;
 
             while (clipper.Step())
@@ -74,7 +74,7 @@ namespace KTN
                     if (ImGui::IsItemHovered())
                         currentID = asset.first;
 
-                    ImGui::PushID(currentID + asset.first);
+                    ImGui::PushID(int(currentID + asset.first));
                     if (ImGui::BeginPopupContextWindow(0, 1))
                     {
                         if (ImGui::MenuItem("Import"))

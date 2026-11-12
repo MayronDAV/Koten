@@ -2,15 +2,103 @@ Scene: 5954195909458607770
 Configs:
   - UsePhysics2D: false
 Entities:
-  - Entity: 3522808597353869839
+  - Entity: 4042260117866880361
+    TagComponent:
+      Tag: Canvas
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UICanvasComponent:
+      RenderMode: 0
+      Camera: 0
+      ReferenceResolution: [800, 600]
+      ScaleMode: 0
+      RenderTarget: 0
+      ReceiveInput: true
+      SortOrder: 0
+    HierarchyComponent:
+      Parent: 0
+      First: 4985995181531666507
+      Prev: 0
+      Next: 0
+      ChildCount: 4
+  - Entity: 4985995181531666507
+    TagComponent:
+      Tag: Title
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.25, 0.8]
+      Offset: [0, 0]
+      Size: [100, 100]
+      Active: true
+      SortOrder: 0
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextRendererComponent:
+      String: The Tower
+      Font: 17988749841901371270
+      Color: [1, 1, 1, 1]
+      BgColor: [0, 0, 0, 0]
+      CharBgColor: [0, 0, 0, 0]
+      DrawBg: false
+      Kerning: 0
+      LineSpacing: 0
+    HierarchyComponent:
+      Parent: 4042260117866880361
+      First: 0
+      Prev: 0
+      Next: 17677209415195104746
+      ChildCount: 0
+  - Entity: 17677209415195104746
+    TagComponent:
+      Tag: Play
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.43, 0.48]
+      Offset: [0, 0]
+      Size: [50, 50]
+      Active: true
+      SortOrder: 0
+    UIInputComponent:
+      {}
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextRendererComponent:
+      String: Play
+      Font: 17988749841901371270
+      Color: [1, 1, 1, 1]
+      BgColor: [0, 0, 0, 0]
+      CharBgColor: [0, 0, 0, 0]
+      DrawBg: false
+      Kerning: 0
+      LineSpacing: 0
+    HierarchyComponent:
+      Parent: 4042260117866880361
+      First: 3795318712591128
+      Prev: 4985995181531666507
+      Next: 12296501470908192152
+      ChildCount: 1
+    ScriptComponent:
+      FullClassName: TW.Play
+      ScriptFields:
+        []
+  - Entity: 3795318712591128
     TagComponent:
       Tag: Bg
     RuntimeComponent:
       Enabled: true
       Active: true
     UIComponent:
-      Anchor: [0.48999998, 0.37]
-      Offset: [0.1, 0.02]
+      Anchor: [0.49, 0.5]
+      Offset: [0.06, 0.02]
       Size: [225, 50]
       Active: true
       SortOrder: 0
@@ -19,7 +107,67 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     HierarchyComponent:
-      Parent: 14190260525384290808
+      Parent: 17677209415195104746
+      First: 0
+      Prev: 0
+      Next: 0
+      ChildCount: 0
+    ImageComponent:
+      Handle: 1174555778226226796
+      Color: [1, 0, 0, 1]
+  - Entity: 12296501470908192152
+    TagComponent:
+      Tag: Exit
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.43, 0.22]
+      Offset: [0, 0]
+      Size: [50, 50]
+      Active: true
+      SortOrder: 0
+    UIInputComponent:
+      {}
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextRendererComponent:
+      String: Exit
+      Font: 17988749841901371270
+      Color: [1, 1, 1, 1]
+      BgColor: [0, 0, 0, 0]
+      CharBgColor: [0, 0, 0, 0]
+      DrawBg: false
+      Kerning: 0
+      LineSpacing: 0
+    HierarchyComponent:
+      Parent: 4042260117866880361
+      First: 10340919043023938540
+      Prev: 17677209415195104746
+      Next: 14190260525384290808
+      ChildCount: 1
+    ScriptComponent:
+      FullClassName: TW.Exit
+  - Entity: 10340919043023938540
+    TagComponent:
+      Tag: Bg
+    RuntimeComponent:
+      Enabled: true
+      Active: true
+    UIComponent:
+      Anchor: [0.49, 0.24]
+      Offset: [0.06, 0.02]
+      Size: [225, 50]
+      Active: true
+      SortOrder: 0
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    HierarchyComponent:
+      Parent: 12296501470908192152
       First: 0
       Prev: 0
       Next: 0
@@ -64,15 +212,15 @@ Entities:
       FullClassName: TW.PlayFile
       ScriptFields:
         []
-  - Entity: 10340919043023938540
+  - Entity: 3522808597353869839
     TagComponent:
       Tag: Bg
     RuntimeComponent:
       Enabled: true
       Active: true
     UIComponent:
-      Anchor: [0.49, 0.24]
-      Offset: [0.06, 0.02]
+      Anchor: [0.48999998, 0.37]
+      Offset: [0.1, 0.02]
       Size: [225, 50]
       Active: true
       SortOrder: 0
@@ -81,7 +229,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     HierarchyComponent:
-      Parent: 12296501470908192152
+      Parent: 14190260525384290808
       First: 0
       Prev: 0
       Next: 0
@@ -89,149 +237,3 @@ Entities:
     ImageComponent:
       Handle: 1174555778226226796
       Color: [1, 0, 0, 1]
-  - Entity: 12296501470908192152
-    TagComponent:
-      Tag: Exit
-    RuntimeComponent:
-      Enabled: true
-      Active: true
-    UIComponent:
-      Anchor: [0.43, 0.22]
-      Offset: [0, 0]
-      Size: [50, 50]
-      Active: true
-      SortOrder: 0
-    UIInputComponent:
-      {}
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TextRendererComponent:
-      String: Exit
-      Font: 17988749841901371270
-      Color: [1, 1, 1, 1]
-      BgColor: [0, 0, 0, 0]
-      CharBgColor: [0, 0, 0, 0]
-      DrawBg: false
-      Kerning: 0
-      LineSpacing: 0
-    HierarchyComponent:
-      Parent: 4042260117866880361
-      First: 10340919043023938540
-      Prev: 17677209415195104746
-      Next: 14190260525384290808
-      ChildCount: 1
-  - Entity: 3795318712591128
-    TagComponent:
-      Tag: Bg
-    RuntimeComponent:
-      Enabled: true
-      Active: true
-    UIComponent:
-      Anchor: [0.49, 0.5]
-      Offset: [0.06, 0.02]
-      Size: [225, 50]
-      Active: true
-      SortOrder: 0
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    HierarchyComponent:
-      Parent: 17677209415195104746
-      First: 0
-      Prev: 0
-      Next: 0
-      ChildCount: 0
-    ImageComponent:
-      Handle: 1174555778226226796
-      Color: [1, 0, 0, 1]
-  - Entity: 17677209415195104746
-    TagComponent:
-      Tag: Play
-    RuntimeComponent:
-      Enabled: true
-      Active: true
-    UIComponent:
-      Anchor: [0.43, 0.48]
-      Offset: [0, 0]
-      Size: [50, 50]
-      Active: true
-      SortOrder: 0
-    UIInputComponent:
-      {}
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TextRendererComponent:
-      String: Play
-      Font: 17988749841901371270
-      Color: [1, 1, 1, 1]
-      BgColor: [0, 0, 0, 0]
-      CharBgColor: [0, 0, 0, 0]
-      DrawBg: false
-      Kerning: 0
-      LineSpacing: 0
-    HierarchyComponent:
-      Parent: 4042260117866880361
-      First: 3795318712591128
-      Prev: 4985995181531666507
-      Next: 12296501470908192152
-      ChildCount: 1
-    ScriptComponent:
-      FullClassName: TW.Play
-      ScriptFields:
-        []
-  - Entity: 4985995181531666507
-    TagComponent:
-      Tag: Title
-    RuntimeComponent:
-      Enabled: true
-      Active: true
-    UIComponent:
-      Anchor: [0.25, 0.8]
-      Offset: [0, 0]
-      Size: [100, 100]
-      Active: true
-      SortOrder: 0
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    TextRendererComponent:
-      String: The Tower
-      Font: 17988749841901371270
-      Color: [1, 1, 1, 1]
-      BgColor: [0, 0, 0, 0]
-      CharBgColor: [0, 0, 0, 0]
-      DrawBg: false
-      Kerning: 0
-      LineSpacing: 0
-    HierarchyComponent:
-      Parent: 4042260117866880361
-      First: 0
-      Prev: 0
-      Next: 17677209415195104746
-      ChildCount: 0
-  - Entity: 4042260117866880361
-    TagComponent:
-      Tag: Canvas
-    RuntimeComponent:
-      Enabled: true
-      Active: true
-    UICanvasComponent:
-      RenderMode: 0
-      Camera: 0
-      ReferenceResolution: [800, 600]
-      ScaleMode: 0
-      RenderTarget: 0
-      ReceiveInput: true
-      SortOrder: 0
-    HierarchyComponent:
-      Parent: 0
-      First: 4985995181531666507
-      Prev: 0
-      Next: 0
-      ChildCount: 4

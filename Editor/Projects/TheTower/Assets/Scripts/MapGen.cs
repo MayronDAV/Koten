@@ -9,10 +9,10 @@ namespace TW
 {
     public class Gen : ScriptBehavior
     {
-        private Asset m_Door;
-        private Asset m_Ground;
-        private Asset m_Wall;
-        private Asset m_Player;
+        public Asset m_Door;
+        public Asset m_Ground;
+        public Asset m_Wall;
+        public Asset m_Player;
 
         private string m_Map;
         private string[] m_Map2;
@@ -35,11 +35,13 @@ namespace TW
                 "###########"
             };
 
-
-            m_Door   = AssetManager.FindWithPath("Prefabs/Door.ktprefab");
-            m_Ground = AssetManager.FindWithPath("Prefabs/Ground.ktprefab");
-            m_Wall   = AssetManager.FindWithPath("Prefabs/Wall.ktprefab");
-            m_Player = AssetManager.FindWithPath("Prefabs/Player.ktprefab");
+            if (m_Door == null   || !m_Door.IsValid()   || 
+                m_Ground == null || !m_Ground.IsValid() || 
+                m_Wall == null   || !m_Wall.IsValid()   || 
+                m_Player == null || !m_Player.IsValid())
+            {
+                return;
+            }
 
             Instantiate(m_Player, new Vector3(5.0f, -8.0f, 0.0f), new Vector3(1.0f, 1.0f, 1.0f), Vector3.Zero);
 

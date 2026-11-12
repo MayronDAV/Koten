@@ -5,13 +5,17 @@ namespace KTN
     public abstract class Component : Object
     {
         protected Component()
-            : base()
-        {
-        }
+            : base() { }
+        protected Component(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class Transform : Component
     {
+        public Transform() : base() { }
+        public Transform(Object p_Object)
+            : base(p_Object) { }
+
         public Vector3 LocalTranslation
         {
             get
@@ -28,10 +32,17 @@ namespace KTN
 
     public class IDComponent : Component
     {
+        public IDComponent() : base() { }
+        public IDComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class TagComponent : Component
     {
+        public TagComponent() : base() { }
+        public TagComponent(Object p_Object)
+            : base(p_Object) { }
+
         public string Tag
         {
             get => InternalCalls.TagComponent_GetTag(GetHandle());
@@ -41,6 +52,10 @@ namespace KTN
 
     public class  RuntimeComponent : Component
     {
+        public RuntimeComponent() : base() { }
+        public RuntimeComponent(Object p_Object)
+            : base(p_Object) { }
+
         public bool Enabled
         {
             get => InternalCalls.RuntimeComponent_IsEnabled(GetHandle());
@@ -56,14 +71,24 @@ namespace KTN
 
     public class SpriteComponent : Component
     {
+        public SpriteComponent() : base() { }
+        public SpriteComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class LineRendererComponent : Component
     {
+        public LineRendererComponent() : base() { }
+        public LineRendererComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class TextRendererComponent : Component
     {
+        public TextRendererComponent() : base() { }
+        public TextRendererComponent(Object p_Object)
+            : base(p_Object) { }
+
         public string String
         {
             get => InternalCalls.TextRendererComponent_GetString(GetHandle());
@@ -128,14 +153,24 @@ namespace KTN
 
     public class CameraComponent : Component
     {
+        public CameraComponent() : base() { }
+        public CameraComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class HierarchyComponent : Component
     {
+        public HierarchyComponent() : base() { }
+        public HierarchyComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class PhysicsBody : Component
     {
+        protected PhysicsBody() : base() { }
+        protected PhysicsBody(Object p_Object)
+            : base(p_Object) { }
+
         public Vector2 Gravity
         {
             get
@@ -197,11 +232,18 @@ namespace KTN
     }
 
     public class Rigidbody2DComponent : PhysicsBody
-    {     
+    {
+        public Rigidbody2DComponent() : base() { }
+        public Rigidbody2DComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class CharacterBody2DComponent : PhysicsBody
     {
+        public CharacterBody2DComponent() : base() { }
+        public CharacterBody2DComponent(Object p_Object)
+            : base(p_Object) { }
+
         public bool OnFloor
         {
             get => InternalCalls.CharacterBody2DComponent_IsOnFloor(GetHandle());
@@ -228,22 +270,38 @@ namespace KTN
 
     public class StaticBody2DComponent : PhysicsBody
     {
+        public StaticBody2DComponent() : base() { }
+        public StaticBody2DComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class BodyShape2DComponent : Component
     {
+        public BodyShape2DComponent() : base() { }
+        public BodyShape2DComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class ScriptComponent : Component
     {
+        public ScriptComponent() : base() { }
+        public ScriptComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class PrefabComponent : Component
     {
+        public PrefabComponent() : base() { }
+        public PrefabComponent(Object p_Object)
+            : base(p_Object) { }
     }
 
     public class AnimationComponent : Component
     {
+        public AnimationComponent() : base() { }
+        public AnimationComponent(Object p_Object)
+            : base(p_Object) { }
+
         public bool IsPlaying
         {
             get => InternalCalls.AnimationComponent_IsPlaying(GetHandle());
@@ -265,8 +323,12 @@ namespace KTN
         }
     }
 
-    public class ImageComponent : UIComponent
+    public class ImageComponent : Component
     {
+        public ImageComponent() : base() { }
+        public ImageComponent(Object p_Object)
+            : base(p_Object) { }
+
         public Asset Image
         {
             get
@@ -335,6 +397,10 @@ namespace KTN
 
     public class UICanvasComponent : Component
     {
+        public UICanvasComponent() : base() { }
+        public UICanvasComponent(Object p_Object)
+            : base(p_Object) { }
+
         public UIRenderMode RenderMode
         {
             get => (UIRenderMode)InternalCalls.UICanvasComponent_GetRenderMode(GetHandle());
@@ -388,6 +454,10 @@ namespace KTN
 
     public class UIComponent : Component
     {
+        public UIComponent() : base() { }
+        public UIComponent(Object p_Object)
+            : base(p_Object) { }
+
         public Vector2 Anchor
         {
             get
@@ -417,6 +487,10 @@ namespace KTN
 
     public class UIInputComponent : Component
     {
+        public UIInputComponent() : base() { }
+        public UIInputComponent(Object p_Object)
+            : base(p_Object) { }
+
         public bool Hovered
         {
             get => InternalCalls.UIInputComponent_IsHovered(GetHandle());

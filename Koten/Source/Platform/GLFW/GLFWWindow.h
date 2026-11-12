@@ -56,6 +56,8 @@ namespace KTN
             void* GetNative() override { return m_Window; }
             bool IsVsync() const override { return m_Data.Vsync; }
 
+            void Close() override;
+
         private:
             void Init(const WindowSpecification& p_Spec);
             void Shutdown() noexcept;

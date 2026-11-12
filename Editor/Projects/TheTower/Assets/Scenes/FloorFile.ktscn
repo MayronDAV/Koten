@@ -10,3 +10,16 @@ Entities:
       Active: true
     ScriptComponent:
       FullClassName: TW.Gen2
+      ScriptFields:
+        - Name: m_Door
+          Type: Object
+          Data: [10946681483925174717, 0, 5]
+        - Name: m_Ground
+          Type: Object
+          Data: [18412821538777441647, 0, 5]
+        - Name: m_Player
+          Type: Object
+          Data: [10000323661634319554, 0, 5]
+        - Name: m_Wall
+          Type: Object
+          Data: [7658430674200247906, 0, 5]

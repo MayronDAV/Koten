@@ -31,6 +31,67 @@
 
 namespace KTN
 {
+    class EditorWindowService : public WindowService
+    {
+        public:
+            EditorWindowService(Editor* p_Editor) : m_Editor(p_Editor) {}
+            ~EditorWindowService() override = default;
+
+            void SetTitle(const std::string& p_Title) override { }
+            void SetVsync(bool p_Value) override { }
+            bool IsVsync() override { return false; }
+            bool IsMaximized() override { return false; }
+
+            bool IsMinimized() override
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+                return Application::Get().GetWindow()->IsMinimized();
+            }
+
+            uint32_t GetWidth() override
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+                return Project::GetActive()->GetConfig().Width;
+            }
+
+            uint32_t GetHeight() override
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+                return Project::GetActive()->GetConfig().Height;
+            }
+
+            void SetWidth(uint32_t p_Width) override
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+                Project::GetActive()->GetConfig().Width = p_Width;
+            }
+
+            void SetHeight(uint32_t p_Height) override
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+                Project::GetActive()->GetConfig().Height = p_Height;
+            }
+
+            void Resize(uint32_t p_Width, uint32_t p_Height) override
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+                Project::GetActive()->GetConfig().Width = p_Width;
+                Project::GetActive()->GetConfig().Height = p_Height;
+            }
+
+            void Close() override
+            {
+                KTN_PROFILE_FUNCTION_LOW();
+                m_Editor->UnSelectEntt();
+                if (m_Editor->GetState() == RuntimeState::Play)
+                    SceneManager::Stop();
+                m_Editor->SetState(RuntimeState::Edit);
+            }
+
+        private:
+            Editor* m_Editor = nullptr;
+    };
+
     void Editor::BeginDockspace(std::string p_ID, std::string p_Dockspace, bool p_MenuBar, ImGuiDockNodeFlags p_DockFlags)
     {
         KTN_PROFILE_FUNCTION();
@@ -109,6 +170,8 @@ namespace KTN
     void Editor::Init()
     {
         KTN_PROFILE_FUNCTION();
+
+        ScriptGlue::Initialize(CreateUnique<EditorWindowService>(this));
 
         SceneManagerConfig config{};
         config.CopyScenesOnPlay = true;

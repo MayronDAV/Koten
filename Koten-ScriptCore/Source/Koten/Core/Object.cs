@@ -10,22 +10,37 @@ namespace KTN
             SceneHandle = 0;
         }
 
-        internal Object(ulong p_ID, ulong p_SceneHandle)
+        public Object(ulong p_ID, ulong p_SceneHandle)
         {
             ID = p_ID;
             SceneHandle = p_SceneHandle;
         }
 
-        internal Object(ulong p_ID, ulong p_SceneHandle, Int32 p_Type)
+        public Object(ulong p_ID, ulong p_SceneHandle, Int32 p_Type)
         {
             ID = p_ID;
             SceneHandle = p_SceneHandle;
             Type = p_Type;
         }
 
+        public Object(Object p_Object)
+        {
+            if (p_Object == null)
+            {
+                ID          = 0;
+                SceneHandle = 0;
+                Type        = 0;
+                return;
+            }
+
+            ID          = p_Object.ID;
+            SceneHandle = p_Object.SceneHandle;
+            Type        = p_Object.Type;
+        }
+
         public ulong ID { get; internal set; }
         public ulong SceneHandle { get; internal set; }
-        internal Int32 Type = 0;
+        public Int32 Type { get; internal set; }
 
         static internal void DestroyObject(Object p_Object)
         {
@@ -69,4 +84,5 @@ namespace KTN
             };
         }
     }
-}
+
+} // namespace KTN

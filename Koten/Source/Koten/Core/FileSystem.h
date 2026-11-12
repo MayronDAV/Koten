@@ -21,7 +21,7 @@ namespace KTN
             static std::string GetAbsolute(const std::string& p_Path);
             static std::string GetRelative(const std::string& p_Path, const std::string& p_BasePath);
 
-            static bool WriteFile(const std::string& p_Path, uint8_t* p_Buffer, uint32_t p_Size);
+            static bool WriteFile(const std::string& p_Path, uint8_t* p_Buffer, uint64_t p_Size);
             static bool WriteTextFile(const std::string& p_Path, const std::string& p_Text);
             static std::string ReadFile(const std::string& p_Path);
             static Buffer ReadFileBinary(const std::string& p_Path);

@@ -14,6 +14,7 @@
 #include <mono/metadata/mono-debug.h>
 #include <mono/metadata/exception.h>
 #include <mono/metadata/debug-helpers.h>
+#include <mono/metadata/class.h>
 #include <filewatch/FileWatch.hpp>
 
 
@@ -25,47 +26,52 @@ namespace KTN
     {
         static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
         {
-            { "System.Single",  ScriptFieldType::Float },
-            { "System.Double",  ScriptFieldType::Double },
-            { "System.Boolean", ScriptFieldType::Bool },
-            { "System.Char",    ScriptFieldType::Char },
-            { "System.Int16",   ScriptFieldType::Short },
-            { "System.Int32",   ScriptFieldType::Int },
-            { "System.Int64",   ScriptFieldType::Long },
-            { "System.Byte",    ScriptFieldType::Byte },
-            { "System.UInt16",  ScriptFieldType::UShort },
-            { "System.UInt32",  ScriptFieldType::UInt },
-            { "System.UInt64",  ScriptFieldType::ULong },
-            { "System.String",  ScriptFieldType::String },
+            { "System.Single",  ScriptFieldType::Float   },
+            { "System.Double",  ScriptFieldType::Double  },
+            { "System.Boolean", ScriptFieldType::Bool    },
+            { "System.Char",    ScriptFieldType::Char    },
+            { "System.Int16",   ScriptFieldType::Short   },
+            { "System.Int32",   ScriptFieldType::Int     },
+            { "System.Int64",   ScriptFieldType::Long    },
+            { "System.Byte",    ScriptFieldType::Byte    },
+            { "System.UInt16",  ScriptFieldType::UShort  },
+            { "System.UInt32",  ScriptFieldType::UInt    },
+            { "System.UInt64",  ScriptFieldType::ULong   },
+
+            { "System.String",  ScriptFieldType::String  },
 
             { "KTN.Vector2",    ScriptFieldType::Vector2 },
             { "KTN.Vector3",    ScriptFieldType::Vector3 },
             { "KTN.Vector4",    ScriptFieldType::Vector4 },
 
-            { "KTN.Entity",     ScriptFieldType::Entity }
+            { "KTN.Scene",      ScriptFieldType::Scene   },
+            { "KTN.IO.Path",    ScriptFieldType::Path    },
+
+            { "KTN.Object",     ScriptFieldType::Object  }
         };
 
         struct ScriptEngineData
         {
-            MonoDomain* RootDomain = nullptr;
-            MonoDomain* AppDomain = nullptr;
+            MonoDomain* RootDomain       = nullptr;
+            MonoDomain* AppDomain        = nullptr;
 
-            MonoAssembly* CoreAssembly = nullptr;
+            MonoAssembly* CoreAssembly   = nullptr;
             MonoImage* CoreAssemblyImage = nullptr;
 
-            MonoAssembly* AppAssembly = nullptr;
-            MonoImage* AppAssemblyImage = nullptr;
-            std::string AppAssemblyPath = "";
+            MonoAssembly* AppAssembly    = nullptr;
+            MonoImage* AppAssemblyImage  = nullptr;
+            std::string AppAssemblyPath  = "";
 
             std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
             std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
-            std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
+            std::unordered_map<std::string, ScriptFieldMap> ScriptFields;
 
             Unique<filewatch::FileWatch<std::string>> AppAssemblyFileWatcher;
             bool AssemblyReloadPending = false;
             bool IsRunning = false;
 
             ScriptClass EntityClass;
+            ScriptClass ObjectClass;
         };
 
         static ScriptEngineData* s_Data = nullptr;
@@ -150,6 +156,205 @@ namespace KTN
             return it->second;
         }
 
+        static MonoClassField* FindFieldInHierarchy(MonoClass* p_Class, const char* p_Name)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            for (MonoClass* current = p_Class; current != nullptr; current = mono_class_get_parent(current))
+            {
+                MonoClassField* field = mono_class_get_field_from_name(current, p_Name);
+                if (field)
+                    return field;
+            }
+
+            return nullptr;
+        }
+
+        static MonoProperty* FindPropertyInHierarchy(MonoClass* p_Class, const char* p_Name)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            for (MonoClass* current = p_Class; current != nullptr; current = mono_class_get_parent(current))
+            {
+                MonoProperty* property = mono_class_get_property_from_name(current, p_Name);
+                if (property)
+                    return property;
+            }
+
+            return nullptr;
+        }
+
+        static bool MonoStringToNative(MonoString* p_String, std::string& p_OutString)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (!p_String)
+            {
+                p_OutString.clear();
+                return true;
+            }
+
+            char* utf8 = mono_string_to_utf8(p_String);
+
+            if (!utf8)
+                return false;
+
+            p_OutString = utf8;
+            mono_free(utf8);
+
+            return true;
+        }
+
+        static MonoObject* InvokeConstructor(MonoObject* p_Instance, MonoMethod* p_Constructor, void** p_Params)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (!p_Instance || !p_Constructor)
+                return nullptr;
+
+            MonoObject* exception = nullptr;
+            mono_runtime_invoke(p_Constructor, p_Instance, p_Params, &exception);
+
+            if (exception)
+            {
+                KTN_CORE_ERROR("Managed constructor threw an exception.");
+                return nullptr;
+            }
+
+            return p_Instance;
+        }
+
+        static bool SetManagedReference(MonoObject* p_Instance, MonoClassField* p_Field, MonoObject* p_Value)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (!p_Instance || !p_Field)
+                return false;
+
+            mono_field_set_value(p_Instance, p_Field, p_Value);
+            return true;
+        }
+
+        static MonoObject* GetManagedReference(MonoObject* p_Instance, MonoClassField* p_Field)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (!p_Instance || !p_Field)
+                return nullptr;
+
+            MonoObject* value = nullptr;
+
+            mono_field_get_value(p_Instance, p_Field, &value);
+            return value;
+        }
+
+        template<typename T>
+        static T MonoFieldGetValue(MonoObject* p_Instance, MonoClassField* p_Field)
+        {
+            T value{};
+            mono_field_get_value(p_Instance, p_Field, &value);
+            return value;
+        }
+
+        static MonoMethod* FindConstructor(MonoClass* p_Class, MonoClass* p_ParameterClass)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            void* iterator = nullptr;
+
+            while (MonoMethod* method = mono_class_get_methods(p_Class, &iterator))
+            {
+                auto name = mono_method_get_name(method);
+                if (std::strcmp(name, ".ctor") != 0)
+                    continue;
+
+                MonoMethodSignature* signature = mono_method_signature(method);
+                uint32_t count = mono_signature_get_param_count(signature);
+                if (count != 1)
+                    continue;
+
+                void* it = nullptr;
+                MonoType* parameterType   = mono_signature_get_params(signature, &it);
+                if (!parameterType)
+                    return nullptr;
+
+                MonoClass* parameterClass = mono_class_from_mono_type(parameterType);
+                if (parameterClass == p_ParameterClass)
+                    return method;
+            }
+
+            return nullptr;
+        }
+
+        template<typename T>
+        static bool GetProperty(MonoObject* p_Object, const char* p_Name, T& p_Value)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (!p_Object)
+                return false;
+
+            MonoProperty* property = FindPropertyInHierarchy(mono_object_get_class(p_Object), p_Name);
+            if (!property)
+                return false;
+
+            MonoMethod* getter = mono_property_get_get_method(property);
+            if (!getter)
+                return false;
+
+            MonoObject* exception = nullptr;
+
+            MonoObject* result = mono_runtime_invoke(getter, p_Object, nullptr, &exception);
+            if (exception || !result)
+                return false;
+
+            p_Value = *static_cast<T*>(mono_object_unbox(result));
+            return true;
+        }
+
+        template<typename T>
+        static bool SetProperty(MonoObject* p_Object, const char* p_Name, T p_Value)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (!p_Object)
+                return false;
+
+            MonoProperty* property = FindPropertyInHierarchy(mono_object_get_class(p_Object), p_Name);
+            if (!property)
+                return false;
+
+            MonoMethod* setter     = mono_property_get_set_method(property);
+            if (!setter)
+                return false;
+
+            void* args[]           = { &p_Value };
+            MonoObject* exception  = nullptr;
+
+            mono_runtime_invoke(setter, p_Object, args, &exception);
+            return exception == nullptr;
+        }
+
+        template<typename T>
+        static T GetFieldOrPropertyValue(MonoClass* p_Class, MonoObject* p_Instance, const std::string& p_Name)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            T value{};
+            MonoClassField* field = FindFieldInHierarchy(p_Class, p_Name.c_str());
+            if (field)
+                value = MonoFieldGetValue<T>(p_Instance, field);
+            else
+            {
+                if (!GetProperty<T>(p_Instance, p_Name.c_str(), value))
+                {
+                    KTN_CORE_ERROR("Failed to get property '{}'", p_Name);
+                }
+            }
+
+            return value;
+        }
+
         static bool HasAttribute(MonoClassField* p_Field, MonoClass* p_Class, MonoImage* p_Image, const char* p_AttributeName, const char* p_NamespaceName = "KTN") 
         {
             MonoCustomAttrInfo* attrInfo = mono_custom_attrs_from_field(p_Class, p_Field);
@@ -162,6 +367,94 @@ namespace KTN
             return hasAttr;
         }
 
+        static ScriptFieldCategory GetFieldCategory(MonoType* p_Type)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (!p_Type)
+                return ScriptFieldCategory::Unsupported;
+
+            int typeCode = mono_type_get_type(p_Type);
+            switch (typeCode)
+            {
+                case MONO_TYPE_BOOLEAN:
+                case MONO_TYPE_CHAR:
+                case MONO_TYPE_I1:
+                case MONO_TYPE_U1:
+                case MONO_TYPE_I2:
+                case MONO_TYPE_U2:
+                case MONO_TYPE_I4:
+                case MONO_TYPE_U4:
+                case MONO_TYPE_I8:
+                case MONO_TYPE_U8:
+                case MONO_TYPE_R4:
+                case MONO_TYPE_R8:
+                    return ScriptFieldCategory::Primitive;
+
+                case MONO_TYPE_SZARRAY:
+                case MONO_TYPE_ARRAY:
+                    return ScriptFieldCategory::Array;
+
+                case MONO_TYPE_CLASS:
+                case MONO_TYPE_VALUETYPE:
+                {
+                    MonoClass* fieldClass = mono_class_from_mono_type(p_Type);
+                    if (!fieldClass)
+                        return ScriptFieldCategory::Unsupported;
+
+                    if (mono_class_is_enum(fieldClass))
+                        return ScriptFieldCategory::Enum;
+
+                    if (mono_class_is_valuetype(fieldClass))
+                        return ScriptFieldCategory::Struct;
+
+                    return ScriptFieldCategory::Class;
+                }
+
+                default:
+                    return ScriptFieldCategory::Unsupported;
+            }
+        }
+
+        static ScriptFieldValue GetScriptFieldValueByType(const ScriptFieldType& p_Type)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            #define SCRIPT_FIELD_VALUE(FieldType, Type) \
+                case ScriptFieldType::FieldType:        \
+                {                                       \
+                    value  = Type{};                    \
+                    break;                              \
+                }                                       \
+
+            ScriptFieldValue value = std::monostate{};
+            switch (p_Type)
+            {
+                SCRIPT_FIELD_VALUE(Float, float);
+                SCRIPT_FIELD_VALUE(Double, double);
+                SCRIPT_FIELD_VALUE(Bool, bool);
+                SCRIPT_FIELD_VALUE(Char, char16_t);
+                SCRIPT_FIELD_VALUE(Byte, int8_t);
+                SCRIPT_FIELD_VALUE(Short, int16_t);
+                SCRIPT_FIELD_VALUE(Int, int32_t);
+                SCRIPT_FIELD_VALUE(Long, int64_t);
+                SCRIPT_FIELD_VALUE(UByte, uint8_t);
+                SCRIPT_FIELD_VALUE(UShort, uint16_t);
+                SCRIPT_FIELD_VALUE(UInt, uint32_t);
+                SCRIPT_FIELD_VALUE(ULong, uint64_t);
+                SCRIPT_FIELD_VALUE(Vector2, glm::vec2);
+                SCRIPT_FIELD_VALUE(Vector3, glm::vec3);
+                SCRIPT_FIELD_VALUE(Vector4, glm::vec4);
+                SCRIPT_FIELD_VALUE(String, std::string);
+                SCRIPT_FIELD_VALUE(Path, std::string);
+                SCRIPT_FIELD_VALUE(Scene, uint64_t);
+                SCRIPT_FIELD_VALUE(Object, ObjectHandle);
+            }
+
+            #undef RET_SCRIPT_FIELD
+            return value;
+        }
+
         static void LoadAssemblyClasses()
         {
             KTN_PROFILE_FUNCTION();
@@ -171,6 +464,7 @@ namespace KTN
             const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(s_Data->AppAssemblyImage, MONO_TABLE_TYPEDEF);
             int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
             MonoClass* entityClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "ScriptBehavior");
+            MonoClass* objectClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "Object");
 
             for (int32_t i = 0; i < numTypes; i++)
             {
@@ -198,37 +492,52 @@ namespace KTN
                 s_Data->EntityClasses[fullName] = scriptClass;
                 auto& fields = scriptClass->GetFields();
 
+                auto& scriptFieldsMap = s_Data->ScriptFields[fullName];
+
                 int fieldCount = mono_class_num_fields(monoClass);
-                //KTN_CORE_WARN("{} has {} fields:", className, fieldCount);
+                //KTN_CORE_WARN("'{}' has {} fields:", fullName, fieldCount);
                 void* iterator = nullptr;
-                while (MonoClassField* field = mono_class_get_fields(monoClass, &iterator))
+                while (MonoClassField* field  = mono_class_get_fields(monoClass, &iterator))
                 {
-                    const char* fieldName = mono_field_get_name(field);
-                    uint32_t flags = mono_field_get_flags(field);
+                    const char* fieldName     = mono_field_get_name(field);
+                    uint32_t flags            = mono_field_get_flags(field);
+                    MonoType* type            = mono_field_get_type(field);
+                    if (!type)
+                        continue;
+
+                    auto category             = GetFieldCategory(type);
+                    if (category == ScriptFieldCategory::Array || category == ScriptFieldCategory::Unsupported)
+                        continue;
+
+                    MonoClass* fieldClass     = mono_class_from_mono_type(type);
+                    bool isObject             = fieldClass == objectClass || mono_class_is_subclass_of(fieldClass, objectClass, false);
+
+                    ScriptFieldType fieldType = isObject ? ScriptFieldType::Object : MonoTypeToScriptFieldType(type);
+
 
                     if (flags & FIELD_ATTRIBUTE_PUBLIC)
                     {
-                        MonoType* type = mono_field_get_type(field);
-                        ScriptFieldType fieldType = MonoTypeToScriptFieldType(type);
-                        //KTN_CORE_WARN("  {} ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
+                        //KTN_CORE_WARN("  '{}' ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
-                        fields[fieldName] = { fieldType, fieldName, false, false, false, field };
+                        fields[fieldName]          = { fieldType, category, fieldName, false, true, true, field, type, fieldClass };
+                        scriptFieldsMap[fieldName] = { fields[fieldName], GetScriptFieldValueByType(fieldType), false };
                     }
 
                     if (flags & FIELD_ATTRIBUTE_PRIVATE)
                     {
-                        bool showInEditor = HasAttribute(field, monoClass, s_Data->CoreAssemblyImage, "ShowInEditor", "KTN");
-                        bool serialize = HasAttribute(field, monoClass, s_Data->CoreAssemblyImage, "SerializeField", "KTN");
+                        bool showInEditor     = HasAttribute(field, monoClass, s_Data->CoreAssemblyImage, "ShowInEditor", "KTN");
+                        bool serialize        = HasAttribute(field, monoClass, s_Data->CoreAssemblyImage, "SerializeField", "KTN");
                         if (!showInEditor && !serialize)
                             continue; // Skip private fields that are not marked with ShowInEditor or SerializeField
 
-                        MonoType* type = mono_field_get_type(field);
-                        ScriptFieldType fieldType = MonoTypeToScriptFieldType(type);
-                        //KTN_CORE_WARN("  {} ({}) [Private]", fieldName, Utils::ScriptFieldTypeToString(fieldType));
+                        //KTN_CORE_WARN("  '{}' ({}) [Private]", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
-                        fields[fieldName] = { fieldType, fieldName, true, showInEditor, serialize, field };
+                        fields[fieldName]          = { fieldType, category, fieldName, true, showInEditor, serialize, field, type, fieldClass };
+                        scriptFieldsMap[fieldName] = { fields[fieldName], GetScriptFieldValueByType(fieldType), false };
                     }
                 }
+
+                // KTN_CORE_WARN("'{}' has {} fields:", fullName, scriptFieldsMap.size());
             }
         }
 
@@ -319,6 +628,81 @@ namespace KTN
             return LoadMonoAssembly(p_OutputDllPath);
         }
     
+        class ObjectClassUtils
+        {
+            public:
+                static bool IsObjectType(MonoClass* p_Class)
+                {
+                    KTN_PROFILE_FUNCTION_LOW();
+
+                    MonoClass* objClass = s_Data->ObjectClass.GetMonoClass();
+                    return p_Class == objClass || mono_class_is_subclass_of(p_Class, objClass, false);
+                }
+
+                static MonoObject* Create(MonoClass* p_TargetClass, const ObjectHandle& p_Handle)
+                {
+                    KTN_PROFILE_FUNCTION_LOW();
+
+                    auto* objClass              = s_Data->ObjectClass.GetMonoClass();
+                    MonoObject* baseObject      = mono_object_new(s_Data->AppDomain, objClass);
+                    MonoMethod* baseConstructor = s_Data->ObjectClass.GetMethod(".ctor", 3);
+
+                    uint64_t id          = p_Handle.ID;
+                    uint64_t sceneHandle = p_Handle.SceneHandle;
+                    int32_t type         = p_Handle.Type;
+
+                    void* baseArgs[]      = { &id, &sceneHandle, &type };
+                    MonoObject* exception = nullptr;
+
+                    mono_runtime_invoke(baseConstructor, baseObject, baseArgs, &exception);
+                    if (exception)
+                    {
+                        KTN_CORE_ERROR("Faield to create managed object!");
+                        return nullptr;
+                    }
+
+                    MonoMethod* constructor = FindConstructor(p_TargetClass, objClass);
+                    if (!constructor)
+                        return nullptr;
+
+                    if ((mono_class_get_flags(p_TargetClass) & TYPE_ATTRIBUTE_ABSTRACT) != 0)
+                        return nullptr;
+
+                    MonoObject* instance = mono_object_new(s_Data->AppDomain, p_TargetClass);
+
+                    void* args[] = { baseObject };
+
+                    exception = nullptr;
+                    mono_runtime_invoke(constructor, instance, args, &exception);
+                    if (exception)
+                    {
+                        KTN_CORE_ERROR("Faield to create managed object!");
+                        return nullptr;
+                    }
+
+                    return instance;
+                }
+
+                static bool GetHandle(MonoObject* p_Object, ObjectHandle& p_Handle)
+                {
+                    KTN_PROFILE_FUNCTION_LOW();
+
+                    MonoClass* actualClass = mono_object_get_class(p_Object);
+                    if (!IsObjectType(actualClass))
+                    {
+                        KTN_CORE_ERROR("Managed object does not derive from KTN.Object.");
+                        return false;
+                    }
+
+                    ObjectHandle handle = {};
+                    handle.ID           = GetFieldOrPropertyValue<uint64_t>(actualClass, p_Object, "ID");
+                    handle.SceneHandle  = GetFieldOrPropertyValue<uint64_t>(actualClass, p_Object, "SceneHandle");
+                    handle.Type         = GetFieldOrPropertyValue<int32_t>(actualClass, p_Object, "Type");
+                    p_Handle            = handle;
+                    return true;
+                }
+        };
+
     } // namespace
 
     #pragma region ScriptEngine
@@ -340,6 +724,7 @@ namespace KTN
         }
 
         s_Data->EntityClass = ScriptClass("KTN", "ScriptBehavior", true);
+        s_Data->ObjectClass = ScriptClass("KTN", "Object", true);
     }
 
     void ScriptEngine::Shutdown()
@@ -539,6 +924,7 @@ namespace KTN
 
         // Retrieve and instantiate class
         s_Data->EntityClass = ScriptClass("KTN", "ScriptBehavior", true);
+        s_Data->ObjectClass = ScriptClass("KTN", "Object", true);
     }
 
     void ScriptEngine::RecompileAppAssembly()
@@ -565,6 +951,7 @@ namespace KTN
 
         // Retrieve and instantiate class
         s_Data->EntityClass = ScriptClass("KTN", "ScriptBehavior", true);
+        s_Data->ObjectClass = ScriptClass("KTN", "Object", true);
     }
 
     bool ScriptEngine::EntityClassExists(const std::string& p_FullClassName)
@@ -590,13 +977,13 @@ namespace KTN
             s_Data->EntityInstances[entityID] = instance;
 
             // Copy field values
-            if (s_Data->EntityScriptFields.find(entityID) != s_Data->EntityScriptFields.end())
+            auto it = s_Data->ScriptFields.find(sc->FullClassName);
+            if (it != s_Data->ScriptFields.end())
             {
-                const ScriptFieldMap& fieldMap = s_Data->EntityScriptFields.at(entityID);
-                for (const auto& [name, fieldInstance] : fieldMap)
+                for (const auto& [name, fieldInstance] : it->second)
                 {
-                    if (!fieldInstance.Field.IsPrivate && fieldInstance.m_Changed)
-                        instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
+                    if (!fieldInstance.Field.IsPrivate && fieldInstance.IsChanged)
+                        ScriptFieldUtils::SetFieldValue(instance->GetManagedObject(), fieldInstance.Field, fieldInstance.Value);
                 }
             }
 
@@ -648,12 +1035,12 @@ namespace KTN
         return nullptr;
     }
 
-    ScriptFieldMap& ScriptEngine::GetScriptFieldMap(Entity p_Entity)
+    ScriptFieldMap& ScriptEngine::GetScriptFieldMap(const std::string& p_FullClassName)
     {
         KTN_PROFILE_FUNCTION();
-        KTN_CORE_ASSERT(p_Entity);
+        KTN_CORE_ASSERT(!p_FullClassName.empty());
 
-        return s_Data->EntityScriptFields[p_Entity.GetUUID()];
+        return s_Data->ScriptFields[p_FullClassName];
     }
 
     const std::unordered_map<std::string, Ref<ScriptClass>>& ScriptEngine::GetEntityClasses()
@@ -823,42 +1210,438 @@ namespace KTN
         return mono_gchandle_get_target(m_Handle);
     }
 
-    bool ScriptInstance::GetFieldValueInternal(const std::string& p_Name, void* p_Buffer)
-    {
-        KTN_PROFILE_FUNCTION();
-
-        const auto& fields = m_ScriptClass->GetFields();
-        auto it = fields.find(p_Name);
-        if (it == fields.end())
-            return false;
-
-        MonoObject* instance = GetManagedObject();
-        if (!instance)
-            return false;
-
-        const ScriptField& field = it->second;
-        mono_field_get_value(instance, field.ClassField, p_Buffer);
-        return true;
-    }
-
-    bool ScriptInstance::SetFieldValueInternal(const std::string& p_Name, const void* p_Value)
-    {
-        KTN_PROFILE_FUNCTION();
-
-        const auto& fields = m_ScriptClass->GetFields();
-        auto it = fields.find(p_Name);
-        if (it == fields.end())
-            return false;
-
-        MonoObject* instance = GetManagedObject();
-        if (!instance)
-            return false;
-
-        const ScriptField& field = it->second;
-        mono_field_set_value(instance, field.ClassField, (void*)p_Value);
-        return true;
-    }
-
     #pragma endregion
+
+    bool ScriptFieldUtils::SetFieldValue(MonoObject* p_Instance, const ScriptField& p_Field, const ScriptFieldValue& p_Value)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        if (!p_Instance || !p_Field.Field || !p_Field.FieldClass)
+            return false;
+
+        return std::visit([&](const auto& typedValue) -> bool
+        {
+            using T = std::decay_t<decltype(typedValue)>;
+
+            if constexpr (std::is_same_v<T, std::monostate>)
+            {
+                return false;
+            }
+            else if constexpr (std::is_same_v<T, uint64_t>)
+            {
+                if (p_Field.Type == ScriptFieldType::Scene)
+                {
+                    MonoClass* sceneClass     = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "Scene");
+                    if (!sceneClass || p_Field.FieldClass != sceneClass)
+                        return false;
+
+                    MonoMethod* constructor   = mono_class_get_method_from_name(sceneClass, ".ctor", 1);
+                    if (!constructor)
+                    {
+                        KTN_CORE_ERROR("Failed to find KTN.Scene constructor.");
+                        return false;
+                    }
+
+                    MonoObject* sceneInstance = mono_object_new(s_Data->AppDomain, sceneClass);
+                    if (!sceneInstance)
+                        return false;
+
+                    uint64_t handle           = typedValue;
+                    void* params[]            = { &handle };
+
+                    if (!InvokeConstructor(sceneInstance, constructor, params))
+                        return false;
+
+                    return SetManagedReference(p_Instance, p_Field.Field, sceneInstance);
+                }
+
+                if (p_Field.Type != ScriptFieldType::ULong || mono_type_get_type(p_Field.FieldType) != MONO_TYPE_U8)
+                {
+                    return false;
+                }
+
+                uint64_t value = typedValue;
+                mono_field_set_value(p_Instance, p_Field.Field, &value);
+                return true;
+            }
+            else if constexpr (std::is_same_v<T, std::string>)
+            {
+                if (p_Field.Type == ScriptFieldType::String)
+                {
+                    if (p_Field.FieldClass != mono_get_string_class())
+                        return false;
+
+                    MonoString* string = ScriptEngine::CreateString(typedValue.c_str());
+                    if (!string)
+                        return false;
+
+                    return SetManagedReference(p_Instance, p_Field.Field, reinterpret_cast<MonoObject*>(string));
+                }
+
+                if (p_Field.Type == ScriptFieldType::Path)
+                {
+                    MonoClass* pathClass    = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN.IO", "Path");
+                    if (!pathClass || p_Field.FieldClass != pathClass)
+                        return false;
+
+                    MonoMethod* constructor = mono_class_get_method_from_name(pathClass, ".ctor", 1);
+                    if (!constructor)
+                    {
+                        KTN_CORE_ERROR("Failed to find KTN.IO.Path constructor.");
+                        return false;
+                    }
+
+                    MonoString* pathString  = ScriptEngine::CreateString(typedValue.c_str());
+                    if (!pathString)
+                        return false;
+
+                    MonoObject* pathInstance = mono_object_new(s_Data->AppDomain, pathClass);
+                    if (!pathInstance)
+                        return false;
+
+                    void* params[] = { pathString };
+                    if (!InvokeConstructor(pathInstance, constructor, params))
+                        return false;
+
+                    return SetManagedReference(p_Instance, p_Field.Field, pathInstance);
+                }
+
+                return false;
+            }
+            else if constexpr (std::is_same_v<T, ObjectHandle>)
+            {
+                if (p_Field.Type != ScriptFieldType::Object)
+                    return false;
+
+                if (!ObjectClassUtils::IsObjectType(p_Field.FieldClass))
+                    return false;
+
+                MonoObject* objInstance = ObjectClassUtils::Create(p_Field.FieldClass, typedValue);
+                if (!objInstance)
+                    return false;
+
+                return SetManagedReference(p_Instance, p_Field.Field, objInstance);
+            }
+            else
+            {
+                if (!mono_class_is_valuetype(p_Field.FieldClass))
+                    return false;
+
+                if constexpr (std::is_same_v<T, bool>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_BOOLEAN)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, char16_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_CHAR)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, int8_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_I1)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, uint8_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_U1)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, int16_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_I2)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, uint16_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_U2)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, int32_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_I4)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, uint32_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_U4)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, int64_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_I8)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, uint64_t>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_U8)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, float>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_R4)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, double>)
+                {
+                    if (mono_type_get_type(p_Field.FieldType) != MONO_TYPE_R8)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, glm::vec2>)
+                {
+                    MonoClass* expectedClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "Vector2");
+                    if (!expectedClass || p_Field.FieldClass != expectedClass)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, glm::vec3>)
+                {
+                    MonoClass* expectedClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "Vector3");
+                    if (!expectedClass || p_Field.FieldClass != expectedClass)
+                        return false;
+                }
+                else if constexpr (std::is_same_v<T, glm::vec4>)
+                {
+                    MonoClass* expectedClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "Vector4");
+                    if (!expectedClass || p_Field.FieldClass != expectedClass)
+                        return false;
+                }
+
+                mono_field_set_value(p_Instance, p_Field.Field, const_cast<T*>(&typedValue));
+                return true;
+            }
+        },
+        p_Value);
+    }
+
+    bool ScriptFieldUtils::GetFieldValue(MonoObject* p_Instance, const ScriptField& p_Field, ScriptFieldValue& p_OutValue)
+    {
+        KTN_PROFILE_FUNCTION();
+
+        if (!p_Instance || !p_Field.Field || !p_Field.FieldClass)
+            return false;
+
+        switch (p_Field.Type)
+        {
+            case ScriptFieldType::None:
+                p_OutValue = std::monostate{};
+                return false;
+
+            case ScriptFieldType::Bool:
+            {
+                p_OutValue = MonoFieldGetValue<bool>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Char:
+            {
+                p_OutValue = MonoFieldGetValue<char16_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Byte:
+            {
+                p_OutValue = MonoFieldGetValue<int8_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::UByte:
+            {
+                p_OutValue = MonoFieldGetValue<uint8_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Short:
+            {
+                p_OutValue = MonoFieldGetValue<int16_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::UShort:
+            {
+                p_OutValue = MonoFieldGetValue<uint16_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Int:
+            {
+                p_OutValue = MonoFieldGetValue<int32_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::UInt:
+            {
+                p_OutValue = MonoFieldGetValue<uint32_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Long:
+            {
+                p_OutValue = MonoFieldGetValue<int64_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::ULong:
+            {
+                p_OutValue = MonoFieldGetValue<uint64_t>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Float:
+            {
+                p_OutValue = MonoFieldGetValue<float>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Double:
+            {
+                p_OutValue = MonoFieldGetValue<double>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Vector2:
+            {
+                p_OutValue = MonoFieldGetValue<glm::vec2>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Vector3:
+            {
+                p_OutValue = MonoFieldGetValue<glm::vec3>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::Vector4:
+            {
+                p_OutValue = MonoFieldGetValue<glm::vec4>(p_Instance, p_Field.Field);
+                return true;
+            }
+
+            case ScriptFieldType::String:
+            {
+                MonoObject* reference = GetManagedReference(p_Instance, p_Field.Field);
+                if (!reference)
+                {
+                    p_OutValue = std::string{};
+                    return true;
+                }
+
+                MonoString* monoString = reinterpret_cast<MonoString*>(reference);
+
+                std::string value;
+                if (!MonoStringToNative(monoString, value))
+                    return false;
+
+                p_OutValue = std::move(value);
+                return true;
+            }
+
+            case ScriptFieldType::Path:
+            {
+                MonoObject* pathInstance = GetManagedReference(p_Instance, p_Field.Field);
+                if (!pathInstance)
+                {
+                    p_OutValue = std::string{};
+                    return true;
+                }
+
+                MonoClass* pathClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN.IO", "Path");
+                if (!pathClass)
+                {
+                    KTN_CORE_ERROR("Failed to find KTN.IO.Path class.");
+                    return false;
+                }
+
+                MonoClass* actualClass = mono_object_get_class(pathInstance);
+
+                if (actualClass != pathClass && !mono_class_is_subclass_of(actualClass, pathClass, false))
+                {
+                    KTN_CORE_ERROR("Invalid managed type for KTN.IO.Path field.");
+                    return false;
+                }
+
+                MonoString* pathString = nullptr;
+
+                MonoClassField* pathField = FindFieldInHierarchy(actualClass, "m_Path");
+                if (pathField)
+                    mono_field_get_value(pathInstance, pathField, &pathString);
+                else
+                {
+                    MonoProperty* property = FindPropertyInHierarchy(actualClass, "m_Path");
+                    if (!property)
+                        return false;
+
+                    MonoMethod* getter = mono_property_get_get_method(property);
+                    if (!getter)
+                        return false;
+
+                    MonoObject* exception = nullptr;
+
+                    MonoObject* result = mono_runtime_invoke(getter, pathInstance, nullptr, &exception);
+                    if (exception || !result)
+                        return false;
+
+                    pathString = static_cast<MonoString*>(mono_object_unbox(result));
+                    if (!pathString)
+                        return false;
+                }
+
+                std::string value;
+                if (!MonoStringToNative(pathString, value))
+                    return false;
+
+                p_OutValue = std::move(value);
+                return true;
+            }
+
+            case ScriptFieldType::Scene:
+            {
+                MonoObject* sceneInstance = GetManagedReference(p_Instance, p_Field.Field);
+                if (!sceneInstance)
+                {
+                    p_OutValue = uint64_t{ 0 };
+                    return true;
+                }
+
+                MonoClass* sceneClass = mono_class_from_name(s_Data->CoreAssemblyImage, "KTN", "Scene");
+                if (!sceneClass)
+                {
+                    KTN_CORE_ERROR("Failed to find KTN.Scene class.");
+                    return false;
+                }
+
+                MonoClass* actualClass = mono_object_get_class(sceneInstance);
+                if (actualClass != sceneClass && !mono_class_is_subclass_of(actualClass, sceneClass, false))
+                {
+                    KTN_CORE_ERROR("Invalid managed type for KTN.Scene field.");
+                    return false;
+                }
+
+                p_OutValue = GetFieldOrPropertyValue<uint64_t>(actualClass, sceneInstance, "Handle");
+                return true;
+            }
+
+            case ScriptFieldType::Object:
+            {
+                MonoObject* objectInstance = GetManagedReference(p_Instance, p_Field.Field);
+                if (!objectInstance)
+                {
+                    p_OutValue = ObjectHandle{};
+                    return true;
+                }
+
+                ObjectHandle handle = {};
+                if (!ObjectClassUtils::GetHandle(objectInstance, handle))
+                {
+                    p_OutValue = ObjectHandle{};
+                    return false;
+                }
+
+                p_OutValue          = handle;
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 } // namespace KTN

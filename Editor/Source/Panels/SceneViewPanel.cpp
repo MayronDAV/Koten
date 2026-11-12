@@ -180,8 +180,8 @@ namespace KTN
         viewport->RenderTarget     = m_MainTexture;
         viewport->PickingTarget    = PickingManager::GetPickingTarget(m_PickingTextureID);
 
-        viewport->Size.x           = m_Viewport.RenderWidth;
-        viewport->Size.y           = m_Viewport.RenderHeight;
+        viewport->Size.x           = (float)m_Viewport.RenderWidth;
+        viewport->Size.y           = (float)m_Viewport.RenderHeight;
         viewport->Position         = { m_Viewport.Position.x, m_Viewport.Position.y };
 
         viewport->SetCustomCamera();

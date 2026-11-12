@@ -50,6 +50,15 @@ namespace KTN
             }
         };
 
+        #pragma pack(push, 1)
+        struct ObjectHandle
+        {
+            uint64_t ID;
+            uint64_t SceneHandle;
+            int32_t Type;
+        };
+        #pragma pack(pop)
+
         inline constexpr uint8_t  MAX_RENDER_TARGETS = 4;
         inline constexpr uint32_t INVALID_ANIM_STATE = UINT32_MAX;
         inline constexpr uint16_t MAX_INSTANCES      = 5000;
@@ -268,7 +277,8 @@ namespace KTN
         UByte, UShort, UInt, ULong,
         String,
         Vector2, Vector3, Vector4,
-        Entity
+        Path, Scene,
+        Object
     };
 
     /// Type of atlas image contents

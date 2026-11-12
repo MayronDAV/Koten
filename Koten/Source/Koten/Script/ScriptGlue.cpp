@@ -25,16 +25,15 @@
 
 namespace KTN
 {
+    struct ScriptGlueData
+    {
+        Unique<WindowService> Window;
+    };
+    static ScriptGlueData* s_ScriptGlueData = nullptr;
+
     namespace
     {
         static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
-
-        struct ObjectHandle
-        {
-            uint64_t ID;
-            uint64_t SceneHandle;
-            int32_t Type;
-        };
 
         struct SceneHandle
         {
@@ -78,6 +77,20 @@ namespace KTN
             return scene->GetEntityByUUID(p_Handle.ID);
         }
 
+        static std::filesystem::path GetFileSystemPath(const std::string& p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            std::filesystem::path filepath = FileSystem::NormalizePath(p_Path);
+            if (filepath.is_absolute())
+                return filepath;
+
+            if (Project::GetActive() && !Project::GetActive()->IsRuntime())
+                filepath = (Project::GetProjectDirectory() / p_Path).lexically_normal();
+
+            return filepath;
+        }
+
         #define KTN_ADD_INTERNAL_CALL(Name) mono_add_internal_call("KTN.InternalCalls::" #Name, Name)
 
         static MonoObject* GetScriptInstance(UUID p_UUID)
@@ -85,69 +98,98 @@ namespace KTN
             return ScriptEngine::GetManagedInstance(p_UUID);
         }
 
-        #pragma region File
+        #pragma region FileSystem
 
-        static bool File_Exists(MonoString* p_Path)
+        static bool FileSystem_Exists(MonoString* p_Path)
         {
+            KTN_PROFILE_FUNCTION_LOW();
+
             const std::string nativePath = MonoStringToString(p_Path);
             if (nativePath.empty())
                 return false;
 
-            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
-
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
             std::error_code error;
-            const bool exists = std::filesystem::exists(filePath, error);
+            bool exists = std::filesystem::exists(filePath, error);
             if (error)
             {
-                KTN_CORE_ERROR("File_Exists error {} - {}: {}", error.category().name(), error.value(), error.message());
+                KTN_CORE_ERROR("FileSystem_Exists error {} - {}: {}", error.category().name(), error.value(), error.message());
             }
 
             return !error && exists;
         }
 
-        static bool File_WriteText(MonoString* p_Path, MonoString* p_Text)
+        static bool FileSystem_WriteFile(MonoString* p_Path, MonoString* p_Text)
         {
+            KTN_PROFILE_FUNCTION_LOW();
+
             const std::string nativePath = MonoStringToString(p_Path);
             const std::string nativeText = MonoStringToString(p_Text);
 
             if (nativePath.empty())
                 return false;
 
-            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
-
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
             if (filePath.has_parent_path())
-                std::filesystem::create_directories(filePath.parent_path());
+            {
+                std::error_code error;
+                std::filesystem::create_directories(filePath.parent_path(), error);
+                if (error)
+                {
+                    KTN_CORE_ERROR("FileSystem_WriteFile error {} - {}: {}", error.category().name(), error.value(), error.message());
+                    return false;
+                }
+            }
 
-            return FileSystem::WriteTextFile(filePath.string(), nativeText);
+            return FileSystem::WriteTextFile(filePath.generic_string(), nativeText);
         }
 
-        static MonoString* File_ReadText(MonoString* p_Path)
+        static MonoString* FileSystem_ReadFile(MonoString* p_Path)
         {
+            KTN_PROFILE_FUNCTION_LOW();
+
             const std::string nativePath = MonoStringToString(p_Path);
-            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
+            if (nativePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
 
             std::error_code error;
             const bool exists = std::filesystem::exists(filePath, error);
-            if (!exists)
-                return nullptr;
-
             if (error)
             {
-                KTN_CORE_ERROR("File_Exists error {} - {}: {}", error.category().name(), error.value(), error.message());
-                return nullptr;
+                KTN_CORE_ERROR("FileSystem_ReadFile error {} - {}: {}", error.category().name(), error.value(), error.message());
             }
+
+            if (error || !exists)
+                return nullptr;
 
             std::string text = FileSystem::ReadFile(filePath.string());
             return ScriptEngine::CreateString(text.c_str());
         }
 
-        static bool File_WriteBinary(MonoString* p_Path, MonoArray* p_Data)
+        static bool FileSystem_WriteFileBinary(MonoString* p_Path, MonoArray* p_Data)
         {
+            KTN_PROFILE_FUNCTION_LOW();
+
             if (!p_Data)
                 return false;
 
             const std::string nativePath   = MonoStringToString(p_Path);
-            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+            if (filePath.has_parent_path())
+            {
+                std::error_code error;
+                std::filesystem::create_directories(filePath.parent_path(), error);
+                if (error)
+                {
+                    KTN_CORE_ERROR("FileSystem_WriteFileBinary error {} - {}: {}", error.category().name(), error.value(), error.message());
+                    return false;
+                }
+            }
 
             const uintptr_t length  = mono_array_length(p_Data);
             Buffer bytes(length);
@@ -164,10 +206,15 @@ namespace KTN
             return FileSystem::WriteFile(filePath.string(), bytes.Data, bytes.Size);;
         }
 
-        static MonoArray* File_ReadBinary(MonoString* p_Path)
+        static MonoArray* FileSystem_ReadFileBinary(MonoString* p_Path)
         {
+            KTN_PROFILE_FUNCTION_LOW();
+
             const std::string nativePath    = MonoStringToString(p_Path);
-            std::filesystem::path filePath = FileSystem::NormalizePath(Project::GetAssetFileSystemPath(nativePath).string());
+            if (nativePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
 
             std::error_code error;
             const bool exists = std::filesystem::exists(filePath, error);
@@ -176,7 +223,7 @@ namespace KTN
 
             if (error)
             {
-                KTN_CORE_ERROR("File_ReadBinary error {} - {}: {}", error.category().name(), error.value(), error.message());
+                KTN_CORE_ERROR("FileSystem_ReadFileBinary error {} - {}: {}", error.category().name(), error.value(), error.message());
                 return nullptr;
             }
 
@@ -194,6 +241,346 @@ namespace KTN
             return result;
         }
 
+        static bool FileSystem_CreateDirectories(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+
+            std::error_code error;
+            const bool created = std::filesystem::create_directories(filePath, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_CreateDirectories error {} - {}: {}", error.category().name(), error.value(), error.message());
+            }
+
+            return !error && created;
+        }
+
+        static bool FileSystem_Copy(MonoString* p_Source, MonoString* p_Destination)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativeSource = MonoStringToString(p_Source);
+            const std::string nativeDestination = MonoStringToString(p_Destination);
+
+            if (nativeSource.empty() || nativeDestination.empty())
+                return false;
+
+            std::filesystem::path src = GetFileSystemPath(nativeSource);
+            std::filesystem::path dest = GetFileSystemPath(nativeDestination);
+
+            std::error_code error;
+            if (!std::filesystem::exists(src, error))
+            {
+                KTN_CORE_ERROR("FileSystem_Copy error: Source file does not exist: {}", src.string());
+                return false;
+            }
+
+            if (dest.has_parent_path())
+            {
+                std::filesystem::create_directories(dest.parent_path(), error);
+                if (error)
+                {
+                    KTN_CORE_ERROR("FileSystem_Copy error {} - {}: {}", error.category().name(), error.value(), error.message());
+                }
+            }
+
+            const bool copied = std::filesystem::copy_file(src, dest, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_Copy error {} - {}: {}", error.category().name(), error.value(), error.message());
+            }
+
+            return !error && copied;
+        }
+
+        static bool FileSystem_Move(MonoString* p_Source, MonoString* p_Destination)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativeSource      = MonoStringToString(p_Source);
+            const std::string nativeDestination = MonoStringToString(p_Destination);
+
+            if (nativeSource.empty() || nativeDestination.empty())
+                return false;
+
+            std::filesystem::path src  = GetFileSystemPath(nativeSource);
+            std::filesystem::path dest = GetFileSystemPath(nativeDestination);
+
+            std::error_code error;
+            if (!std::filesystem::exists(src, error))
+            {
+                KTN_CORE_ERROR("FileSystem_Move error: Source file does not exist: {}", src.string());
+                return false;
+            }
+
+            if (dest.has_parent_path())
+            {
+                std::filesystem::create_directories(dest.parent_path(), error);
+                if (error)
+                {
+                    KTN_CORE_ERROR("FileSystem_Move error {} - {}: {}", error.category().name(), error.value(), error.message());
+                    return false;
+                }
+            }
+
+            std::filesystem::rename(src, dest, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_Move error {} - {}: {}", error.category().name(), error.value(), error.message());
+            }
+
+            return !error;
+        }
+
+        static void FileSystem_Rename(MonoString* p_Path, MonoString* p_NewName)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath    = MonoStringToString(p_Path);
+            const std::string nativeNewName = MonoStringToString(p_NewName);
+
+            if (nativePath.empty() || nativeNewName.empty())
+                return;
+
+            std::filesystem::path filePath    = GetFileSystemPath(nativePath);
+            std::filesystem::path newFilePath = filePath.parent_path() / nativeNewName;
+
+            std::error_code error;
+            std::filesystem::rename(filePath, newFilePath, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_Rename error {} - {}: {}", error.category().name(), error.value(), error.message());
+            }
+        }
+
+        static bool FileSystem_Remove(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath   = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+
+            std::error_code error;
+            const bool removed = std::filesystem::remove(filePath, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_Remove error {} - {}: {}", error.category().name(), error.value(), error.message());
+            }
+
+            return !error && removed;
+        }
+
+        static MonoString* FileSystem_GetName(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+            if (!filePath.has_filename())
+                return nullptr;
+
+            std::string name = filePath.filename().generic_string();
+            return ScriptEngine::CreateString(name.c_str());
+        }
+
+        static MonoString* FileSystem_GetStem(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+            if (!filePath.has_stem())
+                return nullptr;
+
+            std::string name = filePath.stem().generic_string();
+            return ScriptEngine::CreateString(name.c_str());
+        }
+
+        static MonoString* FileSystem_GetExtension(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+            if (!filePath.has_extension())
+                return nullptr;
+
+            std::string name = filePath.extension().generic_string();
+            return ScriptEngine::CreateString(name.c_str());
+        }
+
+        static MonoString* FileSystem_GetParent(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+            if (!filePath.has_parent_path())
+                return nullptr;
+
+            std::string name = filePath.parent_path().lexically_normal().generic_string();
+            return ScriptEngine::CreateString(name.c_str());
+        }
+
+        static MonoString* FileSystem_GetAbsolute(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+
+            std::error_code error;
+            auto path = std::filesystem::absolute(filePath, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_GetAbsolute error {} - {}: {}", error.category().name(), error.value(), error.message());
+                return nullptr;
+            }
+
+            std::string newPath = path.lexically_normal().generic_string();
+            return ScriptEngine::CreateString(newPath.c_str());
+        }
+
+        static MonoString* FileSystem_GetRelative(MonoString* p_Path, MonoString* p_BasePath)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath     = MonoStringToString(p_Path);
+            const std::string nativeBasePath = MonoStringToString(p_BasePath);
+            if (nativePath.empty() || nativeBasePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+            std::filesystem::path basePath = GetFileSystemPath(nativeBasePath);
+
+            std::error_code error;
+            auto newFilepath = std::filesystem::relative(filePath, basePath, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_GetRelative error {} - {}: {}", error.category().name(), error.value(), error.message());
+                return nullptr;
+            }
+
+            std::string newPath = newFilepath.lexically_normal().generic_string();
+            return ScriptEngine::CreateString(newPath.c_str());
+        }
+
+        static MonoString* FileSystem_ReplaceExtension(MonoString* p_Path, MonoString* p_Extension)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+            const std::string nativePath      = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return nullptr;
+
+            const std::string nativeExtension = MonoStringToString(p_Extension);
+            std::filesystem::path filePath    = GetFileSystemPath(nativePath);
+
+            std::string newPath = filePath.replace_extension(nativeExtension).lexically_normal().generic_string();
+            return ScriptEngine::CreateString(newPath.c_str());
+        }
+
+        static MonoString* FileSystem_Normalize(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath   = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return nullptr;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+
+            std::string newPath            = filePath.lexically_normal().generic_string();
+            return ScriptEngine::CreateString(newPath.c_str());
+        }
+
+        static bool FileSystem_IsAbsolute(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+            return filePath.is_absolute();
+        }
+
+        static bool FileSystem_IsRelative(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+            return filePath.is_relative();
+        }
+
+        static bool FileSystem_IsDirectory(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+
+            std::error_code error;
+            bool isDir = std::filesystem::is_directory(filePath, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_IsDirectory error {} - {}: {}", error.category().name(), error.value(), error.message());
+            }
+
+            return !error && isDir;
+        }
+
+        static bool FileSystem_IsRegularFile(MonoString* p_Path)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            const std::string nativePath = MonoStringToString(p_Path);
+            if (nativePath.empty())
+                return false;
+
+            std::filesystem::path filePath = GetFileSystemPath(nativePath);
+
+            std::error_code error;
+            bool isFile = std::filesystem::is_regular_file(filePath, error);
+            if (error)
+            {
+                KTN_CORE_ERROR("FileSystem_IsRegularFile error {} - {}: {}", error.category().name(), error.value(), error.message());
+            }
+
+            return !error && isFile;
+        }
+
         #pragma endregion
         
         #pragma region Window
@@ -202,109 +589,81 @@ namespace KTN
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            if (!Project::GetActive()->IsRuntime()) return;
-
-            auto title = MonoStringToString(p_Title);
-            Application::Get().GetWindow()->SetTitle(title);
+            std::string title = MonoStringToString(p_Title);
+            s_ScriptGlueData->Window->SetTitle(title);
         }
 
         static void Window_SetVsync(bool p_Value)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            if (!Project::GetActive()->IsRuntime()) return;
-
-            Application::Get().GetWindow()->SetVsync(p_Value);
+            s_ScriptGlueData->Window->SetVsync(p_Value);
         }
 
         static bool Window_IsVsync()
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            if (!Project::GetActive()->IsRuntime()) return false;
-
-            Application::Get().GetWindow()->IsVsync();
+            return s_ScriptGlueData->Window->IsVsync();
         }
 
         static bool Window_IsMaximized()
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            if (!Project::GetActive()->IsRuntime()) return false;
-
-            return Application::Get().GetWindow()->IsMaximized();
+            return s_ScriptGlueData->Window->IsMaximized();
         }
 
         static bool Window_IsMinimized()
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            return Application::Get().GetWindow()->IsMinimized();
+            return s_ScriptGlueData->Window->IsMinimized();
         }
 
         static uint32_t Window_GetWidth()
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            if (!Project::GetActive()->IsRuntime())
-                return Project::GetActive()->GetConfig().Width;
-
-            return Application::Get().GetWindow()->GetWidth();
+            return s_ScriptGlueData->Window->GetWidth();
         }
 
         static uint32_t Window_GetHeight()
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            if (!Project::GetActive()->IsRuntime())
-                return Project::GetActive()->GetConfig().Height;
-
-            return Application::Get().GetWindow()->GetHeight();
+            return s_ScriptGlueData->Window->GetHeight();
         }
 
         static void Window_SetWidth(uint32_t p_Width)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            if (!Project::GetActive()->IsRuntime())
-            {
-                Project::GetActive()->GetConfig().Width = p_Width;
-                return;
-            }
-
-            auto& window = Application::Get().GetWindow();
-            auto height = window->GetHeight();
-            window->Resize(p_Width, height);
+            s_ScriptGlueData->Window->SetWidth(p_Width);
         }
 
         static void Window_SetHeight(uint32_t p_Height)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            if (!Project::GetActive()->IsRuntime())
-            {
-                Project::GetActive()->GetConfig().Height = p_Height;
-                return;
-            }
-
-            auto& window = Application::Get().GetWindow();
-            auto width = window->GetWidth();
-            window->Resize(width, p_Height);
+            s_ScriptGlueData->Window->SetHeight(p_Height);
         }
 
         static void Window_Resize(uint32_t p_Width, uint32_t p_Height)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            auto project = Project::GetActive();
-            if (!project->IsRuntime())
-            {
-                project->GetConfig().Width = p_Width;
-                project->GetConfig().Height = p_Height;
-                return;
-            }
+            s_ScriptGlueData->Window->Resize(p_Width, p_Height);
+        }
 
-            Application::Get().GetWindow()->Resize(p_Width, p_Height);
+        static void Window_Close()
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            // Sending the window closing operation to the main thread to make sure the window closes properly without causing any issues in the app.
+            Application::Get().SubmitToMainThread([&]() {
+                s_ScriptGlueData->Window->Close();
+            });
         }
 
         #pragma endregion
@@ -479,8 +838,7 @@ namespace KTN
             KTN_PROFILE_FUNCTION_LOW();
 
             auto path = MonoStringToString(p_Path);
-            path = Project::GetAssetFileSystemPath(path).string();
-            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
+            auto handle = AssetManager::Get()->GetHandleByPath(GetFileSystemPath(path).generic_string());
             auto type = AssetManager::Get()->GetAssetType(handle);
             return { handle, 0, (int32_t)type };
         }
@@ -616,36 +974,32 @@ namespace KTN
             return { p_Handle, config.UsePhysics2D };
         }
 
-        static SceneHandle SceneManager_ImportScene(MonoString* p_ScenePath)
+        static SceneHandle SceneManager_ImportScene(MonoString* p_Path)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            auto str = MonoStringToString(p_ScenePath);
-            auto path = Project::GetAssetFileSystemPath(str).string();
-            auto handle = SceneManager::Import(FileSystem::NormalizePath(path), true);
+            auto str = MonoStringToString(p_Path);
+            auto handle = SceneManager::Import(GetFileSystemPath(str).generic_string(), true);
 
             return ReturnSceneHandle(handle);
         }
 
-        static SceneHandle SceneManager_ImportSceneAsync(MonoString* p_ScenePath)
+        static SceneHandle SceneManager_ImportSceneAsync(MonoString* p_Path)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            auto str = MonoStringToString(p_ScenePath);
-            auto path = Project::GetAssetFileSystemPath(str).string();
-            auto handle = SceneManager::ImportAsync(FileSystem::NormalizePath(path));
+            auto str = MonoStringToString(p_Path);
+            auto handle = SceneManager::ImportAsync(GetFileSystemPath(str).generic_string());
 
             return ReturnSceneHandle(handle);
         }
 
-        static SceneHandle SceneManager_LoadSceneByPath(MonoString* p_ScenePath, int p_Mode)
+        static SceneHandle SceneManager_LoadSceneByPath(MonoString* p_Path, int p_Mode)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            auto str = MonoStringToString(p_ScenePath);
-            auto path = Project::GetAssetFileSystemPath(str).string();
-
-            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
+            auto str = MonoStringToString(p_Path);
+            auto handle = AssetManager::Get()->GetHandleByPath(GetFileSystemPath(str).generic_string());
 
             if (!SceneManager::Load(handle, (LoadMode)p_Mode, true))
             {
@@ -667,13 +1021,12 @@ namespace KTN
             return ReturnSceneHandle(p_SceneHandle);
         }
 
-        static SceneHandle SceneManager_LoadSceneAsyncByPath(MonoString* p_ScenePath, int p_Mode)
+        static SceneHandle SceneManager_LoadSceneAsyncByPath(MonoString* p_Path, int p_Mode)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            auto str = MonoStringToString(p_ScenePath);
-            auto path = Project::GetAssetFileSystemPath(str).string();
-            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
+            auto str = MonoStringToString(p_Path);
+            auto handle = AssetManager::Get()->GetHandleByPath(GetFileSystemPath(str).generic_string());
 
             SceneManager::LoadAsync(handle, (LoadMode)p_Mode);
 
@@ -689,14 +1042,12 @@ namespace KTN
             return ReturnSceneHandle(p_SceneHandle);
         }
 
-        static void SceneManager_UnloadSceneByPath(MonoString* p_ScenePath)
+        static void SceneManager_UnloadSceneByPath(MonoString* p_Path)
         {
             KTN_PROFILE_FUNCTION_LOW();
 
-            auto str = MonoStringToString(p_ScenePath);
-            auto path = Project::GetAssetFileSystemPath(str).string();
-
-            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
+            auto str = MonoStringToString(p_Path);
+            auto handle = AssetManager::Get()->GetHandleByPath(GetFileSystemPath(str).generic_string());
             SceneManager::Unload(handle, true);
         }
 
@@ -925,7 +1276,8 @@ namespace KTN
                 tc.Font = DFFont::GetDefault();
             else
             {
-                tc.Font = AssetManager::Get()->GetHandleByPath(fontPath);
+                fontPath = Project::GetAssetFileSystemPath(fontPath).generic_string();
+                tc.Font  = AssetManager::Get()->GetHandleByPath(fontPath);
                 KTN_CORE_VERIFY(tc.Font != 0, "Failed to load font from path: " + fontPath + ", Try importing the font first!");
             }
         }
@@ -1651,8 +2003,7 @@ namespace KTN
                 return;
 
             auto path   = MonoStringToString(p_Path);
-            path        = Project::GetAssetFileSystemPath(path).string();
-            auto handle = AssetManager::Get()->GetHandleByPath(FileSystem::NormalizePath(path));
+            auto handle = AssetManager::Get()->GetHandleByPath(GetFileSystemPath(path).string());
 
             entity.GetComponent<ImageComponent>().Handle = handle ? handle : Texture2D::GetDefault();
         }
@@ -2104,11 +2455,28 @@ namespace KTN
 
         KTN_ADD_INTERNAL_CALL(GetScriptInstance);
 
-        KTN_ADD_INTERNAL_CALL(File_Exists);
-        KTN_ADD_INTERNAL_CALL(File_ReadText);
-        KTN_ADD_INTERNAL_CALL(File_WriteText);
-        KTN_ADD_INTERNAL_CALL(File_ReadBinary);
-        KTN_ADD_INTERNAL_CALL(File_WriteBinary);
+        KTN_ADD_INTERNAL_CALL(FileSystem_Exists);
+        KTN_ADD_INTERNAL_CALL(FileSystem_ReadFile);
+        KTN_ADD_INTERNAL_CALL(FileSystem_WriteFile);
+        KTN_ADD_INTERNAL_CALL(FileSystem_ReadFileBinary);
+        KTN_ADD_INTERNAL_CALL(FileSystem_WriteFileBinary);
+        KTN_ADD_INTERNAL_CALL(FileSystem_CreateDirectories);
+        KTN_ADD_INTERNAL_CALL(FileSystem_Copy);
+        KTN_ADD_INTERNAL_CALL(FileSystem_Move);
+        KTN_ADD_INTERNAL_CALL(FileSystem_Rename);
+        KTN_ADD_INTERNAL_CALL(FileSystem_Remove);
+        KTN_ADD_INTERNAL_CALL(FileSystem_GetName);
+        KTN_ADD_INTERNAL_CALL(FileSystem_GetStem);
+        KTN_ADD_INTERNAL_CALL(FileSystem_GetExtension);
+        KTN_ADD_INTERNAL_CALL(FileSystem_GetParent);
+        KTN_ADD_INTERNAL_CALL(FileSystem_GetAbsolute);
+        KTN_ADD_INTERNAL_CALL(FileSystem_GetRelative);
+        KTN_ADD_INTERNAL_CALL(FileSystem_ReplaceExtension);
+        KTN_ADD_INTERNAL_CALL(FileSystem_Normalize);
+        KTN_ADD_INTERNAL_CALL(FileSystem_IsAbsolute);
+        KTN_ADD_INTERNAL_CALL(FileSystem_IsRelative);
+        KTN_ADD_INTERNAL_CALL(FileSystem_IsDirectory);
+        KTN_ADD_INTERNAL_CALL(FileSystem_IsRegularFile);
 
         KTN_ADD_INTERNAL_CALL(Window_SetTitle);
         KTN_ADD_INTERNAL_CALL(Window_SetVsync);
@@ -2120,6 +2488,7 @@ namespace KTN
         KTN_ADD_INTERNAL_CALL(Window_SetWidth);
         KTN_ADD_INTERNAL_CALL(Window_SetHeight);
         KTN_ADD_INTERNAL_CALL(Window_Resize);
+        KTN_ADD_INTERNAL_CALL(Window_Close);
 
         KTN_ADD_INTERNAL_CALL(Object_Instantiate);
         KTN_ADD_INTERNAL_CALL(Object_Destroy);
@@ -2251,6 +2620,25 @@ namespace KTN
 
         KTN_ADD_INTERNAL_CALL(UIInputComponent_IsHovered);
         KTN_ADD_INTERNAL_CALL(UIInputComponent_IsPressed);
+    }
+
+    void ScriptGlue::Initialize(Unique<WindowService> p_WindowService)
+    {
+        KTN_PROFILE_FUNCTION_LOW();
+
+        s_ScriptGlueData         = new ScriptGlueData();
+        if (p_WindowService)
+            s_ScriptGlueData->Window = std::move(p_WindowService);
+        else
+            s_ScriptGlueData->Window = CreateUnique<WindowService>();
+    }
+
+    void ScriptGlue::Shutdown()
+    {
+        KTN_PROFILE_FUNCTION_LOW();
+
+        delete s_ScriptGlueData;
+        s_ScriptGlueData = nullptr;
     }
 
 } // namespace KTN

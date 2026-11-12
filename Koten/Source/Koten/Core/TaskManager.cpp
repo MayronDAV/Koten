@@ -240,7 +240,7 @@ namespace KTN
         {
             p_Task.Function();
         }
-        catch (const std::exception& e)
+        catch (std::exception e)
         {
             KTN_CORE_ERROR("Exception in task '{0}': {1}", p_Task.Name, e.what());
         }
@@ -279,7 +279,7 @@ namespace KTN
             {
                 p_Task.Function();
             }
-            catch (const std::exception& e)
+            catch (std::exception e)
             {
                 KTN_CORE_ERROR("Exception in parallel task '{0}': {1}", p_Task.Name, e.what());
             }

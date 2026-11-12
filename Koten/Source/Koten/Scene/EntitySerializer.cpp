@@ -512,7 +512,7 @@ namespace KTN
             #define WRITE_SCRIPT_FIELD(FieldType, Type)    \
                 case ScriptFieldType::FieldType:           \
                     p_Out << scriptField.GetValue<Type>(); \
-                    break
+                    break;
 
             if (!p_Entity.HasComponent<ScriptComponent>())
                 return;
@@ -528,11 +528,11 @@ namespace KTN
             if (fields.size() > 0)
             {
                 p_Out << YAML::Key << "ScriptFields" << YAML::Value;
-                auto& entityFields = ScriptEngine::GetScriptFieldMap(p_Entity);
+                auto& scriptFields = ScriptEngine::GetScriptFieldMap(comp.FullClassName);
                 p_Out << YAML::BeginSeq;
                 for (const auto& [name, field] : fields)
                 {
-                    if (entityFields.find(name) == entityFields.end())
+                    if (scriptFields.find(name) == scriptFields.end())
                         continue;
 
                     if (field.IsPrivate && !field.Serialize)
@@ -543,14 +543,14 @@ namespace KTN
                     ADD_KEY_VALUE("Type", Utils::ScriptFieldTypeToString(field.Type));
 
                     p_Out << YAML::Key << "Data" << YAML::Value;
-                    ScriptFieldInstance& scriptField = entityFields.at(name);
+                    ScriptFieldInstance& scriptField = scriptFields.at(name);
 
                     switch (field.Type)
                     {
                         WRITE_SCRIPT_FIELD(Float, float);
                         WRITE_SCRIPT_FIELD(Double, double);
                         WRITE_SCRIPT_FIELD(Bool, bool);
-                        WRITE_SCRIPT_FIELD(Char, char);
+                        WRITE_SCRIPT_FIELD(Char, char16_t);
                         WRITE_SCRIPT_FIELD(Byte, int8_t);
                         WRITE_SCRIPT_FIELD(Short, int16_t);
                         WRITE_SCRIPT_FIELD(Int, int32_t);
@@ -562,7 +562,10 @@ namespace KTN
                         WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
                         WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
                         WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
-                        WRITE_SCRIPT_FIELD(Entity, UUID);
+                        WRITE_SCRIPT_FIELD(String, std::string);
+                        WRITE_SCRIPT_FIELD(Path, std::string);
+                        WRITE_SCRIPT_FIELD(Scene, uint64_t);
+                        WRITE_SCRIPT_FIELD(Object, ObjectHandle);
                     }
                     p_Out << YAML::EndMap; // ScriptFields
                 }
@@ -1009,12 +1012,12 @@ namespace KTN
             if (!p_Entity.HasComponent<ScriptComponent>())
                 return;
 
-            #define WRITE_SCRIPT_FIELD(FieldType, Type)                                    \
-                case ScriptFieldType::FieldType:                                        \
-                {                                                                        \
-                    auto value = scriptField.GetValue<Type>();                            \
-                    p_Out.write(reinterpret_cast<const char*>(&value), sizeof(Type));    \
-                }                                                                        \
+            #define WRITE_SCRIPT_FIELD(FieldType, Type)                               \
+                case ScriptFieldType::FieldType:                                      \
+                {                                                                     \
+                    auto value = scriptField.GetValue<Type>();                        \
+                    p_Out.write(reinterpret_cast<const char*>(&value), sizeof(Type)); \
+                }                                                                     \
                 break
 
             Utils::WriteString(p_Out, "ScriptComponent");
@@ -1028,12 +1031,12 @@ namespace KTN
 
             if (fields.size() > 0)
             {
-                auto& entityFields = ScriptEngine::GetScriptFieldMap(p_Entity);
+                auto& scriptFields = ScriptEngine::GetScriptFieldMap(comp.FullClassName);
 
                 int size = 0;
                 for (const auto& [name, field] : fields)
                 {
-                    if (entityFields.find(name) == entityFields.end())
+                    if (scriptFields.find(name) == scriptFields.end())
                         continue;
 
                     if (field.IsPrivate && !field.Serialize)
@@ -1045,7 +1048,7 @@ namespace KTN
 
                 for (const auto& [name, field] : fields)
                 {
-                    if (entityFields.find(name) == entityFields.end())
+                    if (scriptFields.find(name) == scriptFields.end())
                         continue;
 
                     if (field.IsPrivate && !field.Serialize)
@@ -1055,14 +1058,14 @@ namespace KTN
 
                     p_Out.write(reinterpret_cast<const char*>(&field.Type), sizeof(ScriptFieldType));
 
-                    ScriptFieldInstance& scriptField = entityFields.at(name);
+                    ScriptFieldInstance& scriptField = scriptFields.at(name);
 
                     switch (field.Type)
                     {
                         WRITE_SCRIPT_FIELD(Float, float);
                         WRITE_SCRIPT_FIELD(Double, double);
                         WRITE_SCRIPT_FIELD(Bool, bool);
-                        WRITE_SCRIPT_FIELD(Char, char);
+                        WRITE_SCRIPT_FIELD(Char, char16_t);
                         WRITE_SCRIPT_FIELD(Byte, int8_t);
                         WRITE_SCRIPT_FIELD(Short, int16_t);
                         WRITE_SCRIPT_FIELD(Int, int32_t);
@@ -1074,7 +1077,10 @@ namespace KTN
                         WRITE_SCRIPT_FIELD(Vector2, glm::vec2);
                         WRITE_SCRIPT_FIELD(Vector3, glm::vec3);
                         WRITE_SCRIPT_FIELD(Vector4, glm::vec4);
-                        WRITE_SCRIPT_FIELD(Entity, UUID);
+                        WRITE_SCRIPT_FIELD(String, std::string);
+                        WRITE_SCRIPT_FIELD(Path, std::string);
+                        WRITE_SCRIPT_FIELD(Scene, uint64_t);
+                        WRITE_SCRIPT_FIELD(Object, ObjectHandle);
                     }
                 }
             }
@@ -1473,7 +1479,7 @@ namespace KTN
                     Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(sc.FullClassName);
                     KTN_CORE_ASSERT(entityClass);
                     const auto& fields = entityClass->GetFields();
-                    auto& entityFields = ScriptEngine::GetScriptFieldMap(p_Entity);
+                    auto& scriptFieldsMap = ScriptEngine::GetScriptFieldMap(sc.FullClassName);
 
                     for (auto scriptField : scriptFields)
                     {
@@ -1481,7 +1487,7 @@ namespace KTN
                         std::string typeString = scriptField["Type"].as<std::string>();
                         ScriptFieldType type = Utils::ScriptFieldTypeFromString(typeString);
 
-                        ScriptFieldInstance& fieldInstance = entityFields[name];
+                        ScriptFieldInstance& fieldInstance = scriptFieldsMap[name];
 
                         if (fields.find(name) == fields.end())
                         {
@@ -1508,7 +1514,10 @@ namespace KTN
                             READ_SCRIPT_FIELD(Vector2, glm::vec2);
                             READ_SCRIPT_FIELD(Vector3, glm::vec3);
                             READ_SCRIPT_FIELD(Vector4, glm::vec4);
-                            READ_SCRIPT_FIELD(Entity, UUID);
+                            READ_SCRIPT_FIELD(String, std::string);
+                            READ_SCRIPT_FIELD(Path, std::string);
+                            READ_SCRIPT_FIELD(Scene, uint64_t);
+                            READ_SCRIPT_FIELD(Object, ObjectHandle);
                         }
                     }
                 }
@@ -1944,7 +1953,7 @@ namespace KTN
                 int size = 0;
                 KTN_STREAM(&size, sizeof(size));
 
-                auto entityFields = p_Entity ? ScriptEngine::GetScriptFieldMap(p_Entity) : ScriptFieldMap{};
+                auto scriptFields = p_Entity ? ScriptEngine::GetScriptFieldMap(comp.FullClassName) : ScriptFieldMap{};
 
                 for (int i = 0; i < size; i++)
                 {
@@ -1954,7 +1963,7 @@ namespace KTN
                     ScriptFieldType type;
                     KTN_STREAM(&type, sizeof(type));
 
-                    auto fieldInstance = p_Entity ? entityFields[name] : ScriptFieldInstance{};
+                    auto fieldInstance = p_Entity ? scriptFields[name] : ScriptFieldInstance{};
                     if (p_Entity)
                     {
                         if (fields.find(name) == fields.end())
@@ -1982,15 +1991,19 @@ namespace KTN
                         READ_SCRIPT_FIELD(Vector2, glm::vec2);
                         READ_SCRIPT_FIELD(Vector3, glm::vec3);
                         READ_SCRIPT_FIELD(Vector4, glm::vec4);
-                        READ_SCRIPT_FIELD(Entity, UUID);
+                        READ_SCRIPT_FIELD(String, std::string);
+                        READ_SCRIPT_FIELD(Path, std::string);
+                        READ_SCRIPT_FIELD(Scene, uint64_t);
+                        READ_SCRIPT_FIELD(Object, ObjectHandle);
+
                     }
 
                     if (p_Entity)
-                        entityFields[name] = fieldInstance;
+                        scriptFields[name] = fieldInstance;
                 }
 
                 if (p_Entity)
-                    ScriptEngine::GetScriptFieldMap(p_Entity) = entityFields;
+                    ScriptEngine::GetScriptFieldMap(comp.FullClassName) = scriptFields;
             }
 
             if (p_Entity)

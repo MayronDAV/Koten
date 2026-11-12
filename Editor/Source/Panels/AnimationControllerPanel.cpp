@@ -240,7 +240,7 @@ namespace KTN
             {
                 for (const auto& clip : anim->Clips)
                 {
-                    ImGui::PushID(clip.ID);
+                    ImGui::PushID((int)clip.ID);
 
                     ImGui::Selectable(clip.Name.c_str());
 

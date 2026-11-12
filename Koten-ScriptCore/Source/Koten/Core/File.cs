@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Text;
 using System.Collections.Generic;
 using System.IO;
@@ -8,34 +7,6 @@ using System.Runtime.InteropServices;
 
 namespace KTN.IO
 {
-    public static class File
-    {
-        public static bool Exists(string p_Path)
-        {
-            return InternalCalls.File_Exists(p_Path);
-        }
-
-        public static bool WriteText(string p_Path, string p_Text)
-        {
-            return InternalCalls.File_WriteText(p_Path, p_Text);
-        }
-
-        public static bool WriteBinary(string p_Path, byte[] p_Data)
-        {
-            return InternalCalls.File_WriteBinary(p_Path, p_Data);
-        }
-
-        public static string ReadText(string p_Path)
-        {
-            return InternalCalls.File_ReadText(p_Path);
-        }
-
-        public static byte[] ReadBinary(string p_Path)
-        {
-            return InternalCalls.File_ReadBinary(p_Path);
-        }
-    }
-
     public class FileEmitter
     {
         private readonly StringBuilder m_Builder;
@@ -164,9 +135,12 @@ namespace KTN.IO
             m_CurrIndent = 0;
         }
 
-        public bool Save(string p_Path)
+        public bool Save(Path p_Path)
         {
-            return File.WriteText(p_Path, Data());
+            if (p_Path.Empty())
+                return false;
+
+            return FileSystem.WriteFile(p_Path, Data());
         }
 
         private void ValidateKey(string p_Key)
@@ -389,9 +363,12 @@ namespace KTN.IO
             return root;
         }
 
-        public static FileNode ReadFile(string p_Path)
+        public static FileNode ReadFile(Path p_Path)
         {
-            string content = File.ReadText(p_Path);
+            if (p_Path.Empty() || !p_Path.Exists())
+                return null;
+
+            string content = FileSystem.ReadFile(p_Path);
             return Read(content);
         }
 
@@ -521,6 +498,7 @@ namespace KTN.IO
         public void Write(bool p_Value) { m_Writer.Write(p_Value); }
         public void Write(char p_Value) { m_Writer.Write(p_Value); }
         public void Write(string p_Value) { m_Writer.Write(p_Value); }
+        public void Write(Path p_Value) { m_Writer.Write(p_Value.String()); }
         public void Write(decimal p_Value) { m_Writer.Write(p_Value); }
         public void Write(DateTime p_Value) { m_Writer.Write(p_Value.ToBinary()); }
         public void Write(Guid p_Value) { m_Writer.Write(p_Value.ToByteArray()); }
@@ -585,6 +563,17 @@ namespace KTN.IO
 
             foreach (string value in p_Values)
                 m_Writer.Write(value);
+        }
+
+        public void Write(Path[] p_Values)
+        {
+            if (p_Values == null)
+                throw new ArgumentNullException(nameof(p_Values));
+
+            m_Writer.Write(p_Values.Length);
+
+            foreach (Path value in p_Values)
+                m_Writer.Write(value.String());
         }
 
         public void Write<T>(T p_Value) where T : struct
@@ -660,12 +649,15 @@ namespace KTN.IO
             m_Stream.Position = 0;
         }
 
-        public bool Save(string p_Path)
+        public bool Save(Path p_Path)
         {
+            if (p_Path.Empty())
+                return false;
+
             EnsureNotDisposed();
             m_Writer.Flush();
 
-            return KTN.IO.File.WriteBinary(p_Path, m_Stream.ToArray());
+            return FileSystem.WriteFileBinary(p_Path, m_Stream.ToArray());
         }
 
         private void EnsureNotDisposed()
@@ -715,9 +707,12 @@ namespace KTN.IO
             m_Reader = new System.IO.BinaryReader(m_Stream);
         }
 
-        public static BinaryFileReader FromFile(string p_Path)
+        public static BinaryFileReader FromFile(Path p_Path)
         {
-            byte[] data = KTN.IO.File.ReadBinary(p_Path);
+            if (p_Path.Empty() || !p_Path.Exists())
+                throw new FileNotFoundException("File not found: " + p_Path);
+
+            byte[] data = FileSystem.ReadFileBinary(p_Path);
 
             if (data == null)
                 throw new IOException("Unable to read binary file: " + p_Path);
@@ -738,6 +733,7 @@ namespace KTN.IO
         public bool ReadBoolean() { return m_Reader.ReadBoolean(); }
         public char ReadChar() { return m_Reader.ReadChar(); }
         public string ReadString() { return m_Reader.ReadString(); }
+        public Path ReadPath() { return new Path(m_Reader.ReadString()); }
         public decimal ReadDecimal() { return m_Reader.ReadDecimal(); }
 
         public DateTime ReadDateTime()
@@ -831,6 +827,21 @@ namespace KTN.IO
 
             for (int i = 0; i < count; i++)
                 values[i] = ReadString();
+
+            return values;
+        }
+
+        public Path[] ReadPathArray()
+        {
+            int count = ReadCount();
+
+            if (count > Remaining)
+                throw new EndOfStreamException();
+
+            Path[] values = new Path[count];
+
+            for (int i = 0; i < count; i++)
+                values[i] = ReadPath();
 
             return values;
         }

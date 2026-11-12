@@ -23,14 +23,17 @@ namespace KTN::Utils
             SCRIPT_FIELD_TYPE_CASE(Int);
             SCRIPT_FIELD_TYPE_CASE(Long);
             SCRIPT_FIELD_TYPE_CASE(Byte);
+            SCRIPT_FIELD_TYPE_CASE(UByte);
             SCRIPT_FIELD_TYPE_CASE(UShort);
             SCRIPT_FIELD_TYPE_CASE(UInt);
             SCRIPT_FIELD_TYPE_CASE(ULong);
-            SCRIPT_FIELD_TYPE_CASE(String);
             SCRIPT_FIELD_TYPE_CASE(Vector2);
             SCRIPT_FIELD_TYPE_CASE(Vector3);
             SCRIPT_FIELD_TYPE_CASE(Vector4);
-            SCRIPT_FIELD_TYPE_CASE(Entity);
+            SCRIPT_FIELD_TYPE_CASE(String);
+            SCRIPT_FIELD_TYPE_CASE(Path);
+            SCRIPT_FIELD_TYPE_CASE(Scene);
+            SCRIPT_FIELD_TYPE_CASE(Object);
             default: return "<Invalid>";
         }
 
@@ -50,14 +53,17 @@ namespace KTN::Utils
         SCRIPT_FIELD_TYPE(Int);
         SCRIPT_FIELD_TYPE(Long);
         SCRIPT_FIELD_TYPE(Byte);
+        SCRIPT_FIELD_TYPE(UByte);
         SCRIPT_FIELD_TYPE(UShort);
         SCRIPT_FIELD_TYPE(UInt);
         SCRIPT_FIELD_TYPE(ULong);
-        SCRIPT_FIELD_TYPE(String);
         SCRIPT_FIELD_TYPE(Vector2);
         SCRIPT_FIELD_TYPE(Vector3);
         SCRIPT_FIELD_TYPE(Vector4);
-        SCRIPT_FIELD_TYPE(Entity);
+        SCRIPT_FIELD_TYPE(String);
+        SCRIPT_FIELD_TYPE(Path);
+        SCRIPT_FIELD_TYPE(Scene);
+        SCRIPT_FIELD_TYPE(Object);
 
 
         #undef SCRIPT_FIELD_TYPE

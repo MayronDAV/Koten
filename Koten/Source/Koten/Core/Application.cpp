@@ -18,6 +18,7 @@
 #include "Koten/Graphics/PickingManager.h"
 #include "ShaderModuleLibrary.h"
 #include "Koten/Project/Project.h"
+#include "Koten/Script/ScriptGlue.h"
 
 
 
@@ -101,6 +102,7 @@ namespace KTN
 
         SceneManager::Shutdown();
         ScriptEngine::Shutdown();
+        ScriptGlue::Shutdown();
         PickingManager::Shutdown();
         AnimSystemManager::Shutdown();
 

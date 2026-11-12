@@ -24,8 +24,8 @@ namespace KTN
 
             glm::vec2 atlasSize = { (float)texture->GetWidth(), (float)texture->GetHeight() };
 
-            int cols            = atlasSize.x / p_GridSize.x;
-            int rows            = atlasSize.y / p_GridSize.y;
+            int cols            = int(atlasSize.x / p_GridSize.x);
+            int rows            = int(atlasSize.y / p_GridSize.y);
 
             int total           = cols * rows;
             p_Atlas->Regions.clear();
@@ -155,7 +155,7 @@ namespace KTN
                         ImGui::BeginGroup();
 
                         auto texture = AssetManager::Get()->GetAsset<Texture2D>(m_Atlas->Texture);
-                        ImGui::PushID(region.ID);
+                        ImGui::PushID((int)region.ID);
 
                         float buttonSize = itemWidth - 20.0f;
 

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace KTN
 {
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal struct ObjectHandle
     {
         public ulong ID;
@@ -36,22 +36,73 @@ namespace KTN
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static object GetScriptInstance(ulong p_UUID);
 
-        #region File
+        #region FileSystem
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool File_Exists(string p_Path);
+        internal extern static bool FileSystem_Exists(string p_Path);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool File_WriteText(string p_Path, string p_Text);
+        internal extern static bool FileSystem_WriteFile(string p_Path, string p_Text);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static string File_ReadText(string p_Path);
+        internal extern static string FileSystem_ReadFile(string p_Path);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static bool File_WriteBinary(string p_Path, byte[] p_Data);
+        internal extern static bool FileSystem_WriteFileBinary(string p_Path, byte[] p_Data);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal extern static byte[] File_ReadBinary(string p_Path);
+        internal extern static byte[] FileSystem_ReadFileBinary(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool FileSystem_CreateDirectories(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool FileSystem_Copy(string p_Src, string p_Dest);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool FileSystem_Move(string p_Src, string p_Dest);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void FileSystem_Rename(string p_Path, string p_Name);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool FileSystem_Remove(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string FileSystem_GetName(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string FileSystem_GetStem(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string FileSystem_GetExtension(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string FileSystem_GetParent(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string FileSystem_GetAbsolute(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string FileSystem_GetRelative(string p_Path, string p_RelativeTo);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string FileSystem_ReplaceExtension(string p_Path, string p_Extension);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static string FileSystem_Normalize(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool FileSystem_IsAbsolute(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool FileSystem_IsRelative(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool FileSystem_IsDirectory(string p_Path);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static bool FileSystem_IsRegularFile(string p_Path);
 
         #endregion
 
@@ -86,6 +137,9 @@ namespace KTN
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern static void Window_Resize(UInt32 p_Width, UInt32 p_Height);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void Window_Close();
 
         #endregion
 

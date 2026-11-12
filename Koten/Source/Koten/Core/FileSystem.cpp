@@ -42,7 +42,7 @@ namespace KTN
         return path.lexically_normal().generic_string();
     }
 
-    bool FileSystem::WriteFile(const std::string& p_Path, uint8_t* p_Buffer, uint32_t p_Size)
+    bool FileSystem::WriteFile(const std::string& p_Path, uint8_t* p_Buffer, uint64_t p_Size)
     {
         std::ofstream stream(p_Path, std::ios::binary | std::ios::trunc);
 
@@ -60,7 +60,7 @@ namespace KTN
 
     bool FileSystem::WriteTextFile(const std::string& p_Path, const std::string& p_Text)
     {
-        return WriteFile(p_Path, (uint8_t*)&p_Text[0], (uint32_t)p_Text.size());
+        return WriteFile(p_Path, (uint8_t*)&p_Text[0], p_Text.size());
     }
 
     std::string FileSystem::ReadFile(const std::string& p_Path)

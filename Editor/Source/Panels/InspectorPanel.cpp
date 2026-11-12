@@ -60,6 +60,341 @@ namespace KTN
             return GetRelative(p_Metadata.FilePath, p_Metadata.Scope == AssetScope::Project, p_Metadata.Load);
         }
 
+        template<typename T>
+        static T GetFieldValue(const std::string& p_Name, ScriptFieldInstance& p_Instance, const Ref<ScriptInstance>& p_ScriptInstance = nullptr)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (p_ScriptInstance)
+                return p_ScriptInstance->GetFieldValue<T>(p_Name);
+
+            return p_Instance.GetValue<T>();
+        }
+
+        template<typename T>
+        static void SetFieldValue(const std::string& p_Name,  T p_Value, ScriptFieldInstance& p_Instance, const Ref<ScriptInstance>& p_ScriptInstance = nullptr)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (p_ScriptInstance)
+                p_ScriptInstance->SetFieldValue(p_Name, p_Value);
+            else
+                p_Instance.SetValue(p_Value);
+        }
+
+        static AssetType GetAssetTypeByExtension(const std::string& p_Extension)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (p_Extension == ".ktprefab") return AssetType::Prefab;
+            else if (p_Extension == ".ktscn") return AssetType::Scene;
+            else if (p_Extension == ".ktmat") return AssetType::Material;
+            else if (p_Extension == ".ktasset") return AssetType::PhysicsMaterial2D;
+            else if (p_Extension == ".ttf") return AssetType::Font;
+            else if (p_Extension == ".ktanim") return AssetType::Animation;
+            else if (p_Extension == ".ktcontroller") return AssetType::AnimationController;
+            else if (p_Extension == ".ktatlas") return AssetType::TextureAtlas;
+            else if (p_Extension == ".ktrt") return AssetType::Texture2D;
+            else if (p_Extension == ".png" || p_Extension == ".jpg" || p_Extension == ".jpeg") return AssetType::Texture2D;
+
+            KTN_CORE_ERROR("Unsupported extension!");
+            return AssetType::None;
+        }
+
+        static void DrawScriptField(const std::string& p_Name, ScriptFieldInstance& p_Instance, const Ref<ScriptInstance>& p_ScriptInstance = nullptr)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            ScriptField& field = p_ScriptInstance ? p_ScriptInstance->GetScriptClass()->GetFields()[p_Name] : p_Instance.Field;
+            if (field.IsPrivate)
+            {
+                if (!field.ShowInEditor)
+                    return;
+
+                ImGui::BeginDisabled();
+            }
+
+            ImGui::Text(p_Name.c_str());
+            ImGui::SameLine();
+
+            switch (field.Type)
+            {
+                case ScriptFieldType::Float:
+                {
+                    float data = GetFieldValue<float>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::DragFloat(("##Float" + p_Name).c_str(), &data))
+                        SetFieldValue<float>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Double:
+                {
+                    double data = GetFieldValue<double>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::DragScalar(("##Double" + p_Name).c_str(), ImGuiDataType_Double, &data))
+                        SetFieldValue<double>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Bool:
+                {
+                    bool data = GetFieldValue<bool>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::Checkbox(("##Bool" + p_Name).c_str(), &data))
+                        SetFieldValue<bool>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Char:
+                {
+                    char16_t data = GetFieldValue<char16_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##Char" + p_Name).c_str(), ImGuiDataType_S8, &data))
+                        SetFieldValue<char16_t>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Byte:
+                {
+                    int8_t data = GetFieldValue<int8_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##Byte" + p_Name).c_str(), ImGuiDataType_S8, &data))
+                        SetFieldValue<int8_t>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::UByte:
+                {
+                    uint8_t data = GetFieldValue<uint8_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##UByte" + p_Name).c_str(), ImGuiDataType_U8, &data))
+                        SetFieldValue<uint8_t>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;                
+                }
+                case ScriptFieldType::Short:
+                {
+                    int16_t data = GetFieldValue<int16_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##Short" + p_Name).c_str(), ImGuiDataType_S16, &data))
+                        SetFieldValue<int16_t>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::UShort:
+                {
+                    uint16_t data = GetFieldValue<uint16_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##UShort" + p_Name).c_str(), ImGuiDataType_U16, &data))
+                        SetFieldValue<uint16_t>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Int:
+                {
+                    int32_t data = GetFieldValue<int32_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##Int" + p_Name).c_str(), ImGuiDataType_S32, &data))
+                        SetFieldValue<int32_t>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::UInt:
+                {
+                    uint32_t data = GetFieldValue<uint32_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##UInt" + p_Name).c_str(), ImGuiDataType_U32, &data))
+                        SetFieldValue<uint32_t>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Long:
+                {
+                    int64_t data = GetFieldValue<int64_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##Long" + p_Name).c_str(), ImGuiDataType_S64, &data))
+                        SetFieldValue<int64_t>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::ULong:
+                {
+                    uint64_t data = GetFieldValue<uint64_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##ULong" + p_Name).c_str(), ImGuiDataType_U64, &data))
+                        SetFieldValue<uint64_t>(p_Name, data, p_Instance, p_ScriptInstance);
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                        {
+                            const wchar_t* path = (const wchar_t*)payload->Data;
+                            auto filepath       = std::filesystem::path(path);
+                            AssetType type = GetAssetTypeByExtension(filepath.extension().string());
+                            if (type != AssetType::None)
+                            {
+                                AssetHandle handle = AssetManager::Get()->ImportAsset(type, filepath.string());
+                                SetFieldValue<uint64_t>(p_Name, (uint64_t)handle, p_Instance, p_ScriptInstance);
+                            }
+                        }
+
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY_ITEM"))
+                        {
+                            UUID enttID = *(UUID*)payload->Data;
+                            SetFieldValue<uint64_t>(p_Name, (uint64_t)enttID, p_Instance, p_ScriptInstance);
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+                    break;
+                }
+                case ScriptFieldType::String:
+                {
+                    std::string data = GetFieldValue<std::string>(p_Name, p_Instance, p_ScriptInstance);
+                    char buffer[256];
+                    Strncpy(buffer, data.c_str(), sizeof(buffer));
+                    if (ImGui::InputText(("##String" + p_Name).c_str(), buffer, sizeof(buffer)))
+                        SetFieldValue<std::string>(p_Name, std::string(buffer), p_Instance, p_ScriptInstance);
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                        {
+                            const wchar_t* path = (const wchar_t*)payload->Data;
+                            auto filepath = std::filesystem::path(path);
+
+                            SetFieldValue<std::string>(p_Name, filepath.string(), p_Instance, p_ScriptInstance);
+                        }
+
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY_ITEM"))
+                        {
+                            UUID enttID = *(UUID*)payload->Data;
+                            if (enttID != 0)
+                            {
+                                auto entt       = SceneManager::GetEntityByUUID(enttID);
+                                std::string tag = entt.GetTag();
+
+                                SetFieldValue<std::string>(p_Name, tag, p_Instance, p_ScriptInstance);
+                            }
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+                    break;
+                }
+                case ScriptFieldType::Vector2:
+                {
+                    glm::vec2 data = GetFieldValue<glm::vec2>(p_Name, p_Instance, p_ScriptInstance);
+                    if (UI::DragFloat2(("##Vec2" + p_Name).c_str(), data))
+                        SetFieldValue<glm::vec2>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Vector3:
+                {
+                    glm::vec3 data = GetFieldValue<glm::vec3>(p_Name, p_Instance, p_ScriptInstance);
+                    if (UI::DragFloat3(("##Vec3" + p_Name).c_str(), data))
+                        SetFieldValue<glm::vec3>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Vector4:
+                {
+                    glm::vec4 data = GetFieldValue<glm::vec4>(p_Name, p_Instance, p_ScriptInstance);
+                    if (UI::ColorEdit4(("##Vec4" + p_Name).c_str(), data, 0.0f))
+                        SetFieldValue<glm::vec4>(p_Name, data, p_Instance, p_ScriptInstance);
+                    break;
+                }
+                case ScriptFieldType::Path:
+                {
+                    std::string data = GetFieldValue<std::string>(p_Name, p_Instance, p_ScriptInstance);
+                    char buffer[256];
+                    Strncpy(buffer, data.c_str(), sizeof(buffer));
+                    if (ImGui::InputText(("##Path" + p_Name).c_str(), buffer, sizeof(buffer)))
+                        SetFieldValue<std::string>(p_Name, std::string(buffer), p_Instance, p_ScriptInstance);
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                        {
+                            const wchar_t* path = (const wchar_t*)payload->Data;
+                            auto filepath = std::filesystem::path(path);
+                            SetFieldValue<std::string>(p_Name, filepath.string(), p_Instance, p_ScriptInstance);
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+                    break;
+                }
+                case ScriptFieldType::Scene:
+                {
+                    uint64_t data = GetFieldValue<uint64_t>(p_Name, p_Instance, p_ScriptInstance);
+                    if (ImGui::InputScalar(("##Scene" + p_Name).c_str(), ImGuiDataType_U64, &data))
+                        SetFieldValue<uint64_t>(p_Name, data, p_Instance, p_ScriptInstance);
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                        {
+                            const wchar_t* path = (const wchar_t*)payload->Data;
+                            auto filepath = std::filesystem::path(path);
+                            if (filepath.extension() == ".ktscn")
+                            {
+                                AssetHandle handle = AssetManager::Get()->ImportAsset(AssetType::Scene, filepath.string());
+                                ObjectHandle data  = { handle, 0, (int)AssetType::Scene };
+                                SetFieldValue<ObjectHandle>(p_Name, data, p_Instance, p_ScriptInstance);
+                            }
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+                    break;
+                }
+                case ScriptFieldType::Object:
+                {
+                    uint64_t id = 0;
+                    try
+                    {
+                        auto value = GetFieldValue<ObjectHandle>(p_Name, p_Instance, p_ScriptInstance);
+                        id         = value.ID;
+                    }
+                    catch (...)
+                    {
+                        id = 0;
+                    };
+
+                    ImGui::PushID(std::format("{} ({})", p_Name, id).c_str());
+                    if (ImGui::Button(std::to_string(id).c_str()))
+                    {
+                        std::string path = "";
+                        if (FileDialog::Open({ { "AllFiles", "*.*" } }, Project::GetAssetDirectory().string(), path) == FileDialogResult::SUCCESS)
+                        {
+                            std::filesystem::path filepath(path);
+                            AssetType type = GetAssetTypeByExtension(filepath.extension().string());
+                            if (type != AssetType::None)
+                            {
+                                ObjectHandle data = { 0, 0, (int32_t)type };
+                                data.ID = AssetManager::Get()->ImportAsset(type, filepath.string());
+
+                                SetFieldValue<ObjectHandle>(p_Name, data, p_Instance, p_ScriptInstance);
+                            }
+                        }
+                    }
+
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                        {
+                            const wchar_t* path   = (const wchar_t*)payload->Data;
+                            auto filepath         = std::filesystem::path(path);
+                            AssetType type        = GetAssetTypeByExtension(filepath.extension().string());
+                            if (type != AssetType::None)
+                            {
+                                ObjectHandle data = { 0, 0, (int32_t)type };
+                                data.ID           = AssetManager::Get()->ImportAsset(type, filepath.string());
+
+                                SetFieldValue<ObjectHandle>(p_Name, data, p_Instance, p_ScriptInstance);
+                            }
+                        }
+
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY_ITEM"))
+                        {
+                            UUID enttID           = *(UUID*)payload->Data;
+                            if (enttID != 0)
+                            {
+                                auto entt         = SceneManager::GetEntityByUUID(enttID);
+                                ObjectHandle data = { enttID, entt.GetScene()->Handle, 0 };
+                                SetFieldValue<ObjectHandle>(p_Name, data, p_Instance, p_ScriptInstance);
+                            }
+                        }
+
+                        ImGui::EndDragDropTarget();
+                    }
+                    ImGui::PopID();
+                    break;
+                }
+            }
+
+            if (field.IsPrivate)
+                ImGui::EndDisabled();
+        }
+
         template<typename Component>
         void DisplayComponentEntry(const std::string& p_Name, Entity p_Entt, const std::function<void(Component&)>& p_Func = nullptr)
         {
@@ -641,65 +976,40 @@ namespace KTN
                     ImGui::EndPopup();
                 }
 
-
                 // Fields
                 Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityScriptInstance(p_Entity.GetUUID());
+                if (!scriptInstance && !scriptClassExists)
+                {
+                    ImGui::PopID();
+                    return;
+                }
+
                 if (scriptInstance)
                 {
                     const auto& fields = scriptInstance->GetScriptClass()->GetFields();
 
+                    ScriptFieldInstance fieldInstance = {};
                     for (const auto& [name, field] : fields)
                     {
-                        ImGui::Text(name.c_str());
-                        ImGui::SameLine();
-
-                        if (field.Type == ScriptFieldType::Float)
-                        {
-                            float data = scriptInstance->GetFieldValue<float>(name);
-
-                            if (field.IsPrivate)
-                            {
-                                if (field.ShowInEditor)
-                                    ImGui::InputFloat(std::string("##Input" + name).c_str(), &data, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
-                                continue; // Skip the drag for private fields
-                            }
-
-                            if (ImGui::DragFloat(std::string("##Drag" + name).c_str(), &data))
-                            {
-                                scriptInstance->SetFieldValue(name, data);
-                            }
-                        }
+                        DrawScriptField(name, fieldInstance, scriptInstance);
                     }
                 }
-                else if (scriptClassExists)
+                else
                 {
                     Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(p_SC.FullClassName);
                     const auto& fields = entityClass->GetFields();
 
-                    auto& entityFields = ScriptEngine::GetScriptFieldMap(p_Entity);
+                    auto& scriptFields = ScriptEngine::GetScriptFieldMap(entityClass->GetFullName());
                     for (const auto& [name, field] : fields)
                     {
-                        ImGui::Text(name.c_str());
-                        ImGui::SameLine();
-
-                        if (field.Type == ScriptFieldType::Float)
+                        auto it = scriptFields.find(name);
+                        if (it == scriptFields.end())
                         {
-                            ScriptFieldInstance& fieldInstance = entityFields.find(name) != entityFields.end() ? entityFields.at(name) : entityFields[name];
-                            if (entityFields.find(name) == entityFields.end())
-                                fieldInstance.Field = field;
-
-                            float data = fieldInstance.GetValue<float>();
-
-                            if (field.IsPrivate)
-                            {
-                                if (field.ShowInEditor)
-                                    ImGui::InputFloat(std::string("##Input" + name).c_str(), &data, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
-                                continue; // Skip the drag for private fields
-                            }
-
-                            if (ImGui::DragFloat(std::string("##Drag" + name).c_str(), &data))
-                                fieldInstance.SetValue(data);
+                            KTN_CORE_ERROR("Failed to find script field '{}'", name);
+                            continue;
                         }
+
+                        DrawScriptField(name, it->second, nullptr);
                     }
                 }
 

@@ -189,14 +189,14 @@ namespace KTN
             s_Instance->DeserializeAssetRegistry();
 
             auto isStageFile = [](const std::filesystem::path& p_Path)
-        {
-            auto ext = p_Path.extension();
+            {
+                auto ext = p_Path.extension();
 
-            return ext == ".vertex"   || ext == ".vert" ||
-                   ext == ".fragment" || ext == ".frag" ||
-                   ext == ".geometry" || ext == ".geom" ||
-                   ext == ".tesc"     || ext == ".tese";
-        };
+                return ext == ".vertex"   || ext == ".vert" ||
+                       ext == ".fragment" || ext == ".frag" ||
+                       ext == ".geometry" || ext == ".geom" ||
+                       ext == ".tesc"     || ext == ".tese";
+            };
 
             for (const auto& entry : std::filesystem::recursive_directory_iterator("Assets/Shaders"))
             {

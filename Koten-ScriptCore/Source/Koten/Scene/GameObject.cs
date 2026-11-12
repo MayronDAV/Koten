@@ -6,11 +6,14 @@ namespace KTN
     {
         internal GameObject() { base.ID = 0; base.SceneHandle = 0; }
 
-        internal GameObject(ulong p_ID, ulong p_SceneHandle)
+        public GameObject(ulong p_ID, ulong p_SceneHandle)
         {
             ID = p_ID;
             SceneHandle = p_SceneHandle;
         }
+
+        public GameObject(Object p_Object)
+            : base(p_Object) { }
 
         public bool HasComponent<T>() where T : Component, new()
         {
@@ -23,7 +26,7 @@ namespace KTN
             if (!HasComponent<T>())
                 return null;
 
-            T component = new T() { ID = ID, SceneHandle = SceneHandle };
+            T component = new T() { ID = ID, SceneHandle = SceneHandle, Type = Type };
             return component;
         }
 

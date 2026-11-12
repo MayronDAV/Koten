@@ -12,6 +12,7 @@
 #include "Koten/Utils/HashCombiner.h"
 #include "Koten/Utils/Utils.h"
 #include "Koten/Asset/Asset.h"
+#include "Koten/Core/Definitions.h"
 
 // lib
 #include <glm/glm.hpp>
@@ -110,6 +111,31 @@ namespace YAML
     };
 
     template<>
+    struct convert<KTN::ObjectHandle>
+    {
+        static inline Node encode(const KTN::ObjectHandle& p_Rhs)
+        {
+            Node node;
+            node.push_back(p_Rhs.ID);
+            node.push_back(p_Rhs.SceneHandle);
+            node.push_back(p_Rhs.Type);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
+
+        static inline bool decode(const Node& p_Node, KTN::ObjectHandle& p_Rhs)
+        {
+            if (!p_Node.IsSequence() || p_Node.size() != 3)
+                return false;
+
+            p_Rhs.ID          = p_Node[0].as<uint64_t>();
+            p_Rhs.SceneHandle = p_Node[1].as<uint64_t>();
+            p_Rhs.Type        = p_Node[2].as<int32_t>();
+            return true;
+        }
+    };
+
+    template<>
     struct convert<glm::vec2>
     {
         static inline Node encode(const glm::vec2& p_Rhs)
@@ -188,5 +214,6 @@ namespace YAML
     Emitter& operator<<(Emitter& p_Out, const glm::vec2& p_Value);
     Emitter& operator<<(Emitter& p_Out, const glm::vec3& p_Value);
     Emitter& operator<<(Emitter& p_Out, const glm::vec4& p_Value);
+    Emitter& operator<<(Emitter& p_Out, const KTN::ObjectHandle& p_Value);
     Emitter& operator<<(Emitter& p_Out, const KTN::AssetHandle& p_Handle);
 } // namespace YAML

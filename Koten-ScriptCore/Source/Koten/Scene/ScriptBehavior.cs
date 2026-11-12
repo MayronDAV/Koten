@@ -9,11 +9,17 @@ namespace KTN
         {
         }
 
-        internal ScriptBehavior(ulong p_ID, ulong p_SceneHandle)
+        public ScriptBehavior(ulong p_ID, ulong p_SceneHandle)
         {
             ID = p_ID;
             SceneHandle = p_SceneHandle;
             GameObject = new GameObject(ID, SceneHandle);
+        }
+
+        public ScriptBehavior(Object p_Object)
+            : base(p_Object)
+        {
+            GameObject = new GameObject(p_Object);
         }
 
         public GameObject GameObject { get; internal set; }

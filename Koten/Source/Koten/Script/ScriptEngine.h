@@ -7,6 +7,7 @@
 
 extern "C" {
     typedef struct _MonoClass MonoClass;
+    typedef struct _MonoType MonoType;
     typedef struct _MonoObject MonoObject;
     typedef struct _MonoMethod MonoMethod;
     typedef struct _MonoAssembly MonoAssembly;
@@ -18,48 +19,94 @@ extern "C" {
 
 namespace KTN
 {
+    using ScriptFieldValue = std::variant<
+        std::monostate,
+        float,
+        double,
+        bool,
+        char16_t,
+        int8_t,
+        int16_t,
+        int32_t,
+        int64_t,
+        uint8_t,
+        uint16_t,
+        uint32_t,
+        uint64_t,
+        glm::vec2,
+        glm::vec3,
+        glm::vec4,
+        std::string,
+        ObjectHandle
+    >;
+
+    enum class ScriptFieldCategory
+    {
+        Unsupported = 0,
+        Primitive,
+        Array,
+        Enum,
+        Struct,
+        Class
+    };
+
     struct ScriptField
     {
         ScriptFieldType Type;
+        ScriptFieldCategory Category;
+
         std::string Name;
-        bool IsPrivate = false;
 
+        bool IsPrivate    = false;
         bool ShowInEditor = false;
-        bool Serialize = false;
+        bool Serialize    = false;
 
-        MonoClassField* ClassField;
+        MonoClassField* Field  = nullptr;
+        MonoType* FieldType    = nullptr;
+        MonoClass* FieldClass  = nullptr;
     };
 
     struct ScriptFieldInstance
     {
         ScriptField Field;
+        ScriptFieldValue Value;
 
-        ScriptFieldInstance()
+        bool IsChanged = false;
+
+        template<typename T>
+        bool IsType() const
         {
-            memset(m_Buffer, 0, sizeof(m_Buffer));
+            return std::holds_alternative<T>(Value);
         }
 
         template<typename T>
-        T GetValue()
+        const T* GetIfValue() const
         {
-            static_assert(sizeof(T) <= 16, "Type too large!");
-            return *(T*)m_Buffer;
+            return std::get_if<T>(&Value);
         }
 
         template<typename T>
-        void SetValue(T p_Value)
+        T GetValue() const
         {
-            static_assert(sizeof(T) <= 16, "Type too large!");
-            m_Changed = true;
-            memcpy(m_Buffer, &p_Value, sizeof(T));
-        }
-    
-    private:
-        bool m_Changed = false;
-        uint8_t m_Buffer[16];
+            if (!IsType<T>())
+                return T();
 
-        friend class ScriptEngine;
-        friend class ScriptInstance;
+            return std::get<T>(Value);
+        }
+
+        template<typename T>
+        void SetValue(const T& value)
+        {
+            Value = value;
+            IsChanged = true;
+        }
+    };
+
+    class KTN_API ScriptFieldUtils
+    {
+        public:
+            static bool SetFieldValue(MonoObject* p_Instance, const ScriptField& p_Field, const ScriptFieldValue& p_Value);
+            static bool GetFieldValue(MonoObject* p_Instance, const ScriptField& p_Field, ScriptFieldValue& p_OutValue);
     };
 
     using ScriptFieldMap = std::unordered_map<std::string, ScriptFieldInstance>;
@@ -76,6 +123,12 @@ namespace KTN
 
             std::map<std::string, ScriptField>& GetFields() { return m_Fields; }
             const std::map<std::string, ScriptField>& GetFields() const { return m_Fields; }
+
+            std::string GetName() const { return m_Name; }
+            std::string GetNamespace() const { return m_Namespace; }
+            std::string GetFullName() const { return m_Namespace + "." + m_Name; }
+
+            MonoClass* GetMonoClass() { return m_Class; }
 
         private:
             std::string m_Namespace = "";
@@ -104,31 +157,54 @@ namespace KTN
             {
                 KTN_PROFILE_FUNCTION();
 
-                static_assert(sizeof(T) <= 16, "Type too large!");
-
-                static char fieldValueBuffer[16];
-                bool success = GetFieldValueInternal(p_Name, fieldValueBuffer);
-                if (!success)
+                const auto& fields = m_ScriptClass->GetFields();
+                auto it = fields.find(p_Name);
+                if (it == fields.end())
+                {
+                    KTN_CORE_ERROR("Field '{}' not found in script class '{}'", p_Name, m_ScriptClass->GetName());
                     return T();
+                }
 
-                return *(T*)fieldValueBuffer;
+                ScriptFieldValue value = std::monostate{};
+                bool success = ScriptFieldUtils::GetFieldValue(GetManagedObject(), it->second, value);
+                if (!success)
+                {
+                    KTN_CORE_ERROR("Failed to get field '{}' in script class '{}'", p_Name, m_ScriptClass->GetName());
+                    return T();
+                }
+
+                if (!std::holds_alternative<T>(value))
+                {
+                    KTN_CORE_ERROR("Field '{}' in script class '{}' is not of type '{}'", p_Name, m_ScriptClass->GetName(), typeid(T).name());
+                    return T();
+                }
+                return std::get<T>(value);
             }
 
             template<typename T>
-            void SetFieldValue(const std::string& p_Name, T p_Value)
+            bool SetFieldValue(const std::string& p_Name, T p_Value)
             {
                 KTN_PROFILE_FUNCTION();
 
-                static_assert(sizeof(T) <= 16, "Type too large!");
+                const auto& fields = m_ScriptClass->GetFields();
+                auto it = fields.find(p_Name);
+                if (it == fields.end())
+                {
+                    KTN_CORE_ERROR("Field '{}' not found in script class '{}'", p_Name, m_ScriptClass->GetName());
+                    return false;
+                }
 
-                SetFieldValueInternal(p_Name, &p_Value);
+                bool success = ScriptFieldUtils::SetFieldValue(GetManagedObject(), it->second, p_Value);
+                if (!success)
+                {
+                    KTN_CORE_ERROR("Failed to set field '{}' in script class '{}'", p_Name, m_ScriptClass->GetFullName());
+                    return false;
+                }
+
+                return true;
             }
 
             MonoObject* GetManagedObject();
-
-        private:
-            bool GetFieldValueInternal(const std::string& p_Name, void* p_Buffer);
-            bool SetFieldValueInternal(const std::string& p_Name, const    void* p_Value);
 
         private:
             Ref<ScriptClass> m_ScriptClass = nullptr;
@@ -168,7 +244,7 @@ namespace KTN
 
             static Ref<ScriptClass> GetEntityClass(const std::string& p_Name);
             static Ref<ScriptInstance> GetEntityScriptInstance(UUID p_EntityID);
-            static ScriptFieldMap& GetScriptFieldMap(Entity p_Entity);
+            static ScriptFieldMap& GetScriptFieldMap(const std::string& p_FullClassName);
             static const std::unordered_map<std::string, Ref<ScriptClass>>& GetEntityClasses();
             static const std::unordered_map<UUID, Ref<ScriptInstance>>& GetEntityInstances();
             static MonoImage* GetCoreAssemblyImage();
