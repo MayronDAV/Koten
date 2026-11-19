@@ -64,7 +64,7 @@ project "Editor"
 
         postbuildcommands 
         {
-            ("{COPY} %{wks.location}/bin/" .. outputdir .. "/Koten/libKoten.so %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/")
+            ("{COPYFILE} %{wks.location}/bin/" .. outputdir .. "/Koten/libKoten.so %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/")
         }
 
     filter "configurations:Debug"

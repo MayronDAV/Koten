@@ -203,7 +203,7 @@ namespace KTN
                 auto& path                      = entry.path();
                 if (!std::filesystem::is_regular_file(path)) continue;
 
-                auto filePath                   = FileSystem::GetRelative(path.string(), "Assets");
+                auto filePath                   = FileSystem::GetRelative(FileSystem::NormalizePath(path.string()), "Assets");
                 if (isStageFile(path))
                 {
                     AssetMetadata metadata      = {};
@@ -219,7 +219,7 @@ namespace KTN
                 {
                     AssetMetadata metadata      = {};
                     metadata.Type               = AssetType::Shader;
-                    metadata.FilePath           = "Assets\\" + filePath;
+                    metadata.FilePath           = FileSystem::NormalizePath("Assets/" + filePath);
                     metadata.SerializeAssetData = false;
                     metadata.Load               = false;
                     metadata.Scope              = AssetScope::Global;

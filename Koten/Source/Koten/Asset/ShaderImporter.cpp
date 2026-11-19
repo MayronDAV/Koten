@@ -60,7 +60,8 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        if (FileSystem::GetExtension(p_Path) != ".ktshader")
+        std::filesystem::path filepath = FileSystem::NormalizePath(p_Path);
+        if (filepath.extension() != ".ktshader")
         {
             KTN_CORE_ERROR("Failed to load file '{}'\n     Wrong extension!", p_Path);
             return nullptr;
@@ -69,7 +70,7 @@ namespace KTN
         YAML::Node data;
         try
         {
-            data = YAML::LoadFile(p_Path);
+            data = YAML::LoadFile(filepath.string());
         }
         catch (YAML::ParserException e)
         {
@@ -155,7 +156,7 @@ namespace KTN
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        auto path = FileSystem::ReplaceExtension(p_Path, ".ktshader");
+        auto path = FileSystem::ReplaceExtension(FileSystem::NormalizePath(p_Path), ".ktshader");
         std::ofstream fout(path);
         fout << out.c_str();
     }

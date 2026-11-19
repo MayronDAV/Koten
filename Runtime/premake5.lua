@@ -60,7 +60,7 @@ project "Runtime"
 
         postbuildcommands 
         {
-            ("{COPY} %{wks.location}/bin/" .. outputdir .. "/Koten/libKoten.so %{wks.location}/Editor/Resources/%{prj.name}/")
+            ("{COPYFILE} %{wks.location}/bin/" .. outputdir .. "/Koten/libKoten.so %{wks.location}/Editor/Resources/%{prj.name}/")
         }
 
     filter "configurations:Debug"
