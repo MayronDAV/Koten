@@ -14,16 +14,18 @@ namespace KTN
 {
     struct RenderPassInfo
     {
-        Ref<Texture2D> RenderTarget  = nullptr;
-        Ref<Texture2D> PickingTarget = nullptr;
-        uint32_t Width               = 0;
-        uint32_t Height              = 0;
-        uint8_t Samples              = 1;
-        glm::mat4 Projection         = {};
-        glm::mat4 View               = { 1.0f };
-        glm::vec4 ClearColor         = { 0.0f, 0.0f, 0.0f, 1.0f };
-        bool Clear                   = true;
-        bool Picking                 = false;
+        Ref<Texture2D> RenderTarget   = nullptr;
+        Ref<Texture2D> PickingTarget  = nullptr;
+        uint32_t Width                = 0;
+        uint32_t Height               = 0;
+        uint8_t Samples               = 1;
+        glm::mat4 Projection          = {};
+        glm::mat4 View                = { 1.0f };
+        glm::vec4 ClearColor          = { 0.0f, 0.0f, 0.0f, 1.0f };
+        bool Clear                    = true;
+        bool Picking                  = false;
+
+        RenderCullingSettings Culling = {};
     };
 
     class KTN_API Renderer

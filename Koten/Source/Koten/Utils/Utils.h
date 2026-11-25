@@ -10,6 +10,8 @@
 
 namespace KTN::Utils
 {
+    KTN_API std::u32string UTF8ToUTF32(const std::string_view& p_UTF8);
+
     KTN_API uint32_t DataTypeSize(DataType p_Type);
     KTN_API uint8_t  TextureFormatToChannels(TextureFormat p_Format);
     KTN_API uint8_t  TextureFormatToBytesPerChannels(TextureFormat p_Format);

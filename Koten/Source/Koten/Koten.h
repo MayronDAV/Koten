@@ -77,6 +77,15 @@
 #include "Koten/ImGui/ImGuiLayer.h"
 #include "Koten/ImGui/Utils/UI.h"
 
+// MATH
+
+#include "Koten/Math/Transform.h"
+#include "Koten/Math/BoundingSphere.h"
+#include "Koten/Math/BoundingBox.h"
+#include "Koten/Math/Plane.h"
+#include "Koten/Math/Frustum.h"
+#include "Koten/Math/BVHTree.h"
+
 // OS
 
 #include "Koten/OS/FileDialog.h"

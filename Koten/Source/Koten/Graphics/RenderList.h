@@ -2,6 +2,8 @@
 #include "Koten/Core/Base.h"
 #include "Koten/Graphics/Texture.h"
 #include "Koten/Graphics/DFFont.h"
+#include "Koten/Math/BoundingSphere.h"
+#include "Koten/Math/BoundingBox.h"
 
 // lib
 #include <glm/glm.hpp>
@@ -72,6 +74,8 @@ namespace KTN
         PickingID ID          = INVALID_PICKING_ID;
         glm::mat4 Transform   = { 1.0f };
 
+        std::variant<std::monostate, Math::BoundingBox, Math::BoundingSphere> Bounds;
+
         std::variant<LineCommand, TextCommand, SpriteCommand> Command;
     };
 
@@ -79,13 +83,34 @@ namespace KTN
     {
         public:
             RenderList()  = default;
+            RenderList(const RenderList& p_List) : m_Commands(p_List.m_Commands) {}
+            RenderList(const std::vector<RenderCommand>& p_Commands) : m_Commands(p_Commands) {}
             ~RenderList() = default;
 
             void Clear() { m_Commands.clear(); }
 
+            bool Empty() const { return m_Commands.empty(); }
+
             void Submit(const RenderCommand& Command) { m_Commands.push_back(Command); }
 
             const std::vector<RenderCommand>& GetCommands() const { return m_Commands; }
+
+            size_t Size() const { return m_Commands.size(); }
+
+            RenderCommand& operator[](size_t p_Index) { return m_Commands[p_Index]; }
+            const RenderCommand& operator[](size_t p_Index) const { return m_Commands[p_Index]; }
+
+            RenderCommand& back() { return m_Commands.back(); }
+
+            std::vector<RenderCommand>::iterator begin()          { return m_Commands.begin(); }
+            std::vector<RenderCommand>::iterator end()            { return m_Commands.end(); }
+            std::vector<RenderCommand>::reverse_iterator rbegin() { return m_Commands.rbegin(); }
+            std::vector<RenderCommand>::reverse_iterator rend()   { return m_Commands.rend(); }
+
+            std::vector<RenderCommand>::const_iterator begin()          const { return m_Commands.begin(); }
+            std::vector<RenderCommand>::const_iterator end()            const { return m_Commands.end(); }
+            std::vector<RenderCommand>::const_reverse_iterator rbegin() const { return m_Commands.rbegin(); }
+            std::vector<RenderCommand>::const_reverse_iterator rend()   const { return m_Commands.rend(); }
 
         private:
             std::vector<RenderCommand> m_Commands;

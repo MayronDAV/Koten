@@ -9,10 +9,12 @@ namespace TW
 {
     public class Gen : ScriptBehavior
     {
-        public Asset m_Door;
-        public Asset m_Ground;
-        public Asset m_Wall;
-        public Asset m_Player;
+        public Asset Door;
+        public Asset Ground;
+        public Asset Wall;
+        public Asset Player;
+        public bool UseVersion2 = false;
+        public bool Draw100 = true;
 
         private string m_Map;
         private string[] m_Map2;
@@ -21,31 +23,56 @@ namespace TW
         {
             m_Map    = "#####D######.........##.........##.........##..#......##..#......##..######.##.........##.........##.........############";
             m_Map2   = new string[]{
-                "#####D#####",
-                "#.........#",
-                "#.........#",
-                "#.........#",
-                "#.........#",
-                "#.........#",
-                "#.........#",
-                "#.........#",
-                "#.........#",
-                "#.........#",
-                "#.........#",
-                "###########"
+                "#####D################################",
+                "#..........#.........................#",
+                "#..................#........#........#",
+                "#..........##........................#",
+                "#...#......#........#................#",
+                "#........................#........#..#",
+                "#...............#........##..........#",
+                "#..........#..............#..........#",
+                "#.................#..................#",
+                "#...#...........................#....#",
+                "#.............#........#.............#",
+                "#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.##",
+                "##.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#",
+                "#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.##",
+                "##.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#",
+                "#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.##",
+                "##.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#",
+                "#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.##",
+                "##.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#",
+                "#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.##",
+                "##.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#",
+                "#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.##",
+                "##.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#.#",
+                "######################################"
             };
 
-            if (m_Door == null   || !m_Door.IsValid()   || 
-                m_Ground == null || !m_Ground.IsValid() || 
-                m_Wall == null   || !m_Wall.IsValid()   || 
-                m_Player == null || !m_Player.IsValid())
+            if (Door == null   || !Door.IsValid()   || 
+                Ground == null || !Ground.IsValid() || 
+                Wall == null   || !Wall.IsValid()   || 
+                Player == null || !Player.IsValid())
             {
                 return;
             }
 
-            Instantiate(m_Player, new Vector3(5.0f, -8.0f, 0.0f), new Vector3(1.0f, 1.0f, 1.0f), Vector3.Zero);
+            Instantiate(Player, new Vector3(5.0f, -8.0f, 0.0f), Vector3.One, Vector3.Zero);
 
-            List<MapRect> rectangles = MapGenerator.Generate(m_Map, 11, 11, 1.0f);
+            if (Draw100)
+            {
+                for (int x = 0; x < 11; x++)
+                {
+                    for (int y = 0; y < 11; y++)
+                    {
+                        Instantiate(Ground, new Vector3(x, y, 0.0f), Vector3.One, Vector3.Zero);
+                    }
+                }
+                return;
+            }
+
+            //List<MapRect> rectangles = MapGenerator.Generate(m_Map, 11, 11, 1.0f);
+            List<MapRect> rectangles = UseVersion2 ? MapGenerator.Generate(m_Map2, 38, 1.0f) : MapGenerator.Generate(m_Map, 11, 11, 1.0f);
             var rects = new Dictionary<char, List<MapRect>>();
             foreach (MapRect rect in rectangles)
             {
@@ -62,7 +89,7 @@ namespace TW
 
                 foreach (MapRect rect in rectList)
                 {
-                    Instantiate(m_Door, rect.Position, rect.Scale, Vector3.Zero);
+                    Instantiate(Door, rect.Position, rect.Scale, Vector3.Zero);
                 }
             }
 
@@ -73,7 +100,7 @@ namespace TW
 
                 foreach (MapRect rect in rectList)
                 {
-                    Instantiate(m_Wall, rect.Position, rect.Scale, Vector3.Zero);
+                    Instantiate(Wall, rect.Position, rect.Scale, Vector3.Zero);
                 }
             }
 
@@ -84,7 +111,7 @@ namespace TW
 
                 foreach (MapRect rect in rectList)
                 {
-                    Instantiate(m_Ground, rect.Position, rect.Scale, Vector3.Zero);
+                    Instantiate(Ground, rect.Position, rect.Scale, Vector3.Zero);
                 }
             }
         }

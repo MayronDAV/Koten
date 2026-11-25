@@ -86,6 +86,9 @@ namespace KTN
         viewport->RenderTarget      = m_MainTexture;
         viewport->PickingTarget     = nullptr;
 
+        viewport->Culling.MaxDistance    = -1.0f;
+        viewport->Culling.FrustumCulling = true;
+
         viewport->Size              = { (float)m_Viewport.Width, (float)m_Viewport.Height };
         viewport->Position          = { m_Viewport.Position.x, m_Viewport.Position.y };
 

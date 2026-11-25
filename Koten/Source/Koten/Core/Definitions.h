@@ -59,10 +59,12 @@ namespace KTN
         };
         #pragma pack(pop)
 
-        inline constexpr uint8_t  MAX_RENDER_TARGETS = 4;
-        inline constexpr uint32_t INVALID_ANIM_STATE = UINT32_MAX;
-        inline constexpr uint16_t MAX_INSTANCES      = 5000;
-        inline constexpr uint8_t  MAX_TEXTURE_SLOTS  = 32;
+        inline constexpr uint8_t  MAX_RENDER_TARGETS   = 4;
+        inline constexpr uint32_t INVALID_ANIM_STATE   = UINT32_MAX;
+        inline constexpr uint16_t MAX_INSTANCES        = 5000;
+        inline constexpr uint8_t  MAX_TEXTURE_SLOTS    = 32;
+        inline constexpr float    MATH_EPSILON         = 1e-6f;
+        inline constexpr uint16_t RENDER_BVH_THRESHOLD = 100;
 
         using ViewportID                             = std::string;
 
@@ -358,6 +360,13 @@ namespace KTN
         Fill
     };
 
+    enum class Intersection : uint8_t
+    {
+        Outside,
+        Intersecting,
+        Inside
+    };
+
     #pragma endregion
 
     #pragma region Structs
@@ -538,28 +547,37 @@ namespace KTN
         glm::mat4 View               = glm::mat4(1.0f);
         glm::vec4 ClearColor         = { 0.0f, 0.0f, 0.0f, 1.0f };
     };
+    
+    struct RenderCullingSettings
+    {
+        bool FrustumCulling = false;
+
+        float MaxDistance = -1.0f; // < 0 -> infinite
+    };
 
     struct ViewportContext
     {
         using SceneCameraMap = std::unordered_map<uint64_t, ViewportViewData>;
 
-        ViewportID ID                = "";
+        ViewportID ID                 = "";
 
-        glm::vec2 Size               = { 0.0f, 0.0f };
-        glm::vec2 Position           = { 0.0f, 0.0f };
+        glm::vec2 Size                = { 0.0f, 0.0f };
+        glm::vec2 Position            = { 0.0f, 0.0f };
 
-        Ref<Texture2D> PickingTarget = nullptr;
-        Ref<Texture2D> RenderTarget  = nullptr;
+        Ref<Texture2D> PickingTarget  = nullptr;
+        Ref<Texture2D> RenderTarget   = nullptr;
 
         std::variant<std::monostate, ViewportViewData, SceneCameraMap> CameraData;
 
-        bool EnablePicking           = false;
-        bool UpdateUI                = true;
-        bool RenderUI                = true;
+        bool EnablePicking            = false;
+        bool UpdateUI                 = true;
+        bool RenderUI                 = true;
+
+        RenderCullingSettings Culling = {};
 
         // If it's different from 0, the viewport will be
         // updated/rendered for this specific scene!
-        uint64_t SceneID             = 0;
+        uint64_t SceneID              = 0;
 
         void SetCustomCamera()
         {

@@ -4,11 +4,21 @@
 #include <stb/stb_image.h>
 #include <stb/stb_image_resize2.h>
 
+// std
+#include <codecvt>
+#include <locale>
+
 
 
 namespace KTN::Utils
 {
-    KTN_API uint32_t DataTypeSize(DataType p_Type)
+    std::u32string UTF8ToUTF32(const std::string_view& p_UTF8)
+    {
+        std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
+        return converter.from_bytes(p_UTF8.data());
+    }
+
+    uint32_t DataTypeSize(DataType p_Type)
     {
         switch (p_Type)
         {

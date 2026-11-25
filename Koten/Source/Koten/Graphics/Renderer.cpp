@@ -7,10 +7,12 @@
 #include "Koten/Core/TaskManager.h"
 #include "Koten/Asset/AssetManager.h"
 #include "Koten/Core/ShaderModuleLibrary.h"
+#include "Koten/Math/Frustum.h"
+#include "Koten/Math/BVHTree.h"
+#include "Koten/Core/JobGroup.h"
+#include "Koten/Core/ThreadManager.h"
 
 // std
-#include <codecvt>
-#include <locale>
 #include <typeindex>
 
 
@@ -97,6 +99,7 @@ namespace KTN
 
                 bool Empty() const { return m_Count == 0 || m_Batches.empty(); }
                 void Reserve(size_t p_Size) { m_Batches.reserve(p_Size); }
+                uint32_t GetCount() const { return m_Count; }
 
                 TBatch& GetOrCreateBatch()
                 {
@@ -143,8 +146,15 @@ namespace KTN
             RenderPass& operator=(RenderPass&&) noexcept = default;
 
             Ref<RenderTargets> Targets = nullptr;
+            Ref<JobGroup> SubmitGroup;
+            Ref<Math::BVHTree> Tree;
+
+            size_t TotalCommands = 0;
+            bool UseBVH          = false;
+
             RenderPassInfo Info;
-            std::vector<RenderList> Lists;
+            Math::Frustum Frustum;
+            std::vector<Ref<RenderList>> Lists;
 
             template<typename T, typename... Args>
             T& GetData(Args&&... p_Args)
@@ -177,13 +187,21 @@ namespace KTN
         struct TargetsCacheEntry
         {
             Ref<RenderTargets> Targets;
-            double TimeSinceLastAccessed;
+            double TimeSinceLastAccessed = 0.0f;
+        };
+
+        struct TreesCacheEntry
+        {
+            Ref<JobGroup> TreeGroup;
+            Ref<Math::BVHTree> Tree;
+            double TimeSinceLastAccessed = 0.0f;
         };
 
         struct RendererState
         {
             RendererResources Resources;
             std::unordered_map<uint64_t, TargetsCacheEntry> TargetsCache;
+            std::unordered_map<uint64_t, TreesCacheEntry> TreesCache;
             inline static constexpr double CacheLifeTime = 0.1;
 
             FrameData Frame;
@@ -353,11 +371,11 @@ namespace KTN
                 Resources m_Resources;
         };
 
-        static std::u32string UTF8ToUTF32(const std::string_view& p_UTF8)
+        class RenderCulling
         {
-            std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
-            return converter.from_bytes(p_UTF8.data());
-        }
+            public:
+                void Filter(RenderPass& p_Pass);
+        };
 
         static void Clear(RenderPass& p_Pass)
         {
@@ -372,7 +390,7 @@ namespace KTN
             if (p_Pass.Targets->Depth)
                 RendererCommand::ClearRenderTarget(p_Pass.Targets->Depth, -1);
             if (p_Pass.Targets->PickingDepth)
-                RendererCommand::ClearRenderTarget(p_Pass.Targets->PickingDepth, -1);
+            RendererCommand::ClearRenderTarget(p_Pass.Targets->PickingDepth, -1);
         }
 
         static Ref<Shader> GetShader(const std::string& p_Path)
@@ -380,12 +398,62 @@ namespace KTN
             return AssetManager::Get()->GetAsset<Shader>(AssetManager::Get()->GetHandleByPath(p_Path));
         }
 
-    } // namespace
+        static uint64_t Pack(uint32_t p_First, uint32_t p_Second)
+        {
+            return (static_cast<uint64_t>(p_First) << 32) | p_Second;
+        }
+
+        static std::pair<uint32_t, uint32_t> Unpack(uint64_t p_Value)
+        {
+            return { static_cast<uint32_t>(p_Value >> 32), static_cast<uint32_t>(p_Value & 0xFFFFFFFF) };
+        }
+
+        static Math::BoundingBox CalculateCommandBounds(const RenderCommand& p_Command)
+        {
+            KTN_PROFILE_FUNCTION_LOW();
+
+            if (auto* box = std::get_if<Math::BoundingBox>(&p_Command.Bounds))
+                return *box;
+
+            if (auto* sphere = std::get_if<Math::BoundingSphere>(&p_Command.Bounds))
+                return *sphere;
+
+            Math::BoundingBox box = {};
+            box.Set(glm::vec3(0.0f), glm::vec3(0.0f));
+
+            if (auto* value = std::get_if<LineCommand>(&p_Command.Command))
+            {
+                box.Set(value->Start, value->End);
+                box.Merge({ 0.0f, value->Width, 0.0f });
+                box.Transform(p_Command.Transform);
+            }
+            else if (auto* value = std::get_if<TextCommand>(&p_Command.Command))
+            {
+                auto utf32String = Utils::UTF8ToUTF32(value->Text);
+                auto positions = value->Font->CalculatePositions(utf32String, value->LineSpacing, value->Kerning);
+                for (auto& [quad, uvs] : positions)
+                {
+                    glm::vec2 quadMin = { quad.x, quad.y };
+                    glm::vec2 quadMax = { quad.z, quad.w };
+
+                    box.Merge({ quadMin, 0.0f });
+                    box.Merge({ quadMax, 0.0f });
+                }
+                box.Transform(p_Command.Transform);
+            }
+            else
+                return Math::BoundingBox(p_Command.Transform);
+
+            return box;
+        }
+
+} // namespace
 
     static RendererState* s_Renderer = nullptr;
     static SpriteRenderer* s_Sprite  = nullptr;
     static LineRenderer* s_Line      = nullptr;
     static TextRenderer* s_Text      = nullptr;
+    static RenderCulling* s_Culling  = nullptr;
 
     void Renderer::Init()
     {
@@ -407,6 +475,7 @@ namespace KTN
         s_Sprite                                 = new SpriteRenderer();
         s_Line                                   = new LineRenderer();
         s_Text                                   = new TextRenderer();
+        s_Culling                                = new RenderCulling();
     }
 
     void Renderer::Shutdown()
@@ -447,6 +516,13 @@ namespace KTN
 
         for (auto& pass : s_Renderer->Frame.Passes)
         {
+            if (pass.Info.Culling.FrustumCulling || pass.Info.Culling.MaxDistance >= 0.0f)
+            {
+                pass.SubmitGroup->Wait();
+
+                s_Culling->Filter(pass);
+            }
+
             if (pass.Info.Clear && !pass.Targets->ClearedThisFrame)
             {
                 Clear(pass);
@@ -522,25 +598,51 @@ namespace KTN
         RendererCommand::End();
 
 
-        static std::size_t keysToDelete[256];
-        std::size_t keysToDeleteCount = 0;
-
-        for (auto&& [key, value] : s_Renderer->TargetsCache)
         {
-            if (value.Targets && (Time::GetTime() - value.TimeSinceLastAccessed) > RendererState::CacheLifeTime)
+            static std::size_t keysToDelete[256];
+            std::size_t keysToDeleteCount = 0;
+
+            for (auto&& [key, value] : s_Renderer->TargetsCache)
             {
-                keysToDelete[keysToDeleteCount] = key;
-                keysToDeleteCount++;
+                if (value.Targets && (Time::GetTime() - value.TimeSinceLastAccessed) > RendererState::CacheLifeTime)
+                {
+                    keysToDelete[keysToDeleteCount] = key;
+                    keysToDeleteCount++;
+                }
+
+                if (keysToDeleteCount >= 256)
+                    break;
             }
 
-            if (keysToDeleteCount >= 256)
-                break;
+            for (std::size_t i = 0; i < keysToDeleteCount; i++)
+            {
+                s_Renderer->TargetsCache[keysToDelete[i]].Targets = nullptr;
+                s_Renderer->TargetsCache.erase(keysToDelete[i]);
+            }
         }
 
-        for (std::size_t i = 0; i < keysToDeleteCount; i++)
         {
-            s_Renderer->TargetsCache[keysToDelete[i]].Targets = nullptr;
-            s_Renderer->TargetsCache.erase(keysToDelete[i]);
+            static std::size_t keysToDelete[256];
+            std::size_t keysToDeleteCount = 0;
+
+            for (auto&& [key, value] : s_Renderer->TreesCache)
+            {
+                if ((value.Tree && value.TreeGroup) && (Time::GetTime() - value.TimeSinceLastAccessed) > RendererState::CacheLifeTime)
+                {
+                    keysToDelete[keysToDeleteCount] = key;
+                    keysToDeleteCount++;
+                }
+
+                if (keysToDeleteCount >= 256)
+                    break;
+            }
+
+            for (std::size_t i = 0; i < keysToDeleteCount; i++)
+            {
+                s_Renderer->TreesCache[keysToDelete[i]].TreeGroup = nullptr;
+                s_Renderer->TreesCache[keysToDelete[i]].Tree      = nullptr;
+                s_Renderer->TreesCache.erase(keysToDelete[i]);
+            }
         }
     }
 
@@ -549,13 +651,36 @@ namespace KTN
         KTN_PROFILE_FUNCTION();
 
         TaskManager::Get().ExecutePhase(TaskManager::Phase::RenderPass);
-
+        
         uint64_t hash                 = p_PassInfo.RenderTarget ? (uint64_t)p_PassInfo.RenderTarget->Handle : 0ul;
         HashCombine(hash, p_PassInfo.Width, p_PassInfo.Height, p_PassInfo.Samples);
 
         auto& pass                    = s_Renderer->Frame.Passes.emplace_back();
         pass.Info                     = p_PassInfo;
+        pass.Frustum                  = Math::Frustum(p_PassInfo.Projection, p_PassInfo.View);
         s_Renderer->Frame.CurrentPass = &pass;
+
+        if (p_PassInfo.Culling.FrustumCulling)
+        {
+            uint64_t treeHash = p_PassInfo.RenderTarget ? (uint64_t)p_PassInfo.RenderTarget->Handle : 0ul;
+            HashCombine(treeHash, p_PassInfo.Width, p_PassInfo.Height, p_PassInfo.Samples, p_PassInfo.Culling.FrustumCulling, p_PassInfo.Culling.MaxDistance);
+
+            auto it = s_Renderer->TreesCache.find(treeHash);
+            if (it != s_Renderer->TreesCache.end())
+            {
+                pass.SubmitGroup = it->second.TreeGroup;
+                pass.Tree        = it->second.Tree;
+                it->second.TimeSinceLastAccessed = Time::GetTime();
+            }
+            else
+            {
+                auto group       = JobGroup::Create();
+                auto tree        = CreateRef<Math::BVHTree>();
+                s_Renderer->TreesCache[treeHash] = { group, tree, Time::GetTime() };
+                pass.SubmitGroup = group;
+                pass.Tree        = tree;
+            }
+        }
 
         auto getOrCreateTargets = [&](Ref<RenderTargets>& p_Targets)
         {
@@ -641,7 +766,41 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION();
 
-        s_Renderer->Frame.CurrentPass->Lists.push_back(p_RenderList);
+        auto* currPass = s_Renderer->Frame.CurrentPass;
+        if (!currPass)
+            return;
+
+        auto list = CreateRef<RenderList>(p_RenderList);
+        currPass->Lists.push_back(list);
+        if (!currPass->Info.Culling.FrustumCulling && currPass->Info.Culling.MaxDistance < 0.0f)
+            return;
+
+        currPass->TotalCommands += list->Size();
+        currPass->UseBVH         = currPass->TotalCommands < RENDER_BVH_THRESHOLD;
+
+        auto index = (uint32_t)currPass->Lists.size() - 1;
+        ThreadManager::Get().ScheduleJob(currPass->SubmitGroup, [useBVH = currPass->UseBVH, tree = currPass->Tree, list, index]()
+        {
+            if (!tree || !list)
+                return;
+
+            for (size_t i = 0; i < list->Size(); i++)
+            {
+                const auto& command   = list->GetCommands()[i];
+                Math::BoundingBox box = CalculateCommandBounds(command);
+                if (!box.IsValid())
+                    continue;
+
+                if (!useBVH)
+                {
+                    (*list)[i].Bounds = box;
+                    continue;
+                }
+
+                uint64_t id = Pack(index, (uint32_t)i);
+                tree->Insert(id, box);
+            }
+        });
     }
 
     namespace
@@ -713,7 +872,9 @@ namespace KTN
 
             for (const auto& list : p_Pass.Lists)
             {
-                for (const auto& renderCommand : list.GetCommands())
+                if (!list) continue;
+
+                for (const auto& renderCommand : list->GetCommands())
                 {
                     if (!std::holds_alternative<SpriteCommand>(renderCommand.Command)) continue;
 
@@ -791,6 +952,9 @@ namespace KTN
 
             auto& spriteData            = p_Pass.GetData<SpritePassData>();
             if (spriteData.Batches.Empty())
+                return;
+
+            if (spriteData.Batches.GetCount() == 1 && spriteData.Batches[0].Instances.empty())
                 return;
 
             PipelineSpecification pspec = {};
@@ -920,7 +1084,9 @@ namespace KTN
 
             for (const auto& list : p_Pass.Lists)
             {
-                for (const auto& renderCommand : list.GetCommands())
+                if (!list) continue;
+
+                for (const auto& renderCommand : list->GetCommands())
                 {
                     if (!std::holds_alternative<LineCommand>(renderCommand.Command)) continue;
 
@@ -966,6 +1132,8 @@ namespace KTN
 
             for (auto& [width, batches] : lineData.PrimitiveBatches)
             {
+                if (batches.GetCount() == 1 && batches[0].Instances.empty()) continue;
+
                 pspec.LineWidth         = width;
                 pspec.DebugName         = "PrimitivePipeline Width: " + std::to_string(width);
 
@@ -995,6 +1163,8 @@ namespace KTN
 
                 pipeline->End(commandBuffer);
             }
+
+            if (lineData.NonPrimitiveBatches.GetCount() == 1 && lineData.NonPrimitiveBatches[0].Instances.empty()) return;
 
             pspec.pShader               = m_Resources.NonPrimitiveShader;
             pspec.DebugName             = "NonPrimitivePipeline";
@@ -1071,7 +1241,9 @@ namespace KTN
 
             for (const auto& list : p_Pass.Lists)
             {
-                for (const auto& renderCommand : list.GetCommands())
+                if (!list) continue;
+
+                for (const auto& renderCommand : list->GetCommands())
                 {
                     if (!std::holds_alternative<TextCommand>(renderCommand.Command)) continue;
 
@@ -1089,21 +1261,29 @@ namespace KTN
                         return;
                     }
 
-                    auto utf32String          = UTF8ToUTF32(command.Text);
+                    auto utf32String          = Utils::UTF8ToUTF32(command.Text);
                     auto positions            = command.Font->CalculatePositions(utf32String, command.LineSpacing, command.Kerning);
 
                     if (command.DrawBg && command.BgColor.a > 0.0f)
                     {
                         glm::vec2 minPos{ 0.0f }, maxPos{ 0.0f };
-                        for (size_t i = 0; i < positions.size(); i++)
+                        if (auto value = std::get_if<Math::BoundingBox>(&renderCommand.Bounds))
                         {
-                            const auto& pos   = positions[i].first;
+                            minPos = value->GetMin();
+                            maxPos = value->GetMax();
+                        }
+                        else
+                        {
+                            for (size_t i = 0; i < positions.size(); i++)
+                            {
+                                const auto& pos   = positions[i].first;
 
-                            glm::vec2 quadMin = { pos.x, pos.y };
-                            glm::vec2 quadMax = { pos.z, pos.w };
+                                glm::vec2 quadMin = { pos.x, pos.y };
+                                glm::vec2 quadMax = { pos.z, pos.w };
 
-                            minPos            = i == 0 ? quadMin : glm::min(minPos, quadMin);
-                            maxPos            = glm::max(maxPos, quadMax);
+                                minPos            = i == 0 ? quadMin : glm::min(minPos, quadMin);
+                                maxPos            = glm::max(maxPos, quadMax);
+                            }
                         }
 
                         InstanceData bgData   = {};
@@ -1174,6 +1354,7 @@ namespace KTN
 
             auto& textData              = p_Pass.GetData<TextPassData>();
             if (textData.Batches.Empty()) return;
+            if (textData.Batches.GetCount() == 1 && textData.Batches[0].Instances.empty()) return;
 
             PipelineSpecification pspec = {};
             pspec.pShader               = m_Resources.MainShader;
@@ -1260,6 +1441,127 @@ namespace KTN
 
                 pickingPipeline->End(commandBuffer);
             }
+        }
+
+        #pragma endregion
+
+        #pragma region RenderCulling
+
+        void RenderCulling::Filter(RenderPass& p_Pass)
+        {
+            KTN_PROFILE_FUNCTION();
+
+            if (p_Pass.Lists.empty())
+                return;
+
+            auto& info = p_Pass.Info;
+            if (!info.Culling.FrustumCulling && info.Culling.MaxDistance < 0.0f)
+                return;
+
+            if (!p_Pass.UseBVH)
+            {
+                auto listGroup                 = JobGroup::Create();
+                auto lists                     = p_Pass.Lists;
+                const glm::vec3 cameraPosition = glm::inverse(info.View)[3];
+                const bool useFrustum          = info.Culling.FrustumCulling;
+                const bool useDistance         = info.Culling.MaxDistance >= 0.0f;
+                const float maxDistanceSquared = info.Culling.MaxDistance * info.Culling.MaxDistance;
+
+                for (size_t i = 0; i < p_Pass.Lists.size(); i++)
+                {
+                    auto source      = p_Pass.Lists[i];
+                    if (!source || source->Empty())
+                        continue;
+
+                    auto destination = CreateRef<RenderList>();
+                    lists[i]         = destination;
+                    ThreadManager::Get().ScheduleJob( listGroup, [&, source, destination]()
+                    {
+                        for (const auto& command : source->GetCommands())
+                        {
+                            Math::BoundingBox box = CalculateCommandBounds(command);
+                            if (!box.IsValid())
+                                continue;
+
+                            if (useDistance)
+                            {
+                                const glm::vec3 closestPoint = glm::clamp(cameraPosition, box.GetMin(), box.GetMax());
+                                const glm::vec3 delta        = cameraPosition - closestPoint;
+                                if (glm::dot(delta, delta) > maxDistanceSquared)
+                                    continue;
+                            }
+
+                            if (useFrustum)
+                            {
+                                if (p_Pass.Frustum.Intersects(box) == Intersection::Outside)
+                                    continue;
+                            }
+
+                            destination->Submit(command);
+                        }
+                    });
+                }
+
+                listGroup->Wait();
+                p_Pass.Lists = std::move(lists);
+                return;
+            }
+
+            std::vector<std::vector<uint32_t>> visibleCommands(p_Pass.Lists.size());
+            const glm::vec3 cameraPosition = glm::inverse(info.View)[3];
+
+            p_Pass.Tree->Query(
+            [&](const Math::BoundingBox& p_Box)
+            {
+                Intersection result = Intersection::Inside;
+                if (info.Culling.FrustumCulling)
+                {
+                    result = p_Pass.Frustum.Intersects(p_Box);
+                    if (result == Intersection::Outside)
+                        return Intersection::Outside;
+                }
+
+                if (info.Culling.MaxDistance >= 0.0f)
+                {
+                    const glm::vec3 closestPoint = glm::clamp(cameraPosition, p_Box.GetMin(), p_Box.GetMax());
+                    const glm::vec3 delta = cameraPosition - closestPoint;
+                    if (glm::dot(delta, delta) > info.Culling.MaxDistance * info.Culling.MaxDistance)
+                        return Intersection::Outside;
+
+                    return Intersection::Intersecting;
+                }
+
+                return result;
+            },
+            [&](Math::BVHObjectID p_ID, const Math::BoundingBox& p_Box)
+            {
+                auto [listIndex, cmdIndex] = Unpack(p_ID);
+
+                if (listIndex >= visibleCommands.size())
+                    return false;
+
+                visibleCommands[listIndex].push_back(cmdIndex);
+                return false;
+            });
+
+            std::vector<Ref<RenderList>> lists(p_Pass.Lists.size());
+
+            for (size_t i = 0; i < visibleCommands.size(); ++i)
+            {
+                if (p_Pass.Lists[i]->Empty())
+                    continue;
+
+                auto& indices = visibleCommands[i];
+
+                std::sort(indices.begin(), indices.end());
+                lists[i] = CreateRef<RenderList>();
+
+                for (uint32_t index : indices)
+                    lists[i]->Submit((*p_Pass.Lists[i])[index]);
+            }
+
+            p_Pass.Lists.clear();
+            p_Pass.Lists = std::move(lists);
         }
 
         #pragma endregion

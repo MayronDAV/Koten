@@ -514,13 +514,19 @@ namespace KTN
 
                     ScriptFieldType fieldType = isObject ? ScriptFieldType::Object : MonoTypeToScriptFieldType(type);
 
-
                     if (flags & FIELD_ATTRIBUTE_PUBLIC)
                     {
                         //KTN_CORE_WARN("  '{}' ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
-                        fields[fieldName]          = { fieldType, category, fieldName, false, true, true, field, type, fieldClass };
-                        scriptFieldsMap[fieldName] = { fields[fieldName], GetScriptFieldValueByType(fieldType), false };
+                        fields[fieldName]      = { fieldType, category, fieldName, false, true, true, field, type, fieldClass };
+
+                        auto& instance         = scriptFieldsMap[fieldName];
+                        instance.Field         = fields[fieldName];
+                        instance.IsChanged     = false;
+                        if (auto it = scriptFieldsMap.find(fieldName); it != scriptFieldsMap.end())
+                            instance.IsChanged = true;
+                        else
+                            instance.Value     = GetScriptFieldValueByType(fieldType);
                     }
 
                     if (flags & FIELD_ATTRIBUTE_PRIVATE)
@@ -532,8 +538,15 @@ namespace KTN
 
                         //KTN_CORE_WARN("  '{}' ({}) [Private]", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
-                        fields[fieldName]          = { fieldType, category, fieldName, true, showInEditor, serialize, field, type, fieldClass };
-                        scriptFieldsMap[fieldName] = { fields[fieldName], GetScriptFieldValueByType(fieldType), false };
+                        fields[fieldName]      = { fieldType, category, fieldName, true, showInEditor, serialize, field, type, fieldClass };
+
+                        auto& instance         = scriptFieldsMap[fieldName];
+                        instance.Field         = fields[fieldName];
+                        instance.IsChanged     =  false;
+                        if (auto it = scriptFieldsMap.find(fieldName); it != scriptFieldsMap.end())
+                            instance.IsChanged = true;
+                        else
+                            instance.Value     = GetScriptFieldValueByType(fieldType);
                     }
                 }
 

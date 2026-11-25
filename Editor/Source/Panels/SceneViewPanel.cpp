@@ -184,6 +184,9 @@ namespace KTN
         viewport->Size.y           = (float)m_Viewport.RenderHeight;
         viewport->Position         = { m_Viewport.Position.x, m_Viewport.Position.y };
 
+        viewport->Culling.MaxDistance    = 1000.0f;
+        viewport->Culling.FrustumCulling = true;
+
         viewport->SetCustomCamera();
         auto& cameraData           = viewport->GetCustomCamera();
         cameraData.Projection      = camera->GetProjection();

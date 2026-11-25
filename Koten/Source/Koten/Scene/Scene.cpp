@@ -3,11 +3,8 @@
 #include "Entity.h"
 
 #include "Koten/Project/Project.h"
-
 #include "Koten/Scene/SceneManager.h"
-
 #include "Koten/Script/ScriptEngine.h"
-
 #include "Koten/Graphics/Renderer.h"
 #include "Koten/Graphics/DebugRenderer.h"
 #include "Koten/Graphics/DFFont.h"
@@ -17,7 +14,6 @@
 #include "Koten/Systems/B2Physics.h"
 #include "Koten/Systems/AnimSystem.h"
 #include "Koten/Systems/UISystem.h"
-
 
 
 
@@ -220,6 +216,9 @@ namespace KTN
     {
         KTN_PROFILE_FUNCTION_LOW();
 
+        p_Command.Bounds = Math::BoundingBox(p_Command.Transform);
+        auto& bounds = std::get<Math::BoundingBox>(p_Command.Bounds);
+
         auto sprite                        = p_Entity.TryGetComponent<SpriteComponent>();
         if (sprite)
         {
@@ -261,6 +260,9 @@ namespace KTN
             lineCommand.Start       = line->Start;
             lineCommand.End         = line->End;
 
+            bounds.Merge(lineCommand.Start);
+            bounds.Merge(lineCommand.End);
+
             p_Command.Command       = lineCommand;
             return true;
         }
@@ -277,6 +279,17 @@ namespace KTN
             textCommand.DrawBg      = text->DrawBg;
             textCommand.LineSpacing = text->LineSpacing;
             textCommand.Kerning     = text->Kerning;
+
+            auto utf32String = Utils::UTF8ToUTF32(textCommand.Text);
+            auto positions = textCommand.Font->CalculatePositions(utf32String, textCommand.LineSpacing, textCommand.Kerning);
+            for (auto& [quad, uvs] : positions)
+            {
+                glm::vec2 quadMin = { quad.x, quad.y };
+                glm::vec2 quadMax = { quad.z, quad.w };
+
+                bounds.Merge({ quadMin, 0.0f });
+                bounds.Merge({ quadMax, 0.0f });
+            }
 
             p_Command.Command       = textCommand;
             return true;
@@ -651,6 +664,7 @@ namespace KTN
         }
         info.Picking        = p_Viewport->EnablePicking && p_Viewport->PickingTarget;
         info.Clear          = true;
+        info.Culling        = p_Viewport->Culling;
 
         Renderer::BeginPass(info);
         {
