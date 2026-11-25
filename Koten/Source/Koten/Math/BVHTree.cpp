@@ -416,7 +416,7 @@ namespace KTN::Math
         if (workerCount == 0)
             workerCount = 4;
 
-        const size_t maxTasks = std::clamp(static_cast<size_t>(workerCount * 2), 2ull, 16ull);
+        const size_t maxTasks = std::clamp(static_cast<size_t>(workerCount * 2), (size_t)2, (size_t)16);
 
         std::vector<std::pair<const Node*, bool>> frontier;
         frontier.emplace_back(p_Node, p_ParentInside);
